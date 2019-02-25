@@ -1,4 +1,4 @@
-# deeplearning-lectures
+# Deep Learning Labs & Lectures
 
 
 Copyright (c) 2018 Jeremy Fix, CentraleSupelec
