@@ -23,14 +23,13 @@ For the keras tutorial, you need [tensorflow](https://tensorflow.org/install), [
 On ubuntu 18.04, for the pytorch tutorials, it is as simple as :
 
 ``` console
-mymachine:~:mylogin$ python3 --user -m pip install torch torchvision matplotplib\
-                                                   tensorboardX tensorflow
+mymachine:~:mylogin$ python3 -m pip install --user -U torch torchvision matplotplib tensorboardX tensorflow
 ```
 
 On ubuntu 18.04, for the Keras tutorial, it is as simple as :
 
 ``` console
-mymachine:~:mylogin$ python3 --user -m pip install tensorflow keras matplotplib
+mymachine:~:mylogin$ python3 -m pip install --user -U tensorflow keras matplotplib
 ```
 
 
