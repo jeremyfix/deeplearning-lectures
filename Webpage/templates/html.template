@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$"$endif$>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+$for(author-meta)$
+  <meta name="author" content="$author-meta$">
+$endfor$
+$if(date)$
+  <meta name="dcterms.date" content="$date$">
+$endif$
+  <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+$if(quotes)$
+  <style type="text/css">q { quotes: "“" "”" "‘" "’"; }</style>
+$endif$
+
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="./templates/myw3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source Sans Pro">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!-- Pygmentize css -->
+<link rel="stylesheet" href="./templates/pygmentize.css">
+<!--Math-->
+$if(math)$
+  $math$
+$endif$
+
+<!--Header includes-->
+$for(header-includes)$
+  $header-includes$
+  $endfor$
+</head>
+
+<body>
+$for(include-before)$
+$include-before$
+$endfor$
+$if(title)$
+<header>
+</header>
+$endif$
+
+<!--$if(toc)$
+<nav id="$idprefix$TOC">
+$toc$
+</nav>
+$endif$-->
+
+<nav class="w3-sidebar w3-bar-block w3-collapse w3-card" style="z-index:3;width:400px;" id="mySidebar">
+    <a class="w3-bar-item w3-button w3-hide-large w3-large" href="javascript:void(0)" onclick="w3_close()">Close <i class="fa fa-remove"></i></a>
+    <a class="w3-bar-item w3-white w3-center">Main menu</a>
+    <a class="w3-bar-item w3-button" href="index.html">Home</a>
+    <div class="w3-bar-item w3-light-gray w3-text-black">Keras/Tensorflow</div>
+    <a class="w3-bar-item w3-button" href="00-keras-mnist.html">1- First steps with Keras</a>
+    <a class="w3-bar-item w3-button" href="01-keras-cifar.html">2- A more ambitious dataset : CIFAR-100</a>
+    <div class="w3-bar-item w3-light-gray w3-text-black">Pytorch</div>
+    <a class="w3-bar-item w3-button" href="00-pytorch-fashionMnist.html">1- First steps with Pytorch</a>
+    <a class="w3-bar-item w3-button" href="01-pytorch-object-detection.html">2- Transfer learning/Object detection</a>
+    <div class="w3-bar-item w3-light-gray w3-text-black">Technical aspects</div>
+    <a class="w3-bar-item w3-button" href="cluster.html">Using the CentraleSupelec GPUs</a>
+    <a class="w3-bar-item w3-button" href="argparse.html">Parametrizing a script with argparse</a>
+    <a class="w3-bar-item w3-button" href="faq.html">Frequently asked questions (FAQ)</a>
+    <a class="w3-bar-item w3-button" href="howto.html">HowTo Markdown</a>
+    <hr/>
+    <a class="w3-bar-item w3-white w3-center">Submenu</a>
+    <hr/>
+    $toc$
+</nav>
+
+<div class="w3-overlay w3-hide-large w3-animate-opacity" onclick="w3_close()" style="cursor:pointer" id="myOverlay"></div>
+
+<div class="w3-main" style="margin-left:400px;">
+
+
+
+<div id="myTop" class="w3-container w3-top w3-theme w3-large">
+      <p><i class="fa fa-bars w3-button w3-hide-large w3-xlarge" onclick="w3_open()"></i>
+        <span id="myIntro" class="w3-hide">$title$</span></p>
+</div>
+
+<header class="w3-container w3-theme" style="padding:64px 32px">
+    <h1 class="w3-xxxlarge">$title$</h1>
+</header>
+
+<div class="w3-container" style="padding:32px">
+
+$if(abstract)$
+<p class="small"><strong>Abstract: </strong><em>$abstract$</em></p>
+$endif$
+
+$if(date)$
+<p>
+<strong>Licence : </strong>Creative Commons Attribution 4.0 International (CC BY-NC-SA 4.0)<br/>
+<strong>Copyright : </strong>Jeremy Fix<br/>
+<strong>Last revision : </strong>$date$<br/>
+$if(source)$
+<strong>Link to source : </strong><a href="md-sources/$source$">$source$</a>
+$endif$
+</p>
+$endif$
+
+
+
+$body$
+</div></div>
+
+</div>
+
+<script>
+    // Open and close the sidebar on medium and small screens
+function w3_open() {
+    document.getElementById("mySidebar").style.display = "block";
+    document.getElementById("myOverlay").style.display = "block";
+}
+
+function w3_close() {
+    document.getElementById("mySidebar").style.display = "none";
+    document.getElementById("myOverlay").style.display = "none";
+
+}
+
+// Change style of top container on scroll
+<!-- window.onscroll = function() {myFunction()}; -->
+<!-- function myFunction() { -->
+<!--     if (document.body.scrollTop > 80 || document.documentElement.scrollTop > 80) { -->
+<!--         document.getElementById("myTop").classList.add("w3-card-4", "w3-animate-opacity"); -->
+<!--         document.getElementById("myIntro").classList.add("w3-show-inline-block"); -->
+
+<!--     } else { -->
+<!--         document.getElementById("myIntro").classList.remove("w3-show-inline-block"); -->
+<!--         document.getElementById("myTop").classList.remove("w3-card-4", "w3-animate-opacity"); -->
+
+<!--     } -->
+
+<!-- } -->
+
+// Accordions
+function myAccordion(id) {
+    var x = document.getElementById(id);
+    if (x.className.indexOf("w3-show") == -1) {
+        x.className += " w3-show";
+        x.previousElementSibling.className += " w3-theme";
+
+    } else { 
+        x.className = x.className.replace("w3-show", "");
+        x.previousElementSibling.className = 
+            x.previousElementSibling.className.replace(" w3-theme", "");
+    }
+
+}
+</script>
+
+
+</body>
+</html>

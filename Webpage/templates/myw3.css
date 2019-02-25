@@ -1,0 +1,92 @@
+.w3-theme-l5 {color:#000 !important; background-color:#e9fffd !important}
+.w3-theme-l4 {color:#000 !important; background-color:#b7fff8 !important}
+.w3-theme-l3 {color:#000 !important; background-color:#6efff1 !important}
+.w3-theme-l2 {color:#000 !important; background-color:#26ffe9 !important}
+.w3-theme-l1 {color:#fff !important; background-color:#00dcc6 !important}
+.w3-theme-d1 {color:#fff !important; background-color:#008578 !important}
+.w3-theme-d2 {color:#fff !important; background-color:#00766a !important}
+.w3-theme-d3 {color:#fff !important; background-color:#00685d !important}
+.w3-theme-d4 {color:#fff !important; background-color:#005950 !important}
+.w3-theme-d5 {color:#fff !important; background-color:#004a43 !important}
+
+.w3-theme-light {color:#000 !important; background-color:#e9fffd !important}
+.w3-theme-dark {color:#fff !important; background-color:#004a43 !important}
+.w3-theme-action {color:#fff !important; background-color:#004a43 !important}
+
+.w3-theme {color:#000 !important; background-color:#bee0f9 !important}
+.w3-text-theme {color:#6ab0d2 !important}
+.w3-border-theme {border-color:#6ab0de !important}
+
+.w3-hover-theme:hover {color:#000 !important; background-color:#6ab0de !important}
+.w3-hover-text-theme:hover {color:#6ab0de !important}
+.w3-hover-border-theme:hover {border-color:#6ab0de !important}
+
+.w3-sidebar {
+    color: #fff;
+    background-color: #343131;
+}
+
+
+body {
+    font-family:'Source Sans Pro', serif;
+    font-size:18px;
+    color:#333333;
+}
+
+
+h2 {
+    border-top: 3px solid #ffcf76;
+    border-bottom: 3px solid #ffcf76;
+    background-color: #fdf5e6;
+}
+
+h3 {
+    border-bottom: 6px solid #6ab0de;
+    background-color: #e7f2fa;
+}
+
+h4 {
+    background-color: #e7f2fa;
+}
+
+blockquote
+{
+    font-style: normal;
+    font-size: 16px;
+    margin-left: 32px;
+    border-left: 4px solid #CCC;
+    padding-left: 8px;
+}
+
+.nav a:link {
+    color: #337ab9;
+}
+
+nav hr {
+     border: 1px dashed #000;
+}
+
+.w3-main a:link {
+    background-color: #f1f1f1;
+    color: crimson;
+}
+
+.w3-main a:visited {
+    background-color: #f1f1f1;
+    color: crimson;
+}
+
+.w3-main a:hover {
+}
+
+.w3-main a:active {
+}  
+
+.figure .caption {
+    color: crimson;
+}
+.figure .caption:before {
+      content: "Figure: ";
+    font-weight: bold;
+
+}
