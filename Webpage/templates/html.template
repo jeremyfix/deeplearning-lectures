@@ -95,10 +95,11 @@ $endif$
 $if(date)$
 <p>
 <strong>Licence : </strong>Creative Commons Attribution 4.0 International (CC BY-NC-SA 4.0)<br/>
-<strong>Copyright : </strong>Jeremy Fix<br/>
+<strong>Copyright : </strong>Jeremy Fix, CentraleSupelec<br/>
 <strong>Last revision : </strong>$date$<br/>
 $if(source)$
-<strong>Link to source : </strong><a href="md-sources/$source$">$source$</a>
+<strong>Link to source : </strong><a href="md-sources/$source$">$source$</a><br/>
+<strong>Lectures project page: </strong><a href="https://github.com/jeremyfix/deeplearning-lectures/">https://github.com/jeremyfix/deeplearning-lectures/</a>
 $endif$
 </p>
 $endif$

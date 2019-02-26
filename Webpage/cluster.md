@@ -13,7 +13,7 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [port_forward_host.sh](../ClusterScripts/port_forward.sh) : to activate
+-   [port_forward.sh](../ClusterScripts/port_forward.sh) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
@@ -35,11 +35,11 @@ hostname.
 ### Accessing jupyter lab
 
 I started your reservations with a jupyter lab session running. To
-access it. To access it locally, just execute the port\_forward\_host
+access it. To access it locally, just execute the port_forward
 script specifying the port 8888 :
 
 ``` console
-mymachine:~:mylogin$ ./port_forward_host.sh -u dummyLog -m dummyGPU -p 8888 -k id_rsa_SM20
+mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 8888 -k id_rsa_SM20
 ```
 
 You can now open **locally** a browser and open the page :
@@ -66,7 +66,7 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [port\_forward\_host\_key.sh](../ClusterScripts/port_forward.sh) : to activate
+-   [port_forward.sh](../ClusterScripts/port_forward.sh) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
@@ -92,7 +92,7 @@ mymachine:~:mylogin$ chmod 600 path/to/id_rsa
 ### Accessing jupyter lab
 
 I started your reservations with a jupyter lab session running. To
-access it. To access it locally, just execute the port\_forward\_host\_key
+access it. To access it locally, just execute the port_forward
 script specifying the port 8888 :
 
 ``` console
