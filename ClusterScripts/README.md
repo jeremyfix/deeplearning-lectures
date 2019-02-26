@@ -1,6 +1,6 @@
 # Cluster scripts
 
-These cluster scripts are used for accessing our GPU clusters if you have access to it. These clusters are scheduled with OAR. 
+These cluster scripts are used for accessing our GPU clusters if you have access to it. These clusters are scheduled with [OAR](http://oar.imag.fr/). 
 
 **book.sh** : for booking a node
 
