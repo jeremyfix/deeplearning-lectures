@@ -13,13 +13,18 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [port_forward_host.sh](data/scripts/port_forward_host.sh) : to activate
+-   [port_forward_host.sh](../ClusterScripts/port_forward.sh) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
 
 ``` console
-mymachine:~:mylogin$ chmod u+x port_forward_host.sh
+mymachine:~:mylogin$ chmod u+x port_forward.sh
+```
+
+You also need the SSH key **id_rsa_SM20** I provide you during the session. You need to adapt its permissions
+``` console
+mymachine:~:mylogin$ chmod 600 id_rsa_SM20
 ```
 
 **Important** For the following, you need to know which login has been
@@ -34,7 +39,7 @@ access it. To access it locally, just execute the port\_forward\_host
 script specifying the port 8888 :
 
 ``` console
-mymachine:~:mylogin$ ./port_forward_host.sh dummyLog dummyGPU 8888
+mymachine:~:mylogin$ ./port_forward_host.sh -u dummyLog -m dummyGPU -p 8888 -k id_rsa_SM20
 ```
 
 You can now open **locally** a browser and open the page :
@@ -47,7 +52,7 @@ terminal in jupyter lab. To view locally the tensorboard interface, just
 run :
 
 ``` console
-mymachine:~:mylogin$ ./port_forward_host.sh dummyLog dummyGPU 6006
+mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 6006 -k id_rsa_SM20
 ```
 
 You can now open **locally** a browser and open the page :
@@ -61,13 +66,13 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [port\_forward\_host\_key.sh](data/scripts/port_forward_host_key.sh) : to activate
+-   [port\_forward\_host\_key.sh](../ClusterScripts/port_forward.sh) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
 
 ``` console
-mymachine:~:mylogin$ chmod u+x port_forward_host_key.sh
+mymachine:~:mylogin$ chmod u+x port_forward.sh
 ```
 
 **Important** For the following, you need to know which login has been
@@ -91,7 +96,7 @@ access it. To access it locally, just execute the port\_forward\_host\_key
 script specifying the port 8888 :
 
 ``` console
-mymachine:~:mylogin$ ./port_forward_host_key.sh dummyLog dummyGPU 8888 path/to/id_rsa
+mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 8888 -k path/to/id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
@@ -104,7 +109,7 @@ terminal in jupyter lab. To view locally the tensorboard interface, just
 run :
 
 ``` console
-mymachine:~:mylogin$ ./port_forward_host_key.sh dummyLog dummyGPU 6006 path/to/id_rsa
+mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 6006 -k path/to/id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
@@ -115,24 +120,23 @@ localhost:6006 ; You should reach your tensorboard session.
 
 ## For the CentraleSupelec students
 
+### The scripts
+
 Allocation of the GPU machines are handled by a resource manager called
 OAR. It can be annoying to remember the command lines to reserve a
 machine and log to it. We therefore provide the scripts :
 
--   [book.sh](data/scripts/book.sh) : to book a GPU
--   [kill\_reservation.sh](data/scripts/kill_reservation.sh) : to free the
+-   [book.sh](../ClusterScripts/book.sh) : to book a GPU
+-   [kill\_reservation.sh](../ClusterScripts/kill_reservation.sh) : to free the
     reservation
--   [log.sh](data/log.sh) : to log to the booked GPU
--   [port\_forward.sh](data/scripts/port_forward.sh) : to activate port
+-   [log.sh](../ClusterScripts/log.sh) : to log to the booked GPU
+-   [port\_forward.sh](../ClusterScripts/port_forward.sh) : to activate port
     forwarding for Tensorboard, jupyter lab, ..
--   [port\_forward\_host.sh](data/scripts/port_forward_host.sh) : to activate
-    port forwarding for Tensorboard, jupyter lab, ... if you know the
-    remote hostname
 
 After getting these scripts, please make them executables :
 
 ```console
-mymachine:~:mylogin$ chmod u+x book.sh kill_reservation.sh log.sh port_forward.sh port_forward_host.sh
+mymachine:~:mylogin$ chmod u+x book.sh kill_reservation.sh log.sh port_forward.sh
 ```
 
 These scripts help you to make a reservation and log to the reserved
@@ -140,13 +144,13 @@ machine. These scripts must be in the **same** directory. The book.sh
 script handles only one reservation, i.e. running it two times will
 simply kill the first reservation.
 
-### From within the campus
+### The how to
 
 Get the scripts and run book.sh and log.sh as below. We also show a
 typical output from the execution of the script.
 
 ``` console
-mymachine:~:mylogin$ ./book.sh mylogin 0
+mymachine:~:mylogin$ ./book.sh -u mylogin
 Booking a node
 Reservation successfull
 Booking requested : OAR_JOB_ID =  99785
@@ -163,10 +167,16 @@ The reservation is running
 mymachine:~:mylogin$
 ```
 
-If the reservation is successfull, you can then log to the booked GPU :
+If the reservation is successfull, you can then log to the booked GPU. If you do not know or remember your jobid, proceed the following way
+
+```console
+mymachine:~:mylogin$ ./log.sh -u mylogin
+```
+
+As you get your job id, you can proceed
 
 ``` console
-mymachine:~:mylogin$ ./log.sh mylogin 0
+mymachine:~:mylogin$ ./log.sh -u mylogin -j 99785
 The file job_id exists. I am checking the reservation is still valid 
    The reservation is still running 
 Logging to the booked node 
@@ -185,12 +195,12 @@ tensorboard and activate port forwarding :
 
 ``` console
 [ In a first terminal ]
-mymachine:~:mylogin$ ./log.sh mylogin 0
+mymachine:~:mylogin$ ./log.sh -u mylogin -j 99785
 ...
 sh11:~:mylogin$ tensorboard --logdir path_to_the_logs
 
 [ In a second terminal ]
-mymachine:~:mylogin$ ./port_forward.sh mylogin 0 6006
+mymachine:~:mylogin$ ./port_forward.sh -u mylogin -j 99785 -p 6006
 ...
 ```
 
@@ -205,7 +215,7 @@ Connection to sh11 closed.
 Disconnected from OAR job 99785
 Connection to term2.grid closed.
   Unlogged 
-mymachine:/home/mylogin:mylogin$ ./kill_reservation.sh mylogin 0
+mymachine:/home/mylogin:mylogin$ ./kill_reservation.sh -u mylogin -j 99785
  The file job_id exists. I will kill the previous reservation in case it is running
 Deleting the job = 99785 ...REGISTERED.
 The job(s) [ 99785 ] will be deleted in a near future.
@@ -214,78 +224,4 @@ Done
 mymachine:~:mylogin$
 ```
 
-### From outside the campus
 
-Get the scripts and run book.sh as below. We also show a typical output
-from the execution of the script. The only difference with the calls in
-the previous paragraph is the last parameter of the script : 1 instead
-of 0.
-
-``` console
-mymachine:~:mylogin$ ./book.sh mylogin 1
-Booking a node
-Reservation successfull
-Booking requested : OAR_JOB_ID =  99785
-Waiting for the reservation to be running, might last few seconds
-   The reservation is not yet running 
-   The reservation is not yet running 
-   The reservation is not yet running 
-   The reservation is not yet running 
-   [...]
-   The reservation is not yet running 
-   The reservation is not yet running 
-   The reservation is running
-The reservation is running
-mymachine:~:mylogin$
-```
-
-If the reservation is successfull, you can then log to the booked GPU :
-
-``` console
-mymachine:~:mylogin$ ./log.sh mylogin 1
-The file job_id exists. I am checking the reservation is still valid 
-   The reservation is still running 
-Logging to the booked node 
-Connect to OAR job 99785 via the node sh11
-sh11:~:mylogin$ 
-```
-
-You end up with a terminal logged on a the GPU machine where you can
-execute your code. Your reservation will run for 24 hours. If you need
-more time, you may need to tweak the bash script a little bit.
-
-You can log any terminal you wish to the booked machine.
-
-To get access to tensorboard, you need to log to the GPU, start
-tensorboard and activate port forwarding :
-
-``` console
-[ In a first terminal ]
-mymachine:~:mylogin$ ./log.sh mylogin 1
-...
-sh11:~:mylogin$ tensorboard --logdir path_to_the_logs
-[ In a second terminal ]
-mymachine:~:mylogin$ ./port_forward.sh mylogin 1 6006
-...
-```
-
-You can now open a browser on your machine on the port 6006 and you
-should get access to tensorboard.
-
-Once your work is finished, just unlog from the machine and run
-kill\_reservation.sh:
-
-``` console
-sh11:~:mylogin$ logout
-Connection to sh11 closed.
-Disconnected from OAR job 99785
-Connection to term2.grid closed.
-  Unlogged 
-mymachine:/home/mylogin:mylogin$ ./kill_reservation.sh mylogin 1
- The file job_id exists. I will kill the previous reservation in case it is running
-Deleting the job = 99785 ...REGISTERED.
-The job(s) [ 99785 ] will be deleted in a near future.
-Waiting for the previous job to be killed
-Done
-mymachine:~:mylogin$
-```

@@ -286,19 +286,13 @@ Once this is done, you have to start tensorboard on the GPU and run
 [port_forward.sh](data/scripts/port_forward.sh) (or [port_forward_host.sh](data/scripts/port_forward_host.sh) for SM20 life long training sessions) to get locally access to the remote tensorboard.
 
 ``` console
-[In one terminal]
-mymachine:~:mylogin$ ./log.sh mylogin {0, 1}
+[In one terminal on the GPU]
 sh11:~:mylogin$ tensorboard --logdir ./logs_linear
 Starting TensorBoard b'47' at http://0.0.0.0:6006
 (Press CTRL+C to quit)
 
-[In a second terminal]
-mymachine:~:mylogin$ ./port_forward.sh mylogin {0, 1} 6006
-
-OR (for life long training SM20 sessions!)
-
-[In a second terminal]
-mymachine:~:mylogin$ ./port_forward_host.sh sm20_xxx camxx 6006
+[In a terminal local to your machine]
+mymachine:~:mylogin$ ./port_forward.sh ....... -p 6006
 ```
 
 And then start a browser and log to <http://localhost:6006> . Once this

@@ -715,24 +715,16 @@ Now, each time you are running your training, you will see some
 "events.out.xxxxx" files created in your logdir. These files contain the logs and can be read with tensorboard.
 
 Once this is done, you have to
-start tensorboard on the GPU and run [port_forward.sh](data/00-pytorch-fashionMnist/port_forward.sh) (or
-[port_forward_host.sh](data/00-pytorch-fashionMnist/port_forward_host.sh) for SM20 life long training sessions) to get
-locally access to the remote tensorboard.
+start tensorboard on the GPU and connect to it following one of the appropriate process as described in run [Using the GPU cluster of CentraleSupelec](cluster.html)
 
 ```console
-[In one terminal]
-mymachine:~:mylogin$ ./log.sh mylogin {0, 1}
+[In one terminal on the GPU]
 sh11:~:mylogin$ tensorboard --logdir ./logs
 Starting TensorBoard b'47' at http://0.0.0.0:6006
 (Press CTRL+C to quit)
 
-[In a second terminal]
-mymachine:~:mylogin$ ./port_forward.sh mylogin {0, 1} 6006
-
-OR (for life long training SM20 sessions!)
-
-[In a second terminal]
-mymachine:~:mylogin$ ./port_forward_host.sh sm20_xxx camxx 6006
+[In a terminal local to your machine]
+mymachine:~:mylogin$ ./port_forward.sh ..... -p 6006
 ```
 
 And then start a browser on your laptopt and log to
@@ -1301,13 +1293,7 @@ Test : Loss : 0.1510, Acc : 0.9459
 A possible solution
 -------------------
 
-- The definition of the models : [models.py](data/00-pytorch-fashionMnist/fashion_mnist_pytorch/models.py)
-- Loading of the data : [data.py](data/00-pytorch-fashionMnist/fashion_mnist_pytorch/data.py)
-- Utilitary functions [utils.py](data/00-pytorch-fashionMnist/fashion_mnist_pytorch/utils.py)
-- The training script : [models.py](data/00-pytorch-fashionMnist/fashion_mnist_pytorch/train_models.py)
-- Loading a model : [load_model.py](data/00-pytorch-fashionMnist/fashion_mnist_pytorch/load_model.py)
-- Averaging models : [average_models.py](data/00-pytorch-fashionMnist/fashion_mnist_pytorch/average_models.py)
-
+You will find a possible solution, with a little bit more than what we have seen in this practical in the [LabsSolutions/00-pytorch-FashionMNIST](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/00-pytorch-FashionMNIST) directory.
 
 References
 ----------
