@@ -1,4 +1,4 @@
-# Cluster scripts
+# Linux Cluster scripts
 
 These cluster scripts are used for accessing our GPU clusters if you have access to it. These clusters are scheduled with [OAR](http://oar.imag.fr/). 
 
@@ -49,3 +49,12 @@ These cluster scripts are used for accessing our GPU clusters if you have access
 	   -l, --local                 If on the local network of CS Metz. A shorter network path to the cluster is issued, optional
 	   -j, --jobid <JOB_ID>        The JOB_ID to delete. If not provided a list of your booked JOB_ID will be displayed
 	   -h, --help                  Prints this help message
+
+
+# Windows cluster scripts
+
+Under windows, you need to download plink.exe on the [Putty page](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) and place it in the same directory of port_forward_windows.bat. You also need a ssh key.
+
+
+
+
