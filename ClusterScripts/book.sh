@@ -4,10 +4,9 @@ usage_m="Usage :
 Books a node on the GPU cluster of CentraleSupelec Metz
 
    -u, --user <login>          login to connect to CS Metz
+   -m, --machine <machine>     OPTIONAL, a specific machine
    -c, --cluster <cluster>     uSkynet, cameron, tx (default: uSkynet)
    -w, --walltime <walltime>   in hours (default: 48)
-   -l, --local                 if on the local network of CS Metz. A shorter
-                               network path to the cluster is issued
    -h, --help                  prints this help message
 "
 
@@ -15,7 +14,7 @@ Books a node on the GPU cluster of CentraleSupelec Metz
 USER=
 CLUSTER=uSkynet
 WALLTIME=48
-LOCAL=
+MACHINE=
 
 while [[ $# -gt 0 ]]
 do
@@ -36,8 +35,9 @@ do
             shift
             shift
             ;;
-        -l|--local)
-            LOCAL=1
+        -m|--machine)
+            MACHINE="$2"
+            shift
             shift
             ;;
         -h|--help)
@@ -101,19 +101,18 @@ case $CLUSTER in
         exit;;
 esac
 
-if [ -z $LOCAL ]
-then
-    # Bounce over the proxy
-    ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@ghome.metz.supelec.fr"
-else
-    ssh_options=
-fi
+# Bounce over the proxy
+ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@ghome.metz.supelec.fr"
 
-
-display_info "Booking a node for $USER, on cluster $CLUSTER, with walltime $WALLTIME"
+display_info "Booking a node for $USER, on cluster $CLUSTER, with walltime $WALLTIME, machine is $MACHINE"
 
 # Book a node
-book_node "${oar_properties[$CLUSTER]}"
+if [ -z MACHINE ]
+then
+    book_node "${oar_properties[$CLUSTER]}"
+else
+    book_node "(host='$MACHINE' and cluster='$CLUSTER')"
+fi
 
 # Check the status of the reservation
 resa_status=`cat reservation.log | grep "Reservation valid" | awk -F "--> " '{print $NF}' -`
