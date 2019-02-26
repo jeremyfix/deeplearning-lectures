@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     if args.use_gpu:
         print("Using GPU{}".format(torch.cuda.current_device()))
-        device = torch.device('gpu')
+        device = torch.device('cuda')
     else:
         print("Using CPU")
         device = torch.device('cpu')

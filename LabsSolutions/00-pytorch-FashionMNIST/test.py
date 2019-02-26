@@ -65,7 +65,7 @@ batch_size = 128
 dataset_dir = args.dataset_dir
 use_gpu = args.use_gpu
 if use_gpu:
-    device = torch.device('gpu')
+    device = torch.device('cuda')
 else:
     device = torch.device('cpu')
 
