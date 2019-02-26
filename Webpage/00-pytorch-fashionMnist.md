@@ -1263,7 +1263,7 @@ train_augment_transforms = transforms.Compose([
     transforms.ToTensor()
 ])
 
-train_dataset = DatasetTransformer(train_dataset, train_augment_transforms
+train_dataset = DatasetTransformer(train_dataset, train_augment_transforms)
 ```
 
 With the *fancy* CNN and dataset augmentation, you should be getting
