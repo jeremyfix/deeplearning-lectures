@@ -107,7 +107,7 @@ ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@ghome.metz.supelec.fr"
 display_info "Booking a node for $USER, on cluster $CLUSTER, with walltime $WALLTIME, machine is $MACHINE"
 
 # Book a node
-if [ -z MACHINE ]
+if [ -z $MACHINE ]
 then
     book_node "${oar_properties[$CLUSTER]}"
 else
