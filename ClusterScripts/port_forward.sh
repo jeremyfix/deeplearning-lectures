@@ -4,8 +4,6 @@ usage_m="Usage :
 Forward a port from a machine you booked to your local computer
 
    -u, --user <login>          login to connect to CS Metz
-   -l, --local                 if on the local network of CS Metz. A shorter
-                               network path to the cluster is issued
    -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                a list of your booked JOB_ID will be displayed
    -m, --machine <MACHINE>     The booked hostname.
@@ -17,7 +15,6 @@ Forward a port from a machine you booked to your local computer
 
 # Parse the command line arguments
 USER=
-LOCAL=
 JOBID=
 MACHINE=
 SSHKEY=
@@ -32,10 +29,6 @@ do
             USER="$2"
             shift # pass argument
             shift # pass value
-            ;;
-        -l|--local)
-            LOCAL=1
-            shift
             ;;
         -j|--jobid)
             JOBID="$2"
@@ -107,15 +100,9 @@ then
     SSHKEY_COMMAND="-i $SSHKEY"
 fi
 
-if [ -z $LOCAL ]
-then
-    # Bounce over the proxy
-    ssh_options_term2="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@ghome.metz.supelec.fr"
-    ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@ghome.metz.supelec.fr\" $USER@term2.grid"
-else
-    ssh_options_term2=
-    ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@term2.grid"
-fi
+# Bounce over the proxy
+ssh_options_term2="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@ghome.metz.supelec.fr"
+ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@ghome.metz.supelec.fr\" $USER@term2.grid"
 
 
 # get_booked_host job_id
