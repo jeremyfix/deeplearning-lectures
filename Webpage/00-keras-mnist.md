@@ -723,4 +723,8 @@ several models and average their probability predictions over the test
 set. An average of 4 models might eventually lead you to a loss of
 0.0105 and an accuracy of $99.68\%$.
 
+## A possible solution
+
+You will find a possible solution, with a little bit more than what we have seen in this practical in the [LabsSolutions/00-keras-MNIST](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/00-keras-MNIST) directory.
+
 ## References
