@@ -349,35 +349,3 @@ def make_trainval_dataset(dataset_dir: str,
 
     return dataset_train, dataset_val
 
-
-
-
-def make_test_dataset(dataset_dir: str,
-        resize_image: str,
-        transform: object,
-        target_mode: str,
-        download: bool,
-        output_image_size=None):
-    pass
-
-#def objects_collate(batch):
-#    labels = []
-#    bboxes = []
-#    imgs = []
-#    for sample in batch:
-#        imgs.append(sample[0])
-#        bboxes.append(sample[1]['bboxes'])
-#        labels.append(sample[1]['classes'])
-#
-#    return torch.stack(imgs, 0), bboxes, labels
-#
-#if __name__ == '__main__':
-#    train, val = make_trainval_dataset(dataset_dir=None,
-#                          resize_image='shrink',
-#                          transform = None,
-#                          target_mode='bbox',
-#                          download = False, output_image_size={'width':250, 'height':250})
-#
-#    img, target = train[0]
-#    print(target)
-#

@@ -7,44 +7,23 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from collections import defaultdict
 from tqdm import tqdm
 
-def extract_save_features(loader: torch.utils.data.DataLoader, model: torch.nn.Module, device: torch.device, filename: str, N: int=None):
-    all_features = []
-    all_targets = defaultdict(list)
+def extract_save_features(loader: torch.utils.data.DataLoader, model: torch.nn.Module, device: torch.device, filename_prefix: str):
 
-    if N:
-        last_step = N-1
-    else:
-        last_step = len(loader)-1
-
-    count = 0
     with torch.no_grad():
         model.eval()
+        batch_idx = 0
         for (inputs, targets) in tqdm(loader):
 
-            count += 1
-            if N and count >= N:
-                break
+            batch_idx += 1
 
             inputs = inputs.to(device=device)
 
             # Compute the forward propagation through the body
             # just to extract the features
-            all_features.append(model(inputs))
+            features = model(inputs)
 
-            for k, v in targets.items():
-                all_targets[k].append(v)
-            #bboxes = target['bboxes']#.to(device=device)
-            #labels = target['labels']#.to(device=device)
+            torch.save(dict([("features", features)] + list(targets.items())), filename_prefix+"{}.pt".format(batch_idx))
 
-        for k, v in all_targets.items():
-            all_targets[k] = torch.squeeze(torch.cat(v, 0))
-        all_features = torch.squeeze(torch.cat(all_features , 0))
-
-    print("The features that are saved are {} features maps of size {} x {}, with {} channels".format(all_features.shape[0], all_features.shape[2], all_features.shape[3], all_features.shape[1]))
-    for k, v in all_targets.items():
-        print("The entry {} have shape {}".format(k, v.shape))
-
-    torch.save(dict([("features", all_features)] + list(all_targets.items())), filename)
 
 def train(model: torch.nn.Module,
           loader:torch.utils.data.DataLoader,

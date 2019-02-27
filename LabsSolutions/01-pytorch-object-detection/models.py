@@ -1,30 +1,18 @@
+import torch
+import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-import torch.nn as nn
-import torch
-import MobileNetV2
 
 import os.path
 import sys
-
-def build_mobilenetV2():
-    net = MobileNetV2.MobileNetV2()
-    #body = net.features
-    if not os.path.isfile('mobilenet_v2.pth.tar'):
-        raise FileNotFoundError("Cannot find ./mobilenetv2.pth.tar . You should get it online from https://github.com/tonylins/pytorch-mobilenet-v2")
-        sys.exit(-1)
-    state_dict = torch.load('./mobilenet_v2.pth.tar')
-    net.load_state_dict(state_dict)
-    return net.features
 
 # For possible models, see https://pytorch.org/docs/stable/torchvision/models.html
 model_builder = {'resnet18'     : lambda:torchvision.models.resnet18(pretrained=True),
                  'resnet34'     : lambda:torchvision.models.resnet34(pretrained=True),
                  'resnet50'     : lambda:torchvision.models.resnet50(pretrained=True),
-                 'resnet152'     : lambda:torchvision.models.resnet152(pretrained=True),
+                 'resnet152'    : lambda:torchvision.models.resnet152(pretrained=True),
                  'densenet121'  : lambda:torchvision.models.densenet121(pretrained=True),
-                 'squeezenet1_1': lambda:torchvision.models.squeezenet1_1(pretrained=True),
-                 'mobilenetv2'  : build_mobilenetV2}
+                 'squeezenet1_1': lambda:torchvision.models.squeezenet1_1(pretrained=True)}
 
 imagenet_preprocessing = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                                std=[0.229, 0.224, 0.225])
@@ -39,27 +27,19 @@ preprocessings = {
         'mobilenetv2'  : imagenet_preprocessing
 }
 
-
-def get_num_features(model_name: str):
-    return 512*8*8
-
 class SingleBboxHead(nn.Module):
 
     def __init__(self, num_features: int, num_classes: int):
         super(SingleBboxHead, self).__init__()
         # We output four numbers. The semantics of these numbers
-        # depends on the training set where we order the cy, cy, width, height
+        # depend on the training set where we order the cy, cy, width, height
         # see data.py : targets_to_tensor
-
         self.head_bbox = nn.Sequential(nn.Dropout(), \
                                        nn.Linear(num_features, 1024), nn.ReLU(), \
                                        nn.BatchNorm1d(1024), \
                                        nn.Dropout(), \
                                        nn.Linear(1024, 4), nn.Sigmoid())
-        #self.head_bbox = nn.Sequential(nn.Dropout(), nn.Linear(num_features, 1024), nn.ReLU(), nn.Dropout(), nn.Linear(1024, 4), nn.Sigmoid())
-        #self.head_bbox = nn.Sequential(
-        #        nn.Linear(num_features, 4096), nn.ReLU(), nn.BatchNorm1d(4096),
-        #        nn.Linear(4096, 4))
+        # We output the logits for all the classes. There is no "no-object class"
         self.head_class = nn.Linear(num_features, num_classes)
 
     def forward(self, features):
@@ -81,13 +61,10 @@ class MultipleBboxHead(nn.Module):
         # The Bbox head outputs 4 x num_box  numbers per grid cell
         # i.e. every grid cell is predicting num_box bounding boxes
         self.head_bbox = nn.Sequential(\
-#                                       nn.Dropout(0.5),
                                        nn.Conv2d(num_channels, 1024, kernel_size=1,  stride=1, padding=0, bias=False), nn.ReLU(), \
                                        nn.BatchNorm2d(1024),\
-#                                       nn.Dropout(0.5),
                                        nn.Conv2d(1024, 512, kernel_size=1,  stride=1, padding=0, bias=False), nn.ReLU(), \
                                        nn.BatchNorm2d(512),\
-#                                       nn.Dropout(0.5),
                                        nn.Conv2d(512, 4*num_box, kernel_size=1,  stride=1, padding=0, bias=True),
                                        nn.Sigmoid())
 
@@ -95,10 +72,8 @@ class MultipleBboxHead(nn.Module):
         # and a number which is the probability that the
         # cell contains an object
         self.head_class = nn.Sequential(\
-#                                       nn.Dropout(0.5),
                                        nn.Conv2d(num_channels, 1024, kernel_size=1,  stride=1, padding=0, bias=False), nn.ReLU(), \
                                        nn.BatchNorm2d(1024),\
-#                                       nn.Dropout(0.5),
                                        nn.Conv2d(1024, 512, kernel_size=1,  stride=1, padding=0, bias=False), nn.ReLU(), \
                                        nn.BatchNorm2d(512),\
                                        nn.Conv2d(512, num_box * (num_classes + 1), kernel_size=1,  stride=1, padding=0, bias=True)
@@ -116,6 +91,8 @@ class MultipleBboxHead(nn.Module):
         # 20 logits (class scores) + 1 logit (score for hosting an object)
         y_class = self.head_class(features)
 
+        # In the return, we split the output with the
+        # bbox_regression, class_logits, objectness_probability
         return y_bbox, y_class[:, :-1, :, :], y_class[:,-1, :, :]
 
 
@@ -125,12 +102,21 @@ class FeatureExtractor(nn.Module):
     def __init__(self, model_name:str):
         super(FeatureExtractor, self).__init__()
         model = model_builder[model_name]()
+
+        # We freeze the networks
+        # we will just perform forward passes, so we do not
+        # need to compute any gradients
+        # Does the following eliminate some computations ?
         for param in model.parameters():
             param.requires_grad = False
+
+        # We keep only the feature maps of all the models
+        # sometimes we can directly access a "features" attribute
+        # sometimes we need to explictely extract the layers from the childrens
         if('resnet' in model_name):
             self.body = nn.Sequential(*list(model.children())[:-2])
         elif('densenet' in model_name):
-            self.body = model.features#.Sequential(*list(model.children())[:-1])
+            self.body = model.features
         elif('squeezenet' in model_name):
             self.body = model.features
         elif(model_name == 'mobilenetv2'):
@@ -149,12 +135,12 @@ if __name__ == '__main__':
     feature_extractor = FeatureExtractor(model_name='resnet18')
 
     # Build a tensor of 12 random RGB images
-    x = torch.randn(12, 3, 250, 250)
+    x = torch.randn(12, 3, input_image_size[0], input_image_size[1])
     features = feature_extractor(x)
 
+    # Let us build a multibox model
+    multibox_model = MultipleBboxHead(features.shape[1], 1, 20)
+
     # From which we compute some bounding boxes and class labels
-
-
-    #y_bbox, y_class = model(x)
-    #print(y_bbox.size(), y_class.size())
+    y_bbox, y_class, y_obj = multibox_model(features)
 

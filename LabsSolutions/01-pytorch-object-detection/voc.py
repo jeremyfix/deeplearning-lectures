@@ -1,5 +1,5 @@
-## File adapted from http://github.com/pytorch/vision
-###  I do not know why, the file does not get installed with setup.py install
+## File from http://github.com/pytorch/vision
+###  I do not know why, the file does not get installed with pip3 install torchvision
 
 
 import os
