@@ -28,13 +28,13 @@ if "!plink!"=="255" (
 )
 
 set id_rsa_path=255
-if exist "!scriptpath!\id_rsa" set id_rsa_path="!scriptpath!\id_rsa"
+if exist "!scriptpath!\id_rsa.ppl" set id_rsa_path="!scriptpath!\id_rsa.ppl"
 if "!id_rsa_path!" == "255" (
-    echo.
+    	echo.
    	echo   [error] : id_rsa not found under these path
 	echo.
-	echo     "!scriptpath!\id_rsa"
-    echo   You should ask your teacher for this file
+	echo     "!scriptpath!\id_rsa.ppl"
+    	echo   You should ask your teacher for this file
 	echo.
 	exit /b 255
 )
@@ -59,7 +59,7 @@ echo.
 echo.
 echo   Trying to port forward ssh connection from host [!remote_host!] with login [!remote_login!] to localhost:10000
 echo.
-start "plink" /min cmd /c echo y^| !plink! -N -l !remote_login! -i !id_rsa_path! -L 10000:!remote_host!:22 ghome.metz.supelec.fr
+start "plink" /min cmd /c echo y^| !plink! -v -N -l !remote_login! -agent -i !id_rsa_path! -L 10000:!remote_host!:22 ghome.metz.supelec.fr
 timeout /t 5 /nobreak >nul
 echo.
 echo   !errorlevel! = plink exit code
@@ -67,14 +67,14 @@ echo.
 echo.
 echo   Trying to port forward jupyter lab from host [!remote_host!] with login [!remote_login!] to localhost:8888
 echo.
-start "plink" /min cmd /c echo y^| !plink! -N -P 10000 -l !remote_login! -i !id_rsa_path! -L 8888:127.0.0.1:8888 localhost
+start "plink" /min cmd /c echo y^| !plink! -N -P 10000 -l !remote_login! -agent  -i !id_rsa_path! -L 8888:127.0.0.1:8888 localhost
 echo.
 echo   !errorlevel! = plink exit code
 echo.
 echo.
 echo   Trying to port forward tensorboard from host [!remote_host!] with login [!remote_login!] to localhost:6006
 echo.
-start "plink" /min cmd /c echo y^| !plink! -N -P 10000 -l !remote_login! -i !id_rsa_path! -L 6006:127.0.0.1:6006 localhost
+start "plink" /min cmd /c echo y^| !plink! -N -P 10000 -l !remote_login! -agent  -i !id_rsa_path! -L 6006:127.0.0.1:6006 localhost
 echo.
 echo   !errorlevel! = plink exit code
 timeout /t 10 > nul

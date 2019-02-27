@@ -55,6 +55,6 @@ These cluster scripts are used for accessing our GPU clusters if you have access
 
 Under windows, you need to download plink.exe on the [Putty page](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) and place it in the same directory of port_forward_windows.bat. You also need a ssh key.
 
-
+If you use a ssh key generated with ssh-keygen, you need to convert it using [puttygen.exe](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
 
 
