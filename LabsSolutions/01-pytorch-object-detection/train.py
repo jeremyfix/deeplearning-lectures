@@ -8,6 +8,7 @@
 import argparse
 import os
 import sys
+import glob
 
 import torch
 import torch.utils.data
@@ -19,6 +20,22 @@ from tensorboardX import SummaryWriter
 import data
 import models
 import utils
+
+def load_tensors(path):
+    tensors = None
+    for tensor_filename in glob.glob(path):
+        tensor = torch.load(tensor_filename)
+        if not tensors:
+            tensors = tensor
+        else:
+            for k in tensors:
+                tensors[k] = torch.cat((tensors[k], tensor[k]), dim=0)
+        del tensor
+
+    for k in tensors:
+        print("Key {} has shape {}".format(k, tensors[k].shape))
+    return tensors
+
 
 if __name__ == '__main__':
 
@@ -74,6 +91,9 @@ if __name__ == '__main__':
     device = torch.device('cpu')
     if args.use_gpu:
         device = torch.device('cuda')
+
+    train_data = load_tensors(args.tensors + "/train*.pt")
+    valid_data = load_tensors(args.tensors + "/valid*.pt")
 
     #train_data = torch.load(args.train_dataset, map_location=torch.device('cpu'))
     #valid_data = torch.load(args.valid_dataset, map_location=torch.device('cpu'))
