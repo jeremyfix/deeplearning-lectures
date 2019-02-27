@@ -38,16 +38,9 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '--train_dataset',
+        '--tensors',
         type=str,
-        help='Which pt tensor to load for training',
-        required=True
-    )
-
-    parser.add_argument(
-        '--valid_dataset',
-        type=str,
-        help='Which pt tensor to load for validation',
+        help='Where to find the input tensors. We expect <tensors>/train_xx.pt and <tensors>/valid_xx.pt',
         required=True
     )
 
@@ -82,8 +75,14 @@ if __name__ == '__main__':
     if args.use_gpu:
         device = torch.device('cuda')
 
-    train_data = torch.load(args.train_dataset, map_location=torch.device('cpu'))
-    valid_data = torch.load(args.valid_dataset, map_location=torch.device('cpu'))
+    #train_data = torch.load(args.train_dataset, map_location=torch.device('cpu'))
+    #valid_data = torch.load(args.valid_dataset, map_location=torch.device('cpu'))
+
+
+
+    import sys
+    sys.exit(-1)
+
 
     print("The train data provides the following keys : {}".format(",".join(train_data.keys())))
     if(args.target_mode == 'largest_bbox'):
