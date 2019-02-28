@@ -62,12 +62,11 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '--target_mode',
-        choices=['all_bbox', 'largest_bbox'],
-        help='Which filter to apply to the targets',
-        action='store',
-        required=True
+        '--lowmem',
+        action='store_true',
+        help='Activate this option if on low mem GPU. If this option is selected, we will lazylly load the tensors. Otherwise we preload all the tensors'
     )
+
 
     parser.add_argument(
         '--logdir',
@@ -83,29 +82,39 @@ if __name__ == '__main__':
     batch_size = 256
     epochs = 100
 
+    # Precomputed features loading
+    if args.lowmem:
+        raise Exception('lowmem not yet implemented')
+    else:
+        print("Loading train tensors")
+        train_data = load_tensors(args.tensors + "/train*.pt")
+        print()
+        print("Loading valid tensors")
+        valid_data = load_tensors(args.tensors + "/valid*.pt")
+        print()
 
-    logdir = utils.generate_unique_logpath(args.logdir, args.target_mode)
+
+    if(len(train_data['bboxes'].shape) == 4):
+        print("The bboxes key is a 4D tensor, I suppose this is a grid cell tensor")
+        target_mode = 'all_bbox'
+    elif(len(train_data['bboxes'].shape) == 2):
+        print("The bboxes key is a 2D tensor, I suppose this is a single bbox per input image ")
+        target_mode = 'largest_bbox'
+
+
+    # Log dir
+    logdir = utils.generate_unique_logpath(args.logdir,target_mode)
     os.makedirs(logdir)
     print("The logs will be saved in {}".format(logdir))
 
+    # GPU or CPU ?
     device = torch.device('cpu')
     if args.use_gpu:
         device = torch.device('cuda')
 
-    train_data = load_tensors(args.tensors + "/train*.pt")
-    valid_data = load_tensors(args.tensors + "/valid*.pt")
-
-    #train_data = torch.load(args.train_dataset, map_location=torch.device('cpu'))
-    #valid_data = torch.load(args.valid_dataset, map_location=torch.device('cpu'))
 
 
-
-    import sys
-    sys.exit(-1)
-
-
-    print("The train data provides the following keys : {}".format(",".join(train_data.keys())))
-    if(args.target_mode == 'largest_bbox'):
+    if(target_mode == 'largest_bbox'):
         train_dataset = torch.utils.data.TensorDataset(train_data['features'],
                                                        train_data['bboxes'],
                                                        train_data['labels'])
@@ -140,7 +149,7 @@ if __name__ == '__main__':
     num_channels = one_sample[0].size()[0]
 
     ############################################ Model
-    if(args.target_mode == 'largest_bbox'):
+    if(target_mode == 'largest_bbox'):
         model = models.SingleBboxHead(num_features, num_classes)
     else:
         model = models.MultipleBboxHead(num_channels, num_classes, 1)
@@ -192,7 +201,7 @@ Optimizer
 
 
 
-    if(args.target_mode == 'largest_bbox'):
+    if(target_mode == 'largest_bbox'):
         for t in range(epochs):
             print("Epoch {}".format(t))
             scheduler.step()
