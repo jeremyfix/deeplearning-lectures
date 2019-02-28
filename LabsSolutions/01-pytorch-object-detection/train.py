@@ -150,7 +150,7 @@ if __name__ == '__main__':
             num_workers=args.num_workers)
 
 
-    one_sample = train_dataset[0] # features, bbox, label
+    one_sample = train_dataset[0] # features, bbox, label, ..
     num_features = one_sample[0].numel()
     num_channels = one_sample[0].size()[0]
 
@@ -161,15 +161,11 @@ if __name__ == '__main__':
         model = models.MultipleBboxHead(num_channels, num_classes, 1)
     model = model.to(device=device)
 
-
+    ############################################ Optimize, LR scheduler
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.0)
-
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
-
-    ############################################ Train
-
-
+    ############################################ Callbacks (Tensorboard, Checkpoint)
     tensorboard_writer   = SummaryWriter(log_dir = logdir)
     model_checkpoint = utils.ModelCheckpoint(logdir + "/best_model.pt", model)
 
@@ -204,8 +200,7 @@ Optimizer
     tensorboard_writer.add_text("Experiment summary", summary_text)
     print("{} parameters to be optimized".format(num_params))
 
-
-
+    ############################################ Training loop
 
     if(target_mode == 'largest_bbox'):
         for t in range(epochs):
@@ -224,10 +219,9 @@ Optimizer
             model_checkpoint.update(val_reg_loss + (1.0 - val_acc))
     else:
         for t in range(epochs):
-
+            print("Epoch {}".format(t))
             scheduler.step()
 
-            print("Epoch {}".format(t))
             train_reg_loss, train_acc, train_obj = utils.train_multiple_objects(model, train_loader, optimizer, device)
 
             val_reg_loss, val_acc, val_obj = utils.test_multiple_objects(model, valid_loader, device)
