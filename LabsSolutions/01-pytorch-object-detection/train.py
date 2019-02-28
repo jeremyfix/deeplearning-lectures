@@ -20,7 +20,14 @@ import models
 import utils
 
 
+
 def load_tensors(path):
+    """
+        Load a collection of tensors that match the regular expression path
+        The individual tensors are loaded in CPU
+
+        Returns a concatenated tensors of all the loaded tensors.
+    """
     tensors = None
     for tensor_filename in tqdm(glob.glob(path)):
         tensor = torch.load(tensor_filename, map_location='cpu')
