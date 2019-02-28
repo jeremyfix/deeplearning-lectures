@@ -1,14 +1,12 @@
 #python3 train_one_object.py --train_dataset train.pt --valid_dataset valid.pt --num_workers 6 --use_gpu
 
 
-# QUESTION :
-#  1) Why do I need to load the tensor on CPU with torch.load ?
-#
 
 import argparse
 import os
 import sys
 import glob
+from tqdm import tqdm
 
 import torch
 import torch.utils.data
@@ -21,10 +19,11 @@ import data
 import models
 import utils
 
+
 def load_tensors(path):
     tensors = None
-    for tensor_filename in glob.glob(path):
-        tensor = torch.load(tensor_filename)
+    for tensor_filename in tqdm(glob.glob(path)):
+        tensor = torch.load(tensor_filename, map_location='cpu')
         if not tensors:
             tensors = tensor
         else:
