@@ -119,6 +119,12 @@ if __name__ == '__main__':
     batch_size = 256
     epochs = 100
 
+    # GPU or CPU ?
+    device = torch.device('cpu')
+    if args.use_gpu:
+        device = torch.device('cuda')
+
+
     # Precomputed features loading
     if args.lowmem:
         train_loader = LazyTensorsLoader(args.tensors + "/train*.pt", shuffle=True)
@@ -139,26 +145,12 @@ if __name__ == '__main__':
         valid_data = load_tensors(args.tensors + "/valid*.pt")
         print()
 
-
     if(len(train_data['bboxes'].shape) == 4):
         print("The bboxes key is a 4D tensor, I suppose this is a grid cell tensor")
         target_mode = 'all_bbox'
     elif(len(train_data['bboxes'].shape) == 2):
         print("The bboxes key is a 2D tensor, I suppose this is a single bbox per input image ")
         target_mode = 'largest_bbox'
-
-
-    # Log dir
-    logdir = utils.generate_unique_logpath(args.logdir,target_mode)
-    os.makedirs(logdir)
-    print("The logs will be saved in {}".format(logdir))
-
-    # GPU or CPU ?
-    device = torch.device('cpu')
-    if args.use_gpu:
-        device = torch.device('cuda')
-
-
 
     if(target_mode == 'largest_bbox'):
         train_dataset = torch.utils.data.TensorDataset(train_data['features'],
@@ -206,6 +198,11 @@ if __name__ == '__main__':
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
     ############################################ Callbacks (Tensorboard, Checkpoint)
+    # Log dir
+    logdir = utils.generate_unique_logpath(args.logdir,target_mode)
+    os.makedirs(logdir)
+    print("The logs will be saved in {}".format(logdir))
+
     tensorboard_writer   = SummaryWriter(log_dir = logdir)
     model_checkpoint = utils.ModelCheckpoint(logdir + "/best_model.pt", model)
 
