@@ -4,8 +4,6 @@ usage_m="Usage :
 Logs to an already booked node on the GPU cluster of CentraleSupelec Metz
 
    -u, --user <login>          login to connect to CS Metz
-   -l, --local                 if on the local network of CS Metz. A shorter
-                               network path to the cluster is issued
    -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                a list of your booked JOB_ID will be displayed
    -h, --help                  prints this help message
@@ -13,7 +11,6 @@ Logs to an already booked node on the GPU cluster of CentraleSupelec Metz
 
 # Parse the command line arguments
 USER=
-LOCAL=
 JOBID=
 
 while [[ $# -gt 0 ]]
@@ -24,10 +21,6 @@ do
             USER="$2"
             shift # pass argument
             shift # pass value
-            ;;
-        -l|--local)
-            LOCAL=1
-            shift
             ;;
         -j|--jobid)
             JOBID="$2"
@@ -82,13 +75,8 @@ then
     exit
 fi
 
-if [ -z $LOCAL ]
-then
-    # Bounce over the proxy
-    ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@ghome.metz.supelec.fr"
-else
-    ssh_options=
-fi
+# Bounce over the proxy
+ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@ghome.metz.supelec.fr"
 
 if [ -z $JOBID ]
 then

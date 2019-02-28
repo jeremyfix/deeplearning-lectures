@@ -4,8 +4,6 @@ usage_m="Usage :
 Deletes a reservation on the GPU cluster of CentraleSupelec Metz
 
    -u, --user <login>          Login to connect to CS Metz
-   -l, --local                 If on the local network of CS Metz. A shorter
-                               network path to the cluster is issued
    -j, --jobid <JOB_ID>        The JOB_ID to delete. If not provided
                                a list of your booked JOB_ID will be displayed
    -h, --help                  Prints this help message
@@ -15,7 +13,6 @@ Deletes a reservation on the GPU cluster of CentraleSupelec Metz
 
 # Parse the command line arguments
 USER=
-LOCAL=
 JOBID=
 
 while [[ $# -gt 0 ]]
@@ -26,10 +23,6 @@ do
             USER="$2"
             shift # pass argument
             shift # pass value
-            ;;
-        -l|--local)
-            LOCAL=1
-            shift
             ;;
         -j|--jobid)
             JOBID="$2"
@@ -64,13 +57,8 @@ display_error() {
     echo -e "$RED $1 $NORMAL"
 }
 
-if [ -z $LOCAL ]
-then
-    # Bounce over the proxy
-    ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@ghome.metz.supelec.fr"
-else
-    ssh_options=
-fi
+# Bounce over the proxy
+ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@ghome.metz.supelec.fr"
 
 test_job_state ()
 {
