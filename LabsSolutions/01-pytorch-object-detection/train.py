@@ -7,6 +7,7 @@ import os
 import sys
 import glob
 from tqdm import tqdm
+import random
 
 import torch
 import torch.utils.data
@@ -41,6 +42,36 @@ def load_tensors(path):
     for k in tensors:
         print("Key {} has shape {}".format(k, tensors[k].shape))
     return tensors
+
+
+class LazyTensorsLoader(object):
+
+    __tensors_filenames = []
+    __indices = []
+    __idx = 0
+    __shuffle = False
+
+    def __init__(self, path, shuffle):
+        self.__tensor_filenames = glob.glob(path)
+        self.__indices = range(len(self.__tensor_filenames))
+        self.__shuffle = shuffle
+        print("I found {} tensors to load".format(len(self.__tensor_filenames)))
+
+    def __iter__(self):
+        # Random shuffle the idx
+        if self.__shuffle:
+            self.__indices = range(len(self.__tensor_filenames))
+        self.__idx = 0
+        return self
+
+    def __next__(self):
+        if self.__idx >= len(self.__indices):
+            raise StopIteration
+        else:
+            tensor_filename = self.__tensor_filenames[self.__idx]
+            tensor = torch.load(tensor_filename, map_location='cpu')
+            self.__idx += 1
+            return tuple(tensor.items())
 
 
 if __name__ == '__main__':
@@ -90,7 +121,16 @@ if __name__ == '__main__':
 
     # Precomputed features loading
     if args.lowmem:
-        raise Exception('lowmem not yet implemented')
+        train_loader = LazyTensorsLoader(args.tensors + "/train*.pt", shuffle=True)
+        valid_loader = LazyTensorsLoader(args.tensors + "/valid*.pt", shuffle=False)
+
+        tit = iter(train_loader)
+        print(len(next(tit)))
+        # TODO : we have to ensure that when iterating over the
+        #        loaders, we always get :
+        #   features, bboxes, labels   for single bbox
+        #   features, bboxes, labels, has_obj for multi box
+        raise Exception('lowmem not yet completly implemented')
     else:
         print("Loading train tensors")
         train_data = load_tensors(args.tensors + "/train*.pt")
