@@ -63,8 +63,10 @@ class MultipleBboxHead(nn.Module):
         self.head_bbox = nn.Sequential(\
                                        nn.Conv2d(num_channels, 1024, kernel_size=1,  stride=1, padding=0, bias=False), nn.ReLU(), \
                                        nn.BatchNorm2d(1024),\
+                                       nn.Dropout(),\
                                        nn.Conv2d(1024, 512, kernel_size=1,  stride=1, padding=0, bias=False), nn.ReLU(), \
                                        nn.BatchNorm2d(512),\
+                                       nn.Dropout(), \
                                        nn.Conv2d(512, 4*num_box, kernel_size=1,  stride=1, padding=0, bias=True),
                                        nn.Sigmoid())
 
@@ -74,8 +76,10 @@ class MultipleBboxHead(nn.Module):
         self.head_class = nn.Sequential(\
                                        nn.Conv2d(num_channels, 1024, kernel_size=1,  stride=1, padding=0, bias=False), nn.ReLU(), \
                                        nn.BatchNorm2d(1024),\
+                                       nn.Dropout(),\
                                        nn.Conv2d(1024, 512, kernel_size=1,  stride=1, padding=0, bias=False), nn.ReLU(), \
                                        nn.BatchNorm2d(512),\
+                                       nn.Dropout(),\
                                        nn.Conv2d(512, num_box * (num_classes + 1), kernel_size=1,  stride=1, padding=0, bias=True)
         )
 
