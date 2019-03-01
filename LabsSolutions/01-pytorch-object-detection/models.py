@@ -35,12 +35,12 @@ class SingleBboxHead(nn.Module):
         # depend on the training set where we order the cy, cy, width, height
         # see data.py : targets_to_tensor
         self.head_bbox = nn.Sequential(nn.Dropout(), \
-                                       nn.Linear(num_features, 1024), nn.ReLU(), \
-                                       nn.BatchNorm1d(1024), \
+                                       nn.Linear(num_features, 128), nn.ReLU(), \
+                                       nn.BatchNorm1d(128), \
                                        nn.Dropout(), \
-                                       nn.Linear(1024, 4), nn.Sigmoid())
+                                       nn.Linear(128, 4), nn.Sigmoid())
         # We output the logits for all the classes. There is no "no-object class"
-        self.head_class = nn.Linear(num_features, num_classes)
+        self.head_class = nn.Sequential(nn.Linear(num_features, num_classes))
 
     def forward(self, features):
         # We might get feature maps as input

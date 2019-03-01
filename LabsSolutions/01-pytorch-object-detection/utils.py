@@ -7,14 +7,15 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from collections import defaultdict
 from tqdm import tqdm
 
-def extract_save_features(loader: torch.utils.data.DataLoader, model: torch.nn.Module, device: torch.device, filename_prefix: str):
+def extract_save_features(loader: torch.utils.data.DataLoader,
+                          model: torch.nn.Module,
+                          device: torch.device,
+                          filename_prefix: str):
 
     with torch.no_grad():
         model.eval()
-        batch_idx = 0
+        batch_idx = 1
         for (inputs, targets) in tqdm(loader):
-
-            batch_idx += 1
 
             inputs = inputs.to(device=device)
 
@@ -22,7 +23,10 @@ def extract_save_features(loader: torch.utils.data.DataLoader, model: torch.nn.M
             # just to extract the features
             features = model(inputs)
 
-            torch.save(dict([("features", features)] + list(targets.items())), filename_prefix+"{}.pt".format(batch_idx))
+            torch.save(dict([("features", features)] + [(k, v.squeeze()) for (k,v) in targets.items()]),
+                       filename_prefix+"{}.pt".format(batch_idx))
+
+            batch_idx += 1
 
 
 def train(model: torch.nn.Module,
@@ -48,9 +52,9 @@ def train(model: torch.nn.Module,
     # We enter train mode. This is useless for the linear model
     # but is important for layers such as dropout, batchnorm, ...
 
-    bbox_loss  = nn.SmoothL1Loss()
-    bbox_reg_loss = nn.L1Loss(reduction='sum')
-    class_loss = nn.CrossEntropyLoss()
+    bbox_loss  = torch.nn.SmoothL1Loss()
+    bbox_reg_loss = torch.nn.L1Loss(reduction='sum')
+    class_loss = torch.nn.CrossEntropyLoss()
 
     alpha_bbox = 20.0
 
@@ -68,11 +72,12 @@ def train(model: torch.nn.Module,
         b_loss = alpha_bbox * bbox_loss(outputs[0], bboxes)
         c_loss = class_loss(outputs[1], labels)
 
+
         # Accumulate the number of processed samples
         N += inputs.shape[0]
 
         # For the total loss
-        regression_loss += bbox_reg_loss(outputs[0], bboxes).item()
+        regression_loss += bbox_reg_loss(outputs[0], bboxes).item()/4.0
 
         # For the total accuracy
         predicted_targets = outputs[1].argmax(dim=1)
@@ -89,8 +94,8 @@ def train(model: torch.nn.Module,
         optimizer.step()
 
         # Display status
-        progress_bar(i, len(loader), msg = "bbox loss : {:.4f}, classification Acc : {:.4f}".format(regression_loss, correct/N))
-    return regression_loss, correct/N
+        progress_bar(i, len(loader), msg = "bbox loss : {:.4f}, classification Acc : {:.4f}".format(regression_loss/N, correct/N))
+    return regression_loss/N, correct/N
 
 
 
@@ -110,8 +115,8 @@ def test(model, loader, device):
         A tuple with the mean loss and mean accuracy
 
     """
-    bbox_reg_loss = nn.L1Loss(reduction='sum')
-    class_loss = nn.CrossEntropyLoss(reduction='sum')
+    bbox_reg_loss = torch.nn.L1Loss(reduction='sum')
+    class_loss = torch.nn.CrossEntropyLoss(reduction='sum')
 
     # We disable gradient computation which speeds up the computation
     # and reduces the memory usage
@@ -127,7 +132,7 @@ def test(model, loader, device):
 
             outputs = model(inputs)
 
-            loss = bbox_loss(outputs[0], bboxes)
+            b_loss = bbox_reg_loss(outputs[0], bboxes)/4.0
 
             N += inputs.shape[0]
 
