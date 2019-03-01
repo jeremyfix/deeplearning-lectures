@@ -19,7 +19,11 @@ If you have a *low memory* cpu/gpu , consider adding --lowmem to the following c
 
 ## Testing a learned model
 
-    python3 test.py 
+The following line loads a best model saved in **./logs/largest_bbox_2/best_model.pt** and test it on the image **TEST_IMAGE.ext**
+    
+    python3 test.py  --model resnet152 --use_gpu --model_file ./logs/largest_bbox_2/best_model.pt  --target_mode largest_bbox --image_file TEST_IMAGE.ext
+
+Here is an example with the [Irish jaunting car image]
 
 # Multi box model
 
@@ -39,4 +43,7 @@ If you have a *low memory* cpu/gpu , consider adding --lowmem to the following c
 
 ## Testing a learned model
 
-    python3 test.py 
+The following line loads a best model saved in **./logs/all_bbox_2/best_model.pt** and test it on the image **TEST_IMAGE.ext**
+
+    
+    python3 test.py  --model resnet152 --use_gpu --model_file ./logs/all_bbox_2/best_model.pt  --target_mode all_bbox --image_file TEST_IMAGE.ext

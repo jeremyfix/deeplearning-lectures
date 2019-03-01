@@ -12,13 +12,16 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from PIL import Image
-
 import numpy as np
 
+import models
+
 def draw_text(ax, x, y, text, color):
+    bbox_props = dict(boxstyle="round", fc='w', ec="0.5", alpha=0.4)
     ax.text(x, y, text,
             horizontalalignment='left',
-            verticalalignment='top', fontsize=12, color=color, bbox={'facecolor':'black'})
+            verticalalignment='bottom',
+            fontsize=12, color=color, bbox=bbox_props)
 
 parser = argparse.ArgumentParser()
 
@@ -47,6 +50,13 @@ parser.add_argument(
         action='store',
         required=True
 )
+parser.add_argument(
+    '--model',
+    choices=['resnet18', 'resnet34','resnet50','resnet152','densenet121','squeezenet1_1'],
+    help='Which pretrained model to use to compute the features',
+    action='store',
+    required=True
+)
 
 
 args = parser.parse_args()
@@ -72,9 +82,9 @@ image_transform = transforms.Compose([transforms.Resize((224, 224)),
 
 
 # Prepare the model for processing the input tensor
-print("Loading resnet152")
-feature_extractor = torchvision.models.resnet152(pretrained=True)
-model_body = nn.Sequential(*list(feature_extractor.children())[:-2])
+print("Loading {}".format(args.model))
+model_body = models.FeatureExtractor(model_name = args.model)
+print("Loading the classification head")
 model_head = torch.load(args.model_file)
 model      = nn.Sequential(model_body, model_head)
 
@@ -175,9 +185,11 @@ else:
 
     # Get the 0/1 vector of where we are confident as a vector
     obj_loc = (pred_obj > confidence_thres).view(-1)
+    print("{} predicted boxes with confidence > {}".format(pred_bboxes[obj_loc].shape[0], confidence_thres))
+    print("Predicted bounding boxes")
     print(pred_bboxes[obj_loc])
+    print("Predicted labels")
     print(pred_classes[obj_loc])
-    print(pred_bboxes[obj_loc].shape)
 
 
     # We now print the found bounding boxes
@@ -192,3 +204,4 @@ else:
     for bbox_i, class_i in zip(pred_bboxes[obj_loc], pred_classes[obj_loc]):
         plot_bbox(ax, bbox_i, classes[class_i])
     plt.savefig("multi_object_prediction.png", bbox_inches='tight')
+    print("Image saved to multi_object_prediction.png")
