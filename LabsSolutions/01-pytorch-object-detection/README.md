@@ -23,7 +23,9 @@ The following line loads a best model saved in **./logs/largest_bbox_2/best_mode
     
     python3 test.py  --model resnet152 --use_gpu --model_file ./logs/largest_bbox_2/best_model.pt  --target_mode largest_bbox --image_file TEST_IMAGE.ext
 
-Here is an example with the [Irish jaunting car image]
+Here is an example with the [Irish jaunting car image](https://en.wikipedia.org/wiki/Jaunting_car#/media/File:Irish_jaunting_car,_ca_1890-1900.jpg), as a funny application on a not so natural image.
+
+!(One object prediction)[./one_object_prediction.png]{width=25%}
 
 # Multi box model
 
@@ -47,3 +49,7 @@ The following line loads a best model saved in **./logs/all_bbox_2/best_model.pt
 
     
     python3 test.py  --model resnet152 --use_gpu --model_file ./logs/all_bbox_2/best_model.pt  --target_mode all_bbox --image_file TEST_IMAGE.ext
+
+Here is an example with the [Irish jaunting car image](https://en.wikipedia.org/wiki/Jaunting_car#/media/File:Irish_jaunting_car,_ca_1890-1900.jpg), as a funny application on a not so natural image.
+
+!(Multi object prediction)[./multi_object_prediction.png]{width=25%}
