@@ -25,7 +25,7 @@ The following line loads a best model saved in **./logs/largest_bbox_2/best_mode
 
 Here is an example with the [Irish jaunting car image](https://en.wikipedia.org/wiki/Jaunting_car#/media/File:Irish_jaunting_car,_ca_1890-1900.jpg), as a funny application on a not so natural image.
 
-!(One object prediction)[./one_object_prediction.png]{width=25%}
+(One object prediction)[./one_object_prediction.png]{width=25%}
 
 # Multi box model
 
@@ -52,4 +52,4 @@ The following line loads a best model saved in **./logs/all_bbox_2/best_model.pt
 
 Here is an example with the [Irish jaunting car image](https://en.wikipedia.org/wiki/Jaunting_car#/media/File:Irish_jaunting_car,_ca_1890-1900.jpg), as a funny application on a not so natural image.
 
-!(Multi object prediction)[./multi_object_prediction.png]{width=25%}
+(Multi object prediction)[./multi_object_prediction.png]{width=25%}
