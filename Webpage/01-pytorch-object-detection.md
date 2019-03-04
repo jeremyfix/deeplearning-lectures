@@ -32,8 +32,8 @@ One of the interest of this practical also lies in the way we will compute the f
 
 You are provided with some basic codes that allow you to explore the dataset. In the next sections, you will progressively extend this code. To explore the dataset you need to download :
 
-- [voc.py](./data/01-pytorch-object-detection/students/voc.py) : provides the torch dataset VOCDetection. Taken from [torchvision](https://github.com/pytorch/vision/tree/master/torchvision/datasets), because it is not yet installed in the latest release
-- [data.py](./data/01-pytorch-object-detection/students/data.py) : provides some usefull functions to create your pascal VOC datasets.
+- [voc.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/voc.py) : provides the torch dataset VOCDetection. Taken from [torchvision](https://github.com/pytorch/vision/tree/master/torchvision/datasets), because it is not yet installed in the latest release
+- [data.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/data.py) : provides some usefull functions to create your pascal VOC datasets.
 
 The python code below shows you how to load your dataset. The function `data.make_trainval_dataset` is the one loading your data and gets few parameters. In this practical, we will play around with three important parameters **image_transform_params**, **target_transform_params** and **transform** : 
 
@@ -291,7 +291,7 @@ train_dataset = torch.utils.data.TensorDataset(data['features'],
 
 #### Architecture
 
-You now have to build your network object inheriting from torch.nn.Module. We provide you with a starter code [models.py](./data/01-pytorch-object-detection/students/models.py). For the bounding box head, remember that your bounding boxes coordinates always lie in $[0, 1]$ so you can constrain your output to lie in this range.
+You now have to build your network object inheriting from torch.nn.Module. We provide you with a starter code [models.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/models.py). For the bounding box head, remember that your bounding boxes coordinates always lie in $[0, 1]$ so you can constrain your output to lie in this range.
 
 I may suggest :
 
@@ -321,7 +321,7 @@ and write your training and testing function. Most of the remaining code is simi
 
 ### Testing
 
-For testing our best model with respect to the validation loss, you can use the following code [test_single.py](./data/01-pytorch-object-detection/students/test_single.py). 
+For testing our best model with respect to the validation loss, you can use the following code [test_single.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/test_single.py). 
 
 Below is an example with a resnet-152 as feature extractor, with a raisonnable validation bounding box loss of 0.0098 and validation classification accuracy of 81.57%. 
 
@@ -343,7 +343,7 @@ The only difference with multiple object detection is the preprocessing of the t
 
 ### Preprocessing the targets and extracting the features
 
-We now consider all the objects annotated on the image. As for single object case, the pipeline is already coded in the [data.py](./data/01-pytorch-object-detection/students/data.py) you already downloaded and filled in the previous part. The interesting function is now 
+We now consider all the objects annotated on the image. As for single object case, the pipeline is already coded in the [data.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/data.py) you already downloaded and filled in the previous part. The interesting function is now 
 
 ```{.sourceCode .python}
 def targets_to_grid_cell_tensor(objects: list, num_cells: int): 
