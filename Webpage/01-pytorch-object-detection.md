@@ -467,9 +467,11 @@ As you see, there are several overlapping predictions. This can be eliminated by
 ## Going further
 
 To go on this work, I suggest the following directions : 
+
 - cleaning up the predictions with non maximum suppression
 - computing the object detector metric of intersection over union (iou)
 - constraining bounding box aspect ratios with anchor boxes
+- extracting bounding boxes at multiple scales
 - experimenting variations on the loss function, in particular using the focal loss
 - experimenting with the larger MS Coco detection dataset.
 - full fine tuning : we unfreeze the feature extractor and it is allowed to be finetuned. 
@@ -491,6 +493,12 @@ The multiple object predictor we learned outputs a single bounding box for each 
 
 One extension is then 1) to allow every grid cell to output $k$ bounding boxes and 2) to constrain these bounding boxes to have specific aspect ratios. 
 
+
+
+### Extracting features at multiple scales
+
+If you read the YoLo v3[@Redmon2018], or SSD paper[@Liu2015], you will notice that the authors extract bounding boxes at multiple scales taking as input features maps at different depth in the feature extractor convolutional body.
+
 ### Focal loss
 
 In the RetinaNet paper [@Lin2017], it is suggested that training an object detector is easier using a focal loss which decreases the influence of the correctly predicted targets. In the context of classification, instead of using the cross-entropy loss 
@@ -501,6 +509,8 @@ they suggest to use what they call the focal loss :
 $$-(1-p_t)^\gamma \log(p_t)$$
 
 with $\gamma = 5$. With the focal loss, when an object is correctly classified (i.e. $p_t \approx 1.0$) its contribution to the total loss is strongly squeezed.
+
+Note, that, according to Yolo v3[@Redmon2018], the focal loss is not something that brought improvements.
 
 ### Larger dataset : MS COCO
 
