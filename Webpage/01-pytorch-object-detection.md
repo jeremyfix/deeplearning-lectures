@@ -32,8 +32,8 @@ One of the interest of this practical also lies in the way we will compute the f
 
 You are provided with some basic codes that allow you to explore the dataset. In the next sections, you will progressively extend this code. To explore the dataset you need to download :
 
-- [voc.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/voc.py) : provides the torch dataset VOCDetection. Taken from [torchvision](https://github.com/pytorch/vision/tree/master/torchvision/datasets), because it is not yet installed in the latest release
-- [data.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/data.py) : provides some usefull functions to create your pascal VOC datasets.
+- [voc.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/voc.py) : provides the torch dataset VOCDetection. Taken from [torchvision](https://www.github.com/pytorch/vision/tree/master/torchvision/datasets), because it is not yet installed in the latest release
+- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/data.py) : provides some usefull functions to create your pascal VOC datasets.
 
 The python code below shows you how to load your dataset. The function `data.make_trainval_dataset` is the one loading your data and gets few parameters. In this practical, we will play around with three important parameters **image_transform_params**, **target_transform_params** and **transform** : 
 
@@ -166,7 +166,7 @@ This first step is depicted below.
 
 ### Preprocessing the images
 
-As we have observed in the beginning of the practical, the images in the dataset are of varying sizes.  In order to feed minibatches into our neural networks, we need to resize our images to fixed sizes. The code for resizing the images is already provided to you with two modes *shrinking* or *cropping*. The two are illustrated below. For the following we will work exclusively with images shrunk to $224 \times 224$.
+As we have observed in the beginning of the practical, the images in the dataset are of varying sizes.  In order to feed minibatches into our neural networks, we need to resize our images to fixed sizes. The code for resizing the images is already provided to you with two modes *shrinking* or *cropping*. The two are illustrated below. For the following we will work exclusively with images shrunk to $224 \times 224$. **Fill in** the appropriate code within `data.py`
 
 ![Images are resized to fixed size by either shrinking or cropping to 224 x 224 (ImageNet standard)](./data/01-pytorch-object-detection/preprocess_images.png){width=50%}
 
@@ -176,7 +176,7 @@ Shrinking is usually what is done because changing the aspect ratio of objects d
 
 As you have seen before, the targets provided by the dataset objects are so far the raw annotations. For supervizing learning to detect the largest object, we need to filter the bounding box and class of the largest objects, and then convert it into pytorch tensors. 
 
-The pipeline for transforming the raw targets into the tensors of the largest object is already coded in `data.py` but you still have to write some functions. The pipeline that is provided extracts and keeps only the classes and bounding boxes of all the objects. It further encodes the bounding boxes by its center and width/height and scales these dimensions into [0, 1] independently along the horizontal and vertical axis as shown below. 
+The pipeline for transforming the raw targets into the tensors of the largest object is already coded in `data.py` but **you still have to write some functions**. The pipeline that is provided extracts and keeps only the classes and bounding boxes of all the objects. It further encodes the bounding boxes by its center and width/height and scales these dimensions into [0, 1] independently along the horizontal and vertical axis as shown below. 
 
 ![The bounding boxes are encoded as center/size and these dimensions are normalized in \[0, 1\] ](./data/01-pytorch-object-detection/bbox_encoding.png){width=50%}
 
@@ -291,7 +291,7 @@ train_dataset = torch.utils.data.TensorDataset(data['features'],
 
 #### Architecture
 
-You now have to build your network object inheriting from torch.nn.Module. We provide you with a starter code [models.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/models.py). For the bounding box head, remember that your bounding boxes coordinates always lie in $[0, 1]$ so you can constrain your output to lie in this range.
+You now have to build your network object inheriting from torch.nn.Module. We provide you with a starter code [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/models.py). For the bounding box head, remember that your bounding boxes coordinates always lie in $[0, 1]$ so you can constrain your output to lie in this range.
 
 I may suggest :
 
@@ -321,7 +321,7 @@ and write your training and testing function. Most of the remaining code is simi
 
 ### Testing
 
-For testing our best model with respect to the validation loss, you can use the following code [test_single.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/test_single.py). 
+For testing our best model with respect to the validation loss, you can use the following code [test_single.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/test_single.py). 
 
 Below is an example with a resnet-152 as feature extractor, with a raisonnable validation bounding box loss of 0.0098 and validation classification accuracy of 81.57%. 
 
@@ -343,7 +343,7 @@ The only difference with multiple object detection is the preprocessing of the t
 
 ### Preprocessing the targets and extracting the features
 
-We now consider all the objects annotated on the image. As for single object case, the pipeline is already coded in the [data.py](https://github.com/jeremyfix/deeplearning-lectures/tree/master/labs/01-pytorch-object-detection/data.py) you already downloaded and filled in the previous part. The interesting function is now 
+We now consider all the objects annotated on the image. As for single object case, the pipeline is already coded in the [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/data.py) you already downloaded and filled in the previous part. The interesting function is now 
 
 ```{.sourceCode .python}
 def targets_to_grid_cell_tensor(objects: list, num_cells: int): 
@@ -414,7 +414,7 @@ labels : tensor([[0, 0, 0, 0],
 
 ### Extracting the features with a pretrained model
 
-You can now proceed with the almost exact same code that for the single object. The `extract_save_features` function of [utils.py](./data/01-pytorch-object-detection/students/utils.py) will save a dictionnary with the following keys :
+You can now proceed with the almost exact same code that for the single object. The `extract_save_features` function of [utils.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/utils.py) will save a dictionnary with the following keys :
 
 - For the training set :
 	- the key 'features' with torch tensor of shape (5717, 512, 7, 7)
@@ -434,7 +434,7 @@ Our target tensors keep their spatial layout. The dimensions (width/height) of t
 
 #### Architecture
 
-You now have to build your multi box model inheriting from torch.nn.Module. You can go on filling in the starter code [models.py](./data/01-pytorch-object-detection/students/models.py). Remembering all the dimensions of the boundings boxes lie in $[0,1]$, I suggest the following structures :
+You now have to build your multi box model inheriting from torch.nn.Module. You can go on filling in the starter code [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/models.py). Remembering all the dimensions of the boundings boxes lie in $[0,1]$, I suggest the following structures :
 
 - a regression head : 2$\times$[Conv1x1(512), Relu, BatchNorm], Conv1x1(4), Sigmoid
 - a classification head : Conv1x1(21)
@@ -463,6 +463,11 @@ Below is shown an example output of one model where we show the detected objects
 ![Object detection : Multiple object prediction with a confidence higher than 0.2](./data/01-pytorch-object-detection/multi_object_prediction.png){width=25%}
 
 As you see, there are several overlapping predictions. This can be eliminated by performing non maximum suppression, as explained in the next sections.
+
+
+## A possible solution
+
+You will find a possible solution in the [LabsSolutions/01-pytorch-object-detection](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/01-pytorch-object-detection) directory.
 
 ## Going further
 
@@ -514,7 +519,7 @@ Note, that, according to Yolo v3[@Redmon2018], the focal loss is not something t
 
 ### Larger dataset : MS COCO
 
-You can think about experimenting with a larger dataset, such as [MS COCO](http://cocodataset.org/#download). You need the [Python coco API](https://github.com/cocodataset/cocoapi/tree/master/PythonAPI), there is also the [torchvision.datasets.CocoDetection](https://pytorch.org/docs/stable/torchvision/datasets.html#torchvision.datasets.CocoDetection) and some work to preprocess the provided targets. 
+You can think about experimenting with a larger dataset, such as [MS COCO](http://cocodataset.org/#download). You need the [Python coco API](https://raw.githubusercontent.comcocodataset/cocoapi/master/PythonAPI), there is also the [torchvision.datasets.CocoDetection](https://pytorch.org/docs/stable/torchvision/datasets.html#torchvision.datasets.CocoDetection) and some work to preprocess the provided targets. 
 
 ## References
 
