@@ -89,12 +89,12 @@ fi
 display_info "I am checking if the reservation $JOBID is still valid"
 job_state=`test_job_state $JOBID`
 
-if [ "$job_state" != "Running" ]; then
-    display_error "   The reservation is not running yet or anymore."
-    display_error "   please select a valid job id"
-    list_job_id
-    exit 0
-fi
+#if [ "$job_state" != "Running" ]; then
+#    display_error "   The reservation is not running yet or anymore."
+#    display_error "   please select a valid job id"
+#    list_job_id
+#    exit 0
+#fi
 
 display_info "Killing the reservation $JOBID"
 ssh "$ssh_options" $USER@term2.grid "oardel $JOBID"
@@ -104,5 +104,5 @@ display_info "Waiting for the previous job to be killed"
 # We wait until the job is really killed
 # we might check the status of the job with oarstat -j `cat job_id` -s
 # returns JOB_ID: {Running, Finishing, Error}
-sleep 3
+#sleep 3
 display_success "Done"
