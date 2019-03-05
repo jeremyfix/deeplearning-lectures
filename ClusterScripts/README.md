@@ -60,7 +60,7 @@ You may be able to use the above bash scripts using :
 
 ## Using putty plink
 
-Under windows, you need to download plink.exe on the [Putty page](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) and place it in the same directory of port_forward_windows.bat. You also need a ssh key.
+Under windows, you need to download [plink.exe](https://the.earth.li/~sgtatham/putty/latest/w64/plink.exe) on the [Putty page](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) and place it in the same directory of port_forward_windows.bat. You also need a ssh key.
 
 If you use a ssh key generated with ssh-keygen, you need to convert it using [puttygen.exe](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
 
