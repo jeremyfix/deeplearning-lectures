@@ -53,6 +53,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    epochs      = 150
     valid_ratio = 0.2
     batch_size  = 128
     num_workers = args.num_workers
@@ -138,5 +139,17 @@ Optimizer
                                              {'model': model})
 
     # Training loop
+    for t in range(epochs):
+        print("Epoch {}".format(t))
+        train_loss, train_acc = utils.train(model, train_loader, loss, optimizer, device)
+
+        val_loss, val_acc = utils.test(model, valid_loader, loss, device)
+        print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
+
+        model_checkpoint.update(val_loss)
+        tensorboard_writer.add_scalar('metrics/train_loss', train_loss, t)
+        tensorboard_writer.add_scalar('metrics/train_acc',  train_acc, t)
+        tensorboard_writer.add_scalar('metrics/val_loss', val_loss, t)
+        tensorboard_writer.add_scalar('metrics/val_acc',  val_acc, t)
 
 
