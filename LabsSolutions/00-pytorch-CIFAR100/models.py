@@ -19,6 +19,7 @@ class Linear(nn.Module):
         self.classifier = nn.Linear(input_dim[0]*input_dim[1]*input_dim[2], num_classes)
 
     def forward(self, inputs):
+        inputs = inputs.view(inputs.shape[0], -1)
         return self.classifier(inputs)
 
 
