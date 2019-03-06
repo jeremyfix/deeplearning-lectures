@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     train_loader, valid_loader = load_data(valid_ratio, batch_size, num_workers, dataset_dir, train_augment_transform)
 
-    print(classes)
+    print("The classes in the dataset are {}".format(classes))
 
     # Get a minibatch
     imgs, targets = next(iter(train_loader))
