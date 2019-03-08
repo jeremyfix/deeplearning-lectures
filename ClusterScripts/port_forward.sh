@@ -174,5 +174,5 @@ fi
 
 display_info "Activating port forwarding from host $host:$PORT to localhost:$PORT"
 
-ssh "$ssh_options_node" -N -L $PORT:localhost:$PORT $USER@$host
+ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:localhost:$PORT $USER@$host
 
