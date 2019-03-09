@@ -25,6 +25,6 @@ From a terminal :
 
 ``` console
 sh11:~:mylogin$ source /etc/profile.d/proxy.sh
-sh11:~:mylogin$ env | grep HTTP_PROXY
+sh11:~:mylogin$ echo $http_proxy
 http://cache.metz.supelec.fr:3128
 ```
