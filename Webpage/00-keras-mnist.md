@@ -256,7 +256,7 @@ import os
 def generate_unique_logpath(logdir, raw_run_name):
     i = 0
     while(True):
-            run_name = raw_run_name + "-" + str(i)
+        run_name = raw_run_name + "-" + str(i)
         log_path = os.path.join(logdir, run_name)
         if not os.path.isdir(log_path):
             return log_path
@@ -386,7 +386,7 @@ normalization is standardization. Here, you compute the mean of the
 $X_i \in \mathbb{R}^{784}, i \in [0, N-1]$, and a vector $X \in \mathbb{R}^{784}$ you feed the network with $\hat{X} \in \mathbb{R}^{784}$ given by
 
 $$
-X_\mu = \frac{1}{N} \sum_{i=0}^{N-1} X_i$$$$X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 10^{-5}$$$$\hat{X} = (X - X_\mu)/X_\sigma
+X_\mu = \frac{1}{N} \sum_{i=0}^{N-1} X_i$$$$X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1.0$$$$\hat{X} = (X - X_\mu)/X_\sigma
 $$
 
 How do we introduce normalization in a Keras model ? One way is to
@@ -402,11 +402,11 @@ from keras.layers import Lambda
 ...
 xi = Input(shape=(img_height*img_width,), name="input")
 
-    mean = X_train.mean(axis=0)
-    std = X_train.std(axis=0) + 1e-5
-    xl = Lambda(lambda image, mu, std: (image - mu) / std,
+mean = X_train.mean(axis=0)
+std = X_train.std(axis=0) + 1.0
+xl = Lambda(lambda image, mu, std: (image - mu) / std,
            arguments={'mu': mean, 'std': std})(xi)
-xo = Dense(num_classes, name="y")(xl)
+xo = Dense(num_classes, name="y")(xi)
 yo = Activation('softmax', name="y_act")(xo)
 model = Model(inputs=[xi], outputs=[yo])
 ```
@@ -434,8 +434,8 @@ simple 2 layers MLP would be defined as :
 
 ``` {.sourceCode .python}
 xi = Input(shape=input_shape)
-// Normalization layer is skipped for brevety
-x = Dense(nhidden1)(xl)
+x = Lambda(....)(xi)
+x = Dense(nhidden1)(x)
 x = Activation('relu')(x)
 x = Dense(nhidden2)(x)
 x = Activation('relu')(x)
