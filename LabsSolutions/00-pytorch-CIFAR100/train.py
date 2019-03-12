@@ -24,6 +24,12 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        '--dropout',
+        action='store_true',
+        help='Whether to use dropout'
+    )
+
+    parser.add_argument(
         '--dataset_dir',
         type=str,
         help='Where to store the downloaded dataset',
@@ -38,6 +44,21 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        '--cyclic_lr',
+        nargs=3,
+        type=float,
+        metavar=('low', 'high', 'period'),
+        help='If you want to use cyclic LR'
+    )
+
+    parser.add_argument(
+        '--weight_decay',
+        type=float,
+        default=0.0,
+        help='The L2 regularization coefficient'
+    )
+
+    parser.add_argument(
         '--num_workers',
         type=int,
         default=1,
@@ -46,19 +67,21 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--model',
-        choices=['linear', 'cnn'],
+        choices=['linear', 'cnn', 'wrn'],
         action='store',
         required=True
     )
 
     args = parser.parse_args()
 
-    epochs      = 150
+    epochs      = 50
     valid_ratio = 0.2
-    batch_size  = 128
+    batch_size  = 1024
+    weight_decay= args.weight_decay
     num_workers = args.num_workers
     dataset_dir = args.dataset_dir
     train_augment_transform = []
+    use_dropout = args.dropout
 
     input_dim = (3, 32, 32)
     num_classes = 100
@@ -77,14 +100,27 @@ if __name__ == '__main__':
                                                 dataset_dir,
                                                 train_augment_transform)
     # Model definition
-    model = models.build_model(args.model, input_dim, num_classes)
+    model = models.build_model(args.model, input_dim, num_classes, use_dropout)
     model = model.to(device=device)
 
     # Loss function
     loss = nn.CrossEntropyLoss()  # This computes softmax internally
 
     # Optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.1)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.1, weight_decay=weight_decay)
+    #optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True)
+    if args.cyclic_lr:
+        low_lr, high_lr, period = args.cyclic_lr
+        def cyclical_lr(epoch, low_lr=low_lr, high=high_lr, period=period):
+            dt = (epoch % period) / period
+            if dt < 0.5:
+                # rising phase
+                return low_lr + 2.0 * dt * (high_lr - low_lr)
+            else:
+                return high_lr + 2.0 * (dt-0.5) * (low_lr - high_lr)
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, cyclical_lr)
+    else:
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10,20], gamma=0.2)
 
     # Callbacks
 
@@ -140,6 +176,8 @@ Optimizer
 
     # Training loop
     for t in range(epochs):
+        scheduler.step()
+
         print("Epoch {}".format(t))
         train_loss, train_acc = utils.train(model, train_loader, loss, optimizer, device)
 

@@ -47,7 +47,7 @@ def train(model, loader, f_loss, optimizer, device):
         optimizer.zero_grad()
         loss.backward()
         try:
-            model.penalty().backward()
+            model.penalty().to(device).backward()
         except AttributeError:
             pass
         optimizer.step()
