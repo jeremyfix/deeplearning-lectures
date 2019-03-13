@@ -60,29 +60,35 @@ class CNN(nn.Module):
         return self.classifier(features)
 
 
-def conv_relu_bn(c_in, c_out, ks):
+def conv(c_in, c_out, ks, stride):
     return [nn.Conv2d(c_in, c_out,
                       kernel_size=ks,
-                      stride=1,
-                      padding=int((ks-1)/2), bias=False),
+                      stride=stride,
+                      padding=int((ks-1)/2), bias=True)]
+
+def conv_relu_bn(c_in, c_out, ks, stride):
+    return [nn.Conv2d(c_in, c_out,
+                      kernel_size=ks,
+                      stride=stride,
+                      padding=int((ks-1)/2), bias=True),
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(c_out)]
 
 
 
-def bn_relu_conv(c_in, c_out, ks):
+def bn_relu_conv(c_in, c_out, ks, stride):
     return [nn.BatchNorm2d(c_in),
             nn.ReLU(inplace=True),
             nn.Conv2d(c_in, c_out,
                       kernel_size=ks,
-                      stride=1,
-                      padding=int((ks-1)/2), bias=False)]
+                      stride=stride,
+                      padding=int((ks-1)/2), bias=True)]
 
 
 
 class WRN_Block(nn.Module):
 
-    def __init__(self, c_in, c_out, use_dropout):
+    def __init__(self, c_in, c_out, use_dropout, stride):
         super(WRN_Block, self).__init__()
 
         if use_dropout:
@@ -93,11 +99,11 @@ class WRN_Block(nn.Module):
             #)
             #self.c11 = nn.Sequential(*bn_relu_conv(c_in, c_out, 1))
             self.c33 = nn.Sequential(
-                    *conv_relu_bn(c_in, c_out, 3),
+                    *conv_relu_bn(c_in, c_out, 3, stride=1),
                     nn.Dropout(0.5),
-                    *conv_relu_bn(c_out, c_out, 3)
+                    *conv_relu_bn(c_out, c_out, 3, stride=stride)
             )
-            self.c11 = nn.Sequential(*conv_relu_bn(c_in, c_out, 1))
+            self.c11 = nn.Sequential(*conv(c_in, c_out, 1, stride=stride))
         else:
             #self.c33 = nn.Sequential(
             #        *bn_relu_conv(c_in, c_out, 3),
@@ -105,10 +111,10 @@ class WRN_Block(nn.Module):
             #)
             #self.c11 = nn.Sequential(*bn_relu_conv(c_in, c_out, 1))
             self.c33 = nn.Sequential(
-                    *conv_relu_bn(c_in, c_out, 3),
-                    *conv_relu_bn(c_out, c_out, 3)
+                    *conv_relu_bn(c_in, c_out, 3, stride=1),
+                    *conv_relu_bn(c_out, c_out, 3, stride=stride)
             )
-            self.c11 = nn.Sequential(*conv_relu_bn(c_in, c_out, 1))
+            self.c11 = nn.Sequential(*conv(c_in, c_out, 1, stride=stride))
 
 
     def forward(self, inputs):
@@ -116,18 +122,20 @@ class WRN_Block(nn.Module):
 
 class WRN(nn.Module):
 
-    def __init__(self, input_dim, num_classes, k, use_dropout):
+    def __init__(self, input_dim, num_classes, num_blocks, widen_factor, use_dropout, weight_decay):
         super(WRN, self).__init__()
 
-        self.features = nn.Sequential(
-            nn.Conv2d(input_dim[0], 16*k, kernel_size=3, stride=1, padding=1, bias=True),
-            WRN_Block(16*k, 16*k, use_dropout), #conv2
-            nn.MaxPool2d(kernel_size=2),
-            WRN_Block(16*k, 32*k, use_dropout), #conv3
-            nn.MaxPool2d(kernel_size=2),
-            WRN_Block(32*k, 64*k, use_dropout), #conv4
-            nn.AdaptiveAvgPool2d((1,1))
-        )
+        self.weight_decay = weight_decay
+
+        num_filters = [16, 16*widen_factor, 32*widen_factor, 64*widen_factor]
+        strides = [1, 2, 2]
+        layers = [nn.Conv2d(input_dim[0], 16, kernel_size=3, stride=1, padding=1, bias=True)]
+        for i_f, (nf_1, nf, stride) in enumerate(zip(num_filters[:-1], num_filters[1:], strides)):
+            layers += [WRN_Block(nf_1  , nf, use_dropout, stride=stride)]
+            layers += [WRN_Block(nf, nf, use_dropout, stride=1)] * (num_blocks-1)
+        layers += [nn.AdaptiveAvgPool2d((1,1))]
+
+        self.features = nn.Sequential(*layers)
 
         probe_tensor = torch.zeros((1,) + input_dim)
         features = self.features(probe_tensor)
@@ -137,18 +145,14 @@ class WRN(nn.Module):
         self.classifier = nn.Linear(features_dim.shape[0], num_classes)
 
     def penalty(self):
-        penalty_term = torch.zeros([])
-        penalty_term += self.classifier.weight.norm(2)
-        #print("Modules :")
-        #print(list(self.modules()))
-        #for m in self.modules():
-        #    if type(m) in [nn.Conv2d, nn.Linear]:
-        #        print("**** {}".format(type(m)))
-        #    else:
-        #        print("{}".format(type(m)))
-        #import sys
-        #sys.exit(-1)
-        return penalty_term
+        penalty_term = None
+        for m in self.modules():
+            if type(m) in [nn.Conv2d, nn.Linear]:
+                if not penalty_term:
+                    penalty_term = m.weight.norm(2)**2
+                else:
+                    penalty_term += m.weight.norm(2)**2
+        return self.weight_decay * penalty_term
 
     def forward(self, inputs):
         features = self.features(inputs)
@@ -158,14 +162,15 @@ class WRN(nn.Module):
 
 model_builder = {'linear': Linear,
                  'cnn': lambda idim, nc, dropout: CNN(idim, nc, dropout),
-                 'wrn': lambda idim, nc, dropout: WRN(idim, nc, 5, dropout)}
+                 'wrn': lambda idim, nc, dropout, wd: WRN(idim, nc, 4, 10, dropout, wd)}
 
 
 def build_model(model_name  : str,
                 input_dim   : tuple,
                 num_classes : int,
-                use_dropout : bool):
-    return model_builder[model_name](input_dim, num_classes, use_dropout)
+                use_dropout : bool,
+                weight_decay: float):
+    return model_builder[model_name](input_dim, num_classes, use_dropout, weight_decay)
 
 
 if __name__ == '__main__':

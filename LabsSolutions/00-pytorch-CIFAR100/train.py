@@ -2,6 +2,7 @@
 import torch
 import torch.optim
 import torch.nn as nn
+import torchvision.transforms as transforms
 from tensorboardX import SummaryWriter
 
 import argparse
@@ -24,9 +25,19 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
+        '--normalize',
+        action='store_true',
+        help='Whether to normalize the dataset'
+    )
+    parser.add_argument(
         '--dropout',
         action='store_true',
         help='Whether to use dropout'
+    )
+    parser.add_argument(
+        '--data_augment',
+        action='store_true',
+        help='Whether to use dataset augmentation on the training set'
     )
 
     parser.add_argument(
@@ -74,13 +85,19 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    epochs      = 50
+    epochs      = 200
     valid_ratio = 0.2
-    batch_size  = 1024
+    batch_size  = 128
     weight_decay= args.weight_decay
     num_workers = args.num_workers
     dataset_dir = args.dataset_dir
-    train_augment_transform = []
+
+    if args.data_augment:
+        train_augment_transforms = [transforms.RandomHorizontalFlip(0.5), transforms.Pad(4), transforms.RandomCrop((32, 32))]
+    else:
+        train_augment_transforms = []
+
+    normalize   = args.normalize
     use_dropout = args.dropout
 
     input_dim = (3, 32, 32)
@@ -94,21 +111,22 @@ if __name__ == '__main__':
         device = torch.device('cpu')
 
     # Data loading
-    train_loader, valid_loader = data.load_data(valid_ratio,
+    train_loader, valid_loader, normalization_function = data.load_data(valid_ratio,
                                                 batch_size,
                                                 num_workers,
+                                                normalize,
                                                 dataset_dir,
-                                                train_augment_transform)
+                                                train_augment_transforms)
     # Model definition
-    model = models.build_model(args.model, input_dim, num_classes, use_dropout)
+    model = models.build_model(args.model, input_dim, num_classes, use_dropout, weight_decay)
     model = model.to(device=device)
 
     # Loss function
     loss = nn.CrossEntropyLoss()  # This computes softmax internally
 
     # Optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.1, weight_decay=weight_decay)
-    #optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True)
+    #optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True)
     if args.cyclic_lr:
         low_lr, high_lr, period = args.cyclic_lr
         def cyclical_lr(epoch, low_lr=low_lr, high=high_lr, period=period):
@@ -120,7 +138,7 @@ if __name__ == '__main__':
                 return high_lr + 2.0 * (dt-0.5) * (low_lr - high_lr)
         scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, cyclical_lr)
     else:
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10,20], gamma=0.2)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60,120], gamma=0.2)
 
     # Callbacks
 
@@ -150,13 +168,13 @@ CIFAR-100
 
 Model summary
 =============
-{}
+\t{}
 
 {} trainable parameters
 
 Optimizer
 ========
-{}
+\t{}
 
     """.format(" ".join(sys.argv),
             str(model).replace('\n','\n\t'),
@@ -172,7 +190,8 @@ Optimizer
 
     ## Checkpoint
     model_checkpoint = utils.ModelCheckpoint(logdir + "/best_model.pt",
-                                             {'model': model})
+                                             {'model': model,
+                                              'normalization_function': normalization_function})
 
     # Training loop
     for t in range(epochs):
