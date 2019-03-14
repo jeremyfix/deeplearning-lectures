@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--model',
-        choices=['linear', 'cnn', 'wrn'],
+        choices=['linear', 'cnn', 'wrn', 'wide'],
         action='store',
         required=True
     )
@@ -138,7 +138,8 @@ if __name__ == '__main__':
                 return high_lr + 2.0 * (dt-0.5) * (low_lr - high_lr)
         scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, cyclical_lr)
     else:
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60,120], gamma=0.2)
+        #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,60,90,120,150], gamma=0.5)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 30, gamma=0.5)
 
     # Callbacks
 

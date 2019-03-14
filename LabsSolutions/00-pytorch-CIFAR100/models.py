@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+import wide_resnet
 
 def conv_bn_relu_maxp(in_channels, out_channels, ks):
     return [nn.Conv2d(in_channels, out_channels,
@@ -74,6 +75,14 @@ def conv_relu_bn(c_in, c_out, ks, stride):
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(c_out)]
 
+def conv_bn_relu(c_in, c_out, ks, stride):
+    return [nn.Conv2d(c_in, c_out,
+                      kernel_size=ks,
+                      stride=stride,
+                      padding=int((ks-1)/2), bias=True),
+            nn.BatchNorm2d(c_out),
+            nn.ReLU(inplace=True)]
+
 
 
 def bn_relu_conv(c_in, c_out, ks, stride):
@@ -99,9 +108,9 @@ class WRN_Block(nn.Module):
             #)
             #self.c11 = nn.Sequential(*bn_relu_conv(c_in, c_out, 1))
             self.c33 = nn.Sequential(
-                    *conv_relu_bn(c_in, c_out, 3, stride=1),
+                    *conv_bn_relu(c_in, c_out, 3, stride=1),
                     nn.Dropout(0.5),
-                    *conv_relu_bn(c_out, c_out, 3, stride=stride)
+                    *conv_bn_relu(c_out, c_out, 3, stride=stride)
             )
             self.c11 = nn.Sequential(*conv(c_in, c_out, 1, stride=stride))
         else:
@@ -111,8 +120,8 @@ class WRN_Block(nn.Module):
             #)
             #self.c11 = nn.Sequential(*bn_relu_conv(c_in, c_out, 1))
             self.c33 = nn.Sequential(
-                    *conv_relu_bn(c_in, c_out, 3, stride=1),
-                    *conv_relu_bn(c_out, c_out, 3, stride=stride)
+                    *conv_bn_relu(c_in, c_out, 3, stride=1),
+                    *conv_bn_relu(c_out, c_out, 3, stride=stride)
             )
             self.c11 = nn.Sequential(*conv(c_in, c_out, 1, stride=stride))
 
@@ -162,7 +171,8 @@ class WRN(nn.Module):
 
 model_builder = {'linear': Linear,
                  'cnn': lambda idim, nc, dropout: CNN(idim, nc, dropout),
-                 'wrn': lambda idim, nc, dropout, wd: WRN(idim, nc, 4, 10, dropout, wd)}
+                 'wrn': lambda idim, nc, dropout, wd: WRN(idim, nc, 4, 10, dropout, wd),
+                 'wide': lambda idim, nc, dropout, wd:wide_resnet.Wide_ResNet(28, 10, 0.3, 10) }
 
 
 def build_model(model_name  : str,
