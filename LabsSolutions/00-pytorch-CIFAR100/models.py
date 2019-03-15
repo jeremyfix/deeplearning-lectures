@@ -172,7 +172,7 @@ class WRN(nn.Module):
 model_builder = {'linear': Linear,
                  'cnn': lambda idim, nc, dropout: CNN(idim, nc, dropout),
                  'wrn': lambda idim, nc, dropout, wd: WRN(idim, nc, 4, 10, dropout, wd),
-                 'wide': lambda idim, nc, dropout, wd:wide_resnet.Wide_ResNet(28, 10, 0.3, 10) }
+                 'wide': lambda idim, nc, dropout, wd:wide_resnet.Wide_ResNet(28, 10, 0.3, nc) }
 
 
 def build_model(model_name  : str,
