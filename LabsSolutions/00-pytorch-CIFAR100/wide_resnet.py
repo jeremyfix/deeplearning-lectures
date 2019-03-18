@@ -1,4 +1,7 @@
 ### Code from : https://github.com/meliketoy/wide-resnet.pytorch
+### slighlty adapted for :
+## - handling the initialization
+## - including the L2 penalty on the weights
 
 import torch
 import torch.nn as nn
@@ -11,21 +14,16 @@ import numpy as np
 def conv3x3(in_planes, out_planes, stride=1):
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=True)
 
-def conv_init(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        init.xavier_uniform(m.weight, gain=np.sqrt(2))
-        init.constant(m.bias, 0)
-    elif classname.find('BatchNorm') != -1:
-        init.constant(m.weight, 1)
-        init.constant(m.bias, 0)
 
 class wide_basic(nn.Module):
     def __init__(self, in_planes, planes, dropout_rate, stride=1):
         super(wide_basic, self).__init__()
         self.bn1 = nn.BatchNorm2d(in_planes)
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, padding=1, bias=True)
-        self.dropout = nn.Dropout(p=dropout_rate)
+        if dropout_rate != 0.0:
+            self.dropout = nn.Dropout(p=dropout_rate)
+        else:
+            self.dropout = None
         self.bn2 = nn.BatchNorm2d(planes)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=1, bias=True)
 
@@ -35,17 +33,22 @@ class wide_basic(nn.Module):
                 nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=True),
             )
 
+
+
     def forward(self, x):
-        out = self.dropout(self.conv1(F.relu(self.bn1(x))))
+        out = self.conv1(F.relu(self.bn1(x)))
+        if self.dropout:
+            out = self.dropout(out)
         out = self.conv2(F.relu(self.bn2(out)))
         out += self.shortcut(x)
 
         return out
 
 class Wide_ResNet(nn.Module):
-    def __init__(self, depth, widen_factor, dropout_rate, num_classes):
+    def __init__(self, depth, widen_factor, dropout_rate, weight_decay, num_classes):
         super(Wide_ResNet, self).__init__()
         self.in_planes = 16
+        self.weight_decay = weight_decay
 
         assert ((depth-4)%6 ==0), 'Wide-resnet depth should be 6n+4'
         n = (depth-4)/6
@@ -61,6 +64,8 @@ class Wide_ResNet(nn.Module):
         self.bn1 = nn.BatchNorm2d(nStages[3], momentum=0.9)
         self.linear = nn.Linear(nStages[3], num_classes)
 
+        self.init()
+
     def _wide_layer(self, block, planes, num_blocks, dropout_rate, stride):
         strides = [stride] + [1]*int(num_blocks-1)
         layers = []
@@ -70,6 +75,28 @@ class Wide_ResNet(nn.Module):
             self.in_planes = planes
 
         return nn.Sequential(*layers)
+
+    def init(self):
+
+        def finit(m):
+            if type(m) == nn.Conv2d:
+                init.xavier_uniform_(m.weight, gain=np.sqrt(2))
+                init.constant_(m.bias, 0)
+            elif type(m) == nn.BatchNorm2d:
+                init.constant_(m.weight, 1)
+                init.constant_(m.bias, 0)
+
+        self.apply(finit)
+
+    def penalty(self):
+        penalty_term = None
+        for m in self.modules():
+            if type(m) in [nn.Conv2d, nn.Linear]:
+                if not penalty_term:
+                    penalty_term = m.weight.norm(2)**2
+                else:
+                    penalty_term += m.weight.norm(2)**2
+        return self.weight_decay * penalty_term
 
     def forward(self, x):
         out = self.conv1(x)
@@ -84,7 +111,9 @@ class Wide_ResNet(nn.Module):
         return out
 
 if __name__ == '__main__':
-    net=Wide_ResNet(28, 10, 0.3, 10)
+    dropout = 0.3
+    num_classes = 10
+    net=Wide_ResNet(28, 10, dropout, num_classes)
     y = net(torch.randn(1,3,32,32))
 
     print(y.size())

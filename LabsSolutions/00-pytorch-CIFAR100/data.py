@@ -26,6 +26,35 @@ def compute_mean_std(loader):
 
     return mean_img, std_img
 
+def compute_mean_std_values(loader):
+    # Compute the mean over minibatches
+    mean_values = None
+    num_channels = 0
+    num_pixels = 0
+    num_samples = len(loader.dataset)
+
+    for imgs, _ in loader:
+        # imgs is (B, C, H, W)
+        if mean_values is None:
+            num_channels = imgs.shape[1]
+            num_pixels = imgs.shape[2] * imgs.shape[3]
+            mean_values = torch.zeros((1, num_channels)) # shape = number of channels
+        mean_values += imgs.shape[0] * torch.mean(imgs.permute((0,2,3,1)).contiguous().view(-1, num_channels), 0)
+    mean_values /= float(num_samples)
+
+    print(mean_values)
+    # Compute the std over minibatches
+    std_values = torch.zeros_like(mean_values)
+    for imgs, _ in loader:
+        std_values += imgs.shape[0] * torch.mean((imgs.permute((0,2,3,1)).contiguous().view(-1, num_channels) - mean_values)**2, 0)
+    std_values /= float(num_samples)
+    std_values = torch.sqrt(std_values)
+    print(std_values)
+
+    return mean_values.squeeze(), std_values.squeeze()
+
+
+
 
 class DatasetTransformer(torch.utils.data.Dataset):
 
@@ -67,7 +96,7 @@ classes = []
 def load_data(valid_ratio: float,
               batch_size: int,
               num_workers: int,
-              normalize: bool,
+              normalization: str,
               dataset_dir: str,
               train_augment_transforms: list):
 
@@ -100,19 +129,21 @@ def load_data(valid_ratio: float,
     # Compute the normalization tensors
     # after the augmentation transforms in order to take into account
     # these transforms in the statistics
-    if normalize:
+    if normalization != 'None':
         print("Computing the normalization tensors")
-        normalizing_dataset = DatasetTransformer(train_dataset, data_transforms['train'])
+        normalizing_dataset = DatasetTransformer(train_dataset, transforms.ToTensor()) #data_transforms['train'])
         normalizing_loader = torch.utils.data.DataLoader(dataset=normalizing_dataset,
                                                    batch_size=batch_size,
                                                    num_workers=num_workers)
 
         # Compute mean and variance from the training set
-        mean_train_tensor, std_train_tensor = compute_mean_std(normalizing_loader)
-
-
-        normalization_function = CenterReduce(mean_train_tensor,
-                                              std_train_tensor)
+        if normalization == 'img_meanstd':
+            mean_train_tensor, std_train_tensor = compute_mean_std(normalizing_loader)
+            normalization_function = CenterReduce(mean_train_tensor,
+                                                  std_train_tensor)
+        elif normalization == 'channel_meanstd':
+            mean_train_value, std_train_value = compute_mean_std_values(normalizing_loader)
+            normalization_function = transforms.Normalize(mean_train_value.tolist(), std_train_value.tolist())
 
         # Apply the transformation to our dataset
         for k, old_transforms in data_transforms.items():
@@ -139,6 +170,28 @@ def load_data(valid_ratio: float,
                                               num_workers=num_workers)
 
     return train_loader, valid_loader, normalization_function
+
+
+def load_test_data(batch_size: int,
+                   num_workers: int,
+                   dataset_dir: str,
+                   normalization_function):
+
+    if normalization_function:
+        test_transform = transforms.Compose([transforms.ToTensor(),
+                transforms.Lambda(lambda x: normalization_function(x))])
+    else:
+        test_transform = transforms.ToTensor()
+
+    test_dataset = torchvision.datasets.CIFAR100(dataset_dir,
+            train=False, transform=test_transform,
+            target_transform=None, download=True)
+
+    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+                                              batch_size=batch_size,
+                                              shuffle=True,
+                                              num_workers=num_workers)
+    return test_loader
 
 
 

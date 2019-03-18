@@ -25,14 +25,18 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '--normalize',
-        action='store_true',
-        help='Whether to normalize the dataset'
+        '--normalization',
+        choices=['None', 'img_meanstd', 'channel_meanstd'],
+        action='store',
+        required=True,
+        default='None',
+        help='Whether and How to normalize the dataset'
     )
     parser.add_argument(
         '--dropout',
-        action='store_true',
-        help='Whether to use dropout'
+        type=float,
+        default= 0.0,
+        help='Dropout rate (prob to zeros). The default dropout=0.0 disables dropout'
     )
     parser.add_argument(
         '--data_augment',
@@ -93,11 +97,11 @@ if __name__ == '__main__':
     dataset_dir = args.dataset_dir
 
     if args.data_augment:
-        train_augment_transforms = [transforms.RandomHorizontalFlip(0.5), transforms.Pad(4), transforms.RandomCrop((32, 32))]
+        train_augment_transforms = [transforms.RandomHorizontalFlip(0.5), transforms.RandomCrop((32, 32), padding=4)]
     else:
         train_augment_transforms = []
 
-    normalize   = args.normalize
+    normalization   = args.normalization
     use_dropout = args.dropout
 
     input_dim = (3, 32, 32)
@@ -114,9 +118,12 @@ if __name__ == '__main__':
     train_loader, valid_loader, normalization_function = data.load_data(valid_ratio,
                                                 batch_size,
                                                 num_workers,
-                                                normalize,
+                                                normalization,
                                                 dataset_dir,
                                                 train_augment_transforms)
+
+    test_loader = data.load_test_data(batch_size, num_workers, dataset_dir, normalization_function)
+
     # Model definition
     model = models.build_model(args.model, input_dim, num_classes, use_dropout, weight_decay)
     model = model.to(device=device)
@@ -167,6 +174,8 @@ Dataset
 =======
 CIFAR-100
 
+Normalization : {}
+
 Model summary
 =============
 \t{}
@@ -177,7 +186,7 @@ Optimizer
 ========
 \t{}
 
-    """.format(" ".join(sys.argv),
+    """.format(" ".join(sys.argv), args.normalization,
             str(model).replace('\n','\n\t'),
             sum(p.numel() for p in model.parameters() if p.requires_grad),
             str(optimizer).replace('\n', '\n\t'))
@@ -204,10 +213,15 @@ Optimizer
         val_loss, val_acc = utils.test(model, valid_loader, loss, device)
         print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
 
+        test_loss, test_acc = utils.test(model, test_loader, loss, device)
+        print(" Test : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
+
         model_checkpoint.update(val_loss)
         tensorboard_writer.add_scalar('metrics/train_loss', train_loss, t)
         tensorboard_writer.add_scalar('metrics/train_acc',  train_acc, t)
         tensorboard_writer.add_scalar('metrics/val_loss', val_loss, t)
         tensorboard_writer.add_scalar('metrics/val_acc',  val_acc, t)
+        tensorboard_writer.add_scalar('metrics/test_loss', test_loss, t)
+        tensorboard_writer.add_scalar('metrics/test_acc',  test_acc, t)
 
 

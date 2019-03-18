@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.init as init
 
 import wide_resnet
 
@@ -97,33 +98,16 @@ def bn_relu_conv(c_in, c_out, ks, stride):
 
 class WRN_Block(nn.Module):
 
-    def __init__(self, c_in, c_out, use_dropout, stride):
+    def __init__(self, c_in, c_out, dropout, stride):
         super(WRN_Block, self).__init__()
 
-        if use_dropout:
-            #self.c33 = nn.Sequential(
-            #        *bn_relu_conv(c_in, c_out, 3),
-            #        nn.Dropout(0.5),
-            #        *bn_relu_conv(c_out, c_out, 3)
-            #)
-            #self.c11 = nn.Sequential(*bn_relu_conv(c_in, c_out, 1))
-            self.c33 = nn.Sequential(
-                    *conv_bn_relu(c_in, c_out, 3, stride=1),
-                    nn.Dropout(0.5),
-                    *conv_bn_relu(c_out, c_out, 3, stride=stride)
-            )
-            self.c11 = nn.Sequential(*conv(c_in, c_out, 1, stride=stride))
-        else:
-            #self.c33 = nn.Sequential(
-            #        *bn_relu_conv(c_in, c_out, 3),
-            #        *bn_relu_conv(c_out, c_out, 3)
-            #)
-            #self.c11 = nn.Sequential(*bn_relu_conv(c_in, c_out, 1))
-            self.c33 = nn.Sequential(
-                    *conv_bn_relu(c_in, c_out, 3, stride=1),
-                    *conv_bn_relu(c_out, c_out, 3, stride=stride)
-            )
-            self.c11 = nn.Sequential(*conv(c_in, c_out, 1, stride=stride))
+        layers = bn_relu_conv(c_in, c_out, 3)
+        if dropout != 0.0:
+            layers += [nn.Dropout(dropout)]
+        layers += bn_relu_conv(c_out, c_out, 3)
+
+        self.c33 = nn.Sequential(*layers)
+        self.c11 = nn.Sequential(*conv(c_in, c_out, 1, stride=stride))
 
 
     def forward(self, inputs):
@@ -131,7 +115,7 @@ class WRN_Block(nn.Module):
 
 class WRN(nn.Module):
 
-    def __init__(self, input_dim, num_classes, num_blocks, widen_factor, use_dropout, weight_decay):
+    def __init__(self, input_dim, num_classes, num_blocks, widen_factor, dropout, weight_decay):
         super(WRN, self).__init__()
 
         self.weight_decay = weight_decay
@@ -140,8 +124,8 @@ class WRN(nn.Module):
         strides = [1, 2, 2]
         layers = [nn.Conv2d(input_dim[0], 16, kernel_size=3, stride=1, padding=1, bias=True)]
         for i_f, (nf_1, nf, stride) in enumerate(zip(num_filters[:-1], num_filters[1:], strides)):
-            layers += [WRN_Block(nf_1  , nf, use_dropout, stride=stride)]
-            layers += [WRN_Block(nf, nf, use_dropout, stride=1)] * (num_blocks-1)
+            layers += [WRN_Block(nf_1  , nf, dropout, stride=stride)]
+            layers += [WRN_Block(nf, nf, dropout, stride=1)] * (num_blocks-1)
         layers += [nn.AdaptiveAvgPool2d((1,1))]
 
         self.features = nn.Sequential(*layers)
@@ -152,6 +136,20 @@ class WRN(nn.Module):
         features_dim = features.view(-1)
 
         self.classifier = nn.Linear(features_dim.shape[0], num_classes)
+        self.init()
+
+    def init(self):
+        def finit(m):
+            if type(m) == nn.Conv2d:
+                init.xavier_uniform_(m.weight, gain=np.sqrt(2))
+                init.constant_(m.bias, 0)
+            elif type(m) == nn.BatchNorm2d:
+                init.constant_(m.weight, 1)
+                init.constant_(m.bias, 0)
+            #elif type(m) == nn.Linear:
+            #
+        self.apply(finit)
+
 
     def penalty(self):
         penalty_term = None
@@ -172,15 +170,15 @@ class WRN(nn.Module):
 model_builder = {'linear': Linear,
                  'cnn': lambda idim, nc, dropout: CNN(idim, nc, dropout),
                  'wrn': lambda idim, nc, dropout, wd: WRN(idim, nc, 4, 10, dropout, wd),
-                 'wide': lambda idim, nc, dropout, wd:wide_resnet.Wide_ResNet(28, 10, 0.3, nc) }
+                 'wide': lambda idim, nc, dropout, wd:wide_resnet.Wide_ResNet(28, 10, dropout, wd, nc) }
 
 
 def build_model(model_name  : str,
                 input_dim   : tuple,
                 num_classes : int,
-                use_dropout : bool,
+                dropout : float,
                 weight_decay: float):
-    return model_builder[model_name](input_dim, num_classes, use_dropout, weight_decay)
+    return model_builder[model_name](input_dim, num_classes, dropout, weight_decay)
 
 
 if __name__ == '__main__':
