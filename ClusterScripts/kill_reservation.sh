@@ -31,6 +31,8 @@ do
             ;;
         -h|--help)
             exec echo "$usage_m";;
+        *)
+            exec echo "Unrecognized option $key"
     esac
 done
 
