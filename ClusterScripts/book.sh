@@ -5,7 +5,7 @@ Books a node on the GPU cluster of CentraleSupelec Metz
 
    -u, --user <login>          login to connect to CS Metz
    -m, --machine <machine>     OPTIONAL, a specific machine
-   -c, --cluster <cluster>     uSkynet, cameron, tx (default: uSkynet)
+   -c, --cluster <cluster>     uSkynet, cameron, john, tx (default: uSkynet)
    -w, --walltime <walltime>   in hours (default: 48)
    -h, --help                  prints this help message
 "
@@ -95,7 +95,7 @@ then
 fi
 
 case $CLUSTER in
-    "uSkynet"|"cameron"|"tx") ;;
+    "uSkynet"|"cameron"|"tx"|"john") ;;
     *)
         display_error "The cluster must be one of uSkynet, cameron, tx"
         exit;;
