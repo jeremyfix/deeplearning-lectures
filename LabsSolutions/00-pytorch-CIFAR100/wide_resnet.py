@@ -88,15 +88,15 @@ class Wide_ResNet(nn.Module):
 
         self.apply(finit)
 
-    def penalty(self):
-        penalty_term = None
-        for m in self.modules():
-            if type(m) in [nn.Conv2d, nn.Linear]:
-                if not penalty_term:
-                    penalty_term = m.weight.norm(2)**2
-                else:
-                    penalty_term += m.weight.norm(2)**2
-        return self.weight_decay * penalty_term
+    #def penalty(self):
+    #    penalty_term = None
+    #    for m in self.modules():
+    #        if type(m) in [nn.Conv2d, nn.Linear]:
+    #            if not penalty_term:
+    #                penalty_term = m.weight.norm(2)**2
+    #            else:
+    #                penalty_term += m.weight.norm(2)**2
+    #    return self.weight_decay * penalty_term
 
     def forward(self, x):
         out = self.conv1(x)
