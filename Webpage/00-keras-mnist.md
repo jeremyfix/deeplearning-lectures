@@ -545,7 +545,7 @@ python3 -c 'import keras; print(keras.backend.image_data_format())'
 
 I will assume that the output is "channels\_last", otherwise you might
 change your "\~/.keras/keras.json" file (see
-[](https://keras.io/backend/#kerasjson-details)) or adapt the code
+[Keras doc](https://keras.io/backend/#kerasjson-details)) or adapt the code
 below. Therefore, in your python script, the input\_shape must be set
 to:
 
