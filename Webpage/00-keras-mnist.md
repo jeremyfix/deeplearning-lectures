@@ -546,8 +546,21 @@ python3 -c 'import keras; print(keras.backend.image_data_format())'
 I will assume that the output is "channels\_last", otherwise you might
 change your "\~/.keras/keras.json" file (see
 [Keras doc](https://keras.io/backend/#kerasjson-details)) or adapt the code
-below. Therefore, in your python script, the input\_shape must be set
-to:
+below. 
+
+The first thing to do is to ensure the data arrays are in the appropriate format. Remember, before, we reshaped the training and test numpy arrays as (60000, 784) and (10000, 784) respectively. Now, with convolutional neural networks, the input data topology is exploited and we shall keep the data as images. 
+
+``` {.sourceCode .python}
+num_train  = X_train.shape[0]
+num_test   = X_test.shape[0]
+
+img_height = X_train.shape[1]
+img_width  = X_train.shape[2]
+X_train = X_train.reshape((num_train, img_height, img_width))
+X_test  = X_test.reshape((num_test, img_height, img_width))
+```
+
+Then, the input\_shape variable, used for defining the shape of the Input layer,  must also be adapted :
 
 ``` {.sourceCode .python}
 input_shape = (img_rows, img_cols, 1)      
