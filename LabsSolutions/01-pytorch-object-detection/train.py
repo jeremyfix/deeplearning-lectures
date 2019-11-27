@@ -14,7 +14,7 @@ import torch.utils.data
 import torch.nn as nn
 import torchvision.transforms as transforms
 
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 import data
 import models

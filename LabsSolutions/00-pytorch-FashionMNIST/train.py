@@ -10,7 +10,7 @@ import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision.transforms import RandomAffine
 
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 import numpy as np
 
@@ -22,11 +22,10 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-
     parser.add_argument(
-            '--use_gpu',
-            action='store_true',
-            help='Whether to use GPU'
+        '--use_gpu',
+        action='store_true',
+        help='Whether to use GPU'
     )
 
     parser.add_argument(
@@ -37,19 +36,18 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-            '--num_workers',
-            type=int,
-            default=1,
-            help='The number of CPU threads used'
+        '--num_workers',
+        type=int,
+        default=1,
+        help='The number of CPU threads used'
     )
 
     parser.add_argument(
-            '--weight_decay',
-            type=float,
-            default=0,
-            help='Weight decay'
+        '--weight_decay',
+        type=float,
+        default=0,
+        help='Weight decay'
     )
-
 
     parser.add_argument(
         '--data_augment',
@@ -108,15 +106,15 @@ if __name__ == '__main__':
     train_augment_transforms = None
     if args.data_augment:
         train_augment_transforms = transforms.Compose([transforms.RandomHorizontalFlip(0.5),
-            RandomAffine(degrees=10, translate=(0.1, 0.1))])
+                                                       RandomAffine(degrees=10, translate=(0.1, 0.1))])
 
 
     train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,
-            batch_size,
-            args.num_workers,
-            args.normalize,
-            dataset_dir = args.dataset_dir,
-            train_augment_transforms = train_augment_transforms)
+                                                                                              batch_size,
+                                                                                              args.num_workers,
+                                                                                              args.normalize,
+                                                                                              dataset_dir = args.dataset_dir,
+                                                                                              train_augment_transforms = train_augment_transforms)
 
 
 
@@ -159,11 +157,11 @@ Optimizer
 {}
 
     """.format(" ".join(sys.argv),
-            train_augment_transforms,
-            args.normalize,
-            str(model).replace('\n','\n\t'),
-            sum(p.numel() for p in model.parameters() if p.requires_grad),
-            str(optimizer).replace('\n', '\n\t'))
+               train_augment_transforms,
+               args.normalize,
+               str(model).replace('\n','\n\t'),
+               sum(p.numel() for p in model.parameters() if p.requires_grad),
+               str(optimizer).replace('\n', '\n\t'))
     summary_file.write(summary_text)
     summary_file.close()
 
@@ -171,9 +169,10 @@ Optimizer
     tensorboard_writer   = SummaryWriter(log_dir = logdir)
     tensorboard_writer.add_text("Experiment summary", summary_text)
     model_checkpoint = utils.ModelCheckpoint(logdir + "/best_model.pt",
-            {'model': model, 'normalization_function': normalization_function}
-    )
-
+                                             {'model': model, 'normalization_function': normalization_function}
+                                            )
+    # Add the graph of the model to the tensorboard
+    tensorboard_writer.add_graph(model, next(iter(train_loader))[0])
     ####################################################################################### Main Loop
     for t in range(epochs):
         print("Epoch {}".format(t))
