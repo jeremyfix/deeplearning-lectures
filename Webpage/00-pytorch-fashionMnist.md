@@ -667,16 +667,9 @@ print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
 
 ### Dashboard for monitoring/comparing runs
 
-We now turn to the question of monitoring one or several runs. There is
-actually not a single answer to this question and here are some of the
-options :
+We now turn to the question of monitoring one or several runs. You can choose betwen several options ([Visdom](https://github.com/facebookresearch/visdom), [Trixi](https://github.com/MIC-DKFZ/trixi)) but probably the most convenient is actually to rely on Tensorboard and pytorch now has a built-in [tensorboard writer](https://pytorch.org/docs/stable/tensorboard.html#torch-utils-tensorboard). 
 
--   Visdom <https://github.com/facebookresearch/visdom>
--   Tensorboard pytorch plugin <https://github.com/lanpa/tensorboardX>
--   Trixi <https://github.com/MIC-DKFZ/trixi>
--   ...
-
-I propose to use tensorboardX. It requires to install tensorboard but it
+It requires to install tensorboard but it
 is definitely a convenient viewer. The basic idea of this viewer is to
 add few lines in your code which is dumping data on disk and to start
 the tensorboard server which is continuously browsing your disk for new
@@ -690,14 +683,13 @@ script.
 
 You can actually display much more information on a tensorboard (e.g.
 sending images, videos, audios, texts, histograms, precision/recall
-curves, ...), you can check the demo file
-<https://github.com/lanpa/tensorboardX/blob/master/examples/demo.py>
-provided by tensorboardX.
+curves, ...), you can check the [pytorch tensorboard
+tutorial](https://pytorch.org/tutorials/intermediate/tensorboard_tutorial.html)
 
 </div>
 
 ``` {.sourceCode .python}
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 [...]
 tensorboard_writer   = SummaryWriter(log_dir = logdir)
