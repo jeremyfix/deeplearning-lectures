@@ -732,9 +732,9 @@ sh11:~:mylogin$ for iter in $(seq 1 10); do echo ">>>> Run $iter" && python3 tra
 ```
 
 
-![Training accuracy for logistic regression without normalization of the input](./data/00-pytorch-fashionMnist/fashion_mnist_pytorch/linear_train_acc.png){width=30%}
+![Training accuracy for logistic regression without normalization of the input](./data/00-pytorch-fashionMnist/linear_train_acc.png){width=30%}
 
-![Validation accuracy for logistic regression without normalization of the input](./data/00-pytorch-fashionMnist/fashion_mnist_pytorch/linear_val_acc.png){width=30%}
+![Validation accuracy for logistic regression without normalization of the input](./data/00-pytorch-fashionMnist/linear_val_acc.png){width=30%}
 
 You should reach a validation and test accuracy around 85% and this is
 rather consistent, but, remember, we have a convex optimization problem,
@@ -931,9 +931,9 @@ If you also look at the losses, you should be observing that the model
 is overfitting. Below are some examples you might get :
 
 
-![Metrics on the training set for the fully connected model](./data/00-pytorch-fashionMnist/fashion_mnist_pytorch/fc_train_metrics.png){width="75%"}
+![Metrics on the training set for the fully connected model](./data/00-pytorch-fashionMnist/fc_train_metrics.png){width="75%"}
 
-![Metrics on the validation set for the fully connected model](./data/00-pytorch-fashionMnist/fashion_mnist_pytorch/fc_val_metrics.png){width="75%"}
+![Metrics on the validation set for the fully connected model](./data/00-pytorch-fashionMnist/fc_val_metrics.png){width="75%"}
 
 We can try to improve the generalization performance by introducing some
 regularization, which is addressed in the next paragraph.
@@ -1006,9 +1006,9 @@ def train(model, loader, loss_function, optimizer, use_gpu):
 ```
 
 
-![Metrics on the training set when adding L2 regularization](./data/00-pytorch-fashionMnist/fashion_mnist_pytorch/fc_l2reg10m3_train_metrics.png){width="75%"}
+![Metrics on the training set when adding L2 regularization](./data/00-pytorch-fashionMnist/fc_l2reg10m3_train_metrics.png){width="75%"}
 
-![Metrics on the validation set when adding L2 regularization](./data/00-pytorch-fashionMnist/fashion_mnist_pytorch/fc_l2reg10m3_val_metrics.png){width="75%"}
+![Metrics on the validation set when adding L2 regularization](./data/00-pytorch-fashionMnist/fc_l2reg10m3_val_metrics.png){width="75%"}
 
 Another more recently introduced regularization technique is called
 Dropout [@Srivastava2014]. It consists in setting to 0 the
@@ -1040,9 +1040,9 @@ classifier = nn.Sequential(
 
 I let you modify your code to test this approach.
 
-![Metrics on the training set when adding dropout 0.2](./data/00-pytorch-fashionMnist/fashion_mnist_pytorch/fc_dropout0_2_train_metrics.png){width="75%"}
+![Metrics on the training set when adding dropout 0.2](./data/00-pytorch-fashionMnist/fc_dropout0_2_train_metrics.png){width="75%"}
 
-![Metrics on the validation set when adding dropout of 0.2](./data/00-pytorch-fashionMnist/fashion_mnist_pytorch/fc_dropout0_2_val_metrics.png){width="75%"}
+![Metrics on the validation set when adding dropout of 0.2](./data/00-pytorch-fashionMnist/fc_dropout0_2_val_metrics.png){width="75%"}
 
 A vanilla convolutional neural network
 --------------------------------------
