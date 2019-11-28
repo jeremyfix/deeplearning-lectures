@@ -109,12 +109,15 @@ remove_ssh_key()
 generate_new_key()
 {
 	keyword=$1
+	display_info "Generating the keys"
+	ssh-keygen -t rsa -b 2048 -N "" -C "$keyword" -f ./id_rsa_$PREFIXLOGIN
 	for i in $(seq $RANGEMIN $RANGEMAX)
 	do
-		display_info "Generating the keys"
-		ssh-keygen -t rsa -b 2048 -N "" -C "$keyword" -f ./id_rsa_$PREFIXLOGIN
-		display_info "Copying the private/public keys on the home"
-		scp id_rsa_$PREFIXLOGIN* $PREFIXLOGIN$i@term2:~/.ssh/	
+		display_info "Removing previous rsa keys on the home of $PREFIXLOGIN$i"
+		ssh $PREFIXLOGIN$i@term2 "rm -f $HOME/id_rsa*"
+		display_info "Copying the private/public keys on the home of $PREFIXLOGIN$i"
+		scp id_rsa_$PREFIXLOGIN $PREFIXLOGIN$i@term2:~/.ssh/id_rsa	
+		scp id_rsa_$PREFIXLOGIN.pub $PREFIXLOGIN$i@term2:~/.ssh/id_rsa.pub	
 		display_info "Copy ID"
 		ssh-copy-id -i id_rsa_$PREFIXLOGIN $PREFIXLOGIN$i@term2 
 	done
