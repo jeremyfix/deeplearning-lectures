@@ -73,6 +73,7 @@ menu="
 What should we do ?
    l : list the SSH keys
    r : remove a key
+   g : generate new keys
    q : quit
 " 
 
@@ -105,6 +106,19 @@ remove_ssh_key()
 		fi
 	done
 }
+generate_new_key()
+{
+	keyword=$1
+	for i in $(seq $RANGEMIN $RANGEMAX)
+	do
+		display_info "Generating the keys"
+		ssh-keygen -t rsa -b 2048 -N "" -C "$keyword" -f ./id_rsa_$PREFIXLOGIN
+		display_info "Copying the private/public keys on the home"
+		scp id_rsa_$PREFIXLOGIN* $PREFIXLOGIN$i@term2:~/.ssh/	
+		display_info "Copy ID"
+		ssh-copy-id -i id_rsa_$PREFIXLOGIN $PREFIXLOGIN$i@term2 
+	done
+}
 
 while [ $quit -ne 1 ]
 do
@@ -129,6 +143,9 @@ do
 			else
 				display_error "Unrecognized option"
 			fi
+			;;
+		g)
+			generate_new_key ""$PREFIXLOGIN"_GPU"
 			;;
 		q)
 			quit=1
