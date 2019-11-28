@@ -60,16 +60,19 @@ done
 if [ -z $PREFIXLOGIN ]
 then
 	display_error "A login prefix is required, see --help"
+	exit -1
 fi
 if [ -z $RANGEMIN ] || [ -z $RANGEMAX ]
 then
 	display_error "A range is required, see --help"
+	exit -1
 fi
 
 quit=0
 menu="
 What should we do ?
    l : list the SSH keys
+   r : remove a key
    q : quit
 " 
 
@@ -81,6 +84,27 @@ list_ssh_keys()
 		ssh $PREFIXLOGIN$i@term2 'cat $HOME/.ssh/authorized_keys'
 	done
 }
+remove_ssh_key()
+{
+	dryrun=$1
+	keyword=$2
+	for i in $(seq $RANGEMIN $RANGEMAX)
+	do
+		if [ "$dryrun" -eq "1" ] 
+		then
+			display_info "==== USER $PREFIXLOGIN$i ===="
+			display_info "Will keep : "
+			ssh $PREFIXLOGIN$i@term2 'if test -f $HOME/.ssh/authorized_keys; then if grep -v "'$keyword'" $HOME/.ssh/authorized_keys > $HOME/.ssh/keytmp_keep; then cat $HOME/.ssh/keytmp_keep; fi; fi'
+			display_info "Will drop : "
+			ssh $PREFIXLOGIN$i@term2 'if test -f $HOME/.ssh/authorized_keys; then if grep "'$keyword'" $HOME/.ssh/authorized_keys > $HOME/.ssh/keytmp_drop; then cat $HOME/.ssh/keytmp_drop; fi; fi'
+		else
+			display_info "==== USER $PREFIXLOGIN$i ===="
+			ssh $PREFIXLOGIN$i@term2 'mv $HOME/.ssh/keytmp_keep $HOME/.ssh/authorized_keys; rm -f $HOME/.ssh/keytmp_drop'
+			ssh $PREFIXLOGIN$i@term2 'cat $HOME/.ssh/authorized_keys'
+			
+		fi
+	done
+}
 
 while [ $quit -ne 1 ]
 do
@@ -89,6 +113,22 @@ do
 	case $choice in
 		l)
 			list_ssh_keys
+			;;
+		r)
+			display_info "Which keyword should I consider ?"
+			read unique_keyword
+			# Dry run
+			remove_ssh_key 1 $unique_keyword
+			display_info "Should I apply it ? [y/n]"
+			read doit
+			if [ "$doit" == "y" ]; then
+				display_success "Doing it"
+				remove_ssh_key 0 $unique_keyword
+			elif [ "$doit" == "n" ]; then
+				display_success "Not doing it"
+			else
+				display_error "Unrecognized option"
+			fi
 			;;
 		q)
 			quit=1
