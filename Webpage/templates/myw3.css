@@ -29,10 +29,13 @@
 
 body {
     font-family:'Source Sans Pro', serif;
-    font-size:18px;
+    font-size:16px;
     color:#333333;
 }
 
+body p {
+	text-align: justify;
+}
 
 h2 {
     border-top: 3px solid #ffcf76;
