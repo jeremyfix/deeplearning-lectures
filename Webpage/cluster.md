@@ -13,7 +13,7 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [port_forward.sh](../ClusterScripts/port_forward.sh) : to activate
+-   [port_forward.sh](./data/ClusterScripts/port_forward.sh) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
@@ -66,7 +66,7 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [port_forward.sh](../ClusterScripts/port_forward.sh) : to activate
+-   [port_forward.sh](./data/ClusterScripts/port_forward.sh) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
@@ -126,11 +126,11 @@ Allocation of the GPU machines are handled by a resource manager called
 OAR. It can be annoying to remember the command lines to reserve a
 machine and log to it. We therefore provide the scripts :
 
--   [book.sh](../ClusterScripts/book.sh) : to book a GPU
--   [kill\_reservation.sh](../ClusterScripts/kill_reservation.sh) : to free the
+-   [book.sh](./data/ClusterScripts/book.sh) : to book a GPU
+-   [kill\_reservation.sh](./data/ClusterScripts/kill_reservation.sh) : to free the
     reservation
--   [log.sh](../ClusterScripts/log.sh) : to log to the booked GPU
--   [port\_forward.sh](../ClusterScripts/port_forward.sh) : to activate port
+-   [log.sh](./data/ClusterScripts/log.sh) : to log to the booked GPU
+-   [port\_forward.sh](./data/ClusterScripts/port_forward.sh) : to activate port
     forwarding for Tensorboard, jupyter lab, ..
 
 After getting these scripts, please make them executables :
