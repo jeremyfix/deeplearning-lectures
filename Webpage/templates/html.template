@@ -25,9 +25,13 @@ $endif$
 <!-- Pygmentize css -->
 <link rel="stylesheet" href="./templates/pygmentize.css">
 <!--Math-->
-$if(math)$
-  $math$
-$endif$
+<!-- $if(math)$ -->
+<!--   $math$ -->
+<!-- $endif$ -->
+<!-- Hardcoding the URL, with pandoc on ubuntu 18.10, the following rewrites as /usr/share/javascript/ .... -->
+<!-- which brings in a 404 error -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+
 
 <!--Header includes-->
 $for(header-includes)$
