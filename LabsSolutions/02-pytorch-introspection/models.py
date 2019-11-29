@@ -43,7 +43,7 @@ def get_model(modelname, device):
     """
     # Try to load a pretrained model
     try:
-        model = model_builder[modelname]
+        model = model_builder[modelname]()
     except KeyError:
         raise RuntimeError("Cannot build model named {}".format(modelname))
     # Send the model on the GPU if required
