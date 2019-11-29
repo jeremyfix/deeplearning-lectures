@@ -15,6 +15,7 @@ Additional references:
 
 # Standard modules
 import argparse
+import sys
 # External modules
 import torch
 import torchvision
@@ -32,6 +33,10 @@ def saliency_simonyan(device, args):
     if not args.image:
         raise RuntimeError("I need an input image to work")
 
+    class_idx = 954 # Bananas
+    nsteps = 100
+    alpha = 1e-2
+
     # Loads a pretrained model
     image_transform, model = models.get_model("resnet50", device)
 
@@ -46,6 +51,18 @@ def saliency_simonyan(device, args):
     input_tensor = image_transform(img).to(device).unsqueeze(0)
     out = model(input_tensor)
 
+    # Let us start with a random image
+    generated_image = torch.rand_like(input_tensor, requires_grad=True)
+    generated_image = generated_image.to(device)
+    f_loss = torch.nn.CrossEntropyLoss()
+
+    for i in range(nsteps):
+        sys.stdout.flush()
+        loss = f_loss(model(generated_image), torch.LongTensor([class_idx]))
+        loss.backward()
+        # generated_image = generated_image + alpha * generated_image.grad
+        generated_image.data.add_(alpha, generated_image.grad)
+        sys.stdout.write("\r Step {}, Loss : {}".format(i, loss))
 
 if __name__ == '__main__':
 
