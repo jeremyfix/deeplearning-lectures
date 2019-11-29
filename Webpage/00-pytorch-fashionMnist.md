@@ -264,9 +264,13 @@ class LinearNet(nn.Module):
 model = LinearNet(1*28*28, 10)
 
 use_gpu = torch.cuda.is_available()
-
 if use_gpu:
-    model.cuda() # Moves all the parameters to the GPU
+    device = torch.device('cuda')
+else:
+    device = torch.device('cpu')
+
+
+model.to(device)
 ```
 
 <div class="w3-card w3-sand">
@@ -290,14 +294,13 @@ linear transformation. Below is an example to better understand
 [torch.Tensor.view](https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view)
 
 ``` {.sourceCode .python}
-import torch
-a = torch.randn(128, 1, 28, 28)
-print(a.size())
-# This prints :   torch.Size([128, 1, 28, 28]);     
-# a.size()[0] is 128
-av = a.view(a.size()[0], -1)
-print(av.size())
-# This prints :   torch.Size([128, 784])
+>>> import torch
+>>> a = torch.randn(128, 1, 28, 28)
+>>> print(a.size())
+torch.Size([128, 1, 28, 28]);     
+>>> av = a.view(a.size()[0], -1)
+>>> print(av.size())
+torch.Size([128, 784])
 ```
 
 The "-1" in the call of view means "whatever is necessary so that the
@@ -372,7 +375,7 @@ Below is a proposal for a train function that you must read, copy and
 understand.
 
 ``` {.sourceCode .python}
-def train(model, loader, f_loss, optimizer, use_gpu):
+def train(model, loader, f_loss, optimizer, device):
     """
     Train a model for one epoch, iterating over the loader
     using the f_loss to compute the loss and the optimizer
@@ -384,7 +387,8 @@ def train(model, loader, f_loss, optimizer, use_gpu):
         loader    -- A torch.utils.data.DataLoader
         f_loss    -- The loss function, i.e. a loss Module
         optimizer -- A torch.optim.Optimzer object
-        use_gpu   -- Boolean, whether to use GPU
+        device    -- a torch.device class specifying the device
+		             used for computation
 
     Returns :
     """
@@ -394,8 +398,7 @@ def train(model, loader, f_loss, optimizer, use_gpu):
     model.train()
 
     for i, (inputs, targets) in enumerate(loader):
-        if use_gpu:
-            inputs, targets = inputs.cuda(), targets.cuda()
+        inputs, targets = inputs.to(device), targets.to(device)
 
         # Compute the forward pass through the network up to the loss
         outputs = model(inputs)
@@ -409,7 +412,7 @@ def train(model, loader, f_loss, optimizer, use_gpu):
 
 # An example of calling train to learn over 10 epochs of the training set
 for i in range(10):
-    train(model, train_loader, f_loss, optimizer, use_gpu)
+    train(model, train_loader, f_loss, optimizer, device)
 ```
 
 For testing the network, we define a **test** function which computes
@@ -428,7 +431,7 @@ which indicates to all the modules to switch into evaluation mode
 training or inference modes).
 
 ``` {.sourceCode .python}
-def test(model, loader, f_loss, use_gpu):
+def test(model, loader, f_loss, device):
     """
     Test a model by iterating over the loader
 
@@ -436,8 +439,8 @@ def test(model, loader, f_loss, use_gpu):
 
         model     -- A torch.nn.Module object
         loader    -- A torch.utils.data.DataLoader
-        f_loss -- The loss function, i.e. a loss Module
-        use_gpu   -- Boolean, whether to use GPU
+        f_loss    -- The loss function, i.e. a loss Module
+        device    -- The device to use for computation 
 
     Returns :
 
@@ -460,8 +463,7 @@ def test(model, loader, f_loss, use_gpu):
             #    targets is of shape (128)
 
             # We need to copy the data on the GPU if we use one
-            if use_gpu:
-                inputs, targets = inputs.cuda(), targets.cuda()
+			inputs, targets = inputs.to(device), targets.to(device)
 
             # Compute the forward pass, i.e. the scores for each input image
             outputs = model(inputs)
@@ -492,9 +494,9 @@ from making any kind of decision based on the test set metrics).
 ``` {.sourceCode .python}
 for t in range(epochs):
     print("Epoch {}".format(t))
-    train(model, train_loader, f_loss, optimizer, use_gpu)
+    train(model, train_loader, f_loss, optimizer, device)
 
-    val_loss, val_acc = test(model, valid_loader, f_loss, use_gpu)
+    val_loss, val_acc = test(model, valid_loader, f_loss, device)
     print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
 ```
 
@@ -653,15 +655,15 @@ function. Below is an example script loading and testing the model.
 
 model_path = THE_PATH_TO_YOUR_model.pt_FILE
 model = LinearNet(1*28*28, 10)
-if use_gpu:
-    model.cuda() # Moves all the parameters to the GPU
+
+model = model.to(device)
 
 model.load_state_dict(torch.load(model_path))
 
 # Switch to eval mode 
 model.eval()
 
-test_loss, test_acc = test(model, test_loader, f_loss, use_gpu)
+test_loss, test_acc = test(model, test_loader, f_loss, device)
 print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
 ```
 
@@ -994,7 +996,7 @@ penalty brings in an element through which our gradient can be
 backpropagated :
 
 ``` {.sourceCode .python}
-def train(model, loader, loss_function, optimizer, use_gpu):
+def train(model, loader, loss_function, optimizer, device):
 [...]
 
     # Backward and optimize
