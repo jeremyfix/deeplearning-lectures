@@ -43,7 +43,7 @@ mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 8888 -k id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
-localhost:8888 ; You should reach your jupyter lab session.
+[localhost:8888](http://localhost:8888) ; You should reach your jupyter lab session.
 
 ### Accessing tensorboard
 
@@ -56,7 +56,7 @@ mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 6006 -k id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
-localhost:6006 ; You should reach your tensorboard session.
+[localhost:6006](http://localhost:6006) ; You should reach your tensorboard session.
 
 
 ## For the Master (AVR, PSA) students
@@ -100,7 +100,7 @@ mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 8888 -k path/t
 ```
 
 You can now open **locally** a browser and open the page :
-localhost:8888 ; You should reach your jupyter lab session.
+[localhost:8888](http://localhost:8888) ; You should reach your jupyter lab session.
 
 ### Accessing tensorboard
 
@@ -113,7 +113,7 @@ mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 6006 -k path/t
 ```
 
 You can now open **locally** a browser and open the page :
-localhost:6006 ; You should reach your tensorboard session.
+[localhost:6006](http://localhost:6006) ; You should reach your tensorboard session.
 
 
 

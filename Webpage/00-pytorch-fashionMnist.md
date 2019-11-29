@@ -506,7 +506,7 @@ will see in a few moment how to automatically save the best model during
 training.
 
 You are now ready for **executing your first training**. You need first
-to log on a GPU node as described in section [Using the GPU cluster of CentraleSupelec](cluster.html) (or [here](cluster_sm20.html) for SM20 lifelong trainees)
+to log on a GPU node as described in section [Using the GPU cluster of CentraleSupelec](cluster.html) 
 
 ``` console
 # First you log to the cluster
@@ -721,9 +721,9 @@ Starting TensorBoard b'47' at http://0.0.0.0:6006
 mymachine:~:mylogin$ ./port_forward.sh ..... -p 6006
 ```
 
-And then start a browser on your laptopt and log to
-<http://localhost:6006> . Once this is done, you will be able to monitor
-your metrics in the browser while the training are running.
+And then raise up a browser and go to
+[http://localhost:6006](http://localhost:6006) . Once this is done, you will be able to monitor
+your metrics in the browser while the training is running.
 
 You can now run several experiments, monitor them and get a copy of the
 best models. A handy bash command to run several experiments is given
