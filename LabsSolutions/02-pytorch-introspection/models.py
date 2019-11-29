@@ -11,15 +11,18 @@ import torchvision.transforms as transforms
 
 # For possible models, see https://pytorch.org/docs/stable/torchvision/models.html
 model_builder = {'resnet18': lambda: torchvision.models.resnet18(pretrained=True),
-    'resnet34': lambda: torchvision.models.resnet34(pretrained=True),
-    'resnet50': lambda: torchvision.models.resnet50(pretrained=True),
-    'resnet152': lambda: torchvision.models.resnet152(pretrained=True),
-    'densenet121': lambda: torchvision.models.densenet121(pretrained=True),
-    'mobielnetv2': lambda: torchvision.models.mobilenet_v2(pretrained=True),
-    'squeezenet1_1': lambda: torchvision.models.squeezenet1_1(pretrained=True)}
+                 'resnet34': lambda: torchvision.models.resnet34(pretrained=True),
+                 'resnet50': lambda: torchvision.models.resnet50(pretrained=True),
+                 'resnet152': lambda: torchvision.models.resnet152(pretrained=True),
+                 'densenet121': lambda: torchvision.models.densenet121(pretrained=True),
+                 'mobielnetv2': lambda: torchvision.models.mobilenet_v2(pretrained=True),
+                 'squeezenet1_1': lambda: torchvision.models.squeezenet1_1(pretrained=True)}
 
-imagenet_preprocessing = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                              std=[0.229, 0.224, 0.225])
+imagenet_preprocessing = transforms.Compose([transforms.Resize((224, 224)),
+                                             transforms.ToTensor(),
+                                             transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                                  std=[0.229, 0.224, 0.225])
+                                            ])
 
 preprocessings = {
     'resnet18'     : imagenet_preprocessing,
@@ -50,8 +53,6 @@ def get_model(modelname, device):
     model = model.to(device)
 
     # Now process the input image transform
-    preprocessing = preprocessings[modelname]
-    image_transform = transforms.Compose([transforms.Resize((224, 224)),
-                                          transforms.ToTensor(),
-                                          preprocessing])
+    image_transform = preprocessings[modelname]
+
     return image_transform, model
