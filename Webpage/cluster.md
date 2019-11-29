@@ -43,7 +43,7 @@ mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 8888 -k id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
-localhost:8888 ; You should reach your jupyter lab session.
+[localhost:8888](http://localhost:8888) ; You should reach your jupyter lab session.
 
 ### Accessing tensorboard
 
@@ -56,7 +56,7 @@ mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 6006 -k id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
-localhost:6006 ; You should reach your tensorboard session.
+[localhost:6006](http://localhost:6006) ; You should reach your tensorboard session.
 
 
 ## For the Master (AVR, PSA) students
@@ -100,7 +100,7 @@ mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 8888 -k path/t
 ```
 
 You can now open **locally** a browser and open the page :
-localhost:8888 ; You should reach your jupyter lab session.
+[localhost:8888](http://localhost:8888) ; You should reach your jupyter lab session.
 
 ### Accessing tensorboard
 
@@ -113,13 +113,16 @@ mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 6006 -k path/t
 ```
 
 You can now open **locally** a browser and open the page :
-localhost:6006 ; You should reach your tensorboard session.
+[localhost:6006](http://localhost:6006) ; You should reach your tensorboard session.
 
 
 
 
 ## For the CentraleSupelec students
 
+<div class="w3-card w3-red w3-padding-16">
+Do not just copy/paste the scripts below. If you do not understand anything, ask your teachers
+</div>
 ### The scripts
 
 Allocation of the GPU machines are handled by a resource manager called
@@ -144,11 +147,20 @@ machine. These scripts must be in the **same** directory. The book.sh
 script handles only one reservation, i.e. running it two times will
 simply kill the first reservation.
 
+<div class="w3-center w3-blue">
+<i class="fas fa-question fa-2x w3-padding-16 w3-text-black"></i>
+All the bash scripts accept a **--help**  or  **-h**  to display an help message
+</div>
+
 ### The how to
 
 Get the scripts and run book.sh and log.sh as below. We also show a
 typical output from the execution of the script.
 
+<div class="w3-card w3-red w3-padding-16 ">
+If you have been assigned a specific GPU, the call to book.sh below has to contain
+a -m and -c . Look for help if required. 
+</div>
 ``` console
 mymachine:~:mylogin$ ./book.sh -u mylogin
 Booking a node

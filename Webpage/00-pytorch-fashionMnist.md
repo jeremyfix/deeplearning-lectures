@@ -42,7 +42,9 @@ elements of PyTorch to :
 -   monitor the training progress by interfacing with a dedicated web
     server
 
+<div class="w3-card w3-red">
 **VERY VERY Important**: Below, we see together step by step how to set up our training script. While reading the following lines you will progressively fill in python script. We also see the modules to be imported only when these are required for the presentation. But obviously, it is clearer to put these imports at the beginning of your scripts. So the following python codes **should not be strictly copy-pasted** on the fly.
+</div>
 
 ## Working with datasets : datasets, dataloaders, transforms
 
@@ -506,7 +508,7 @@ will see in a few moment how to automatically save the best model during
 training.
 
 You are now ready for **executing your first training**. You need first
-to log on a GPU node as described in section [Using the GPU cluster of CentraleSupelec](cluster.html) (or [here](cluster_sm20.html) for SM20 lifelong trainees)
+to log on a GPU node as described in section [Using the GPU cluster of CentraleSupelec](cluster.html) 
 
 ``` console
 # First you log to the cluster
@@ -721,9 +723,9 @@ Starting TensorBoard b'47' at http://0.0.0.0:6006
 mymachine:~:mylogin$ ./port_forward.sh ..... -p 6006
 ```
 
-And then start a browser on your laptopt and log to
-<http://localhost:6006> . Once this is done, you will be able to monitor
-your metrics in the browser while the training are running.
+And then raise up a browser and go to
+[http://localhost:6006](http://localhost:6006) . Once this is done, you will be able to monitor
+your metrics in the browser while the training is running.
 
 You can now run several experiments, monitor them and get a copy of the
 best models. A handy bash command to run several experiments is given
