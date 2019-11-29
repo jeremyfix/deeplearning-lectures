@@ -35,13 +35,16 @@ def saliency_simonyan(device, args):
     # Loads a pretrained model
     image_transform, model = models.get_model("resnet50", device)
 
+    # Switch model to eval mode as it may have evaluation specific
+    # layers
+    model.eval()
+
     # Loads the image
     img = Image.open(args.image).convert('RGB')
 
     # Go through the model
     input_tensor = image_transform(img).to(device).unsqueeze(0)
     out = model(input_tensor)
-    print(torch.argmax(out), out.shape)
 
 
 if __name__ == '__main__':
