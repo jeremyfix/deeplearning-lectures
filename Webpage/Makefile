@@ -26,7 +26,7 @@ css:
 	pygmentize -f html -S friendly -a .highlight > ./templates/pygmentize.css
 
 $(OUTPUT_DIR)/%.html: %.md
-	pandoc -r markdown+tex_math_dollars+simple_tables+table_captions+yaml_metadata_block+fenced_code_attributes -w html --mathjax --standalone --table-of-contents --toc-depth=3 --template=./templates/html.template --filter ./templates/pandocfilter-pygments.py --filter pandoc-citeproc --csl=./templates/apsa.csl --bibliography=biblio.bib  -M date="`LC_TIME=en_US.UTF-8 date "+%B %e, %Y"`" -M link-citations=true -M source=$< -o $@ $<
+	pandoc -r markdown+tex_math_dollars+simple_tables+table_captions+yaml_metadata_block+fenced_code_attributes -w html --mathjax --standalone --table-of-contents --toc-depth=3 --template=./templates/html.template --filter ./templates/pandocfilter-pygments.py --filter pandoc-citeproc --csl=./templates/apsa.csl --bibliography=biblio.bib  -M date="`LC_TIME=en_US.UTF-8 date "+%B %e, %Y %H:%M"`" -M link-citations=true -M source=$< -o $@ $<
 	cp $< $(OUTPUT_DIR)/md-sources/
 
 
