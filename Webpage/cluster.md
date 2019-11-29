@@ -120,6 +120,9 @@ You can now open **locally** a browser and open the page :
 
 ## For the CentraleSupelec students
 
+<div class="w3-card w3-red">
+Do not just copy/paste the scripts below. If you do not understand anything, ask your teachers
+</div>
 ### The scripts
 
 Allocation of the GPU machines are handled by a resource manager called
@@ -149,6 +152,10 @@ simply kill the first reservation.
 Get the scripts and run book.sh and log.sh as below. We also show a
 typical output from the execution of the script.
 
+<div class="w3-card w3-red">
+If you have been assigned a specific GPU, the call to book.sh below has to contain
+a -m and -c 
+</div>
 ``` console
 mymachine:~:mylogin$ ./book.sh -u mylogin
 Booking a node

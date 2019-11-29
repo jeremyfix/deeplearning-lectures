@@ -42,7 +42,9 @@ elements of PyTorch to :
 -   monitor the training progress by interfacing with a dedicated web
     server
 
+<div class="w3-card w3-red">
 **VERY VERY Important**: Below, we see together step by step how to set up our training script. While reading the following lines you will progressively fill in python script. We also see the modules to be imported only when these are required for the presentation. But obviously, it is clearer to put these imports at the beginning of your scripts. So the following python codes **should not be strictly copy-pasted** on the fly.
+</div>
 
 ## Working with datasets : datasets, dataloaders, transforms
 
