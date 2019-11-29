@@ -120,7 +120,7 @@ You can now open **locally** a browser and open the page :
 
 ## For the CentraleSupelec students
 
-<div class="w3-card w3-red">
+<div class="w3-card w3-red w3-padding-16">
 Do not just copy/paste the scripts below. If you do not understand anything, ask your teachers
 </div>
 ### The scripts
@@ -147,14 +147,19 @@ machine. These scripts must be in the **same** directory. The book.sh
 script handles only one reservation, i.e. running it two times will
 simply kill the first reservation.
 
+<div class="w3-center w3-blue">
+<i class="fas fa-question fa-2x w3-padding-16 w3-text-black"></i>
+All the bash scripts accept a **--help**  or  **-h**  to display an help message
+</div>
+
 ### The how to
 
 Get the scripts and run book.sh and log.sh as below. We also show a
 typical output from the execution of the script.
 
-<div class="w3-card w3-red">
+<div class="w3-card w3-red w3-padding-16 ">
 If you have been assigned a specific GPU, the call to book.sh below has to contain
-a -m and -c 
+a -m and -c . Look for help if required. 
 </div>
 ``` console
 mymachine:~:mylogin$ ./book.sh -u mylogin
