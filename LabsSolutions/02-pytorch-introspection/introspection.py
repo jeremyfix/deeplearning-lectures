@@ -26,6 +26,28 @@ import models
 import utils
 
 
+def test_model(device, args):
+    """
+    Test script showing how to go through a pretrained model
+    given an image
+    """
+
+    modelname = 'resnet50'
+    image_transform, model = models.get_model(modelname, device)
+
+    # Do not forget to put model in eval mode
+    model.eval()
+
+    # Loads an image
+    img = Image.open(args.image).convert('RGB')
+
+    # Go through the model
+    input_tensor = image_transform(img).to(device).unsqueeze(0)
+    out = model(input_tensor)
+
+    print("The provided image is of class {}".format(out.argmax()))
+
+
 def saliency_simonyan(device, args):
     """
     Takes a pretrained model and an input image and computes the
