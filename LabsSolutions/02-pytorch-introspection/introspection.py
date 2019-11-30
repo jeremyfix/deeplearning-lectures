@@ -60,9 +60,12 @@ def saliency_simonyan(device, args):
     class_idx = 954  # Bananas
     nsteps = 100
     alpha = 1e-2
+    modelname = 'resnet50'
+    shape = (3, 224, 224)
+
 
     # Loads a pretrained model
-    image_transform, model = models.get_model("resnet50", device)
+    image_transform, model = models.get_model(modelname, device)
 
     # Switch model to eval mode as it may have evaluation specific
     # layers
