@@ -20,7 +20,7 @@ import sys
 from PIL import Image
 import torch
 import torchvision
-from torch.utils import tensorboard
+from torch.utils.tensorboard import SummaryWriter
 # Local modules
 import models
 import utils
@@ -63,6 +63,9 @@ def saliency_simonyan(device, args):
     modelname = 'resnet50'
     shape = (3, 224, 224)
 
+    # Tensorboard
+    logdir = utils.generate_unique_logpath(args.logdir, "simonyan")
+    tensorboard_writer = SummaryWriter(log_dir=logdir)
 
     # Loads a pretrained model
     image_transform, model = models.get_model(modelname, device)
@@ -71,18 +74,15 @@ def saliency_simonyan(device, args):
     # layers
     model.eval()
 
-    # Loads the image
-    img = Image.open(args.image).convert('RGB')
-
-    # Go through the model
-    input_tensor = image_transform(img).to(device).unsqueeze(0)
-    out = model(input_tensor)
+    # Generate an image that maximizes the probability
+    # of being a member of class_idx
 
     # Let us start with a random image
-    generated_image = torch.rand_like(input_tensor, requires_grad=True)
+    generated_image = torch.rand(shape, requires_grad=True)
     generated_image = generated_image.to(device)
     f_loss = torch.nn.CrossEntropyLoss()
 
+    # Performs the gradient ascent
     for i in range(nsteps):
         sys.stdout.flush()
         loss = f_loss(model(generated_image), torch.LongTensor([class_idx]))
