@@ -18,20 +18,24 @@ model_builder = {'resnet18': lambda: torchvision.models.resnet18(pretrained=True
                  'mobielnetv2': lambda: torchvision.models.mobilenet_v2(pretrained=True),
                  'squeezenet1_1': lambda: torchvision.models.squeezenet1_1(pretrained=True)}
 
-imagenet_preprocessing = transforms.Compose([transforms.Resize((224, 224)),
-                                             transforms.ToTensor(),
-                                             transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                                                  std=[0.229, 0.224, 0.225])
-                                            ])
+imagenet_normalize = transforms.Compose([transforms.Resize((224, 224)),
+                                         transforms.ToTensor(),
+                                         transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                              std=[0.229, 0.224, 0.225])
+                                        ])
+
+imagenet_denormalize = transforms.Normalize(mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225],
+                                            std=[1./0.229, 1./0.224, 1./0.225])
+
 
 preprocessings = {
-    'resnet18'     : imagenet_preprocessing,
-    'resnet34'     : imagenet_preprocessing,
-    'resnet50'     : imagenet_preprocessing,
-    'resnet152'    : imagenet_preprocessing,
-    'densenet121'  : imagenet_preprocessing,
-    'squeezenet1_1': imagenet_preprocessing,
-    'mobilenetv2'  : imagenet_preprocessing
+    'resnet18'     : imagenet_normalize,
+    'resnet34'     : imagenet_normalize,
+    'resnet50'     : imagenet_normalize,
+    'resnet152'    : imagenet_normalize,
+    'densenet121'  : imagenet_normalize,
+    'squeezenet1_1': imagenet_normalize,
+    'mobilenetv2'  : imagenet_normalize
 }
 
 
