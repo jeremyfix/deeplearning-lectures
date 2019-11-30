@@ -59,10 +59,10 @@ def saliency_simonyan(device, args):
     """
 
     class_idx = 954  # Bananas
-    nsteps = 100
-    alpha = 1e-2
+    nsteps = 1000
+    alpha = 10
     modelname = 'resnet18'
-    shape = (3, 224, 224)
+    shape = (1, 3, 224, 224)
 
     # Tensorboard
     logdir = utils.generate_unique_logpath(args.logdir, "simonyan")
@@ -87,10 +87,15 @@ def saliency_simonyan(device, args):
     for i in range(nsteps):
         sys.stdout.flush()
         loss = f_loss(model(generated_image), torch.LongTensor([class_idx]))
-        loss.backward()
+        reg = generated_image.norm()
+        total_loss = loss + reg
+        total_loss.backward()
         # generated_image = generated_image + alpha * generated_image.grad
         generated_image.data.add_(alpha, generated_image.grad)
         sys.stdout.write("\r Step {}, Loss : {}".format(i, loss))
+        tensorboard_writer.add_image("Generated image",
+                                     generated_image.squeeze(),
+                                     i)
 
 
 def main():
