@@ -17,23 +17,25 @@ Additional references:
 import argparse
 import sys
 # External modules
+from PIL import Image
 import torch
 import torchvision
-from PIL import Image
+from torch.utils import tensorboard
 # Local modules
 import models
+import utils
 
 
 def saliency_simonyan(device, args):
     """
-    Takes a pretrained model and an input image and computes the 
+    Takes a pretrained model and an input image and computes the
     saliency over this input image according to [Simonyan et al.(2014)]
     """
     # Checks we have the required arguments
     if not args.image:
         raise RuntimeError("I need an input image to work")
 
-    class_idx = 954 # Bananas
+    class_idx = 954  # Bananas
     nsteps = 100
     alpha = 1e-2
 
@@ -64,8 +66,8 @@ def saliency_simonyan(device, args):
         generated_image.data.add_(alpha, generated_image.grad)
         sys.stdout.write("\r Step {}, Loss : {}".format(i, loss))
 
-if __name__ == '__main__':
 
+def main():
     # Argument parsing
     parser = argparse.ArgumentParser()
 
@@ -93,4 +95,5 @@ if __name__ == '__main__':
     exec("{}(device, args)".format(args.visu))
 
 
-
+if __name__ == '__main__':
+    main()
