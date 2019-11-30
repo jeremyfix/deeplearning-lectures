@@ -32,6 +32,10 @@ def test_model(device, args):
     given an image
     """
 
+    # Checks we have the required arguments
+    if not args.image:
+        raise RuntimeError("I need an input image to work")
+
     modelname = 'resnet50'
     image_transform, model = models.get_model(modelname, device)
 
@@ -53,14 +57,11 @@ def saliency_simonyan(device, args):
     Takes a pretrained model and an input image and computes the
     saliency over this input image according to [Simonyan et al.(2014)]
     """
-    # Checks we have the required arguments
-    if not args.image:
-        raise RuntimeError("I need an input image to work")
 
     class_idx = 954  # Bananas
     nsteps = 100
     alpha = 1e-2
-    modelname = 'resnet50'
+    modelname = 'resnet18'
     shape = (3, 224, 224)
 
     # Tensorboard
@@ -103,9 +104,14 @@ def main():
                         required=True)
 
     parser.add_argument('--image',
-                       type=str,
-                       action='store',
-                       help='The input image to process if required')
+                        type=str,
+                        action='store',
+                        help='The input image to process if required')
+
+    parser.add_argument('--logdir',
+                        type=str,
+                        default="./logs",
+                        action='store')
 
     args = parser.parse_args()
 
