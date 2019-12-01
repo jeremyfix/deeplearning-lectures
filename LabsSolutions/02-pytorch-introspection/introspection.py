@@ -88,13 +88,15 @@ def simonyan_generate_image(device, args):
     # Performs the gradient ascent
     for i in range(nsteps):
         sys.stdout.flush()
-        loss = f_loss(model(generated_image), torch.LongTensor([class_idx]))
+        logits = model(generated_image)
+        loss = -f_loss(logits, torch.LongTensor([class_idx]))
+        prob = torch.nn.functional.softmax(logits).squeeze()[class_idx]
         reg = generated_image.norm()
         total_loss = loss + reg
         total_loss.backward()
         # generated_image = generated_image + alpha * generated_image.grad
         generated_image.data.add_(alpha, generated_image.grad)
-        sys.stdout.write("\r Step {}, Loss : {}".format(i, loss))
+        sys.stdout.write("\r Step {}, Loss : {}, Prob : {}".format(i, loss, prob) + " "*50)
         tensorboard_writer.add_image("Generated image",
                                      image_denormalize(generated_image.squeeze()),
                                      i)
