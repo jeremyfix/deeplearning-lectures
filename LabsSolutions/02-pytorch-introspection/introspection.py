@@ -8,7 +8,8 @@ For saliency_simonyan
     Simonyan et al. (2014), Deep Inside Convolutional Networks: VisualisingImage Classification Models and Saliency Maps. https://arxiv.org/pdf/1312.6034.pdf
 
 Additional references:
-    Montavon et al. (2017) Methods for Interpreting and Understanding Deep Neural Networks, https://arxiv.org/pdf/1706.07979.pdf
+    - Montavon et al. (2017) Methods for Interpreting and Understanding Deep Neural Networks, https://arxiv.org/pdf/1706.07979.pdf
+    - https://github.com/utkuozbulak/pytorch-cnn-visualizations
 
 """
 
