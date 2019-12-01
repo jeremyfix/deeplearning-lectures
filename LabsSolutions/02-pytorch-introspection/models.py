@@ -31,13 +31,13 @@ imagenet_denormalize = transforms.Normalize(mean=[-0.485/0.229, -0.456/0.224, -0
 
 
 preprocessings = {
-    'resnet18'     : imagenet_normalize,
-    'resnet34'     : imagenet_normalize,
-    'resnet50'     : imagenet_normalize,
-    'resnet152'    : imagenet_normalize,
-    'densenet121'  : imagenet_normalize,
-    'squeezenet1_1': imagenet_normalize,
-    'mobilenetv2'  : imagenet_normalize
+    'resnet18': (imagenet_normalize, imagenet_denormalize),
+    'resnet34': (imagenet_normalize, imagenet_denormalize),
+    'resnet50': (imagenet_normalize, imagenet_denormalize),
+    'resnet152': (imagenet_normalize, imagenet_denormalize),
+    'densenet121': (imagenet_normalize, imagenet_denormalize),
+    'squeezenet1_1': (imagenet_normalize, imagenet_denormalize),
+    'mobilenetv2': (imagenet_normalize,  imagenet_denormalize)
 }
 
 
@@ -48,7 +48,10 @@ def get_model(modelname, device):
     Arguments:
         modelname : See the keys of model_builder
     Returns:
-        image_transform_function, model
+        image_transform_functions, model
+
+        The image_transform_functions contain both the normalization and
+        denormalization functions
     """
     # Try to load a pretrained model
     try:
@@ -59,9 +62,9 @@ def get_model(modelname, device):
     model = model.to(device)
 
     # Now process the input image transform
-    image_transform = preprocessings[modelname]
+    image_transforms = preprocessings[modelname]
 
-    return image_transform, model
+    return image_transforms, model
 
 
 def test_normalize():
