@@ -37,7 +37,8 @@ def test_model(device, args):
         raise RuntimeError("I need an input image to work")
 
     modelname = 'resnet50'
-    image_transform, model = models.get_model(modelname, device)
+    image_transforms, model = models.get_model(modelname, device)
+    image_normalize, image_denormalize = image_transforms
 
     # Do not forget to put model in eval mode
     model.eval()
@@ -46,13 +47,13 @@ def test_model(device, args):
     img = Image.open(args.image).convert('RGB')
 
     # Go through the model
-    input_tensor = image_transform(img).to(device).unsqueeze(0)
+    input_tensor = image_normalize(img).to(device).unsqueeze(0)
     out = model(input_tensor)
 
     print("The provided image is of class {}".format(out.argmax()))
 
 
-def saliency_simonyan(device, args):
+def simonyan_generate_image(device, args):
     """
     Takes a pretrained model and an input image and computes the
     saliency over this input image according to [Simonyan et al.(2014)]
@@ -69,7 +70,8 @@ def saliency_simonyan(device, args):
     tensorboard_writer = SummaryWriter(log_dir=logdir)
 
     # Loads a pretrained model
-    image_transform, model = models.get_model(modelname, device)
+    image_transforms, model = models.get_model(modelname, device)
+    image_normalize, image_denormalize = image_transforms
 
     # Switch model to eval mode as it may have evaluation specific
     # layers
@@ -94,7 +96,7 @@ def saliency_simonyan(device, args):
         generated_image.data.add_(alpha, generated_image.grad)
         sys.stdout.write("\r Step {}, Loss : {}".format(i, loss))
         tensorboard_writer.add_image("Generated image",
-                                     generated_image.squeeze(),
+                                     image_denormalize(generated_image.squeeze()),
                                      i)
 
 
@@ -104,7 +106,7 @@ def main():
 
     parser.add_argument('--visu',
                         type=str,
-                        choices=['saliency_simonyan'],
+                        choices=['simonyan_generate_image'],
                         action='store',
                         required=True)
 
