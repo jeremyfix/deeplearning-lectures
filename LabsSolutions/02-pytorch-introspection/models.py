@@ -5,6 +5,8 @@ image loader and preprocessing transform
 
 # Standard modules
 # External modules
+import numpy as np
+import torch
 import torchvision
 import torchvision.transforms as transforms
 
@@ -60,3 +62,28 @@ def get_model(modelname, device):
     image_transform = preprocessings[modelname]
 
     return image_transform, model
+
+
+def test_normalize():
+    """
+    Test function for computing the Normalize function
+    denormalizing another Normalize function
+    """
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    t_normalize = transforms.Normalize(mean=mean,
+                                       std=std)
+    dmean = [-mui/stdi for (mui, stdi) in zip(mean, std)]
+    dstd = [1.0/stdi for stdi in std]
+    t_denormalize = transforms.Normalize(mean=dmean,
+                                         std=dstd)
+
+    inp = torch.rand((3, 23, 26))
+    out = t_denormalize(t_normalize(inp))
+    diff = (inp - out).abs().numpy()
+    print(diff.max())
+    print(torch.allclose(inp, out, 1e-5))
+    
+
+if __name__ == '__main__':
+    test_normalize()
