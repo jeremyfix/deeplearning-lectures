@@ -60,9 +60,10 @@ def simonyan_generate_image(device, args):
     """
 
     class_idx = 954  # Bananas
-    nsteps = 1000
-    alpha = 10
-    modelname = 'resnet18'
+    nsteps = 100
+    alpha = 1
+    l2reg = 1
+    modelname = 'resnet50'
     shape = (1, 3, 224, 224)
 
     # Tensorboard
@@ -88,14 +89,22 @@ def simonyan_generate_image(device, args):
     # Performs the gradient ascent
     for i in range(nsteps):
         sys.stdout.flush()
-        logits = model(generated_image)
-        loss = -f_loss(logits, torch.LongTensor([class_idx]))
-        prob = torch.nn.functional.softmax(logits).squeeze()[class_idx]
+        logits = model(generated_image).squeeze()
+        # Take the class score
+        loss = logits[class_idx]
         reg = generated_image.norm()
-        total_loss = loss + reg
+        # Computes the score loss with the regularizer
+        total_loss = loss - l2reg * reg
+        # Backpropagates through it
+        model.zero_grad()
         total_loss.backward()
-        # generated_image = generated_image + alpha * generated_image.grad
+        # Computes the probability for display
+        prob = torch.nn.functional.softmax(logits)[class_idx]
+        
+        # Update the generated image
         generated_image.data.add_(alpha, generated_image.grad)
+        
+        # Debug display
         sys.stdout.write("\r Step {}, Loss : {}, Prob : {}".format(i, loss, prob) + " "*50)
         tensorboard_writer.add_image("Generated image",
                                      image_denormalize(generated_image.squeeze()),
