@@ -6,6 +6,7 @@ demangling what is learned by a deep neural network
 
 For saliency_simonyan
     Simonyan et al. (2014), Deep Inside Convolutional Networks: VisualisingImage Classification Models and Saliency Maps. https://arxiv.org/pdf/1312.6034.pdf
+    Yosinski et al. (2015), Understanding Neural Networks Through Deep Visualization
 
 Additional references:
     - Montavon et al. (2017) Methods for Interpreting and Understanding Deep Neural Networks, https://arxiv.org/pdf/1706.07979.pdf
@@ -13,6 +14,7 @@ Additional references:
 
 """
 
+## TODO: look at Yosinki which implements various regularization techniques
 
 # Standard modules
 import argparse
