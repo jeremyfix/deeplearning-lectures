@@ -6,6 +6,7 @@ Deletes a reservation on the GPU cluster of CentraleSupelec Metz
    -u, --user <login>          Login to connect to CS Metz
    -j, --jobid <JOB_ID>        The JOB_ID to delete. If not provided
                                a list of your booked JOB_ID will be displayed
+   -j, --jobid all             Will kill all the jobs booked by <login>
    -h, --help                  Prints this help message
 "
 
@@ -79,7 +80,7 @@ then
     exit
 fi
 
-if [ -z $JOBID ]
+if [[ -z $JOBID  &&  "$JOBID" != "all" ]]
 then
     display_error "No job_id is specified, you must provide one. Call with -h for more help  "
     display_info "Listing your current reservations"
@@ -88,9 +89,23 @@ then
 fi
 
 
-display_info "I am checking if the reservation $JOBID is still valid"
-job_state=`test_job_state $JOBID`
+if [[ "$JOBID" = "all" ]]
+then
+    display_info "Collecting all the jobid booked for $USER"
+    JOBID=`list_job_id | tail +3 | awk '{print $1}' | tr '\n' ' '`
+    echo "JOB ID : $JOBID"
+fi
 
+if [[ -z $JOBID ]]
+then
+    display_info "No job to kill for $USER. I'm leaving"
+    display_success "Done"
+    exit
+fi
+
+
+#display_info "I am checking if the reservation $JOBID is still valid"
+#job_state=`test_job_state $JOBID`
 #if [ "$job_state" != "Running" ]; then
 #    display_error "   The reservation is not running yet or anymore."
 #    display_error "   please select a valid job id"
@@ -98,13 +113,7 @@ job_state=`test_job_state $JOBID`
 #    exit 0
 #fi
 
-display_info "Killing the reservation $JOBID"
+display_info "Killing the reservation(s) $JOBID"
 ssh "$ssh_options" $USER@term2.grid "oardel $JOBID"
 
-display_info "Waiting for the previous job to be killed"
-
-# We wait until the job is really killed
-# we might check the status of the job with oarstat -j `cat job_id` -s
-# returns JOB_ID: {Running, Finishing, Error}
-#sleep 3
 display_success "Done"
