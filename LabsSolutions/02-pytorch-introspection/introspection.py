@@ -62,7 +62,8 @@ def simonyan_generate_image(device, args):
 
     class_idx = 954  # Bananas
     nsteps = 100
-    alpha = 1
+    lrate = 1
+    momentum = 0.9
     l2reg = 1
     modelname = 'resnet50'
     shape = (1, 3, 224, 224)
@@ -85,28 +86,37 @@ def simonyan_generate_image(device, args):
     # Let us start with a random image
     generated_image = torch.rand(shape, requires_grad=True)
     generated_image = generated_image.to(device)
-    f_loss = torch.nn.CrossEntropyLoss()
+
+    # Instantiate the optimizer on the generated_image
+    optimizer = torch.optim.SGD([generated_image],
+                                lr=lrate, momentum=momentum,
+                                nesterov=True)
 
     # Performs the gradient ascent
     for i in range(nsteps):
         sys.stdout.flush()
         logits = model(generated_image).squeeze()
+
         # Take the class score
-        loss = logits[class_idx]
+        cls_score = logits[class_idx]
+        # Computes the L2 of the image
         reg = generated_image.norm()
+
         # Computes the score loss with the regularizer
-        total_loss = loss - l2reg * reg
+        total_loss = -cls_score + l2reg * reg
+
         # Backpropagates through it
-        model.zero_grad()
+        optimizer.zero_grad()
         total_loss.backward()
+
+        # Update the generated image
+        optimizer.step()
+
         # Computes the probability for display
         prob = torch.nn.functional.softmax(logits)[class_idx]
         
-        # Update the generated image
-        generated_image.data.add_(alpha, generated_image.grad)
-        
         # Debug display
-        sys.stdout.write("\r Step {}, Loss : {}, Prob : {}".format(i, loss, prob) + " "*50)
+        sys.stdout.write("\r Step {}, Score : {}, Prob : {}".format(i, cls_score, prob) + " "*50)
         tensorboard_writer.add_image("Generated image",
                                      image_denormalize(generated_image.squeeze()),
                                      i)
