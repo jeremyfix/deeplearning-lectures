@@ -65,7 +65,7 @@ def simonyan_generate_image(device, args):
     lrate = 1
     momentum = 0.9
     l2reg = 1
-    modelname = 'resnet50'
+    modelname = 'densenet121'
     shape = (1, 3, 224, 224)
 
     # Tensorboard
@@ -84,7 +84,10 @@ def simonyan_generate_image(device, args):
     # of being a member of class_idx
 
     # Let us start with a random image
-    generated_image = torch.rand(shape, requires_grad=True, device=device)
+    generated_image = torch.normal(mean=0, std=1,
+                                   size=shape,
+                                   requires_grad=True,
+                                   device=device)
 
     # Instantiate the optimizer on the generated_image
     optimizer = torch.optim.SGD([generated_image],
@@ -119,7 +122,7 @@ def simonyan_generate_image(device, args):
         tensorboard_writer.add_image("Generated image",
                                      image_denormalize(generated_image.squeeze()),
                                      i)
-
+    sys.stdout.write('\n')
 
 def main():
     # Argument parsing
