@@ -84,8 +84,7 @@ def simonyan_generate_image(device, args):
     # of being a member of class_idx
 
     # Let us start with a random image
-    generated_image = torch.rand(shape, requires_grad=True)
-    generated_image = generated_image.to(device)
+    generated_image = torch.rand(shape, requires_grad=True, device=device)
 
     # Instantiate the optimizer on the generated_image
     optimizer = torch.optim.SGD([generated_image],
