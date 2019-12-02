@@ -172,7 +172,7 @@ Optimizer
                                              {'model': model, 'normalization_function': normalization_function}
                                             )
     # Add the graph of the model to the tensorboard
-    inputs, _ = next(iter(train_loader))[0]
+    inputs, _ = next(iter(train_loader))
     inputs = inputs.to(device)
     tensorboard_writer.add_graph(model, inputs)
     ####################################################################################### Main Loop
