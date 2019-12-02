@@ -133,7 +133,7 @@ if __name__ == '__main__':
 
     # Optimizer
     #optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay=weight_decay)
     if args.cyclic_lr:
         low_lr, high_lr, period = args.cyclic_lr
         def cyclical_lr(epoch, low_lr=low_lr, high=high_lr, period=period):
