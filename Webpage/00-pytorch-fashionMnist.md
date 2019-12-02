@@ -46,6 +46,27 @@ elements of PyTorch to :
 **VERY VERY Important**: Below, we see together step by step how to set up our training script. While reading the following lines you will progressively fill in python script. We also see the modules to be imported only when these are required for the presentation. But obviously, it is clearer to put these imports at the beginning of your scripts. So the following python codes **should not be strictly copy-pasted** on the fly.
 </div>
 
+## Having a running python interpreter with the required modules
+
+For making the labs, I propose the following way to work :
+
+- for the CentraleSupelec students, you can edit your code on the labs machines, and run it directly on the GPUs. Your
+    home directory is a network home so that any modifications you do locally are seen from the GPUs,
+- for SM20 lifelong trainees, you can edit and run your code within the jupyter lab
+- for masters students (AVR, PSA), you can edit and run your code within the jupyter lab or, for experienced users, edit
+    your code with VIM within a ssh session
+
+To connect to the GPUs, use one of the procedures described in [Using the CentraleSupelec GPUs](cluster.html).
+
+You should now have at your disposal a python interpreter with the installed package, i.e. the
+following should work successfully :
+
+``` console
+sh11:~:mylogin$ python3 -c "import torch" 
+```
+
+If the above fails, stop here and ask me, I'll be glad to help you.
+
 ## Working with datasets : datasets, dataloaders, transforms
 
 A [torch.utils.data.dataset](https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset)
