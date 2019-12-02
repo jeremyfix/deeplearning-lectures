@@ -85,10 +85,10 @@ nav hr {
 .w3-main a:active {
 }  
 
-.figure .caption {
+figcaption {
     color: crimson;
 }
-.figure .caption:before {
+figcaption:before {
       content: "Figure: ";
     font-weight: bold;
 
