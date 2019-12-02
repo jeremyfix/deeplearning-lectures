@@ -406,7 +406,7 @@ mean = X_train.mean(axis=0)
 std = X_train.std(axis=0) + 1.0
 xl = Lambda(lambda image, mu, std: (image - mu) / std,
            arguments={'mu': mean, 'std': std})(xi)
-xo = Dense(num_classes, name="y")(xi)
+xo = Dense(num_classes, name="y")(xl)
 yo = Activation('softmax', name="y_act")(xo)
 model = Model(inputs=[xi], outputs=[yo])
 ```
