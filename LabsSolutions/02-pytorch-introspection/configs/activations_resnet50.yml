@@ -10,5 +10,5 @@ activations:
 #     regularization:
 #         l2: 1.0
 #     class_idx: 954  # Bananas
-
+image: 'persons.jpg'
 logdir: './logs'

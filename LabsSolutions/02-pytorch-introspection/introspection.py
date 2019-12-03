@@ -19,18 +19,19 @@ import os
 import argparse
 import sys
 import yaml
+import collections
+import functools
 # External modules
 from PIL import Image
 import torch
 import torchvision
 import torchvision.models
+import torchvision.utils
 from torch.utils.tensorboard import SummaryWriter
 # Local modules
 import models
 import utils
 
-
-# For testing an image
 
 def test_model(device, args):
     """
@@ -74,18 +75,20 @@ def list_modules(model):
         print(idx, ' ---> ', m)
         print('\n'*2)
 
-def register_activation_hooks(dact, modules):
+def register_activation_hooks(dact, module):
     """
     See : https://blog.paperspace.com/pytorch-hooks-gradient-clipping-debugging/
     """
-    def hook_fn(m, i, o):
-        dact[m] = o
+    def hook_fn(name, m, i, o):
+        print("Appending a value for {}".format(name))
+        dact[name] = o
 
-    for name, layer in modules:
-        if isinstance(layer, (torch.nn.Sequential)):
-            register_activation_hooks(dact, layer.modules())
-        else:
-            layer.register_forward_hook(hook_fn)
+    for name, layer in module.named_modules():
+        print("Processing : {}, {}".format(name, layer))
+        if isinstance(layer, (torch.nn.Conv2d)):
+            print(" =====> {} Registered ".format(name))
+            layer.register_forward_hook(functools.partial(hook_fn, name))
+
 
 
 def get_activations(params, device, tensorboard_writer):
@@ -96,17 +99,42 @@ def get_activations(params, device, tensorboard_writer):
 
     This function allows to see how to access the inner structure of the model
     """
-
+    print("Get activations")
     model = params['model']
 
     # Loads a pretrained model
     image_transforms, model = models.get_model(model, device)
-    image_normalize, image_denormalize = image_transforms
+    image_normalize, _ = image_transforms
 
-    activities = {}
-    register_activation_hooks(activities, model.modules())
+    # Container for the activities
+    # If a key is missing, it is created with an empty list as value
+    activities = collections.defaultdict(list)
+    register_activation_hooks(activities, model)
 
+    # Loads an image
+    img = Image.open(params['image']).convert('RGB')
+    # Go through the model
+    input_tensor = image_normalize(img).to(device).unsqueeze(0)
+    out = model(input_tensor)
 
+    # We can now register these activites on the tensorboard
+    for k, v in activities.items():
+        num_channels = v.size()[1]
+        for c in range(num_channels):
+            tensor = v[0, c, :, :]
+            tmax = tensor.max()
+            tmin = tensor.min()
+            if tmax != tmin:
+                tensor = (tmax - tensor)/(tmax - tmin)
+            else:
+                tensor[:, :] = 0
+            # Iterate over all the channels
+            tensorboard_writer.add_image("Layer {}, {} channels".format(k, num_channels),
+                                         tensor.unsqueeze(0), c)
+        panned_images = torchvision.utils.make_grid(v.permute(1, 0, 2, 3)) 
+        tensorboard_writer.add_image("Layer {}".format(k), panned_images, 0)
+        
+        
 def generate_image(params, device, tensorboard_writer):
     """
     Takes a pretrained model and an input image and computes the
@@ -201,16 +229,18 @@ def main():
     # Tensorboard
     logdir = utils.generate_unique_logpath(config['logdir'], config['model'])
     tensorboard_writer = SummaryWriter(log_dir=logdir)
-
+    print(config)
     if 'activations' in config:
-        params = {'model': config['model']}
+        params = {'model': config['model'],
+                  'image': config['image']}
         params.update(config['activations'])
         get_activations(params, device, tensorboard_writer)
     if 'generate_image' in config:
-        params = {'model': config['model']}
+        params = {'model': config['model'],
+                  'image': config['image']}
         params.update(config['generate_image'])
         generate_image(params, device, tensorboard_writer)
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()
