@@ -1,14 +1,14 @@
-model: resnet50
+model: resnet18
 activations:
     - name: 'Input'
       idx: 0
-generate_image:
-    nsteps: 100
-    optimizer:
-        lrate: 1
-        momentum: 0.9
-    regularization:
-        l2: 1.0
-    class_idx: 954  # Bananas
+# generate_image:
+#     nsteps: 100
+#     optimizer:
+#         lrate: 1
+#         momentum: 0.9
+#     regularization:
+#         l2: 1.0
+#     class_idx: 954  # Bananas
 
 logdir: './logs'

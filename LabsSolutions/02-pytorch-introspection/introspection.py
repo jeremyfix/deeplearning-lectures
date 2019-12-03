@@ -23,11 +23,14 @@ import yaml
 from PIL import Image
 import torch
 import torchvision
+import torchvision.models
 from torch.utils.tensorboard import SummaryWriter
 # Local modules
 import models
 import utils
 
+
+# For testing an image
 
 def test_model(device, args):
     """
@@ -56,6 +59,35 @@ def test_model(device, args):
     print("The provided image is of class {}".format(out.argmax()))
 
 
+def list_modules(model):
+    """
+    List the modules and submodules of a model
+    Example::
+
+        >>> l = nn.Linear(2, 2)
+        >>> m = nn.Sequential(l, l)
+        >>> net = nn.Sequential(m, m)
+        >>> list_modules(net)
+
+    """
+    for idx, m in enumerate(model.modules()):
+        print(idx, ' ---> ', m)
+        print('\n'*2)
+
+def register_activation_hooks(dact, modules):
+    """
+    See : https://blog.paperspace.com/pytorch-hooks-gradient-clipping-debugging/
+    """
+    def hook_fn(m, i, o):
+        dact[m] = o
+
+    for name, layer in modules:
+        if isinstance(layer, (torch.nn.Sequential)):
+            register_activation_hooks(dact, layer.modules())
+        else:
+            layer.register_forward_hook(hook_fn)
+
+
 def get_activations(params, device, tensorboard_writer):
     """
     Forward propagate an image through a network
@@ -70,7 +102,9 @@ def get_activations(params, device, tensorboard_writer):
     # Loads a pretrained model
     image_transforms, model = models.get_model(model, device)
     image_normalize, image_denormalize = image_transforms
-    print(list(model.modules()))
+
+    activities = {}
+    register_activation_hooks(activities, model.modules())
 
 
 def generate_image(params, device, tensorboard_writer):
@@ -178,5 +212,5 @@ def main():
         generate_image(params, device, tensorboard_writer)
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
