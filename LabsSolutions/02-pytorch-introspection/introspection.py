@@ -56,6 +56,16 @@ def test_model(device, args):
     print("The provided image is of class {}".format(out.argmax()))
 
 
+def get_activations(device, args):
+    """
+    Forward propagate an image through a network
+    and saves/displays the activations through the layers
+    The activations are exported on the tensorboard.
+
+    This function allows to see how to access the inner structure of the model
+    """
+    pass 
+
 def simonyan_generate_image(device, args):
     """
     Takes a pretrained model and an input image and computes the
