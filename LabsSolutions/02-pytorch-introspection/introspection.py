@@ -14,11 +14,11 @@ Additional references:
 
 """
 
-## TODO: look at Yosinki which implements various regularization techniques
-
 # Standard modules
+import os
 import argparse
 import sys
+import yaml
 # External modules
 from PIL import Image
 import torch
@@ -56,7 +56,7 @@ def test_model(device, args):
     print("The provided image is of class {}".format(out.argmax()))
 
 
-def get_activations(device, args):
+def get_activations(params, device, tensorboard_writer):
     """
     Forward propagate an image through a network
     and saves/displays the activations through the layers
@@ -64,25 +64,27 @@ def get_activations(device, args):
 
     This function allows to see how to access the inner structure of the model
     """
-    pass 
 
-def simonyan_generate_image(device, args):
+    model = params['model']
+
+    # Loads a pretrained model
+    image_transforms, model = models.get_model(model, device)
+    image_normalize, image_denormalize = image_transforms
+    print(list(model.modules()))
+
+
+def generate_image(params, device, tensorboard_writer):
     """
     Takes a pretrained model and an input image and computes the
     saliency over this input image according to [Simonyan et al.(2014)]
     """
-
-    class_idx = 954  # Bananas
-    nsteps = 100
-    lrate = 1
-    momentum = 0.9
-    l2reg = 1
-    modelname = 'densenet121'
+    class_idx = params['class_idx']
+    nsteps = params['nsteps']
+    lrate = params['optimizer']['lrate']
+    momentum = params['optimizer']['momentum']
+    l2reg = params['regularization']['l2']
+    modelname = params['model']
     shape = (1, 3, 224, 224)
-
-    # Tensorboard
-    logdir = utils.generate_unique_logpath(args.logdir, "simonyan")
-    tensorboard_writer = SummaryWriter(log_dir=logdir)
 
     # Loads a pretrained model
     image_transforms, model = models.get_model(modelname, device)
@@ -128,7 +130,7 @@ def simonyan_generate_image(device, args):
 
         # Computes the probability for display
         prob = torch.nn.functional.softmax(logits)[class_idx]
-        
+
         # Debug display
         sys.stdout.write("\r Step {}, Score : {}, Prob : {}".format(i, cls_score, prob) + " "*50)
         tensorboard_writer.add_image("Generated image",
@@ -136,28 +138,24 @@ def simonyan_generate_image(device, args):
                                      i)
     sys.stdout.write('\n')
 
+
 def main():
+
     # Argument parsing
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--visu',
+    parser.add_argument('--config',
                         type=str,
-                        choices=['simonyan_generate_image'],
                         action='store',
                         required=True)
 
-    parser.add_argument('--image',
-                        type=str,
-                        action='store',
-                        help='The input image to process if required')
-
-    parser.add_argument('--logdir',
-                        type=str,
-                        default="./logs",
-                        action='store')
-
     args = parser.parse_args()
 
+    if not os.path.exists(args.config):
+        raise FileNotFoundError
+    config = yaml.safe_load(open(args.config))
+
+    print(config)
     use_gpu = torch.cuda.is_available()
     if use_gpu:
         print("Using the GPU")
@@ -166,7 +164,18 @@ def main():
         print("Using the CPU")
         device = torch.device('cpu')
 
-    exec("{}(device, args)".format(args.visu))
+    # Tensorboard
+    logdir = utils.generate_unique_logpath(config['logdir'], config['model'])
+    tensorboard_writer = SummaryWriter(log_dir=logdir)
+
+    if 'activations' in config:
+        params = {'model': config['model']}
+        params.update(config['activations'])
+        get_activations(params, device, tensorboard_writer)
+    if 'generate_image' in config:
+        params = {'model': config['model']}
+        params.update(config['generate_image'])
+        generate_image(params, device, tensorboard_writer)
 
 
 if __name__ == '__main__':
