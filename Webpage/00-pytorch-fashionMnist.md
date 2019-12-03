@@ -528,13 +528,9 @@ based on the validation loss that we should select our best model, we
 will see in a few moment how to automatically save the best model during
 training.
 
-You are now ready for **executing your first training**. You need first
-to log on a GPU node as described in section [Using the GPU cluster of CentraleSupelec](cluster.html) 
+You are now ready for **executing your first training**. Being logged on the GPU node,
 
 ``` console
-# First you log to the cluster
-...
-# And then :
 python3 train_fashion_mnist_linear.py
 ```
 
