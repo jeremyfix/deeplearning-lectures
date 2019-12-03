@@ -21,6 +21,7 @@ import sys
 import yaml
 import collections
 import functools
+import math
 # External modules
 from PIL import Image
 import torch
@@ -84,11 +85,10 @@ def register_activation_hooks(dact, module):
         dact[name] = o
 
     for name, layer in module.named_modules():
-        print("Processing : {}, {}".format(name, layer))
+        # print("Processing : {}, {}".format(name, layer))
         if isinstance(layer, (torch.nn.Conv2d)):
             print(" =====> {} Registered ".format(name))
             layer.register_forward_hook(functools.partial(hook_fn, name))
-
 
 
 def get_activations(params, device, tensorboard_writer):
@@ -115,23 +115,23 @@ def get_activations(params, device, tensorboard_writer):
     img = Image.open(params['image']).convert('RGB')
     # Go through the model
     input_tensor = image_normalize(img).to(device).unsqueeze(0)
-    out = model(input_tensor)
+    _ = model(input_tensor)
 
     # We can now register these activites on the tensorboard
     for k, v in activities.items():
         num_channels = v.size()[1]
-        for c in range(num_channels):
-            tensor = v[0, c, :, :]
+        # Normalize all the activations to lie in [0, 1]
+        for channel_idx in range(num_channels):
+            tensor = v[0, channel_idx, :, :]
             tmax = tensor.max()
             tmin = tensor.min()
             if tmax != tmin:
-                tensor = (tmax - tensor)/(tmax - tmin)
+                tensor[...] = (tmax - tensor)/(tmax - tmin)
             else:
-                tensor[:, :] = 0
-            # Iterate over all the channels
-            tensorboard_writer.add_image("Layer {}, {} channels".format(k, num_channels),
-                                         tensor.unsqueeze(0), c)
-        panned_images = torchvision.utils.make_grid(v.permute(1, 0, 2, 3)) 
+                tensor[...] = 0
+        # Make it a grid and display
+        nrow = int(math.sqrt(num_channels))
+        panned_images = torchvision.utils.make_grid(v.permute(1, 0, 2, 3), nrow=nrow)
         tensorboard_writer.add_image("Layer {}".format(k), panned_images, 0)
         
         
@@ -229,7 +229,10 @@ def main():
     # Tensorboard
     logdir = utils.generate_unique_logpath(config['logdir'], config['model'])
     tensorboard_writer = SummaryWriter(log_dir=logdir)
-    print(config)
+
+    image_transforms, model = models.get_model(config['model'], device)
+    tensorboard_writer.add_graph(model, torch.zeros(1, 3, 224, 244))
+
     if 'activations' in config:
         params = {'model': config['model'],
                   'image': config['image']}
