@@ -92,9 +92,9 @@ def register_activation_hooks(dact, module):
 
     for name, layer in module.named_modules():
         # print("Processing : {}, {}".format(name, layer))
-        if isinstance(layer, (torch.nn.Conv2d)):
-            print(" =====> {} Registered ".format(name))
-            layer.register_forward_hook(functools.partial(hook_fn, name))
+        # if isinstance(layer, (torch.nn.Conv2d)):
+        print(" =====> {} Registered ".format(name))
+        layer.register_forward_hook(functools.partial(hook_fn, name))
 
 
 def get_activations(params, device, tensorboard_writer):
@@ -125,22 +125,38 @@ def get_activations(params, device, tensorboard_writer):
 
     # We can now register these activites on the tensorboard
     for k, act in activities.items():
-        num_channels = act.size()[1]
-        # Normalize all the activations to lie in [0, 1]
-        for channel_idx in range(num_channels):
-            tensor = act[0, channel_idx, :, :]
+        if len(act.size()) == 4:
+            # We have image like tensors 
+            num_channels = act.size()[1]
+            # Normalize all the activations to lie in [0, 1]
+            for channel_idx in range(num_channels):
+                tensor = act[0, channel_idx, :, :]
+                tmax = tensor.max()
+                tmin = tensor.min()
+                if tmax != tmin:
+                    tensor[...] = (tmax - tensor)/(tmax - tmin)
+                else:
+                    tensor[...] = 0
+            # Make it a grid and display
+            nrow = int(math.sqrt(num_channels))
+            panned_images = torchvision.utils.make_grid(act.permute(1, 0, 2, 3),
+                                                        nrow=nrow)
+            tensorboard_writer.add_image("Layer {}".format(k), panned_images, 0)
+        elif len(act.size()) == 2:
+            # Normalize the values
+            tensor = act[0]
             tmax = tensor.max()
             tmin = tensor.min()
             if tmax != tmin:
-                tensor[...] = (tmax - tensor)/(tmax - tmin)
+                tensor[...] = (tmax - tensor) / (tmax - tmin)
             else:
                 tensor[...] = 0
-        # Make it a grid and display
-        nrow = int(math.sqrt(num_channels))
-        panned_images = torchvision.utils.make_grid(act.permute(1, 0, 2, 3),
-                                                    nrow=nrow)
-        tensorboard_writer.add_image("Layer {}".format(k), panned_images, 0)
-
+            nrow = int(math.sqrt(tensor.size()[0]))
+            panned_images = torchvision.utils.make_grid(tensor.reshape(tensor.size()[0],
+                                                        1, 1, 1), nrow=nrow)
+            tensorboard_writer.add_image("Layer {}".format(k),
+                                         panned_images,
+                                         0)
 
 def generate_image(params, device, tensorboard_writer):
     """
