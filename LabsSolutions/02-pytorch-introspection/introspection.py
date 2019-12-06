@@ -77,9 +77,10 @@ def list_modules(model):
         >>> list_modules(net)
 
     """
-    for idx, m in enumerate(model.modules()):
-        print(idx, ' ---> ', m)
+    for idx, module in enumerate(model.modules()):
+        print(idx, ' ---> ', module)
         print('\n'*2)
+
 
 def register_activation_hooks(dact, module):
     """
@@ -120,14 +121,14 @@ def get_activations(params, device, tensorboard_writer):
     img = Image.open(params['image']).convert('RGB')
     # Go through the model
     input_tensor = image_normalize(img).to(device).unsqueeze(0)
-    _ = model(input_tensor)
+    model(input_tensor)
 
     # We can now register these activites on the tensorboard
-    for k, v in activities.items():
-        num_channels = v.size()[1]
+    for k, act in activities.items():
+        num_channels = act.size()[1]
         # Normalize all the activations to lie in [0, 1]
         for channel_idx in range(num_channels):
-            tensor = v[0, channel_idx, :, :]
+            tensor = act[0, channel_idx, :, :]
             tmax = tensor.max()
             tmin = tensor.min()
             if tmax != tmin:
@@ -136,10 +137,11 @@ def get_activations(params, device, tensorboard_writer):
                 tensor[...] = 0
         # Make it a grid and display
         nrow = int(math.sqrt(num_channels))
-        panned_images = torchvision.utils.make_grid(v.permute(1, 0, 2, 3), nrow=nrow)
+        panned_images = torchvision.utils.make_grid(act.permute(1, 0, 2, 3),
+                                                    nrow=nrow)
         tensorboard_writer.add_image("Layer {}".format(k), panned_images, 0)
-        
-        
+
+
 def generate_image(params, device, tensorboard_writer):
     """
     Takes a pretrained model and an input image and computes the
@@ -199,14 +201,21 @@ def generate_image(params, device, tensorboard_writer):
         prob = torch.nn.functional.softmax(logits)[class_idx]
 
         # Debug display
-        sys.stdout.write("\r Step {}, Score : {}, Prob : {}".format(i, cls_score, prob) + " "*50)
+        sys.stdout.write("\r Step {}, Score : {}, Prob : {}".format(i,
+                                                                    cls_score,
+                                                                    prob)
+                         + " "*50)
+        denormalized_image = image_denormalize(generated_image.squeeze())
         tensorboard_writer.add_image("Generated image",
-                                     image_denormalize(generated_image.squeeze()),
+                                     denormalized_image,
                                      i)
     sys.stdout.write('\n')
 
 
 def main():
+    """
+    Main function
+    """
 
     # Argument parsing
     parser = argparse.ArgumentParser()
@@ -219,10 +228,9 @@ def main():
     args = parser.parse_args()
 
     if not os.path.exists(args.config):
-        raise FileNotFoundError
+        raise FileNotFoundError("The provided config file {} does not exist".format(args.config))
     config = yaml.safe_load(open(args.config))
 
-    print(config)
     use_gpu = torch.cuda.is_available()
     if use_gpu:
         print("Using the GPU")
