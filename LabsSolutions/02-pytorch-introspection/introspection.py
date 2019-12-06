@@ -5,11 +5,16 @@ In this script, we experiment with various visualisation techniques for
 demangling what is learned by a deep neural network
 
 For saliency_simonyan
-    Simonyan et al. (2014), Deep Inside Convolutional Networks: VisualisingImage Classification Models and Saliency Maps. https://arxiv.org/pdf/1312.6034.pdf
-    Yosinski et al. (2015), Understanding Neural Networks Through Deep Visualization
+    - Simonyan et al. (2014), Deep Inside Convolutional Networks: Visualising
+                              Image Classification Models and Saliency Maps.
+                              https://arxiv.org/pdf/1312.6034.pdf
+    - Yosinski et al. (2015), Understanding Neural Networks Through Deep
+                              Visualization
 
 Additional references:
-    - Montavon et al. (2017) Methods for Interpreting and Understanding Deep Neural Networks, https://arxiv.org/pdf/1706.07979.pdf
+    - Montavon et al. (2017) Methods for Interpreting and Understanding Deep
+                             Neural Networks,
+                             https://arxiv.org/pdf/1706.07979.pdf
     - https://github.com/utkuozbulak/pytorch-cnn-visualizations
 
 """
@@ -18,11 +23,11 @@ Additional references:
 import os
 import argparse
 import sys
-import yaml
 import collections
 import functools
 import math
 # External modules
+import yaml
 from PIL import Image
 import torch
 import torchvision
