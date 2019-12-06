@@ -801,7 +801,7 @@ Optimizer
 ========
 {}
 
-""".format(" ".join(sys.argv), model, sum(p.numel() for p in model.parameters() if p.requires_grad), optimizer))
+""".format(" ".join(sys.argv), model, sum(p.numel() for p in model.parameters() if p.requires_grad), optimizer)
 summary_file.write(summary_text)
 summary_file.close()
 
