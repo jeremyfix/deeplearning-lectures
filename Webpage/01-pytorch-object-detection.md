@@ -8,24 +8,18 @@ keywords: [PyTorch tutorial, Transfer learning, Object detection]
 
 ## Objectives
 
-In the previous practical, you trained feedforward neural networks for
-classifying images, i.e. assigning a **single** label to each image
-hopefully reaching a good accuracy on the test set. We now consider a
-second problem in computer vision : object detection. The task is here
-to find every occurence of a set of classes of objects. Given an image,
-we want to output a set of bounding boxes for every object classes of
-interest.
+In the previous practical, you trained feedforward neural networks for classifying images, i.e. assigning a **single** label to each image hopefully reaching a good accuracy on the test set. We now consider a second problem in computer vision : object detection. The task is here to find every occurrence of a set of classes of objects. Given an image, we want to output a set of bounding boxes for every object classes of interest.
 
 Below is an example of what we want to do :
 
 ![Object detection : bounding box regression and classification](./data/01-pytorch-object-detection/example_bbox.png){width=100%}
 
 
-In this practical, we will work with the [Pascal VOC 2012 dataset](http://host.robots.ox.ac.uk/pascal/VOC/). Pascal VOC used to be a popular contest on the topic of object recognition in computer vision. It ended in 2012. The dataset consists 11.530 images, annoted with 27.450 bounding boxes belonging to one of 20 classes. Segmentations, which we are not going to use for now, are also provided. 
+In this practical, we will work with the [Pascal VOC 2012 dataset](http://host.robots.ox.ac.uk/pascal/VOC/). Pascal VOC used to be a popular contest on the topic of object recognition in computer vision. It ended in 2012. The dataset consists in 11.530 images, annotated with 27.450 bounding boxes belonging to one of 20 classes. Segmentations, which we are not going to use for now, are also provided. 
 
-We will progress step by step starting by regressing and classifying the largest object bounding box and then move on detecting multiple objects (an interesting approach I borrow from J. Howard of [fast.ai](http://www.fast.ai)). Also we will follow a particular track to perform object detection but a lot of variations are actually possible. I invite you to read [@Huang2016;@Hui2018] which present some variations.
+We will progress step by step starting by regressing and classifying the largest object's bounding box and then move on detecting multiple objects (an interesting pedagogical approach I borrow from J. Howard of [fast.ai](http://www.fast.ai)). Also we will follow a particular track to perform object detection but a lot of variations are actually possible. I invite you to read [@Huang2016;@Hui2018] which present some variations.
 
-One of the interest of this practical also lies in the way we will compute the features from which to detect objects. We will use **pretrained** models, and more specifically, models like resnet, densenet, etc... trained for classification on ImageNet. From these models, we will cut-off the classification head and keep the model up to the last convolutional feature maps.
+One of the interests of this practical also lies in the way we will compute the features from which to detect objects. We will use **pretrained** models, and more specifically, models like resnet, densenet, etc. trained for classification on ImageNet. From these models, we will cut-off the classification head and keep the model up to the last convolutional feature maps. The head of the model will be defined depending on the problem of interest.
 
 
 ## Exploring the dataset
@@ -33,19 +27,19 @@ One of the interest of this practical also lies in the way we will compute the f
 You are provided with some basic codes that allow you to explore the dataset. In the next sections, you will progressively extend this code. To explore the dataset you need to download :
 
 - [voc.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/voc.py) : provides the torch dataset VOCDetection. Taken from [torchvision](https://www.github.com/pytorch/vision/tree/master/torchvision/datasets), because it is not yet installed in the latest release
-- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/data.py) : provides some usefull functions to create your pascal VOC datasets.
+- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/data.py) : provides some useful functions to create your pascal VOC datasets.
 
 The python code below shows you how to load your dataset. The function `data.make_trainval_dataset` is the one loading your data and gets few parameters. In this practical, we will play around with three important parameters **image_transform_params**, **target_transform_params** and **transform** : 
 
-- **transform** : the operations to be operated on the images before feeding in the models. We will use this parameter when defining our first model in [Largest object detection](#largest_object_detection),
-- **image_transform_params** : this defines how the images are resized, this is dictionnary which can be one of :
+- **transform** : the operations to be applied on the images before feeding in the models. We will use this parameter when defining our first model in [Largest object detection](#largest_object_detection),
+- **image_transform_params** : this defines how the images are resized, this is a dictionary which can be one of :
     - `{'image_mode': 'none'}` : keeps the original image size
-    - `{'image_mode'='shrink', output_image_size={'width':.., 'height': ..}}` : squeeze the image to fit in the provided dimensions
-    - `{'image_mode'='crop'  , output_image_size={'width':.., 'height': ..}}` : center crop the image to fit in the provided dimensions
+    - `{'image_mode'='shrink', output_image_size={'width':.., 'height': ..}}` : squeezes the image to fit in the provided dimensions
+    - `{'image_mode'='crop'  , output_image_size={'width':.., 'height': ..}}` : center crops the image to fit in the provided dimensions
 - **target_transform_params** : 
     - `{'target_mode'='preprocessed'}` : the original labels slightly preprocessed
     - `{'target_mode'='largest_bbox', 'image_transform_params': dict}` : a mode you will implement in [Largest object detection/Preprocessing the targets](#preprocessing-the-targets)
-    - `{'target_mode'='all_bbox'    , 'image_transform_params': dict, 'num_cells': int}` : a mode you will implemented in [Multiple object detection/Preprocessing the targets](#preprocessing-the-targets-1)
+    - `{'target_mode'='all_bbox'    , 'image_transform_params': dict, 'num_cells': int}` : a mode you will implement in [Multiple object detection/Preprocessing the targets](#preprocessing-the-targets-1)
 
 
 
