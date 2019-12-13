@@ -49,11 +49,11 @@ import data
 import torchvision.transforms as transforms
 
 
-# The datasets is already downloaded on the cluster
+# The dataset is already downloaded on the cluster
 dataset_dir = "/opt/Datasets/Pascal-VOC2012/"
 download = False
 
-# How do we preprocessing the image (e.g. none, crop, shrink)
+# How do we preprocess the image (e.g. none, crop, shrink)
 image_transform_params = {'image_mode': 'none'}
 
 # How do we preprocess the targets
@@ -70,6 +70,8 @@ train_dataset, valid_dataset = data.make_trainval_dataset(
         target_transform_params = target_transform_params,
         download                = download)
 
+# Display the first element of the dataset
+# i.e. a pair made of an image and the slightly preprocessed targets
 print(train_dataset[0])
 
 ```
