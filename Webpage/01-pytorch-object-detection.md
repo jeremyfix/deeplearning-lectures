@@ -23,7 +23,7 @@ Below is an example of what we want to do :
 
 In this practical, we will work with the [Pascal VOC 2012 dataset](http://host.robots.ox.ac.uk/pascal/VOC/). Pascal VOC used to be a popular contest on the topic of object recognition in computer vision. It ended in 2012. The dataset consists 11.530 images, annoted with 27.450 bounding boxes belonging to one of 20 classes. Segmentations, which we are not going to use for now, are also provided. 
 
-We will progress step by step starting by regressing and classifying the largest object bounding box and then move on detecting multiple objects (an interesting approach I borrow from J. Howard of [fast.ai](http://www.fast.ai)). Also we will follow a particular track to perform object detection but a lot of variations are actually possible. I invite you to read [@Huang2016,@Hui2018] which present some variations.
+We will progress step by step starting by regressing and classifying the largest object bounding box and then move on detecting multiple objects (an interesting approach I borrow from J. Howard of [fast.ai](http://www.fast.ai)). Also we will follow a particular track to perform object detection but a lot of variations are actually possible. I invite you to read [@Huang2016;@Hui2018] which present some variations.
 
 One of the interest of this practical also lies in the way we will compute the features from which to detect objects. We will use **pretrained** models, and more specifically, models like resnet, densenet, etc... trained for classification on ImageNet. From these models, we will cut-off the classification head and keep the model up to the last convolutional feature maps.
 
