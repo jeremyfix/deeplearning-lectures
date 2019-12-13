@@ -88,15 +88,15 @@ This should output
 {'annotation': {'folder': 'VOC2012', 'filename': '2008_000008.jpg', 'source': {'database': 'The VOC2008 Database', 'annotation': 'PASCAL VOC2008', 'image': 'flickr'}, 'size': {'width': 500, 'height': 442, 'depth': 3}, 'segmented': True, 'object': [{'name': 'horse', 'pose': 'Left', 'truncated': False, 'occluded': True, 'bndbox': {'xmin': 53, 'ymin': 87, 'xmax': 471, 'ymax': 420}, 'difficult': False}, {'name': 'person', 'pose': 'Unspecified', 'truncated': True, 'occluded': False, 'bndbox': {'xmin': 158, 'ymin': 44, 'xmax': 289, 'ymax': 167}, 'difficult': False}]}})
 ```
 
-To discover the dataset and how to manipulate our dataset objects, I suggest below two exercices. 
+To discover the dataset and how to manipulate our dataset objects, I suggest below two exercises. 
 
-**Exercice** Can you print out some elements about the distribution of width/height of the images in the training set ? You can access the sizes from within the annotations or the tensor object. I remind you the pytorch tensors are shaped (Channel, Height, Width) (minibatches are shaped (Batch, Channel, Height, Width)),
+**Exercise** Can you print out some elements about the distribution of width/height of the images in the training set ? You can access the sizes from within the annotations or the tensor object. I remind you the pytorch tensors are shaped (Channel, Height, Width) (minibatches are shaped (Batch, Channel, Height, Width)),
 
 Example output :
 
-![Pascal VOC-2012 size distribution. The bins are (111., 149.9, 188.8, 227.7, 266.6, 305.5, 344.4, 383.3, 422.2, 461.1, 500.)](./data/01-pytorch-object-detection/histo_sizes.png){width=20%}
+![Pascal VOC-2012 size distribution. The bins are (111., 149.9, 188.8, 227.7, 266.6, 305.5, 344.4, 383.3, 422.2, 461.1, 500.)](./data/01-pytorch-object-detection/histo_sizes.png){width=30%}
 
-**Exercice** Can you identifiy the total number of objects of each class in the training set  ? The list of classes is given in `data.classes`. Expected output :
+**Exercise** Can you identify the total number of objects of each class in the training set  ? Please note the "preprocessed" targets are a dictionary with a key "annotation" and subkey "object". The list of classes is given in `data.classes`. Expected output :
 ```{.sourceCode .python}
 {'aeroplane': 470,
  'bicycle': 410,
