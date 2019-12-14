@@ -26,7 +26,6 @@ One of the interests of this practical also lies in the way we will compute the 
 
 You are provided with some basic codes that allow you to explore the dataset. In the next sections, you will progressively extend this code. To explore the dataset you need to download :
 
-- [voc.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/voc.py) : provides the torch dataset VOCDetection. Taken from [torchvision](https://www.github.com/pytorch/vision/tree/master/torchvision/datasets), because it is not yet installed in the latest release
 - [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/data.py) : provides some useful functions to create your pascal VOC datasets.
 
 The python code below shows you how to load your dataset. The function `data.make_trainval_dataset` is the one loading your data and gets few parameters. In this practical, we will play around with three important parameters **image_transform_params**, **target_transform_params** and **transform** : 
