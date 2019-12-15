@@ -260,7 +260,7 @@ device = torch.device('gpu')
 feature_extractor.to(device)
 ```
 
-You can now set up your datasets, dataloaders and iterate over your training and validation data to extract the features and build up tensors from which we will learn to predict the largest object location and class ! To help you in this work, the script [utils.py](./data/01-pytorch-object-detection/utils.py) will be helpful. The function `extract_save_features` saves a dictionnary. Within the context of this section, the dictionnary that is saved will have :
+You can now set up your datasets, dataloaders and iterate over your training and validation data to extract the features and build up tensors from which we will learn to predict the largest object location and class ! To help you in this work, the script [utils.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/utils.py) will be helpful. The function `extract_save_features` saves a dictionary. Within the context of this section, the dictionnary that is saved will have :
 
 - For the training set :
 	- the key 'features' with torch tensor of shape (5717, 512, 7, 7)
