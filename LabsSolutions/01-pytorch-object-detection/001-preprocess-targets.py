@@ -1,6 +1,10 @@
-import sol_data as data
+#!/usr/bin/env python3
+
+# External modules
 import torchvision.transforms as transforms
 import torch
+# Local modules
+import data
 
 objects = [{'bndbox': {'cx': 0.524, 'cy': 0.5735294117647058, 'width': 0.836, 'height': 0.753393665158371}, 'class': 5},
                    {'bndbox': {'cx': 0.447, 'cy': 0.23868778280542988, 'width': 0.262, 'height': 0.27828054298642535}, 'class': 0}]
