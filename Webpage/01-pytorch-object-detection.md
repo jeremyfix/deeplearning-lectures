@@ -215,8 +215,10 @@ target_tensor = data.target_to_tensor(largest_object)
 
 If this works, you can now proceed on generating the dataset with correctly formatted targets by specifying 
 ```{.sourceCode .python}
-image_transform_params = {'image_mode': 'shrink',  'output_image_size': {'width':224, 'height':224}}
-target_transform_params = {'target_mode': 'largest_bbox', image_transform_params=image_transform_params}
+image_transform_params = {'image_mode': 'shrink',  
+                          'output_image_size': {'width':224, 'height':224}}
+target_transform_params = {'target_mode': 'largest_bbox', 
+                           'image_transform_params': image_transform_params}
 ```
 
 when you build your datasets.
