@@ -5,8 +5,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
-#import torchvision.datasets.voc  #<-- will be available soon
-import voc as VOC
+import torchvision.datasets.voc as VOC
 
 
 classes = ['person' , 'bird', 'cat', 'cow',

@@ -8,44 +8,37 @@ keywords: [PyTorch tutorial, Transfer learning, Object detection]
 
 ## Objectives
 
-In the previous practical, you trained feedforward neural networks for
-classifying images, i.e. assigning a **single** label to each image
-hopefully reaching a good accuracy on the test set. We now consider a
-second problem in computer vision : object detection. The task is here
-to find every occurence of a set of classes of objects. Given an image,
-we want to output a set of bounding boxes for every object classes of
-interest.
+In the previous practical, you trained feedforward neural networks for classifying images, i.e. assigning a **single** label to each image hopefully reaching a good accuracy on the test set. We now consider a second problem in computer vision : object detection. The task is here to find every occurrence of a set of classes of objects. Given an image, we want to output a set of bounding boxes for every object classes of interest.
 
 Below is an example of what we want to do :
 
 ![Object detection : bounding box regression and classification](./data/01-pytorch-object-detection/example_bbox.png){width=100%}
 
 
-In this practical, we will work with the [Pascal VOC 2012 dataset](http://host.robots.ox.ac.uk/pascal/VOC/). Pascal VOC used to be a popular contest on the topic of object recognition in computer vision. It ended in 2012. The dataset consists 11.530 images, annoted with 27.450 bounding boxes belonging to one of 20 classes. Segmentations, which we are not going to use for now, are also provided. 
+In this practical, we will work with the [Pascal VOC 2012 dataset](http://host.robots.ox.ac.uk/pascal/VOC/). Pascal VOC used to be a popular contest on the topic of object recognition in computer vision. It ended in 2012. The dataset consists in 11.530 images, annotated with 27.450 bounding boxes belonging to one of 20 classes. Segmentations, which we are not going to use for now, are also provided. 
 
-We will progress step by step starting by regressing and classifying the largest object bounding box and then move on detecting multiple objects (an interesting approach I borrow from J. Howard of [fast.ai](http://www.fast.ai)). Also we will follow a particular track to perform object detection but a lot of variations are actually possible. I invite you to read [@Huang2016,@Hui2018] which present some variations.
+We will progress step by step starting by regressing and classifying the largest object's bounding box and then move on detecting multiple objects (an interesting pedagogical approach I borrow from J. Howard of [fast.ai](http://www.fast.ai)). Also we will follow a particular track to perform object detection but a lot of variations are actually possible. I invite you to read [@Huang2016;@Hui2018] which present some variations.
 
-One of the interest of this practical also lies in the way we will compute the features from which to detect objects. We will use **pretrained** models, and more specifically, models like resnet, densenet, etc... trained for classification on ImageNet. From these models, we will cut-off the classification head and keep the model up to the last convolutional feature maps.
+One of the interests of this practical also lies in the way we will compute the features from which to detect objects. We will use **pretrained** models, and more specifically, models like resnet, densenet, etc. trained for classification on ImageNet. From these models, we will cut-off the classification head and keep the model up to the last convolutional feature maps. The head of the model will be defined depending on the problem of interest.
 
 
 ## Exploring the dataset
 
 You are provided with some basic codes that allow you to explore the dataset. In the next sections, you will progressively extend this code. To explore the dataset you need to download :
 
-- [voc.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/voc.py) : provides the torch dataset VOCDetection. Taken from [torchvision](https://www.github.com/pytorch/vision/tree/master/torchvision/datasets), because it is not yet installed in the latest release
-- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/data.py) : provides some usefull functions to create your pascal VOC datasets.
+- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/data.py) : provides some useful functions to create your pascal VOC datasets.
 
 The python code below shows you how to load your dataset. The function `data.make_trainval_dataset` is the one loading your data and gets few parameters. In this practical, we will play around with three important parameters **image_transform_params**, **target_transform_params** and **transform** : 
 
-- **transform** : the operations to be operated on the images before feeding in the models. We will use this parameter when defining our first model in [Largest object detection](#largest_object_detection),
-- **image_transform_params** : this defines how the images are resized, this is dictionnary which can be one of :
+- **transform** : the operations to be applied on the images before feeding in the models. We will use this parameter when defining our first model in [Largest object detection](#largest_object_detection),
+- **image_transform_params** : this defines how the images are resized, this is a dictionary which can be one of :
     - `{'image_mode': 'none'}` : keeps the original image size
-    - `{'image_mode'='shrink', output_image_size={'width':.., 'height': ..}}` : squeeze the image to fit in the provided dimensions
-    - `{'image_mode'='crop'  , output_image_size={'width':.., 'height': ..}}` : center crop the image to fit in the provided dimensions
+    - `{'image_mode'='shrink', output_image_size={'width':.., 'height': ..}}` : squeezes the image to fit in the provided dimensions
+    - `{'image_mode'='crop'  , output_image_size={'width':.., 'height': ..}}` : center crops the image to fit in the provided dimensions
 - **target_transform_params** : 
     - `{'target_mode'='preprocessed'}` : the original labels slightly preprocessed
     - `{'target_mode'='largest_bbox', 'image_transform_params': dict}` : a mode you will implement in [Largest object detection/Preprocessing the targets](#preprocessing-the-targets)
-    - `{'target_mode'='all_bbox'    , 'image_transform_params': dict, 'num_cells': int}` : a mode you will implemented in [Multiple object detection/Preprocessing the targets](#preprocessing-the-targets-1)
+    - `{'target_mode'='all_bbox'    , 'image_transform_params': dict, 'num_cells': int}` : a mode you will implement in [Multiple object detection/Preprocessing the targets](#preprocessing-the-targets-1)
 
 
 
@@ -55,11 +48,11 @@ import data
 import torchvision.transforms as transforms
 
 
-# The datasets is already downloaded on the cluster
+# The dataset is already downloaded on the cluster
 dataset_dir = "/opt/Datasets/Pascal-VOC2012/"
 download = False
 
-# How do we preprocessing the image (e.g. none, crop, shrink)
+# How do we preprocess the image (e.g. none, crop, shrink)
 image_transform_params = {'image_mode': 'none'}
 
 # How do we preprocess the targets
@@ -76,6 +69,8 @@ train_dataset, valid_dataset = data.make_trainval_dataset(
         target_transform_params = target_transform_params,
         download                = download)
 
+# Display the first element of the dataset
+# i.e. a pair made of an image and the slightly preprocessed targets
 print(train_dataset[0])
 
 ```
@@ -92,15 +87,15 @@ This should output
 {'annotation': {'folder': 'VOC2012', 'filename': '2008_000008.jpg', 'source': {'database': 'The VOC2008 Database', 'annotation': 'PASCAL VOC2008', 'image': 'flickr'}, 'size': {'width': 500, 'height': 442, 'depth': 3}, 'segmented': True, 'object': [{'name': 'horse', 'pose': 'Left', 'truncated': False, 'occluded': True, 'bndbox': {'xmin': 53, 'ymin': 87, 'xmax': 471, 'ymax': 420}, 'difficult': False}, {'name': 'person', 'pose': 'Unspecified', 'truncated': True, 'occluded': False, 'bndbox': {'xmin': 158, 'ymin': 44, 'xmax': 289, 'ymax': 167}, 'difficult': False}]}})
 ```
 
-To discover the dataset and how to manipulate our dataset objects, I suggest below two exercices. 
+To discover the dataset and how to manipulate our dataset objects, I suggest below two exercises. 
 
-**Exercice** Can you print out some elements about the distribution of width/height of the images in the training set ? You can access the sizes from within the annotations or the tensor object. I remind you the pytorch tensors are shaped (Channel, Height, Width) (minibatches are shaped (Batch, Channel, Height, Width)),
+**Exercise** Can you print out some elements about the distribution of width/height of the images in the training set ? You can access the sizes from within the annotations or the tensor object. I remind you the pytorch tensors are shaped (Channel, Height, Width) (minibatches are shaped (Batch, Channel, Height, Width)),
 
 Example output :
 
-![Pascal VOC-2012 size distribution. The bins are (111., 149.9, 188.8, 227.7, 266.6, 305.5, 344.4, 383.3, 422.2, 461.1, 500.)](./data/01-pytorch-object-detection/histo_sizes.png){width=20%}
+![Pascal VOC-2012 size distribution. The bins are (111., 149.9, 188.8, 227.7, 266.6, 305.5, 344.4, 383.3, 422.2, 461.1, 500.)](./data/01-pytorch-object-detection/histo_sizes.png){width=30%}
 
-**Exercice** Can you identifiy the total number of objects of each class in the training set  ? The list of classes is given in `data.classes`. Expected output :
+**Exercise** Can you identify the total number of objects of each class in the training set  ? Please note the "preprocessed" targets are a dictionary with a key "annotation" and subkey "object". The list of classes is given in `data.classes`. Expected output :
 ```{.sourceCode .python}
 {'aeroplane': 470,
  'bicycle': 410,
@@ -166,17 +161,20 @@ This first step is depicted below.
 
 ### Preprocessing the images
 
-As we have observed in the beginning of the practical, the images in the dataset are of varying sizes.  In order to feed minibatches into our neural networks, we need to resize our images to fixed sizes. The code for resizing the images is already provided to you with two modes *shrinking* or *cropping*. The two are illustrated below. For the following we will work exclusively with images shrunk to $224 \times 224$. **Fill in** the appropriate code within `data.py`
+As we have observed in the beginning of the practical, the images in the dataset are of varying sizes. In order to feed minibatches into our neural networks, we need to resize our images to fixed sizes. The code for resizing the images is already provided to you with two modes *shrinking* or *cropping*. The two are illustrated below. For the following we will work exclusively with images shrunk to $224 \times 224$. Using the code you are provided, **create a script** in which you instantiate the datasets with the different image transforms, take some samples of these datasets, and save them to disk. Hint: if the *transform* argument of make\_trainval\_dataset is set to None, the dataset returns PIL images. 
 
 ![Images are resized to fixed size by either shrinking or cropping to 224 x 224 (ImageNet standard)](./data/01-pytorch-object-detection/preprocess_images.png){width=50%}
 
 Shrinking is usually what is done because changing the aspect ratio of objects does not appear experimentally to be dramatic while keeping the whole content of the image.
+<div class="w3-card w3-sand">
+There are neural network architectures that can deal with varying input sizes but the ones we will consider will make use of fully connected layers which require their input to be of fixed size.
+</div>
 
 ### Preprocessing the targets
 
 As you have seen before, the targets provided by the dataset objects are so far the raw annotations. For supervizing learning to detect the largest object, we need to filter the bounding box and class of the largest objects, and then convert it into pytorch tensors. 
 
-The pipeline for transforming the raw targets into the tensors of the largest object is already coded in `data.py` but **you still have to write some functions**. The pipeline that is provided extracts and keeps only the classes and bounding boxes of all the objects. It further encodes the bounding boxes by its center and width/height and scales these dimensions into [0, 1] independently along the horizontal and vertical axis as shown below. 
+The pipeline for transforming the raw targets into the tensors of the largest object is already coded in `data.py` but **you still have to write some functions**. The pipeline that is provided extracts and keeps only the classes and bounding boxes of all the objects (filtering out various information we do not need). It further encodes the bounding boxes by its center and width/height and scales these dimensions into [0, 1] independently along the horizontal and vertical axis as shown below. 
 
 ![The bounding boxes are encoded as center/size and these dimensions are normalized in \[0, 1\] ](./data/01-pytorch-object-detection/bbox_encoding.png){width=50%}
 
@@ -217,8 +215,10 @@ target_tensor = data.target_to_tensor(largest_object)
 
 If this works, you can now proceed on generating the dataset with correctly formatted targets by specifying 
 ```{.sourceCode .python}
-image_transform_params = {'image_mode': 'shrink',  'output_image_size': {'width':224, 'height':224}}
-target_transform_params = {'target_mode': 'largest_bbox', image_transform_params=image_transform_params}
+image_transform_params = {'image_mode': 'shrink',  
+                          'output_image_size': {'width':224, 'height':224}}
+target_transform_params = {'target_mode': 'largest_bbox', 
+                           'image_transform_params': image_transform_params}
 ```
 
 when you build your datasets.
@@ -226,7 +226,9 @@ when you build your datasets.
 
 ### Extracting the features with a pretrained model
 
-We will now propagate all the training and validation sets through a model pretrained on ImageNet. Torchvision provides several pretrained models in the [torchvision.models](https://pytorch.org/docs/stable/torchvision/models.html). As stated in the documentation, all the pretrained models expect images at least $224 \times 224$, with channels in $[0,1]$ and normalized with $mean=[0.485, 0.456, 0.406]$ and $std = [0.229, 0.224, 0.225]$.
+Now we are ready to feed the data within a model ! Great ! How will we proceed ? We will be using a pretrained model, i.e. a model trained on ImageNet for classification, we will cut off the head and replace it by the appropriate head for classifying and regressing the largest object. The interest of using a pretrained model lies in the fact that all the ImageNet data has been used to train that model and, hopefully, the extracted features are sufficiently good for this other task of object detection or at least can provided a reasonably good starting point. In a first approach, we will not further train the pretrained layers so that it makes sense to propagate the datasets through the pretrained layers, save the output features and then separately proceed on training the classification and regression heads. No need to forward propagate through the pretrained layers during training if the pretrained layers are kept fixed ! Do not worry, we will come back to our task soon, for now on, we focus on extracting and saving the features of a pretrained model.
+
+Torchvision provides several pretrained models in the [torchvision.models](https://pytorch.org/docs/stable/torchvision/models.html). As stated in the documentation, all the pretrained models expect images at least $224 \times 224$, with channels in $[0,1]$ and normalized with $mean=[0.485, 0.456, 0.406]$ and $std = [0.229, 0.224, 0.225]$.
 
 This normalization can be provided when you create your training and validation sets as :
 ```{.sourceCode .python}
@@ -258,7 +260,7 @@ device = torch.device('gpu')
 feature_extractor.to(device)
 ```
 
-You can now set up your datasets, dataloaders and iterate over your training and validation data to extract the features and build up tensors from which we will learn to predict the largest object location and class ! To help you in this work, the script [utils.py](./data/01-pytorch-object-detection/utils.py) will be helpful. The function `extract_save_features` saves a dictionnary. Within the context of this section, the dictionnary that is saved will have :
+You can now set up your datasets, dataloaders and iterate over your training and validation data to extract the features and build up tensors from which we will learn to predict the largest object location and class ! To help you in this work, the script [utils.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/utils.py) will be helpful. The function `extract_save_features` saves a dictionary. Within the context of this section, the dictionnary that is saved will have :
 
 - For the training set :
 	- the key 'features' with torch tensor of shape (5717, 512, 7, 7)
@@ -313,7 +315,7 @@ You can now stick together :
 - your losses, 
 - an optimizer, 
 - ModelCheckpoint 
-- tensorboardX callbacks
+- tensorboard callbacks
 
 and write your training and testing function. Most of the remaining code is similar to what we did in the previous practical. The only difference comes from the training function where we now have to backpropagate through two losses rather than just one. Hit the button, tweak your optimization/regularization settings and then go on.
 
