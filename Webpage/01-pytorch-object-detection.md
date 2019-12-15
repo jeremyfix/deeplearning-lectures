@@ -315,7 +315,7 @@ You can now stick together :
 - your losses, 
 - an optimizer, 
 - ModelCheckpoint 
-- tensorboardX callbacks
+- tensorboard callbacks
 
 and write your training and testing function. Most of the remaining code is similar to what we did in the previous practical. The only difference comes from the training function where we now have to backpropagate through two losses rather than just one. Hit the button, tweak your optimization/regularization settings and then go on.
 
