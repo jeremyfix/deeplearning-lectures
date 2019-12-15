@@ -226,7 +226,9 @@ when you build your datasets.
 
 ### Extracting the features with a pretrained model
 
-We will now propagate all the training and validation sets through a model pretrained on ImageNet. Torchvision provides several pretrained models in the [torchvision.models](https://pytorch.org/docs/stable/torchvision/models.html). As stated in the documentation, all the pretrained models expect images at least $224 \times 224$, with channels in $[0,1]$ and normalized with $mean=[0.485, 0.456, 0.406]$ and $std = [0.229, 0.224, 0.225]$.
+Now we are ready to feed the data within a model ! Great ! How will we proceed ? We will be using a pretrained model, i.e. a model trained on ImageNet for classification, we will cut off the head and replace it by the appropriate head for classifying and regressing the largest object. The interest of using a pretrained model lies in the fact that all the ImageNet data has been used to train that model and, hopefully, the extracted features are sufficiently good for this other task of object detection or at least can provided a reasonably good starting point. In a first approach, we will not further train the pretrained layers so that it makes sense to propagate the datasets through the pretrained layers, save the output features and then separately proceed on training the classification and regression heads. No need to forward propagate through the pretrained layers during training if the pretrained layers are kept fixed ! Do not worry, we will come back to our task soon, for now on, we focus on extracting and saving the features of a pretrained model.
+
+Torchvision provides several pretrained models in the [torchvision.models](https://pytorch.org/docs/stable/torchvision/models.html). As stated in the documentation, all the pretrained models expect images at least $224 \times 224$, with channels in $[0,1]$ and normalized with $mean=[0.485, 0.456, 0.406]$ and $std = [0.229, 0.224, 0.225]$.
 
 This normalization can be provided when you create your training and validation sets as :
 ```{.sourceCode .python}
