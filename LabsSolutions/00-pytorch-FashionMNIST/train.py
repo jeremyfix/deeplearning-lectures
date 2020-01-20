@@ -18,6 +18,7 @@ import utils
 import models
 import data
 
+
 def train(config):
     '''
     Run a training with the provided parameters
@@ -34,7 +35,6 @@ def train(config):
     batch_size=128
     epochs=10
     valid_ratio=0.2
-    tensorlogs = config['log'] is not None
 
     if config['use_gpu']:
         print("Using GPU{}".format(torch.cuda.current_device()))
@@ -45,14 +45,13 @@ def train(config):
 
 
     # Where to store the logs
-    if tensorlogs:
-        logdir = utils.generate_unique_logpath(config['log']['logdir'],
-                                               config['model'])
-        print("Logging to {}".format(logdir))
-        if not os.path.exists(config['log']['logdir']):
-            os.mkdir(config['log']['logdir'])
-        if not os.path.exists(logdir):
-            os.mkdir(logdir)
+    logdir = utils.generate_unique_logpath(config['logdir'],
+                                           config['model'])
+    print("Logging to {}".format(logdir))
+    if not os.path.exists(config['logdir']):
+        os.mkdir(config['log']['logdir'])
+    if not os.path.exists(logdir):
+        os.mkdir(logdir)
 
     # FashionMNIST dataset
     train_augment_transforms = None
@@ -130,15 +129,15 @@ Optimizer
     tensorboard_writer.add_graph(model, inputs)
     ####################################################################################### Main Loop
     for t in range(epochs):
-        print("Epoch {}".format(t))
         train_loss, train_acc = utils.train(model, train_loader, loss, optimizer, device)
 
         val_loss, val_acc = utils.test(model, valid_loader, loss, device)
-        print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
 
         test_loss, test_acc = utils.test(model, test_loader, loss, device)
-        print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
 
+        print("Epoch {}".format(t))
+        print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
+        print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
         history_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(t,
                                                                  train_loss, train_acc,
                                                                  val_loss, val_acc,
@@ -215,7 +214,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--logdir',
         type=str,
-        default=None,
+        default='./logs',
         help='The directory in which to store the logs'
     )
 
@@ -235,11 +234,8 @@ if __name__ == '__main__':
         'weight_decay': args.weight_decay,
         'data_augment': args.data_augment,
         'normalize': args.normalize,
-        'log': None,
+        'logdir': args.logdir,
         'model': args.model
     }
-
-    if args.logdir:
-        config['log'] = {'logdir': args.logdir}
 
     train(config)
