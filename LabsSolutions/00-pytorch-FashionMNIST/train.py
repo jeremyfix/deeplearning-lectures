@@ -18,6 +18,56 @@ import utils
 import models
 import data
 
+def get_data_loaders(config):
+    if config['data_augment']:
+        train_augment_transforms = transforms.Compose([transforms.RandomHorizontalFlip(0.5),
+                                                       RandomAffine(degrees=10, translate=(0.1, 0.1))])
+    else:
+        train_augment_transforms = None
+    batch_size=128
+    valid_ratio=0.2
+    train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,
+                                                                                              batch_size,
+                                                                                              config['num_workers'],
+                                                                                              config['normalize'],
+                                                                                              dataset_dir =
+                                                                                              config['dataset_dir'],
+                                                                                              train_augment_transforms = train_augment_transforms)
+    return train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms
+
+def get_optimizer(config, model):
+    optimizer = torch.optim.Adam(model.parameters(),
+                                 lr=0.01, 
+                                 weight_decay=config['weight_decay'])
+
+    return optimizer
+
+def get_model(config):
+    '''
+	Build the model specified by config['model']
+    '''
+    img_width = 28
+    img_height = 28
+    img_size = (1, img_height, img_width)
+    num_classes = 10
+    model = models.build_model(config['model'], img_size, num_classes)
+    return model
+
+def train_tune(config):
+    use_cuda = config.get("use_gpu") and torch.cuda.is_available()
+    device = torch.device("cuda" if use_cuda else "cpu")
+    train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms = get_data_loaders(config)
+    model = get_model(config)
+    model = model.to(device)
+
+    loss = nn.CrossEntropyLoss()  # This computes softmax internally
+    optimizer = get_optimizer(config, model)
+
+    while True:
+        train_loss, train_acc = utils.train(model, train_loader, loss, optimizer, device)
+        val_loss, val_acc = utils.test(model, valid_loader, loss, device)
+        track.log(mean_accuracy=val_acc, mean_loss=val_loss)
+
 
 def train(config):
     '''
@@ -28,21 +78,11 @@ def train(config):
         log : None or dict
         model : linear, fc, fcreg, vanilla, fancyCNN
     '''
-    img_width = 28
-    img_height = 28
-    img_size = (1, img_height, img_width)
-    num_classes = 10
-    batch_size=128
     epochs=10
-    valid_ratio=0.2
 
-    if config['use_gpu']:
-        print("Using GPU{}".format(torch.cuda.current_device()))
-        device = torch.device('cuda')
-    else:
-        print("Using CPU")
-        device = torch.device('cpu')
-
+    use_cuda = config.get("use_gpu") and torch.cuda.is_available()
+    device = torch.device("cuda" if use_cuda else "cpu")
+    print("Using {} device".format(device))
 
     # Where to store the logs
     logdir = utils.generate_unique_logpath(config['logdir'],
@@ -54,29 +94,15 @@ def train(config):
         os.mkdir(logdir)
 
     # FashionMNIST dataset
-    train_augment_transforms = None
-    if args.data_augment:
-        train_augment_transforms = transforms.Compose([transforms.RandomHorizontalFlip(0.5),
-                                                       RandomAffine(degrees=10, translate=(0.1, 0.1))])
-
-
-    train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,
-            batch_size,
-            config['num_workers'],
-            config['normalize'],
-            dataset_dir =
-            config['dataset_dir'],
-            train_augment_transforms = train_augment_transforms)
-
+    train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms = get_data_loaders(config)
 
 
     # Init model, loss, optimizer
-    model = models.build_model(args.model, img_size, num_classes)
+    model = get_model(config)
     model = model.to(device)
 
     loss = nn.CrossEntropyLoss()  # This computes softmax internally
-    #optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9, nesterov=True)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=args.weight_decay)
+    optimizer = get_optimizer(config, model)
 
     # Where to save the logs of the metrics
     history_file = open(logdir + '/history', 'w', 1)
