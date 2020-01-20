@@ -1,4 +1,5 @@
 
+# Standard modules
 import argparse
 import os
 import sys
@@ -181,7 +182,7 @@ Optimizer
 
     print("Loading and testing the best model")
 
-    best_model_path = os.path.join(config['logdir'], "best_model.pt")
+    best_model_path = os.path.join(logdir, "best_model.pt")
     loaded_dict = torch.load(best_model_path)
     model = loaded_dict['model'].to(device)
 
