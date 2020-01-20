@@ -45,8 +45,8 @@ def train(config):
 
 
     # Where to store the logs
-    if tensorlogs: 
-        logdir = utils.generate_unique_logpath(config['log']['logdir'], 
+    if tensorlogs:
+        logdir = utils.generate_unique_logpath(config['log']['logdir'],
                                                config['model'])
         print("Logging to {}".format(logdir))
         if not os.path.exists(config['log']['logdir']):
@@ -62,12 +62,12 @@ def train(config):
 
 
     train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,
-                                                                                              batch_size,
-                                                                                              config['num_workers'],
-                                                                                              config['normalize'],
-                                                                                              dataset_dir =
-                                                                                              config['dataset_dir'],
-                                                                                              train_augment_transforms = train_augment_transforms)
+            batch_size,
+            config['num_workers'],
+            config['normalize'],
+            dataset_dir =
+            config['dataset_dir'],
+            train_augment_transforms = train_augment_transforms)
 
 
 
@@ -215,7 +215,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--logdir',
         type=str,
-        default="./logs",
+        default=None,
         help='The directory in which to store the logs'
     )
 
@@ -230,12 +230,16 @@ if __name__ == '__main__':
 
     config = {
         'use_gpu': args.use_gpu,
-        'log' : {'logdir': args.logdir},
-        'model': args.model,
+        'dataset_dir': args.dataset_dir,
         'num_workers': args.num_workers,
+        'weight_decay': args.weight_decay,
+        'data_augment': args.data_augment,
         'normalize': args.normalize,
-        'dataset_dir': args.dataset_dir
+        'log': None,
+        'model': args.model
     }
 
+    if args.logdir:
+        config['log'] = {'logdir': args.logdir}
 
     train(config)
