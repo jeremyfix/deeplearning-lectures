@@ -1,23 +1,23 @@
+#!/usr/bin/env python3
 
 # Standard modules
 import argparse
 import os
 import sys
-
+# External modules
 import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision.transforms import RandomAffine
-
 from torch.utils.tensorboard import SummaryWriter
-
 import numpy as np
-
+# Local modules
 import utils
 import models
 import data
+
 
 def get_data_loaders(config):
     if config['data_augment']:
@@ -25,8 +25,8 @@ def get_data_loaders(config):
                                                        RandomAffine(degrees=10, translate=(0.1, 0.1))])
     else:
         train_augment_transforms = None
-    batch_size=128
-    valid_ratio=0.2
+    batch_size = 128
+    valid_ratio = 0.2
     train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,
                                                                                               batch_size,
                                                                                               config['num_workers'],
@@ -36,16 +36,18 @@ def get_data_loaders(config):
                                                                                               train_augment_transforms = train_augment_transforms)
     return train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms
 
+
 def get_optimizer(config, model):
     optimizer = torch.optim.Adam(model.parameters(),
-                                 lr=0.01, 
+                                 lr=0.01,
                                  weight_decay=config['weight_decay'])
 
     return optimizer
 
+
 def get_model(config):
     '''
-	Build the model specified by config['model']
+    Build the model specified by config['model']
     '''
     img_width = 28
     img_height = 28
@@ -54,10 +56,11 @@ def get_model(config):
     model = models.build_model(config['model'], img_size, num_classes)
     return model
 
+
 def train_tune(config):
     use_cuda = config.get("use_gpu") and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
-    train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms = get_data_loaders(config)
+    train_loader, valid_loader, _, _, _ = get_data_loaders(config)
     model = get_model(config)
     model = model.to(device)
 
@@ -65,7 +68,11 @@ def train_tune(config):
     optimizer = get_optimizer(config, model)
 
     while True:
-        train_loss, train_acc = utils.train(model, train_loader, loss, optimizer, device)
+        train_loss, train_acc = utils.train(model,
+                                            train_loader,
+                                            loss,
+                                            optimizer,
+                                            device)
         val_loss, val_acc = utils.test(model, valid_loader, loss, device)
         track.log(mean_accuracy=val_acc, mean_loss=val_loss)
 
@@ -79,7 +86,7 @@ def train(config):
         log : None or dict
         model : linear, fc, fcreg, vanilla, fancyCNN
     '''
-    epochs=10
+    epochs = 10
 
     use_cuda = config.get("use_gpu") and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -96,7 +103,6 @@ def train(config):
 
     # FashionMNIST dataset
     train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms = get_data_loaders(config)
-
 
     # Init model, loss, optimizer
     model = get_model(config)
@@ -138,17 +144,17 @@ Optimizer
     """.format(" ".join(sys.argv),
                train_augment_transforms,
                args.normalize,
-               str(model).replace('\n','\n\t'),
+               str(model).replace('\n', '\n\t'),
                sum(p.numel() for p in model.parameters() if p.requires_grad),
                str(optimizer).replace('\n', '\n\t'))
     summary_file.write(summary_text)
     summary_file.close()
 
-
-    tensorboard_writer   = SummaryWriter(log_dir = logdir)
+    tensorboard_writer = SummaryWriter(log_dir=logdir)
     tensorboard_writer.add_text("Experiment summary", summary_text)
     model_checkpoint = utils.ModelCheckpoint(logdir + "/best_model.pt",
-                                             {'model': model, 'normalization_function': normalization_function}
+                                             {'model': model,
+                                              'normalization_function': normalization_function}
                                             )
     # Add the graph of the model to the tensorboard
     inputs, _ = next(iter(train_loader))
@@ -163,12 +169,17 @@ Optimizer
         test_loss, test_acc = utils.test(model, test_loader, loss, device)
 
         print("Epoch {}".format(t))
-        print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
-        print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
+        print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss,
+                                                                 val_acc))
+        print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss,
+                                                                 test_acc))
         history_file.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(t,
-                                                                 train_loss, train_acc,
-                                                                 val_loss, val_acc,
-                                                                 test_loss, test_acc))
+                                                                 train_loss,
+                                                                 train_acc,
+                                                                 val_loss,
+                                                                 val_acc,
+                                                                 test_loss,
+                                                                 test_acc))
         model_checkpoint.update(val_loss)
         tensorboard_writer.add_scalar('metrics/train_loss', train_loss, t)
         tensorboard_writer.add_scalar('metrics/train_acc',  train_acc, t)
@@ -177,9 +188,7 @@ Optimizer
         tensorboard_writer.add_scalar('metrics/test_loss', test_loss, t)
         tensorboard_writer.add_scalar('metrics/test_acc',  test_acc, t)
 
-
     # Loading the best model found
-
     print("Loading and testing the best model")
 
     best_model_path = os.path.join(logdir, "best_model.pt")
@@ -189,10 +198,12 @@ Optimizer
     model.eval()
 
     val_loss, val_acc = utils.test(model, valid_loader, loss, device)
-    print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
+    print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss,
+                                                             val_acc))
 
     test_loss, test_acc = utils.test(model, test_loader, loss, device)
-    print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
+    print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss,
+                                                             test_acc))
 
 
 if __name__ == '__main__':
