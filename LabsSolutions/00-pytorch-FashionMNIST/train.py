@@ -22,23 +22,11 @@ def get_optimizer(config, model):
     return optimizer
 
 
-def get_model(config):
-    '''
-    Build the model specified by config['model']
-    '''
-    img_width = 28
-    img_height = 28
-    img_size = (1, img_height, img_width)
-    num_classes = 10
-    model = models.build_model(config['model'], img_size, num_classes)
-    return model
-
-
 def train_tune(config):
     use_cuda = config.get("use_gpu") and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
     train_loader, valid_loader, _, _, _ = data.get_data_loaders(config)
-    model = get_model(config)
+    model = models.get_model(config)
     model = model.to(device)
 
     loss = nn.CrossEntropyLoss()  # This computes softmax internally
@@ -82,7 +70,7 @@ def train(config):
     train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms = data.get_data_loaders(config)
 
     # Init model, loss, optimizer
-    model = get_model(config)
+    model = models.get_model(config)
     model = model.to(device)
 
     loss = nn.CrossEntropyLoss()  # This computes softmax internally
