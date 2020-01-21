@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # Standard modules
+import os
 # External modules
 import torch
 import torch.nn as nn
@@ -49,13 +50,18 @@ def merge_configs(config, tunable_config):
 
 
 if __name__ == '__main__':
+
+    # Disable proxy, causes issues with ray[tune]
+    os.environ.pop('http_proxy')
+    os.environ.pop('https_proxy')
+
     config = train.parse_args()
     config.pop('lr')
     tunable_config = {
         'lr': tune.grid_search([0.001, 0.01, 0.1])
     }
     if config['use_gpu']:
-        resources_per_trial = {"gpu": 1}
+        resources_per_trial = {"gpu": 7}
     else:
         resources_per_trial = {"cpu": 1}
 
