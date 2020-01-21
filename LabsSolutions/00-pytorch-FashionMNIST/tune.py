@@ -54,5 +54,10 @@ if __name__ == '__main__':
     tunable_config = {
         'lr': tune.grid_search([0.001, 0.01, 0.1])
     }
+    if config['use_gpu']:
+        resources_per_trial = {"gpu": 1}
+    else:
+        resources_per_trial = {"cpu": 1}
+
     analysis = tune.run(lambda tc: train_tune(merge_configs(config, tc)),
                         config=tunable_config)
