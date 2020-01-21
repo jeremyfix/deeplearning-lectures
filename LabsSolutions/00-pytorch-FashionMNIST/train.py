@@ -16,7 +16,7 @@ import data
 
 def get_optimizer(config, model):
     optimizer = torch.optim.Adam(model.parameters(),
-                                 lr=0.01,
+                                 lr=config['lr'],
                                  weight_decay=config['weight_decay'])
 
     return optimizer
@@ -240,7 +240,8 @@ if __name__ == '__main__':
         'logdir': args.logdir,
         'model': args.model,
         'batch_size': 128,
-        'valid_ratio': 0.2
+        'valid_ratio': 0.2,
+        'lr': 0.01
     }
 
     train(config)
