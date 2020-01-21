@@ -7,7 +7,7 @@ import sys
 # External modules
 import torch
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
+from ray import tune
 # Local modules
 import utils
 import models
@@ -25,6 +25,7 @@ def get_optimizer(config, model):
 def train_tune(config):
     use_cuda = config.get("use_gpu") and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
+    print("Using device {}".format(device))
     train_loader, valid_loader, _, _, _ = data.get_data_loaders(config)
     model = models.get_model(config)
     model = model.to(device)
@@ -39,7 +40,7 @@ def train_tune(config):
                                             optimizer,
                                             device)
         val_loss, val_acc = utils.test(model, valid_loader, loss, device)
-        track.log(mean_accuracy=val_acc, mean_loss=val_loss)
+        tune.track.log(mean_accuracy=val_acc, mean_loss=val_loss)
 
 
 def train(config):
@@ -51,7 +52,8 @@ def train(config):
         log : None or dict
         model : linear, fc, fcreg, vanilla, fancyCNN
     '''
-    epochs = 10
+    from torch.utils.tensorboard import SummaryWriter
+    epochs = config['epochs']
 
     use_cuda = config.get("use_gpu") and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -171,8 +173,7 @@ Optimizer
                                                              test_acc))
 
 
-if __name__ == '__main__':
-
+def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -241,7 +242,22 @@ if __name__ == '__main__':
         'model': args.model,
         'batch_size': 128,
         'valid_ratio': 0.2,
-        'lr': 0.01
+        'lr': 0.01,
+        'epochs': 10
     }
+    return config
 
+
+def main_train():
+    config = parse_args()
     train(config)
+
+
+def main_tune():
+    config = parse_args()
+    config['lr'] = tune.grid_search([0.001, 0.01, 0.1])
+    analysis = tune.run(train_tune, config)
+
+
+if __name__ == '__main__':
+    main_tune()
