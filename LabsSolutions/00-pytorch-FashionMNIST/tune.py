@@ -60,4 +60,5 @@ if __name__ == '__main__':
         resources_per_trial = {"cpu": 1}
 
     analysis = tune.run(lambda tc: train_tune(merge_configs(config, tc)),
+                        resources_per_trial=resources_per_trial,
                         config=tunable_config)
