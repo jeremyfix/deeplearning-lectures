@@ -4,7 +4,7 @@ from torch.utils.data import Dataset
 from torch.nn.modules.module import _addindent
 from torch.utils.data.sampler import SubsetRandomSampler
 
-def train(model, loader, f_loss, optimizer, device):
+def train(model, loader, f_loss, optimizer, device, verbose):
     """
         Train a model for one epoch, iterating over the loader
         using the f_loss to compute the loss and the optimizer
@@ -55,7 +55,8 @@ def train(model, loader, f_loss, optimizer, device):
         optimizer.step()
 
         # Display status
-        progress_bar(i, len(loader), msg = "Loss : {:.4f}, Acc : {:.4f}".format(tot_loss/N, correct/N))
+        if verbose:
+            progress_bar(i, len(loader), msg = "Loss : {:.4f}, Acc : {:.4f}".format(tot_loss/N, correct/N))
     return tot_loss/N, correct/N
 
 def test(model, loader, f_loss, device):

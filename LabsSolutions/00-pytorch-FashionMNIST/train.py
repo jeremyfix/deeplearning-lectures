@@ -7,7 +7,6 @@ import sys
 # External modules
 import torch
 import torch.nn as nn
-from ray import tune
 # Local modules
 import utils
 import models
@@ -20,27 +19,6 @@ def get_optimizer(config, model):
                                  weight_decay=config['weight_decay'])
 
     return optimizer
-
-
-def train_tune(config):
-    use_cuda = config.get("use_gpu") and torch.cuda.is_available()
-    device = torch.device("cuda" if use_cuda else "cpu")
-    print("Using device {}".format(device))
-    train_loader, valid_loader, _, _, _ = data.get_data_loaders(config)
-    model = models.get_model(config)
-    model = model.to(device)
-
-    loss = nn.CrossEntropyLoss()  # This computes softmax internally
-    optimizer = get_optimizer(config, model)
-
-    while True:
-        train_loss, train_acc = utils.train(model,
-                                            train_loader,
-                                            loss,
-                                            optimizer,
-                                            device)
-        val_loss, val_acc = utils.test(model, valid_loader, loss, device)
-        tune.track.log(mean_accuracy=val_acc, mean_loss=val_loss)
 
 
 def train(config):
@@ -129,7 +107,7 @@ Optimizer
     tensorboard_writer.add_graph(model, inputs)
     ####################################################################################### Main Loop
     for t in range(epochs):
-        train_loss, train_acc = utils.train(model, train_loader, loss, optimizer, device)
+        train_loss, train_acc = utils.train(model, train_loader, loss, optimizer, device, verbose=True)
 
         val_loss, val_acc = utils.test(model, valid_loader, loss, device)
 
@@ -248,16 +226,6 @@ def parse_args():
     return config
 
 
-def main_train():
+if __name__ == '__main__':
     config = parse_args()
     train(config)
-
-
-def main_tune():
-    config = parse_args()
-    config['lr'] = tune.grid_search([0.001, 0.01, 0.1])
-    analysis = tune.run(train_tune, config)
-
-
-if __name__ == '__main__':
-    main_tune()

@@ -19,7 +19,7 @@ def get_data_loaders(config):
         train_augment_transforms = None
     batch_size = config['batch_size']
     valid_ratio = config['valid_ratio']
-    train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,
+    train_loader, valid_loader, test_loader, normalization_function = load_fashion_mnist(valid_ratio,
                                                                                               batch_size,
                                                                                               config['num_workers'],
                                                                                               config['normalize'],
