@@ -88,7 +88,7 @@ Optimizer
 
     """.format(" ".join(sys.argv),
                train_augment_transforms,
-               args.normalize,
+               config['normalize'],
                str(model).replace('\n', '\n\t'),
                sum(p.numel() for p in model.parameters() if p.requires_grad),
                str(optimizer).replace('\n', '\n\t'))
