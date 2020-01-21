@@ -1,14 +1,33 @@
 #!/usr/bin/env python3
 
+# Standard modules
+import os.path
+import copy
+# External modules
 import torch
 import torchvision
 import torchvision.transforms as transforms
 from torchvision.transforms import RandomAffine
-
 import numpy as np
 
-import os.path
-import copy
+
+def get_data_loaders(config):
+    if config['data_augment']:
+        train_augment_transforms = transforms.Compose([transforms.RandomHorizontalFlip(0.5),
+                                                       RandomAffine(degrees=10, translate=(0.1, 0.1))])
+    else:
+        train_augment_transforms = None
+    batch_size = config['batch_size']
+    valid_ratio = config['valid_ratio']
+    train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,
+                                                                                              batch_size,
+                                                                                              config['num_workers'],
+                                                                                              config['normalize'],
+                                                                                              dataset_dir =
+                                                                                              config['dataset_dir'],
+                                                                                              train_augment_transforms = train_augment_transforms)
+    return train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms
+
 
 def compute_mean_std(loader):
     # Compute the mean over minibatches

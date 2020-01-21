@@ -7,34 +7,11 @@ import sys
 # External modules
 import torch
 import torch.nn as nn
-import torchvision
-import torchvision.transforms as transforms
-from torch.utils.data.sampler import SubsetRandomSampler
-from torchvision.transforms import RandomAffine
 from torch.utils.tensorboard import SummaryWriter
-import numpy as np
 # Local modules
 import utils
 import models
 import data
-
-
-def get_data_loaders(config):
-    if config['data_augment']:
-        train_augment_transforms = transforms.Compose([transforms.RandomHorizontalFlip(0.5),
-                                                       RandomAffine(degrees=10, translate=(0.1, 0.1))])
-    else:
-        train_augment_transforms = None
-    batch_size = 128
-    valid_ratio = 0.2
-    train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,
-                                                                                              batch_size,
-                                                                                              config['num_workers'],
-                                                                                              config['normalize'],
-                                                                                              dataset_dir =
-                                                                                              config['dataset_dir'],
-                                                                                              train_augment_transforms = train_augment_transforms)
-    return train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms
 
 
 def get_optimizer(config, model):
@@ -60,7 +37,7 @@ def get_model(config):
 def train_tune(config):
     use_cuda = config.get("use_gpu") and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
-    train_loader, valid_loader, _, _, _ = get_data_loaders(config)
+    train_loader, valid_loader, _, _, _ = data.get_data_loaders(config)
     model = get_model(config)
     model = model.to(device)
 
@@ -102,7 +79,7 @@ def train(config):
         os.mkdir(logdir)
 
     # FashionMNIST dataset
-    train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms = get_data_loaders(config)
+    train_loader, valid_loader, test_loader, normalization_function, train_augment_transforms = data.get_data_loaders(config)
 
     # Init model, loss, optimizer
     model = get_model(config)
@@ -273,7 +250,9 @@ if __name__ == '__main__':
         'data_augment': args.data_augment,
         'normalize': args.normalize,
         'logdir': args.logdir,
-        'model': args.model
+        'model': args.model,
+        'batch_size': 128,
+        'valid_ratio': 0.2
     }
 
     train(config)
