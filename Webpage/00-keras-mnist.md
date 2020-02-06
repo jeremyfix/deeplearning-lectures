@@ -14,6 +14,8 @@ dataset. It should be noted that this dataset is no more considered as a
 challenging problem but for an introduction with Keras and the first
 trained architectures, it does the job.
 
+We will use Keras which was once a layer above multiple deep learning frameworks (theano, tensorflow, CNTK) but which has then be embedded within tensorflow since its 2.0 release. Keras is designed to be a general purpose easy to use framework. If you want to play with standard models, it is really quick and easy to do it with Keras but if you target implementing custom architectures, you should consider lower level frameworks such as tensorflow or pytorch.
+
 The models you will train are :
 
 -   a linear classifier
@@ -48,7 +50,7 @@ python codes should not be strictly copy-pasted on the fly.
 
 The first step is to load the dataset as numpy arrays. Functions are
 already provided by Keras to [import some
-datasets](https://keras.io/datasets/). The MNIST dataset is made of gray
+datasets](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/). The MNIST dataset is made of gray
 scale images, of size 28 \\times 28, with values in the range
 \[0; 255\]. The training set consists in 60000 images and the test set
 consists in 10000 images. Every image represents an handwritten digit in
@@ -59,8 +61,8 @@ consists in 10000 images. Every image represents an handwritten digit in
 To import the MNIST dataset in Keras, you can do the following:
 
 ``` {.python .numberLines}
-from keras.datasets import mnist
-from keras.utils import to_categorical
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.utils import to_categorical
 
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
 ```
@@ -129,16 +131,16 @@ over the classes :
 
 $$P(y=k / x_i) = \frac{e^{w_k^T x_i}}{\sum_{j=0}^{9} e^{w_j^T x_i}}$$
 
-To define this [model](https://keras.io/models/model/) with Keras, we
-need an Input layer, a [Dense
-layer](https://keras.io/layers/core/#dense) and an [Activation
-layer](https://keras.io/layers/core/#activation)
+To define this [model](https://www.tensorflow.org/api_docs/python/tf/keras/Model/) with Keras, we
+need an [Input layer](https://www.tensorflow.org/api_docs/python/tf/keras/Input), a [Dense
+layer](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dense) and an [Activation
+layer](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Activation)
 
 > **Note**
 >
 > In keras, a model can be specified with the
-> [Sequential](https://keras.io/models/sequential/) or
-> [Functional](https://keras.io/models/model/) API. We here make use of
+> [Sequential](https://www.tensorflow.org/api_docs/python/tf/keras/Sequential) or
+> [Functional](https://www.tensorflow.org/api_docs/python/tf/keras/Model/) API. We here make use of
 > the functional API which is more flexible than the Sequential API.
 > Also, while one could incorporate the activation within the dense
 > layers, we will be using linear dense layers so that we can visualize
@@ -147,8 +149,9 @@ layer](https://keras.io/layers/core/#activation)
 In Python, this can be written as :
 
 ``` {.sourceCode .python}
-from keras.layers import Input, Dense, Activation
-from keras.models import Model
+from tensorflow.keras import Input
+from tensorflow.keras.layers import Dense, Activation
+from tensorflow.keras.models import Model
 
 num_classes = 10
 xi      = Input(shape=(img_height*img_width,))
@@ -172,15 +175,15 @@ in the terminal.
 ### Compiling and training
 
 The next step is, in the terminology of Keras, to
-[compile](https://keras.io/models/model/#compile) the model by providing
+[compile](https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile) the model by providing
 the loss function to be minimized, the optimizer and the metrics to
 monitor. For this classification problem, an appropriate loss is the
 crossentropy loss. In Keras, among all the
-[Losses](https://keras.io/losses/), we will use the
+[Losses](https://www.tensorflow.org/api_docs/python/tf/keras/losses), we will use the
 **categorical\_crossentropy** loss. For the optimizer, several
-[Optimizers](https://keras.io/optimizers/) are available and we will use
+[Optimizers](https://www.tensorflow.org/api_docs/python/tf/keras/optimizers) are available and we will use
 **adam**. For the metrics, you can use some [predefined
-metrics](https://keras.io/metrics/) or define your own. Here, we will
+metrics](https://www.tensorflow.org/api_docs/python/tf/keras/metrics) or define your own. Here, we will
 use the **accuracy** which makes sense because the dataset is balanced.
 
 In Python, this can be written as
@@ -199,7 +202,7 @@ model.compile(loss='categorical_crossentropy',
 > metrics and an Optimizer object for the optimizer.
 
 We are now ready for training our linear classifier, by calling the [fit
-function](https://keras.io/models/model/#fit).
+function](https://www.tensorflow.org/api_docs/python/tf/keras/Model#fit).
 
 ``` {.sourceCode .python}
 model.fit(X_train, y_train,
@@ -237,12 +240,12 @@ accuracy; The training does not appear to be very consistent.
 ### Callbacks for saving the best model and monitoring the training
 
 So far, we just get some information within the terminal but Keras
-allows you to define [Callbacks](https://keras.io/callbacks/). We will
+allows you to define [Callbacks](https://www.tensorflow.org/api_docs/python/tf/keras/callbacks). We will
 define two callbacks :
 
-- a [TensorBoard](https://keras.io/callbacks/#tensorboard) callback
+- a [TensorBoard](https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/TensorBoard) callback
     which allows to monitor the training progress with tensorboard
-- a [ModelCheckpoint](https://keras.io/callbacks/#modelcheckpoint)
+- a [ModelCheckpoint](https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ModelCheckpoint)
     callback which saves the best model with respect to a provided
     metric
 
@@ -268,7 +271,7 @@ instanciate it by specifying a directory in which the callback will log
 the progress and then modify the call to fit to specify the callback.
 
 ``` {.sourceCode .python}
-from keras.callbacks import TensorBoard
+from tensorflow.keras.callbacks import TensorBoard
 ...
 run_name = "linear"
 logpath = generate_unique_logpath("./logs_linear", run_name)
@@ -304,7 +307,7 @@ save the best model based on a provided metric, e.g. the validation
 loss.
 
 ``` {.sourceCode .python}
-from keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint
 ...
 run_name = "linear"
 logpath = generate_unique_logpath("./logs_linear", run_name)
@@ -355,7 +358,7 @@ model :
 
 ``` {.sourceCode .python}
 import h5py
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 ...
 with h5py.File(checkpoint_filepath, 'a') as f:
     if 'optimizer_weights' in f.keys():
@@ -386,19 +389,22 @@ normalization is standardization. Here, you compute the mean of the
 $X_i \in \mathbb{R}^{784}, i \in [0, N-1]$, and a vector $X \in \mathbb{R}^{784}$ you feed the network with $\hat{X} \in \mathbb{R}^{784}$ given by
 
 $$
-X_\mu = \frac{1}{N} \sum_{i=0}^{N-1} X_i$$$$X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1.0$$$$\hat{X} = (X - X_\mu)/X_\sigma
+X_\mu = \frac{1}{N} \sum_{i=0}^{N-1} X_i
+$$
+$$
+X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1.0$$$$\hat{X} = (X - X_\mu)/X_\sigma
 $$
 
 How do we introduce normalization in a Keras model ? One way is to
 create a dataset that is normalized and use this dataset for training
 and testing. Another possibility is to embed normalization in the
 network by introducing a [Lambda
-layer](https://keras.io/layers/core/#lambda) right after the Input
+layer](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Lambda) right after the Input
 layer. For example, introducing standardization in our linear model
 could be done the following way :
 
 ``` {.sourceCode .python}
-from keras.layers import Lambda
+from tensorflow.keras.layers import Lambda
 ...
 xi = Input(shape=(img_height*img_width,), name="input")
 
@@ -446,8 +452,8 @@ y = Activation('softmax')(x)
 where nhidden1 and nhidden2 are the respective size of the first and
 second hidden layers. We here used a ReLu activation function but you
 are free to experiment with other activation functions, e.g.
-[PReLU](https://keras.io/layers/advanced-activations/#prelu),
-[ELU](https://keras.io/layers/advanced-activations/#elu)
+[SELU](https://www.tensorflow.org/api_docs/python/tf/keras/activations/selu),
+[ELU](https://www.tensorflow.org/api_docs/python/tf/keras/activations/elu)
 
 About the minor adaptations, you may want to save the logs in a
 different root directory than for the linear experiment or keep them in
@@ -465,10 +471,10 @@ the next paragraph.
 
 ### Regularization
 
-There are various [Regularizers](https://keras.io/regularizers/)
+There are various [Regularizers](https://www.tensorflow.org/api_docs/python/tf/keras/regularizers)
 provided by Keras. Some typical regularizers are [L1/L2
-penalties](https://keras.io/regularizers/) or also
-[Dropout](https://keras.io/layers/core/#dropout) layers.
+penalties](https://www.tensorflow.org/api_docs/python/tf/keras/regularizers/L1L2) or also
+[Dropout](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dropout) layers.
 
 L2 regularization (or weight decay) is usually applied to the kernel
 only and not the bias. It adds a term in the loss function to be
@@ -479,7 +485,7 @@ or so. If you wish to experiment with L2 penalty, you can directly
 specify it when you create the Dense layer :
 
 ``` {.sourceCode .python}
-from keras import regularizers
+from tensorflow.keras import regularizers
 ...
 # Creating a dense layer with L2 penalty on the weights (not biases)
 # l2_reg is a floating point value to be determined
@@ -493,16 +499,16 @@ original paper, the authors of dropout suggest for example *Dropping out
 20% of the input units and 50% of the hidden units was often found to be
 optimal*. A dropout mask is generated for every training sample. At test
 time, an ensemble of dropped out networks are combined to compute the
-output (see also [](http://cs231n.github.io/neural-networks-2/#reg)). In
+output (see also [CS231n regularizers](http://cs231n.github.io/neural-networks-2/#reg)). In
 Keras, we simply need to introduce [Dropout
-layers](https://keras.io/layers/core/#dropout) specifying the rate at
+layers](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dropout) specifying the rate at
 which to drop units. Below we create a Dense(relu) layer followed by
 dropout where 50\\% of the output are set to 0. Learning a neural
 network with dropout is usually slower than without dropout so that you
 may need to consider increasing the number of epochs.
 
 ``` {.sourceCode .python}
-from keras.layers import Dropout
+from tensorflow.keras.layers import Dropout
 ...
 x = Dense(hidden1)(x)
 x = Activation('relu')(x)
