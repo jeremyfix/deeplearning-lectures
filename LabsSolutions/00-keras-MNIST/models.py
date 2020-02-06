@@ -1,8 +1,8 @@
-from keras.layers import Input, Dense, Activation, Flatten, Lambda, Dropout
-from keras.layers.convolutional import Conv2D
-from keras.layers.pooling import MaxPooling2D, GlobalAveragePooling2D
-from keras.models import Model
-from keras import regularizers
+from tensorflow.keras.layers import Input, Dense, Activation, Flatten, Lambda, Dropout
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import MaxPooling2D, GlobalAveragePooling2D
+from tensorflow.keras.models import Model
+from tensorflow.keras import regularizers
 
 def make_linear(input_shape, num_classes,
         normalization=None, use_dropout=False, use_L2=False):

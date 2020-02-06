@@ -1,17 +1,17 @@
 import sys
 
-from keras import backend as K
-from keras.datasets import mnist
-from keras.layers import Lambda
-from keras.models import load_model
-from keras.utils import to_categorical
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras import backend as K
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.layers import Lambda
+from tensorflow.keras.models import load_model
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import argparse
 import os
 import h5py
 import numpy as np
 
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
 
 import models
 

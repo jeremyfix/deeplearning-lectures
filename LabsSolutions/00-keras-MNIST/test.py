@@ -1,7 +1,7 @@
 
-from keras.datasets import mnist
-from keras.models import load_model
-from keras.utils import to_categorical
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import load_model
+from tensorflow.keras.utils import to_categorical
 import argparse
 import sys
 import os
@@ -49,7 +49,7 @@ def test_loop(modelpath):
     '''
     model = load_model(modelpath)
 
-    Xt = X_test.reshape(num_test, img_rows, img_cols, num_channels)
+    Xt = X_test.reshape(num_test, img_rows, img_cols, num_channels).astype('float32')
     ypred = np.zeros((num_test, ))
     ypred_label = np.zeros((num_test, ))
     for i in range(Xt.shape[0]):
