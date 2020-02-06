@@ -528,31 +528,13 @@ some dense layers.
 In order to write our script from training CNN, compared to the script
 for training a linear or MLP model, we need to change the input\_shape
 and also introduce new layers: [Convolutional
-layers](https://keras.io/layers/convolutional/), [Pooling
-layers](https://keras.io/layers/pooling/) and a [Flatten
-layer](https://keras.io/layers/core/#flatten).
+layers](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D), [Pooling
+layers](https://www.tensorflow.org/api_docs/python/tf/keras/layers/MaxPool2D) and a [Flatten
+layer](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Flatten).
 
 The tensors for convolutional layers are 4D which include batch\_size,
 image width, image height, number of channels. The ordering is framework
-dependent. It depends on the parameter
-[image\_data\_format](https://keras.io/backend/#kerasjson-details). It
-can be :
-
--   channels\_last (tensorflow convention), in which case, the tensors
-    are (batch\_size, image height, image width, number of channels)
--   channels\_first (theano convention), in which case, the tensors are
-    (batch\_size, number of channels, image height, image width)
-
-To check which ordering is currently used, you can run :
-
-``` console
-python3 -c 'import keras; print(keras.backend.image_data_format())'
-```
-
-I will assume that the output is "channels\_last", otherwise you might
-change your "\~/.keras/keras.json" file (see
-[Keras doc](https://keras.io/backend/#kerasjson-details)) or adapt the code
-below. 
+dependent. In tensorflow, it is channels\_last, in which case, the tensors are (batch\_size, image height, image width, number of channels).
 
 The first thing to do is to ensure the data arrays are in the appropriate format. Remember, before, we reshaped the training and test numpy arrays as (60000, 784) and (10000, 784) respectively. Now, with convolutional neural networks, the input data topology is exploited and we shall keep the data as images. 
 
@@ -577,8 +559,8 @@ Conv-Relu-MaxPool layers. One block with 64 5x5 stride 1 filters and 2x2
 stride 2 max pooling would be defined with the following syntax :
 
 ``` {.sourceCode .python}
-from keras.layers.convolutional import Conv2D
-from keras.layers.pooling import MaxPooling2D
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import MaxPooling2D
 ...
 x = Conv2D(filters=64,
        kernel_size=5, strides=1
@@ -650,7 +632,7 @@ low level layers to extract basic features that are combined in the
 deeper layers). Finally, in [@Lin2014], it is also suggested that we
 can completly remove the final fully connected layers and replace them
 by
-[GlobalAveragePooling](https://keras.io/layers/pooling/#globalaveragepooling2d)
+[GlobalAveragePooling](https://www.tensorflow.org/api_docs/python/tf/keras/layers/GlobalAveragePooling2D)
 layers. It appears that removing fully connected layers, the network is
 less likely to overfit and you end up with much less parameters for a
 network of a given depth (this is the fully connected layers that
@@ -667,10 +649,10 @@ give a try to the following architecture :
 where **16C3s1** denotes a convolutional layer with 16 kernels, of size
 $3\times 3$, with stride 1, with zero padding to keep the same size for the
 input and output. **BN** is a
-[BatchNormalization](https://keras.io/layers/normalization/#batchnormalization)
+[BatchNormalization](https://www.tensorflow.org/api_docs/python/tf/keras/layers/BatchNormalization)
 layer. **MaxPool2s2** is a max-pooling layer with receptive field size
 $2\times 2$ and stride 2.
-[GlobalAverage](https://keras.io/layers/pooling/#globalaveragepooling2d)
+[GlobalAverage](https://www.tensorflow.org/api_docs/python/tf/keras/layers/GlobalAveragePooling2D)
 is an averaging layer computing an average over a whole feature map.
 
 This should bring you with a test accuracy around $99.2\%$ with 72.890
@@ -691,12 +673,12 @@ below :
 Now, the idea is to produce a stream (actually infinite if you allow
 continuous perturbations) of training samples generated from your finite
 set of training samples. With Keras, you can augment your image datasets
-using an [ImageDataGenerator](https://keras.io/preprocessing/image/).
+using an [ImageDataGenerator](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image).
 Here is a snippet to create the generator that produced the images above
 :
 
 ``` {.sourceCode .python}
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 datagen = ImageDataGenerator(shear_range=0.3,
                           zoom_range=0.1,
