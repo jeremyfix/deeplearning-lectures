@@ -5,7 +5,8 @@ Books a node on the GPU cluster of CentraleSupelec Metz
 
    -u, --user <login>          login to connect to CS Metz
    -m, --machine <machine>     OPTIONAL, a specific machine
-   -c, --cluster <cluster>     uSkynet, cameron, john, tx (default: uSkynet)
+   -f, --frontal <machine>     The frontal node (default: term2.grid)
+   -c, --cluster <cluster>     sarah, kyle, uSkynet, cameron, john, tx (default: uSkynet)
    -w, --walltime <walltime>   in hours (default: 48)
    -h, --help                  prints this help message
 "
@@ -13,6 +14,7 @@ Books a node on the GPU cluster of CentraleSupelec Metz
 # Parse the command line arguments
 USER=
 CLUSTER=uSkynet
+FRONTAL=term2.grid
 WALLTIME=48
 MACHINE=
 
@@ -24,6 +26,11 @@ do
             USER="$2"
             shift # pass argument
             shift # pass value
+            ;;
+        -f|--frontal)
+            FRONTAL="$2"
+            shift
+            shift
             ;;
         -c|--cluster)
             CLUSTER="$2"
@@ -51,6 +58,7 @@ declare -A oar_properties
 oar_properties[uSkynet]="(cluster='uSkynet' and host in ('sh01', 'sh02', 'sh03', 'sh04','sh05','sh06', 'sh07','sh08','sh09','sh10','sh11', 'sh12','sh13','sh14','sh15','sh16'))"
 oar_properties[cameron]="(cluster='cameron' and host in ('cam00', 'cam01', 'cam02', 'cam03', 'cam04','cam05','cam06', 'cam07','cam08','cam09','cam10','cam11', 'cam12','cam13','cam14','cam15','cam16'))"
 oar_properties[tx]="(cluster='tx' and host in ('tx00', 'tx01', 'tx02', 'tx03', 'tx04','tx05','tx06', 'tx07','tx08','tx09','tx10','tx11', 'tx12','tx13','tx14','tx15','tx16'))"
+oar_properties[sarah]="(cluster='sarah' and host in ('sar01', 'sar02', 'sar03', 'sar04','sar05','sar06', 'sar07','sar08','sar09','sar10','sar11', 'sar12','sar13','sar14','sar15','sar16', 'sar17','sar18','sar19','sar20','sar21', 'sar22','sar23','sar24','sar25','sar26','sar27','sar28','sar29','sar30','sar31', 'sar32'))"
 
 
 
@@ -79,13 +87,13 @@ display_error() {
 # returns
 test_job_state ()
 {
-    ssh "$ssh_options" $USER@term2.grid "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
+    ssh "$ssh_options" $USER@$FRONTAL "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
 }
 
 # book_node properties
 book_node ()
 {
-	ssh "$ssh_options" $USER@term2.grid "oarsub -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
+	ssh "$ssh_options" $USER@$FRONTAL "oarsub -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
 }
 
 
@@ -97,9 +105,9 @@ then
 fi
 
 case $CLUSTER in
-    "uSkynet"|"cameron"|"tx"|"john") ;;
+    "sarah" | "kyle"| "uSkynet"|"cameron"|"tx"|"john") ;;
     *)
-        display_error "The cluster must be one of uSkynet, cameron, tx"
+        display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle"
         exit;;
 esac
 
