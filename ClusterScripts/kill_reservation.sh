@@ -4,6 +4,7 @@ usage_m="Usage :
 Deletes a reservation on the GPU cluster of CentraleSupelec Metz
 
    -u, --user <login>          Login to connect to CS Metz
+   -f, --frontal <FRONTAL>     Frontal node (default: term2.grid)
    -j, --jobid <JOB_ID>        The JOB_ID to delete. If not provided
                                a list of your booked JOB_ID will be displayed
    -j, --jobid all             Will kill all the jobs booked by <login>
@@ -15,6 +16,7 @@ Deletes a reservation on the GPU cluster of CentraleSupelec Metz
 # Parse the command line arguments
 USER=
 JOBID=
+FRONTAL=term2.grid
 
 while [[ $# -gt 0 ]]
 do
@@ -22,6 +24,11 @@ do
     case $key in
         -u|--user)
             USER="$2"
+            shift # pass argument
+            shift # pass value
+            ;;
+        -f|--frontal)
+            FRONTAL="$2"
             shift # pass argument
             shift # pass value
             ;;
@@ -65,12 +72,12 @@ ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@ghome.metz.supelec.fr"
 
 test_job_state ()
 {
-    ssh "$ssh_options" $USER@term2.grid "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
+    ssh "$ssh_options" $USER@$FRONTAL "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
 }
 
 list_job_id ()
 {
-    ssh "$ssh_options" $USER@term2.grid "oarstat -u $USER"
+    ssh "$ssh_options" $USER@$FRONTAL "oarstat -u $USER"
 }
 
 if [ -z $USER ]
@@ -114,6 +121,6 @@ fi
 #fi
 
 display_info "Killing the reservation(s) $JOBID"
-ssh "$ssh_options" $USER@term2.grid "oardel $JOBID"
+ssh "$ssh_options" $USER@$FRONTAL "oardel $JOBID"
 
 display_success "Done"

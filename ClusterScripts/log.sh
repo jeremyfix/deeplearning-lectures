@@ -4,6 +4,7 @@ usage_m="Usage :
 Logs to an already booked node on the GPU cluster of CentraleSupelec Metz
 
    -u, --user <login>          login to connect to CS Metz
+   -f, --frontal <FRONTAL>     Frontal node (default: term2.grid)
    -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                a list of your booked JOB_ID will be displayed
    -h, --help                  prints this help message
@@ -12,6 +13,7 @@ Logs to an already booked node on the GPU cluster of CentraleSupelec Metz
 # Parse the command line arguments
 USER=
 JOBID=
+FRONTAL=term2.grid
 
 while [[ $# -gt 0 ]]
 do
@@ -19,6 +21,11 @@ do
     case $key in
         -u|--user)
             USER="$2"
+            shift # pass argument
+            shift # pass value
+            ;;
+        -f|--frontal)
+            FRONTAL="$2"
             shift # pass argument
             shift # pass value
             ;;
@@ -56,18 +63,17 @@ display_error() {
     echo -e "$RED $1 $NORMAL"
 }
 
-FRONTAL_NODE=term2.grid
 
 # test_job_state job_id
 # returns
 test_job_state ()
 {
-    ssh "$ssh_options" $USER@$FRONTAL_NODE "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
+    ssh "$ssh_options" $USER@$FRONTAL "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
 }
 
 list_job_id ()
 {
-    ssh "$ssh_options" $USER@$FRONTAL_NODE "oarstat -u $USER"
+    ssh "$ssh_options" $USER@$FRONTAL "oarstat -u $USER"
 }
 
 if [ -z $USER ]
@@ -100,7 +106,7 @@ fi
 display_success "   The reservation $JOBID is still running"
 display_info "Logging to the booked node"
 
-ssh "$ssh_options" -t $USER@$FRONTAL_NODE oarsub -C $JOBID
+ssh "$ssh_options" -t $USER@$FRONTAL oarsub -C $JOBID
 
 display_info "Unlogged"
 

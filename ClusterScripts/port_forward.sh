@@ -4,6 +4,7 @@ usage_m="Usage :
 Forward a port from a machine you booked to your local computer
 
    -u, --user <login>          login to connect to CS Metz
+   -f, --frontal <FRONTAL>     Frontal node (default: term2.grid)
    -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                a list of your booked JOB_ID will be displayed
    -m, --machine <MACHINE>     The booked hostname.
@@ -19,6 +20,7 @@ JOBID=
 MACHINE=
 SSHKEY=
 PORT=
+FRONTAL=term2.grid
 
 
 while [[ $# -gt 0 ]]
@@ -30,7 +32,12 @@ do
             shift # pass argument
             shift # pass value
             ;;
-        -j|--jobid)
+		-f|--frontal)
+            FRONTAL="$2"
+            shift # pass argument
+            shift # pass value
+            ;;
+		-j|--jobid)
             JOBID="$2"
             shift
             shift
@@ -104,24 +111,24 @@ fi
 
 # Bounce over the proxy
 ssh_options_term2="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@ghome.metz.supelec.fr"
-ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@ghome.metz.supelec.fr\" $USER@term2.grid"
+ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@ghome.metz.supelec.fr\" $USER@$FRONTAL"
 
 
 # get_booked_host job_id
 get_booked_host ()
 {
-	ssh "$ssh_options_term2" $USER@term2.grid "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
+	ssh "$ssh_options_term2" $USER@$FRONTAL "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
 }
 
 # test_job_state job_id
 test_job_state ()
 {
-	ssh "$ssh_options_term2" $USER@term2.grid "oarstat -s -j $1 " | awk -F ": " '{print $NF}' -
+	ssh "$ssh_options_term2" $USER@$FRONTAL "oarstat -s -j $1 " | awk -F ": " '{print $NF}' -
 }
 
 list_job_id ()
 {
-    ssh "$ssh_options_term2" $USER@term2.grid "oarstat -u $USER"
+    ssh "$ssh_options_term2" $USER@$FRONTAL "oarstat -u $USER"
 }
 
 if [ -z $USER ]
