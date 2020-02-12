@@ -28,9 +28,11 @@
 
 
 body {
-    font-family:'Source Sans Pro', serif;
-    font-size:16px;
-    color:#333333;
+    font-family:'CMS', sans-serif;
+    font-size:18px;
+    color:#3c3c3c;
+	letter-spacing: -0.02rem;
+	line-height:1.5;
 }
 
 body p {
