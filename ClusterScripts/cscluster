@@ -335,7 +335,7 @@ case $ACTION in
 			shift
 			;;
 		-h|--help)
-		    exec echo "$usage_m";;
+		    exec echo "$usage_p";;
 		*)
 		    exec echo "Unrecognized option $key"
 	    esac
