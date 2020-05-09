@@ -391,7 +391,8 @@ case $ACTION in
 	    display_success "Reservation successfull"
 	else
 	    display_error "Reservation failed"
-	    display_error "Check disponibility here: http://www.lsi.metz.supelec.fr/grid/drawgantt"
+
+	    display_error "Check disponibility here: http://www.lsi.metz.supelec.fr/grid/drawgantt/"
 	    display_error "Make sure that the requested cluster belongs to the requested frontal "
 	    exit
 	fi
