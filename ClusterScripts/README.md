@@ -14,7 +14,7 @@ For **booking** a node
 		-f, --frontal <machine>     OPTIONAL, the frontal : either term2.grid or phome (default: term2.grid)
 		-c, --cluster <cluster>     the cluster (default: uSkynet)
 		-w, --walltime <walltime>   in hours (default: 24)
-		-h, --help                  prints this help messageUsage :  cscluster book
+		-h, --help                  prints this help message
 
 For **logging** to a booked node
 					
@@ -27,7 +27,7 @@ For **logging** to a booked node
        -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
        -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                    a list of your booked JOB_ID will be displayed
-       -h, --help                  prints this help messageUsage : cscluster log
+       -h, --help                  prints this help message
 
 For **forwarding a port** from a booked node to your localhost
 
