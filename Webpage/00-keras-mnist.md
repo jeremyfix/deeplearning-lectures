@@ -295,7 +295,7 @@ Starting TensorBoard b'47' at http://0.0.0.0:6006
 (Press CTRL+C to quit)
 
 [In a terminal local to your machine]
-mymachine:~:mylogin$ ./port_forward.sh ....... -p 6006
+mymachine:~:mylogin$ ./cscluster port_forward ....... -p 6006
 ```
 
 And then start a browser and log to <http://localhost:6006> . Once this
