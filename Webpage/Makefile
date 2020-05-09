@@ -12,15 +12,15 @@ copyextra:
 	@cp -r templates $(OUTPUT_DIR)
 	@cp -r data $(OUTPUT_DIR)
 
-all: $(HTML) copyextra
+all: outputdirs $(HTML) copyextra
+
+outputdirs:
+	mkdir -p $(OUTPUT_DIR)/md-sources
 
 clean:
 	rm -rf $(OUTPUT_DIR)
 
 $(HTML): | $(OUTPUT_DIR)
-
-$(OUTPUT_DIR):
-	mkdir -p $(OUTPUT_DIR)/md-sources
 
 css:
 	pygmentize -f html -S friendly -a .highlight > ./templates/pygmentize.css
