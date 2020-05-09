@@ -541,4 +541,4 @@ case $ACTION in
 
        	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
 	;;
-e
+esac
