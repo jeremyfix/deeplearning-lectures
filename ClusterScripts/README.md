@@ -2,50 +2,63 @@
 
 These cluster scripts are used for accessing our GPU clusters if you have access to it. These clusters are scheduled with [OAR](http://oar.imag.fr/). 
 
-**book.sh** : for booking a node
+For **booking** a node
 
-	zaza:$ book.sh -h
-	Usage :
-	Books a node on the GPU cluster of CentraleSupelec Metz
+	zaza:$ cscluster book -h
 
-	   -u, --user <login>          login to connect to CS Metz
-	   -c, --cluster <cluster>     uSkynet, cameron, tx (default: uSkynet), optional
-	   -w, --walltime <walltime>   in hours (default: 48), optional
-	   -h, --help                  prints this help message
+	Usage :  cscluster book
+	Books a node on the CS Metz clusters
 
-**log.sh** : for logging to a booked node
+		-u, --user <login>          login to connect to CentraleSupelec Metz clusters
+		-m, --machine <machine>     OPTIONAL, a specific machine
+		-f, --frontal <machine>     OPTIONAL, the frontal : either term2.grid or phome (default: term2.grid)
+		-c, --cluster <cluster>     the cluster (default: uSkynet)
+		-w, --walltime <walltime>   in hours (default: 24)
+		-h, --help                  prints this help messageUsage :  cscluster book
+
+For **logging** to a booked node
 					
-	zaza:$ log.sh -h	
-	Usage: 
-	Logs to an already booked node on the GPU cluster of CentraleSupelec Metz
+	zaza:$ cscluster log -h	
 
-	   -u, --user <login>          login to connect to CS Metz
-	   -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided a list of your booked JOB_ID will be displayed
-	   -h, --help                  prints this help message
+    Usage : cscluster log
+    Logs to an already booked node on the grid5000 cluster 
+    
+       -u, --user <login>          login to connect to grid5000
+       -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
+       -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
+                                   a list of your booked JOB_ID will be displayed
+       -h, --help                  prints this help messageUsage : cscluster log
 
-**port_forward.sh**: for forwarding a port from a booked node to your localhost
+For **forwarding a port** from a booked node to your localhost
 
-	zaza:$ port_forward.sh -h
-	Usage :
-	Forward a port from a machine you booked to your local computer
+	zaza:$ cscluster port_forward -h
 
-	   -u, --user <login>          login to connect to CS Metz
-	   -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided a list of your booked JOB_ID will be displayed
-	   -m, --machine <MACHINE>     The booked hostname, optional
-	   -k, --key <PATH_TO_KEY>     Use the provided ssh key for connection, optional
-	   -p, --port <PORT>           The distant port <PORT> will be binded to localhost:PORT
-	   -h, --help                  prints this help message 
+    usage :  cscluster port_forward
+    Forward a port from a machine you booked to your local computer
+    
+       -u, --user <login>          login to connect to grid5000
+       -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
+       -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
+                                   a list of your booked JOB_ID will be displayed
+       -m, --machine <MACHINE>     The booked hostname.
+       -p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
+       -k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
+       -h, --help                  prints this help message
 
-**kill_reservation.sh** : for releasing a booked node
 
-	zaza:$ kill_reservation.sh -h
-	Usage :
-	Deletes a reservation on the GPU cluster of CentraleSupelec Metz
+For **releasing** a booked node
 
-	   -u, --user <login>          Login to connect to CS Metz
-	   -j, --jobid <JOB_ID>        The JOB_ID to delete. If not provided a list of your booked JOB_ID will be displayed
-	   -h, --help                  Prints this help message
+	zaza:$ cscluster kill -h
 
+    usage :  cscluster kill 
+    Deletes a reservation on the grid5000 cluster
+    
+       -u, --user <login>          Login to connect to grid5000
+       -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
+       -j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
+                                   a list of your booked JOB_ID will be displayed
+       -j, --jobid all             Will kill all the jobs booked by <login>
+       -h, --help                  Prints this help message
 
 
 # Windows cluster scripts
