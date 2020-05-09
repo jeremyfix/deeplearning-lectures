@@ -339,7 +339,7 @@ test_job_state ()
 # book_node properties
 book_node ()
 {
-    ssh "$ssh_options" $USER@$FRONTAL "oarsub -t allow_classic_ssh -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
+    ssh "$ssh_options" $USER@$FRONTAL "oarsub -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
 }
 
 list_job_id ()
