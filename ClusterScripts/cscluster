@@ -118,6 +118,7 @@ Forward a port from a machine you booked to your local computer
                                a list of your booked JOB_ID will be displayed
    -m, --machine <MACHINE>     The booked hostname.
    -p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
+   -k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
    -h, --help                  prints this help message
 "
 
@@ -182,6 +183,7 @@ case $ACTION in
 	FRONTAL=term2.grid
 	CLUSTER=uSkynet
 	WALLTIME=24
+	SSHKEY=
 
 	while [[ $# -gt 0 ]]
 	do
@@ -226,6 +228,7 @@ case $ACTION in
 	USER=
 	FRONTAL=term2.grid
 	JOBID=
+	SSHKEY=
 	
 	while [[ $# -gt 0 ]]
 	do
@@ -259,6 +262,7 @@ case $ACTION in
 	USER=
 	FRONTAL=term2.grid
 	JOBID=
+	SSHKEY=
 	
 	while [[ $# -gt 0 ]]
 	do
@@ -293,6 +297,7 @@ case $ACTION in
 	JOBID=
 	MACHINE=
 	PORT=
+	SSHKEY=
 
 	while [[ $# -gt 0 ]]
 	do
@@ -323,6 +328,11 @@ case $ACTION in
 		    shift
 		    shift
 		    ;;
+		-k|--key)
+			SSHKEY="$2"
+			shift
+			shift
+			;;
 		-h|--help)
 		    exec echo "$usage_m";;
 		*)
@@ -334,6 +344,29 @@ case $ACTION in
 esac
 
 ACCESS_NODE=ghome.metz.supelec.fr
+
+
+# Handle the ssh key if one is provided
+SSHKEY_COMMAND=
+if [ ! -z $SSHKEY ]
+then
+    display_info "I will use the file $SSHKEY as ssh key for the connection"
+    if [ ! -f $SSHKEY ]
+    then
+        display_error "The provided file $SSHKEY does not exist."
+        exit -1
+    fi
+    # Ok, the file exists, we need to check the permissions are 600
+    permissions=`stat -c %a $SSHKEY`
+    if [ ! $permissions == 600 ]
+    then
+        display_error "The provided ssh key has permissions $permissions"
+        display_error "but must have permissions 600. Executing the following should make it :"
+        display_error "chmod 600 $SSHKEY"
+        exit -1
+    fi
+    SSHKEY_COMMAND="-i $SSHKEY"
+fi
 
 # For bouncing over the proxy
 ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@$ACCESS_NODE"
@@ -500,7 +533,8 @@ case $ACTION in
 
 	;;
     "port_forward")
-	
+
+
 	if [ -z $USER ]
 	then
 	    display_error "A login is required. Specify it with -u|--user, run with -h for help"
@@ -553,6 +587,6 @@ case $ACTION in
 	
 	display_info "Activating port forwarding from host $host:$PORT to 127.0.0.1:$PORT"
 
-       	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
+	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
 	;;
 esac
