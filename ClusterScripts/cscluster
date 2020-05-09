@@ -1,0 +1,561 @@
+#!/bin/bash
+
+# contributeurs / contributors :
+
+# Jeremy Fix (Loria / CentraleSupelec)
+# Joël Legrand (Loria / CentraleSupelec)
+
+# Ce logiciel est régi par la licence CeCILL soumise au droit français
+# et respectant les principes de diffusion des logiciels libres. Vous
+# pouvez utiliser, modifier et/ou redistribuer ce programme sous les
+# conditions de la licence CeCILL telle que diffusée par le CEA, le
+# CNRS et l'INRIA sur le site https://cecill.info.  En contrepartie de
+# l'accessibilité au code source et des droits de copie, de
+# modification et de redistribution accordés par cette licence, il
+# n'est offert aux utilisateurs qu'une garantie limitée. Pour les
+# mêmes raisons, seule une responsabilité restreinte pèse sur l'auteur
+# du programme, le titulaire des droits patrimoniaux et les concédants
+# successifs.  A cet égard l'attention de l'utilisateur est attirée
+# sur les risques associés au chargement, à l'utilisation, à la
+# modification et/ou au développement et à la reproduction du logiciel
+# par l'utilisateur étant donné sa spécificité de logiciel libre, qui
+# peut le rendre complexe à manipuler et qui le réserve donc à des
+# développeurs et des professionnels avertis possédant des
+# connaissances informatiques approfondies.  Les utilisateurs sont
+# donc invités à charger et tester l'adéquation du logiciel à leurs
+# besoins dans des conditions permettant d'assurer la sécurité de
+# leurs systèmes et ou de leurs données et, plus généralement, à
+# l'utiliser et l'exploiter dans les mêmes conditions de sécurité.  Le
+# fait que vous puissiez accéder à cet en-tête signifie que vous avez
+# pris connaissance de la licence CeCILL-B, et que vous en avez
+# accepté les termes.
+
+# This software is governed by the CeCILL license under French law and
+# abiding by the rules of distribution of free software.  You can use,
+# modify and/ or redistribute the software under the terms of the
+# CeCILL license as circulated by CEA, CNRS and INRIA at the following
+# URL https://cecill.info.  As a counterpart to the access to the
+# source code and rights to copy, modify and redistribute granted by
+# the license, users are provided only with a limited warranty and the
+# software's author, the holder of the economic rights, and the
+# successive licensors have only limited liability.  In this respect,
+# the user's attention is drawn to the risks associated with loading,
+# using, modifying and/or developing or reproducing the software by
+# the user in light of its specific status of free software, that may
+# mean that it is complicated to manipulate,and that also therefore
+# means that it is reserved for developers and experienced
+# professionals having in-depth computer knowledge. Users are
+# therefore encouraged to load and test the software's suitability as
+# regards their requirements in conditions enabling the security of
+# their systems and/or data to be ensured and, more generally, to use
+# and operate it in the same conditions as regards security.  The fact
+# that you are presently reading this means that you have had
+# knowledge of the CeCILL-B license and that you accept its terms.
+
+# Script adatped from the g5k script
+# https://gitlab.inria.fr/jolegran/g5k-scripts 
+
+usage_m="usage :  cscluster [--help] <command>
+
+These are available commands :
+
+book          	    book a node on the Grid5000 cluster
+log   	            log on an already booked node
+kill        	    kill a reservation on the Grid5000 cluster 
+port_forward	    forward a port from a machine you booked to your 
+		    local computer
+"
+usage_b="Usage :  cscluster book
+Books a node on the grid5000 cluster
+
+   -u, --user <login>          login to connect to grid5000
+   -m, --machine <machine>     OPTIONAL, a specific machine
+   -s, --site <machine>        the site (default: nancy)
+   -q, --queue <queue>	       the queue (production or default) (default: default)
+   -c, --cluster <cluster>     the cluster (default: gros)
+   -w, --walltime <walltime>   in hours (default: 2)
+   -h, --help                  prints this help message
+"
+
+usage_l="Usage : cscluster log
+Logs to an already booked node on the grid5000 cluster 
+
+   -u, --user <login>          login to connect to grid5000
+   -f, --site <SITE>           Site (default: nancy)
+   -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
+                               a list of your booked JOB_ID will be displayed
+   -h, --help                  prints this help message
+"
+usage_k="usage :  cscluster kill 
+Deletes a reservation on the grid5000 cluster
+
+   -u, --user <login>          Login to connect to grid5000
+   -s, --site <SITE>           the site (default: nancy)
+   -j, --jobid <JOB_ID>        The JOB_ID to delete. If not provided
+                               a list of your booked JOB_ID will be displayed
+   -j, --jobid all             Will kill all the jobs booked by <login>
+   -h, --help                  Prints this help message
+"
+
+usage_p="usage :  cscluster port_forward
+Forward a port from a machine you booked to your local computer
+
+   -u, --user <login>          login to connect to grid5000
+   -s, --site <SITE>           the site (default: nancy)
+   -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
+                               a list of your booked JOB_ID will be displayed
+   -m, --machine <MACHINE>     The booked hostname.
+   -p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
+   -h, --help                  prints this help message
+"
+
+
+
+GREEN="\\e[1;32m"
+NORMAL="\\e[0;39m"
+RED="\\e[1;31m"
+BLUE="\\e[1;34m"
+MAGENTA="\\e[1;35m"
+
+display_info() {
+    echo -e "$BLUE $1 $NORMAL"
+}
+display_wait() {
+    echo -e "$MAGENTA $1 $NORMAL"
+}
+display_success() {
+    echo -e "$GREEN $1 $NORMAL"
+}
+display_error() {
+    echo -e "$RED $1 $NORMAL"
+}
+
+
+# Let us parse the first level of commands
+if [[ $# -eq 0 ]]; then
+    exec echo "$usage_m"
+fi
+
+key="$1"
+case $key in 
+    "book")
+	ACTION="book"
+	shift # pass argument
+	;;
+    "log")
+	ACTION="log"
+	shift # pass argument
+	;;
+    "kill")
+	ACTION="kill"
+	shift # pass argument
+	;;
+    "port_forward")
+	ACTION="port_forward"
+	shift # pass argument
+	;;
+    -h|--help)
+	exec echo "$usage_m";;
+    *)
+	display_error "Unrecognized option $key"
+	exec echo "$usage_m";;
+esac
+
+# For every single action, call its specific commands
+case $ACTION in
+    "book")
+	# Parse the command line arguments
+	USER=
+	CLUSTER=gros
+	SITE=nancy
+	WALLTIME=2
+	MACHINE=
+	QUEUE=default
+	while [[ $# -gt 0 ]]
+	do
+	    key="$1"
+	    case $key in
+		-u|--user)
+		    USER="$2"
+		    shift # pass argument
+		    shift # pass value
+		    ;;
+		-f|--site)
+		    SITE="$2"
+		    shift
+		    shift
+		    ;;
+		-c|--cluster)
+		    CLUSTER="$2"
+		    shift
+		    shift
+		    ;;
+		-w|--walltime)
+		    WALLTIME="$2"
+		    shift
+		    shift
+		    ;;
+		-m|--machine)
+		    MACHINE="$2"
+		    shift
+		    shift
+		    ;;
+		-q|--queue)
+		    QUEUE="$2"
+		    shift
+		    shift
+		    ;;
+
+		-h|--help)
+		    exec echo "$usage_b";;
+		*)
+		    exec echo "Unrecognized option $key"
+	    esac
+	done
+	;;
+
+    "log")
+	
+    	# Parse the command line arguments
+	USER=
+	JOBID=
+	SITE=nancy
+	
+	while [[ $# -gt 0 ]]
+	do
+	    key="$1"
+	    case $key in
+		-u|--user)
+		    USER="$2"
+		    shift # pass argument
+		    shift # pass value
+		    ;;
+		-f|--site)
+		    SITE="$2"
+		    shift # pass argument
+		    shift # pass value
+		    ;;
+		-j|--jobid)
+		    JOBID="$2"
+		    shift
+		    shift
+		    ;;
+		-h|--help)
+		    exec echo "$usage_l";;
+		*)
+		    exec echo "Unrecognized option $key"
+	    esac
+	done
+	;;
+
+    "kill")
+	# Parse the command line arguments
+	USER=
+	JOBID=
+	SITE=nancy
+	
+	while [[ $# -gt 0 ]]
+	do
+	    key="$1"
+	    case $key in
+		-u|--user)
+		    USER="$2"
+		    shift # pass argument
+		    shift # pass value
+		    ;;
+		-f|--site)
+		    SITE="$2"
+		    shift # pass argument
+		    shift # pass value
+		    ;;
+		-j|--jobid)
+		    JOBID="$2"
+		    shift
+		    shift
+		    ;;
+		-h|--help)
+		    exec echo "$usage_k";;
+		*)
+		    exec echo "Unrecognized option $key"
+	    esac
+	done
+	;;
+    "port_forward")
+	# Parse the command line arguments
+	USER=
+	JOBID=
+	MACHINE=
+	PORT=
+	SITE=nancy
+
+
+	while [[ $# -gt 0 ]]
+	do
+	    key="$1"
+	    case $key in
+		-u|--user)
+		    USER="$2"
+		    shift # pass argument
+		    shift # pass value
+		    ;;
+		-f|--site)
+		    SITE="$2"
+		    shift # pass argument
+		    shift # pass value
+		    ;;
+		-j|--jobid)
+		    JOBID="$2"
+		    shift
+		    shift
+		    ;;
+		-m|--machine)
+		    MACHINE="$2"
+		    shift
+		    shift
+		    ;;
+		-p|--port)
+		    PORT="$2"
+		    shift
+		    shift
+		    ;;
+		-h|--help)
+		    exec echo "$usage_m";;
+		*)
+		    exec echo "Unrecognized option $key"
+	    esac
+	done
+	
+	;;
+esac
+
+
+# For bouncing over the proxy
+ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@access.grid5000.fr"
+ssh_options_term2="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@access.grid5000.fr"
+ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@access.grid5000.fr\" $USER@$SITE"
+
+
+
+# test_job_state job_id
+# returns
+test_job_state ()
+{
+    ssh "$ssh_options" $USER@$SITE "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
+}
+
+# book_node properties
+book_node ()
+{
+    ssh "$ssh_options" $USER@$SITE "oarsub -t allow_classic_ssh -q" $QUEUE "-r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
+}
+
+list_job_id ()
+{
+    ssh "$ssh_options" $USER@$SITE "oarstat -u $USER"
+}
+
+# get_booked_host job_id
+get_booked_host ()
+{
+	ssh "$ssh_options_term2" $USER@$SITE "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
+}
+
+
+
+# For every single action, call its specific commands
+case $ACTION in
+    "book")
+	if [ -z $USER ]
+	then
+	    display_error "A login is required. Specify it with -u|--user, run with -h for help"
+	    exec echo "$usage_b"
+	    exit
+	fi
+
+	case $CLUSTER in
+	    "graphite"|"grimoire"|"gros"|"grisou"|"graoully") ;;
+	    *)
+		display_error "The cluster must be one of graphite, grimoire, gros, grisou"
+		exit;;
+	esac
+
+	case $QUEUE in
+	    "default"|"production") ;;
+	    *)
+		display_error "The queue must be default or production"
+		exit;;
+	esac
+
+	
+	display_info "Booking a node for $USER, on cluster $CLUSTER, with walltime $WALLTIME, machine is $MACHINE"
+
+	# Book a node
+	if [ -z $MACHINE ]
+	then
+	    book_node "cluster='$CLUSTER'"
+	else
+	    book_node "(host='$MACHINE.$SITE.grid5000.fr' and cluster='$CLUSTER')"
+	fi
+	
+	# Check the status of the reservation
+	resa_status=`cat reservation.log | grep "Reservation valid" | awk -F "--> " '{print $NF}' -`
+	if [ "$resa_status" == "OK" ]
+	then
+	    display_success "Reservation successfull"
+	else
+	    display_error "Reservation failed"
+	    display_error "Check disponibility here: https://intranet.grid5000.fr/oar/Nancy/drawgantt-svg/"
+	    display_error "                       or https://intranet.grid5000.fr/oar/Nancy/drawgantt-svg-prod/"
+	    display_error "Make sure that the requested cluster belong to the requested queue (default or production) "
+	    exit
+	fi
+
+	job_id=`cat reservation.log | grep OAR_JOB_ID | awk -F "=" '{ print $2}' -`
+	display_info "Booking requested : OAR_JOB_ID = $job_id"
+
+
+	display_info "Waiting for the reservation to be running, might last few seconds"
+	job_state=`test_job_state $job_id`
+	while [ "$job_state" != "Running" ]
+	do
+	    display_wait "   The reservation is not yet running "
+	    job_state=`test_job_state $job_id`
+	done
+
+	display_success "The reservation is running"
+
+
+	;;
+    "log")
+
+	if [ -z $USER ]
+	then
+	    display_error "A login is required. Specify it with -u|--user, run with -h for help"
+	    exec echo "$usage_l"
+	    exit
+	fi
+
+	if [ -z $JOBID ]
+	then
+	    display_error "No job_id is specified, you must provide one. Call with -h for more help  "
+	    display_info "Listing your current reservations"
+	    list_job_id
+	    exit
+	fi
+
+	display_info "I am checking if the reservation $JOBID is still valid"
+	job_state=`test_job_state $JOBID`
+	if [ "$job_state" != "Running" ]; then
+	    display_error "   The reservation is not running yet or anymore."
+	    display_error "   please select a valid job id"
+	    list_job_id
+	    exit 0
+	fi
+
+	display_success "   The reservation $JOBID is still running"
+	display_info "Logging to the booked node"
+
+	ssh "$ssh_options" -t $USER@$SITE oarsub -C $JOBID
+
+	display_info "Unlogged"
+
+	;;
+    "kill")
+
+	if [ -z $USER ]
+	then
+	    display_error "A login is required. Specify it with -u|--user, run with -h for help"
+	    exec echo "$usage_k"
+	    exit
+	fi
+
+	if [[ -z $JOBID  &&  "$JOBID" != "all" ]]
+	then
+	    display_error "No job_id is specified, you must provide one. Call with -h for more help  "
+	    display_info "Listing your current reservations"
+	    list_job_id
+	    exit
+	fi
+
+
+	if [[ "$JOBID" = "all" ]]
+	then
+	    display_info "Collecting all the jobid booked for $USER"
+	    JOBID=`list_job_id | tail +3 | awk '{print $1}' | tr '\n' ' '`
+	    echo "JOB ID : $JOBID"
+	fi
+
+	if [[ -z $JOBID ]]
+	then
+	    display_info "No job to kill for $USER. I'm leaving"
+	    display_success "Done"
+	    exit
+	fi
+
+
+	display_info "Killing the reservation(s) $JOBID"
+	ssh "$ssh_options" $USER@$SITE "oardel $JOBID"
+
+	display_success "Done"
+
+	;;
+    "port_forward")
+	# Bounce over the proxy
+	ssh_options_term2="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@access.grid5000.fr"
+	ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@access.grid5000.fr\" $USER@$SITE"
+	
+	if [ -z $USER ]
+	then
+	    display_error "A login is required. Specify it with -u|--user, run with -h for help"
+	    exec echo "$usage_p"	    
+	    exit
+	fi
+
+	if [ -z $JOBID ] && [ -z $MACHINE ]
+	then
+	    display_error "You must specify a machine with -m <MACHINE>  or a job id with -j <JOB_ID>"
+	    display_error "more info with $0 -h"
+	    display_info "Your current reservations are listed below :"
+	    list_job_id
+	    exit -1
+	fi
+	if [ ! -z $JOBID ] && [ ! -z $MACHINE ]
+	then
+	    display_error "You cannot specify both a machine and a jobid"
+	    exit -1
+	fi
+	if [ -z $PORT ]
+	then
+	    display_error "A port is required. Specify it with -p|--port, run with -h for help"
+	    exec echo "$usage_p"
+	    exit -1
+	fi
+	
+	
+	if [ ! -z $MACHINE ]
+	then
+	    host=$MACHINE
+	else
+	    # Check the status of the job
+	    display_info "Checking the status of the reservation JOBID=$JOBID"
+	    job_state=`test_job_state $JOBID`
+	    if [ "$job_state" != "Running" ]; then
+		display_error "   The reservation is not running yet or anymore. Please book a machine"
+		exit -1
+	    fi
+	    display_success "   The reservation $JOBID is still running"
+	    # Request the hostname
+	    host=`get_booked_host $JOBID`
+	fi
+	
+	if [ -z $host ]
+	then
+	    display_error "Error while trying to get the booked hostname"
+	    exit -1
+	fi
+	
+	display_info "Activating port forwarding from host $host:$PORT to 127.0.0.1:$PORT"
+
+       	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
+	;;
+e
