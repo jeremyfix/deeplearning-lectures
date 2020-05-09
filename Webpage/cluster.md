@@ -13,13 +13,13 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [port_forward.sh](./data/ClusterScripts/port_forward.sh) : to activate
+-   [cscluster](./data/ClusterScripts/cscluster) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
 
 ``` console
-mymachine:~:mylogin$ chmod u+x port_forward.sh
+mymachine:~:mylogin$ chmod u+x cscluster
 ```
 
 You also need the SSH key **id_rsa_SM20** I provide you during the session. You need to adapt its permissions
@@ -39,7 +39,7 @@ access it. To access it locally, just execute the port_forward
 script specifying the port 8888 :
 
 ``` console
-mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 8888 -k id_rsa_SM20
+mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -p 8888 -k id_rsa_SM20
 ```
 
 You can now open **locally** a browser and open the page :
@@ -52,7 +52,7 @@ terminal in jupyter lab. To view locally the tensorboard interface, just
 run :
 
 ``` console
-mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 6006 -k id_rsa_SM20
+mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -p 6006 -k id_rsa_SM20
 ```
 
 You can now open **locally** a browser and open the page :
@@ -66,13 +66,13 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [port_forward.sh](./data/ClusterScripts/port_forward.sh) : to activate
+-   [cscluster](./data/ClusterScripts/cscluster) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
 
 ``` console
-mymachine:~:mylogin$ chmod u+x port_forward.sh
+mymachine:~:mylogin$ chmod u+x cscluster
 ```
 
 **Important** For the following, you need to know which login has been
@@ -96,7 +96,7 @@ access it. To access it locally, just execute the port_forward
 script specifying the port 8888 :
 
 ``` console
-mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 8888 -k path/to/id_rsa
+mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -p 8888 -k path/to/id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
@@ -109,7 +109,7 @@ terminal in jupyter lab. To view locally the tensorboard interface, just
 run :
 
 ``` console
-mymachine:~:mylogin$ ./port_forward.sh -u dummyLog -m dummyGPU -p 6006 -k path/to/id_rsa
+mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -p 6006 -k path/to/id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
@@ -129,17 +129,12 @@ Allocation of the GPU machines are handled by a resource manager called
 OAR. It can be annoying to remember the command lines to reserve a
 machine and log to it. We therefore provide the scripts :
 
--   [book.sh](./data/ClusterScripts/book.sh) : to book a GPU
--   [kill\_reservation.sh](./data/ClusterScripts/kill_reservation.sh) : to free the
-    reservation
--   [log.sh](./data/ClusterScripts/log.sh) : to log to the booked GPU
--   [port\_forward.sh](./data/ClusterScripts/port_forward.sh) : to activate port
-    forwarding for Tensorboard, jupyter lab, ..
+-   [cscluster](./data/ClusterScripts/cscluster) : to book a GPU, log on it, kill a reservation, to activate  port forwarding for Tensorboard, jupyter lab, ...
 
 After getting these scripts, please make them executables :
 
 ```console
-mymachine:~:mylogin$ chmod u+x book.sh kill_reservation.sh log.sh port_forward.sh
+mymachine:~:mylogin$ chmod u+x cscluster
 ```
 
 These scripts help you to make a reservation and log to the reserved
@@ -154,15 +149,14 @@ All the bash scripts accept a **--help**  or  **-h**  to display an help message
 
 ### The how to
 
-Get the scripts and run book.sh and log.sh as below. We also show a
+Get the script and run cscluster as below. We also show a
 typical output from the execution of the script.
 
 <div class="w3-card w3-red w3-padding-16 ">
-If you have been assigned a specific GPU, the call to book.sh below has to contain
-a -m and -c . Look for help if required. 
+If you have been assigned a specific GPU, the call to cscluster below has to contain a -m and -c . Look for help if required. 
 </div>
 ``` console
-mymachine:~:mylogin$ ./book.sh -u mylogin
+mymachine:~:mylogin$ ./cscluster book -u mylogin
 Booking a node
 Reservation successfull
 Booking requested : OAR_JOB_ID =  99785
@@ -182,13 +176,13 @@ mymachine:~:mylogin$
 If the reservation is successfull, you can then log to the booked GPU. If you do not know or remember your jobid, proceed the following way
 
 ```console
-mymachine:~:mylogin$ ./log.sh -u mylogin
+mymachine:~:mylogin$ ./cscluster log -u mylogin
 ```
 
 As you get your job id, you can proceed
 
 ``` console
-mymachine:~:mylogin$ ./log.sh -u mylogin -j 99785
+mymachine:~:mylogin$ ./cscluster log -u mylogin -j 99785
 The file job_id exists. I am checking the reservation is still valid 
    The reservation is still running 
 Logging to the booked node 
@@ -207,12 +201,12 @@ tensorboard and activate port forwarding :
 
 ``` console
 [ In a first terminal ]
-mymachine:~:mylogin$ ./log.sh -u mylogin -j 99785
+mymachine:~:mylogin$ ./cscluster log -u mylogin -j 99785
 ...
 sh11:~:mylogin$ tensorboard --logdir path_to_the_logs
 
 [ In a second terminal ]
-mymachine:~:mylogin$ ./port_forward.sh -u mylogin -j 99785 -p 6006
+mymachine:~:mylogin$ ./cscluster port_forward -u mylogin -j 99785 -p 6006
 ...
 ```
 
@@ -227,7 +221,7 @@ Connection to sh11 closed.
 Disconnected from OAR job 99785
 Connection to term2.grid closed.
   Unlogged 
-mymachine:/home/mylogin:mylogin$ ./kill_reservation.sh -u mylogin -j 99785
+mymachine:/home/mylogin:mylogin$ ./cscluster kill -u mylogin -j 99785
  The file job_id exists. I will kill the previous reservation in case it is running
 Deleting the job = 99785 ...REGISTERED.
 The job(s) [ 99785 ] will be deleted in a near future.
