@@ -63,16 +63,15 @@ book          	    book a node on the Grid5000 cluster
 log   	            log on an already booked node
 kill        	    kill a reservation on the Grid5000 cluster 
 port_forward	    forward a port from a machine you booked to your 
-		    local computer
+		            local computer
 "
 usage_b="Usage :  cscluster book
-Books a node on the grid5000 cluster
+Books a node on the CS Metz clusters
 
-   -u, --user <login>          login to connect to grid5000
+   -u, --user <login>          login to connect to CentraleSupelec Metz clusters 
    -m, --machine <machine>     OPTIONAL, a specific machine
-   -s, --site <machine>        the site (default: nancy)
-   -q, --queue <queue>	       the queue (production or default) (default: default)
-   -c, --cluster <cluster>     the cluster (default: gros)
+   -f, --frontal <machine>     OPTIONAL, the frontal (default: term2.grid)
+   -c, --cluster <cluster>     the cluster (default: uSkynet)
    -w, --walltime <walltime>   in hours (default: 2)
    -h, --help                  prints this help message
 "
@@ -81,7 +80,7 @@ usage_l="Usage : cscluster log
 Logs to an already booked node on the grid5000 cluster 
 
    -u, --user <login>          login to connect to grid5000
-   -f, --site <SITE>           Site (default: nancy)
+   -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
    -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                a list of your booked JOB_ID will be displayed
    -h, --help                  prints this help message
@@ -90,8 +89,8 @@ usage_k="usage :  cscluster kill
 Deletes a reservation on the grid5000 cluster
 
    -u, --user <login>          Login to connect to grid5000
-   -s, --site <SITE>           the site (default: nancy)
-   -j, --jobid <JOB_ID>        The JOB_ID to delete. If not provided
+   -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
+   -j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
                                a list of your booked JOB_ID will be displayed
    -j, --jobid all             Will kill all the jobs booked by <login>
    -h, --help                  Prints this help message
@@ -101,7 +100,7 @@ usage_p="usage :  cscluster port_forward
 Forward a port from a machine you booked to your local computer
 
    -u, --user <login>          login to connect to grid5000
-   -s, --site <SITE>           the site (default: nancy)
+   -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
    -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                a list of your booked JOB_ID will be displayed
    -m, --machine <MACHINE>     The booked hostname.
@@ -166,11 +165,11 @@ case $ACTION in
     "book")
 	# Parse the command line arguments
 	USER=
-	CLUSTER=gros
-	SITE=nancy
-	WALLTIME=2
 	MACHINE=
-	QUEUE=default
+	FRONTAL=term2.grid
+	CLUSTER=uSkynet
+	WALLTIME=24
+
 	while [[ $# -gt 0 ]]
 	do
 	    key="$1"
@@ -180,8 +179,13 @@ case $ACTION in
 		    shift # pass argument
 		    shift # pass value
 		    ;;
-		-f|--site)
-		    SITE="$2"
+		-m|--machine)
+		    MACHINE="$2"
+		    shift
+		    shift
+		    ;;
+		-f|--frontal)
+		    FRONTAL="$2"
 		    shift
 		    shift
 		    ;;
@@ -195,17 +199,6 @@ case $ACTION in
 		    shift
 		    shift
 		    ;;
-		-m|--machine)
-		    MACHINE="$2"
-		    shift
-		    shift
-		    ;;
-		-q|--queue)
-		    QUEUE="$2"
-		    shift
-		    shift
-		    ;;
-
 		-h|--help)
 		    exec echo "$usage_b";;
 		*)
@@ -218,8 +211,8 @@ case $ACTION in
 	
     	# Parse the command line arguments
 	USER=
+	FRONTAL=term2.grid
 	JOBID=
-	SITE=nancy
 	
 	while [[ $# -gt 0 ]]
 	do
@@ -231,7 +224,7 @@ case $ACTION in
 		    shift # pass value
 		    ;;
 		-f|--site)
-		    SITE="$2"
+		    FRONTAL="$2"
 		    shift # pass argument
 		    shift # pass value
 		    ;;
@@ -251,8 +244,8 @@ case $ACTION in
     "kill")
 	# Parse the command line arguments
 	USER=
+	FRONTAL=term2.grid
 	JOBID=
-	SITE=nancy
 	
 	while [[ $# -gt 0 ]]
 	do
@@ -263,8 +256,8 @@ case $ACTION in
 		    shift # pass argument
 		    shift # pass value
 		    ;;
-		-f|--site)
-		    SITE="$2"
+		-f|--frontal)
+		    FRONTAL="$2"
 		    shift # pass argument
 		    shift # pass value
 		    ;;
@@ -283,11 +276,10 @@ case $ACTION in
     "port_forward")
 	# Parse the command line arguments
 	USER=
+	FRONTAL=term2.grid
 	JOBID=
 	MACHINE=
 	PORT=
-	SITE=nancy
-
 
 	while [[ $# -gt 0 ]]
 	do
@@ -298,8 +290,8 @@ case $ACTION in
 		    shift # pass argument
 		    shift # pass value
 		    ;;
-		-f|--site)
-		    SITE="$2"
+		-f|--frontal)
+		    FRONTAL="$2"
 		    shift # pass argument
 		    shift # pass value
 		    ;;
@@ -328,11 +320,12 @@ case $ACTION in
 	;;
 esac
 
+ACCESS_NODE=ghome.metz.supelec.fr
 
 # For bouncing over the proxy
-ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@access.grid5000.fr"
-ssh_options_term2="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@access.grid5000.fr"
-ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@access.grid5000.fr\" $USER@$SITE"
+ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@$ACCESS_NODE"
+ssh_options_term2="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@$ACCESS_NODE"
+ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@$ACCESS_NODE\" $USER@$FRONTAL"
 
 
 
@@ -340,61 +333,55 @@ ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=n
 # returns
 test_job_state ()
 {
-    ssh "$ssh_options" $USER@$SITE "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
+    ssh "$ssh_options" $USER@$FRONTAL "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
 }
 
 # book_node properties
 book_node ()
 {
-    ssh "$ssh_options" $USER@$SITE "oarsub -t allow_classic_ssh -q" $QUEUE "-r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
+    ssh "$ssh_options" $USER@$FRONTAL "oarsub -t allow_classic_ssh -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
 }
 
 list_job_id ()
 {
-    ssh "$ssh_options" $USER@$SITE "oarstat -u $USER"
+    ssh "$ssh_options" $USER@$FRONTAL "oarstat -u $USER"
 }
 
 # get_booked_host job_id
 get_booked_host ()
 {
-	ssh "$ssh_options_term2" $USER@$SITE "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
+	ssh "$ssh_options_term2" $USER@$FRONTAL "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
 }
 
 
 
 # For every single action, call its specific commands
 case $ACTION in
-    "book")
-	if [ -z $USER ]
-	then
-	    display_error "A login is required. Specify it with -u|--user, run with -h for help"
-	    exec echo "$usage_b"
-	    exit
-	fi
+	"book")
+		if [ -z $USER ]
+		then
+			display_error "A login is required. Specify it with -u|--user, run with -h for help"
+			exec echo "$usage_b"
+			exit
+		fi
 
-	case $CLUSTER in
-	    "graphite"|"grimoire"|"gros"|"grisou"|"graoully") ;;
-	    *)
-		display_error "The cluster must be one of graphite, grimoire, gros, grisou"
-		exit;;
-	esac
+		case $CLUSTER in
+			"sarah" | "kyle"| "uSkynet"|"cameron"|"tx"|"john") ;;
+			*)
+				display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle"
+				exit;;
+		esac
 
-	case $QUEUE in
-	    "default"|"production") ;;
-	    *)
-		display_error "The queue must be default or production"
-		exit;;
-	esac
 
 	
-	display_info "Booking a node for $USER, on cluster $CLUSTER, with walltime $WALLTIME, machine is $MACHINE"
+	display_info "Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME, machine is $MACHINE"
 
 	# Book a node
 	if [ -z $MACHINE ]
 	then
 	    book_node "cluster='$CLUSTER'"
 	else
-	    book_node "(host='$MACHINE.$SITE.grid5000.fr' and cluster='$CLUSTER')"
+	    book_node "(host='$MACHINE' and cluster='$CLUSTER')"
 	fi
 	
 	# Check the status of the reservation
@@ -404,9 +391,8 @@ case $ACTION in
 	    display_success "Reservation successfull"
 	else
 	    display_error "Reservation failed"
-	    display_error "Check disponibility here: https://intranet.grid5000.fr/oar/Nancy/drawgantt-svg/"
-	    display_error "                       or https://intranet.grid5000.fr/oar/Nancy/drawgantt-svg-prod/"
-	    display_error "Make sure that the requested cluster belong to the requested queue (default or production) "
+	    display_error "Check disponibility here: http://www.lsi.metz.supelec.fr/grid/drawgantt"
+	    display_error "Make sure that the requested cluster belongs to the requested frontal "
 	    exit
 	fi
 
@@ -455,7 +441,7 @@ case $ACTION in
 	display_success "   The reservation $JOBID is still running"
 	display_info "Logging to the booked node"
 
-	ssh "$ssh_options" -t $USER@$SITE oarsub -C $JOBID
+	ssh "$ssh_options" -t $USER@$FRONTAL oarsub -C $JOBID
 
 	display_info "Unlogged"
 
@@ -494,15 +480,12 @@ case $ACTION in
 
 
 	display_info "Killing the reservation(s) $JOBID"
-	ssh "$ssh_options" $USER@$SITE "oardel $JOBID"
+	ssh "$ssh_options" $USER@$FRONTAL "oardel $JOBID"
 
 	display_success "Done"
 
 	;;
     "port_forward")
-	# Bounce over the proxy
-	ssh_options_term2="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@access.grid5000.fr"
-	ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@access.grid5000.fr\" $USER@$SITE"
 	
 	if [ -z $USER ]
 	then
