@@ -83,9 +83,9 @@ Books a node on the CS Metz clusters
 
    -u, --user <login>          login to connect to CentraleSupelec Metz clusters 
    -m, --machine <machine>     OPTIONAL, a specific machine
-   -f, --frontal <machine>     OPTIONAL, the frontal (default: term2.grid)
+   -f, --frontal <machine>     OPTIONAL, the frontal : either term2.grid or phome (default: term2.grid)
    -c, --cluster <cluster>     the cluster (default: uSkynet)
-   -w, --walltime <walltime>   in hours (default: 2)
+   -w, --walltime <walltime>   in hours (default: 24)
    -h, --help                  prints this help message
 "
 
@@ -184,6 +184,7 @@ case $ACTION in
 	CLUSTER=uSkynet
 	WALLTIME=24
 	SSHKEY=
+	QUEUE=default
 
 	while [[ $# -gt 0 ]]
 	do
@@ -385,7 +386,7 @@ test_job_state ()
 # book_node properties
 book_node ()
 {
-    ssh "$ssh_options" $USER@$FRONTAL "oarsub -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
+    ssh "$ssh_options" $USER@$FRONTAL "oarsub -q $QUEUE -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
 }
 
 list_job_id ()
@@ -412,7 +413,7 @@ case $ACTION in
 		fi
 
 		case $CLUSTER in
-			"sarah" | "kyle"| "uSkynet"|"cameron"|"tx"|"john") ;;
+			"sarah" | "kyle"| "uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
 			*)
 				display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle"
 				exit;;
