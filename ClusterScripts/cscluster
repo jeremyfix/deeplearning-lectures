@@ -72,9 +72,9 @@ usage_m="usage :  cscluster [--help] <command>
 
 These are available commands :
 
-book          	    book a node on the Grid5000 cluster
+book          	    book a node on the CentraleSupelec Metz cluster
 log   	            log on an already booked node
-kill        	    kill a reservation on the Grid5000 cluster 
+kill        	    kill a reservation on the CentraleSupelec Metz cluster 
 port_forward	    forward a port from a machine you booked to your 
 		            local computer
 "
@@ -90,18 +90,18 @@ Books a node on the CS Metz clusters
 "
 
 usage_l="Usage : cscluster log
-Logs to an already booked node on the grid5000 cluster 
+Logs to an already booked node on the CentraleSupelec Metz cluster 
 
-   -u, --user <login>          login to connect to grid5000
+   -u, --user <login>          login to connect to CentraleSupelec Metz
    -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
    -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                a list of your booked JOB_ID will be displayed
    -h, --help                  prints this help message
 "
 usage_k="usage :  cscluster kill 
-Deletes a reservation on the grid5000 cluster
+Deletes a reservation on the CentraleSupelec Metz cluster
 
-   -u, --user <login>          Login to connect to grid5000
+   -u, --user <login>          Login to connect to CentraleSupelec Metz
    -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
    -j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
                                a list of your booked JOB_ID will be displayed
@@ -112,7 +112,7 @@ Deletes a reservation on the grid5000 cluster
 usage_p="usage :  cscluster port_forward
 Forward a port from a machine you booked to your local computer
 
-   -u, --user <login>          login to connect to grid5000
+   -u, --user <login>          login to connect to CentraleSupelec Metz
    -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
    -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                a list of your booked JOB_ID will be displayed
@@ -413,9 +413,9 @@ case $ACTION in
 		fi
 
 		case $CLUSTER in
-			"sarah" | "kyle"| "uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
+			"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
 			*)
-				display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle"
+				display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john"
 				exit;;
 		esac
 
