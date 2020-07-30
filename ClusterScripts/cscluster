@@ -389,15 +389,30 @@ book_node ()
     ssh "$ssh_options" $USER@$FRONTAL "oarsub -q $QUEUE -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
 }
 
+log_node ()
+{
+	ssh "$ssh_options" -t $USER@$FRONTAL oarsub -C $JOBID
+}
+
 list_job_id ()
 {
     ssh "$ssh_options" $USER@$FRONTAL "oarstat -u $USER"
+}
+
+kill_reservation ()
+{
+	ssh "$ssh_options" $USER@$FRONTAL "oardel $JOBID"
 }
 
 # get_booked_host job_id
 get_booked_host ()
 {
 	ssh "$ssh_options_term2" $USER@$FRONTAL "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
+}
+
+make_port_forward () 
+{
+	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
 }
 
 
@@ -489,7 +504,7 @@ case $ACTION in
 	display_success "   The reservation $JOBID is still running"
 	display_info "Logging to the booked node"
 
-	ssh "$ssh_options" -t $USER@$FRONTAL oarsub -C $JOBID
+	log_node
 
 	display_info "Unlogged"
 
@@ -528,8 +543,7 @@ case $ACTION in
 
 
 	display_info "Killing the reservation(s) $JOBID"
-	ssh "$ssh_options" $USER@$FRONTAL "oardel $JOBID"
-
+	kill_reservation
 	display_success "Done"
 
 	;;
@@ -587,7 +601,6 @@ case $ACTION in
 	fi
 	
 	display_info "Activating port forwarding from host $host:$PORT to 127.0.0.1:$PORT"
-
-	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
+	make_port_forward
 	;;
 esac
