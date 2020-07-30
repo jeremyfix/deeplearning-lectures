@@ -370,44 +370,52 @@ then
 fi
 
 # For bouncing over the proxy
-ssh_options="-o ProxyCommand=ssh -W %h:%p $USER@$ACCESS_NODE"
-ssh_options_term2="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@$ACCESS_NODE"
+ssh_options="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@$ACCESS_NODE"
 ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@$ACCESS_NODE\" $USER@$FRONTAL"
 
+
+execute_on_frontal ()
+{
+	ssh "$ssh_options" $USER@$FRONTAL $1
+}
+execute_on_frontal_withtty ()
+{
+	ssh "$ssh_options" -t $USER@$FRONTAL $1
+}
 
 
 # test_job_state job_id
 # returns
 test_job_state ()
 {
-    ssh "$ssh_options" $USER@$FRONTAL "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
+    execute_on_frontal "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
 }
 
 # book_node properties
 book_node ()
 {
-    ssh "$ssh_options" $USER@$FRONTAL "oarsub -q $QUEUE -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
+    execute_on_frontal "oarsub -q $QUEUE -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
 }
 
 log_node ()
 {
-	ssh "$ssh_options" -t $USER@$FRONTAL oarsub -C $JOBID
+	execute_on_frontal_withtty "oarsub -C $JOBID"
 }
 
 list_job_id ()
 {
-    ssh "$ssh_options" $USER@$FRONTAL "oarstat -u $USER"
+    execute_on_frontal "oarstat -u $USER"
 }
 
 kill_reservation ()
 {
-	ssh "$ssh_options" $USER@$FRONTAL "oardel $JOBID"
+	execute_on_frontal "oardel $JOBID"
 }
 
 # get_booked_host job_id
 get_booked_host ()
 {
-	ssh "$ssh_options_term2" $USER@$FRONTAL "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
+	execute_on_frontal "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
 }
 
 make_port_forward () 
