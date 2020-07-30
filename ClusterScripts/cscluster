@@ -240,7 +240,7 @@ case $ACTION in
 		    shift # pass argument
 		    shift # pass value
 		    ;;
-		-f|--site)
+		-f|--frontal)
 		    FRONTAL="$2"
 		    shift # pass argument
 		    shift # pass value
