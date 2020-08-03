@@ -456,19 +456,7 @@ oar_book_node ()
 
 	job_id=`cat reservation.log | grep OAR_JOB_ID | awk -F "=" '{ print $2}' -`
 	display_info "Booking requested : OAR_JOB_ID = $job_id"
-
-
-	display_info "Waiting for the reservation to be running, might last few seconds"
-	job_state=`$test_job_state $job_id`
-	while [ "$job_state" != "Running" ]
-	do
-	    display_wait "   The reservation is not yet running "
-	    job_state=`$test_job_state $job_id`
-	done
-
-	display_success "The reservation is running"
-
-
+	echo $job_id
 }
 
 oar_log_node ()
@@ -491,6 +479,11 @@ oar_list_allocation ()
     execute_on_frontal "oarstat -u $USER"
 }
 
+oar_list_all_jobids()
+{
+	echo `oar_list_allocation | tail +3 | awk '{print $1}' | tr '\n' ' '`
+}
+
 oar_kill_reservation ()
 {
 	execute_on_frontal "oardel $JOBID"
@@ -508,12 +501,16 @@ oar_get_booked_host ()
 # book_node properties
 
 # test_job_state job_id
-# returns
+# returns "Running" or ""
 slurm_test_job_state ()
 {
-    jobstates=`execute_on_frontal "squeue -j $1"`
-    #| tail -n +2 | awk '{print $5}' -
+    jobstates=`execute_on_frontal "squeue -j $1" 2>/dev/null | tail -n +2 | awk '{print $5}' -`
 	# To be matched against R : running, CG : completing, etc...
+	if [[ $jobstates == "R" ]]; then
+		echo "Running"
+	else
+		echo 
+	fi
 }
 
 slurm_book_node ()
@@ -526,14 +523,15 @@ slurm_book_node ()
 	# Save the SLURM_JOBID in ~/resa.log
 	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X stuff '\''rm -f resa.log; echo \$SLURM_JOBID > resa.log ^M'\'''
 	# Check that resa.log exists
-	
+
 	####
 	#TODO
 	####
 
 	# And use it to rename the screen session to have easy binding between
 	# the slurm jobid and the screen session name
-	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X sessionname '$default_screen_name'-`cat resa.log`'
+	job_id=`execute_on_frontal 'cat resa.log'`
+	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X sessionname '$default_screen_name'-'$job_id
 
 	# Check if everything worked gracefully by checking if a session named 
 	# default_screen_name-`cat resa.log`  exists
@@ -541,6 +539,7 @@ slurm_book_node ()
 	####
 	#TODO
 	####
+	echo $job_id
 }
 
 slurm_log_node() 
@@ -566,6 +565,17 @@ slurm_list_allocation ()
     execute_on_frontal "squeue -u $USER"
 }
 
+slurm_list_all_jobids ()
+{
+	jobids=`slurm_list_allocation`
+	echo `slurm_list_allocation | tail +2 | awk '{print $1}' | tr '\n' ' '`
+}
+
+slurm_kill_reservation () 
+{
+	display_info "Killing the reservation $1"
+	execute_on_frontal "screen -S $default_screen_name-$1 -X kill"
+}
 
 make_port_forward () 
 {
@@ -580,15 +590,25 @@ case $SCHEDULER in
 		book_node=oar_book_node
 		log_node=oar_log_node
 		list_allocation=oar_list_allocation
+		list_all_jobids=oar_list_all_jobids
 		kill_reservation=oar_kill_reservation
 		get_booked_host=oar_get_booked_host
 		;;
 	"slurm")
+		display_info "Using SLURM"
+		test_job_state=slurm_test_job_state
 		book_node=slurm_book_node
 		log_node=slurm_log_node
 		list_allocation=slurm_list_allocation
+		list_all_jobids=slurm_list_all_jobids
+		kill_reservation=slurm_kill_reservation
 		;;
 esac
+
+export -f slurm_kill_reservation
+export -f oar_kill_reservation
+export -f execute_on_frontal 
+export -f display_info
 
 # For every single action, call its specific commands
 case $ACTION in
@@ -618,10 +638,23 @@ case $ACTION in
 	# Book a node
 	if [ -z $MACHINE ]
 	then
-	    $book_node $CLUSTER
+	    job_id=`$book_node $CLUSTER`
 	else
-	    $book_node $CLUSTER $MACHINE
+	    job_id=`$book_node $CLUSTER $MACHINE`
 	fi
+
+	display_info "Waiting for the reservation to be running, might last few seconds"
+	job_state=`$test_job_state $job_id`
+	while [ "$job_state" != "Running" ]
+	do
+	    display_wait "   The reservation is $job_id not yet running "
+	    job_state=`$test_job_state $job_id`
+		echo "Job state  : $job_state"
+		sleep 0.1
+	done
+
+	display_success "The reservation is running"
+
 	
 	;;
     "log")
@@ -647,44 +680,47 @@ case $ACTION in
 
 	display_info "Unlogged"
 	;;
+
     "kill")
 
-	if [ -z $USER ]
-	then
-	    display_error "A login is required. Specify it with -u|--user, run with -h for help"
-	    exec echo "$usage_k"
-	    exit
-	fi
+		if [ -z $USER ]
+		then
+			display_error "A login is required. Specify it with -u|--user, run with -h for help"
+			exec echo "$usage_k"
+			exit
+		fi
 
-	if [[ -z $JOBID  &&  "$JOBID" != "all" ]]
-	then
-	    display_error "No job_id is specified, you must provide one. Call with -h for more help  "
-	    display_info "Listing your current reservations"
-	    $list_allocation
-	    exit
-	fi
-
-
-	if [[ "$JOBID" = "all" ]]
-	then
-	    display_info "Collecting all the jobid booked for $USER"
-	    JOBID=`$list_allocation | tail +3 | awk '{print $1}' | tr '\n' ' '`
-	    echo "JOB ID : $JOBID"
-	fi
-
-	if [[ -z $JOBID ]]
-	then
-	    display_info "No job to kill for $USER. I'm leaving"
-	    display_success "Done"
-	    exit
-	fi
+		if [[ -z $JOBID  &&  "$JOBID" != "all" ]]
+		then
+			display_error "No job_id is specified, you must provide one. Call with -h for more help  "
+			display_info "Listing your current reservations"
+			$list_allocation
+			exit
+		fi
 
 
-	display_info "Killing the reservation(s) $JOBID"
-	$kill_reservation
-	display_success "Done"
+		if [[ "$JOBID" = "all" ]]
+		then
+			display_info "Collecting all the jobid booked for $USER"
+			JOBID=`$list_all_jobids`
+		fi
 
-	;;
+		if [[ -z $JOBID ]]
+		then
+			display_info "No job to kill for $USER. I'm leaving"
+			display_success "Done"
+			exit
+		fi
+
+
+		# display_info "Killing the reservation(s) $JOBID"
+		for jid in $JOBID
+		do
+			$kill_reservation $jid
+		done
+		display_success "Done"
+
+		;;
     "port_forward")
 
 
