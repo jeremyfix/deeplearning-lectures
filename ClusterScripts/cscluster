@@ -83,9 +83,10 @@ Books a node on the CS Metz clusters
 
    -u, --user <login>          login to connect to CentraleSupelec Metz clusters 
    -m, --machine <machine>     OPTIONAL, a specific machine
-   -f, --frontal <machine>     OPTIONAL, the frontal : either term2.grid or phome (default: term2.grid)
+   -f, --frontal <machine>     OPTIONAL, the frontal : either term2.grid, phome, slurm1 (default: term2.grid)
    -c, --cluster <cluster>     the cluster (default: uSkynet)
    -w, --walltime <walltime>   in hours (default: 24)
+   -s, --scheduler <scheduler> either oar or slurm
    -h, --help                  prints this help message
 "
 
@@ -96,6 +97,7 @@ Logs to an already booked node on the CentraleSupelec Metz cluster
    -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
    -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
                                a list of your booked JOB_ID will be displayed
+   -s, --scheduler <scheduler> either oar or slurm
    -h, --help                  prints this help message
 "
 usage_k="usage :  cscluster kill 
@@ -106,6 +108,7 @@ Deletes a reservation on the CentraleSupelec Metz cluster
    -j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
                                a list of your booked JOB_ID will be displayed
    -j, --jobid all             Will kill all the jobs booked by <login>
+   -s, --scheduler <scheduler> either oar or slurm
    -h, --help                  Prints this help message
 "
 
@@ -119,6 +122,7 @@ Forward a port from a machine you booked to your local computer
    -m, --machine <MACHINE>     The booked hostname.
    -p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
    -k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
+   -s, --scheduler <scheduler> either oar or slurm
    -h, --help                  prints this help message
 "
 
@@ -185,6 +189,7 @@ case $ACTION in
 	WALLTIME=24
 	SSHKEY=
 	QUEUE=default
+	SCHEDULER=oar
 
 	while [[ $# -gt 0 ]]
 	do
@@ -215,6 +220,11 @@ case $ACTION in
 		    shift
 		    shift
 		    ;;
+		-s|--scheduler)
+		    SCHEDULER="$2"
+		    shift
+		    shift
+		    ;;
 		-h|--help)
 		    exec echo "$usage_b";;
 		*)
@@ -230,6 +240,7 @@ case $ACTION in
 	FRONTAL=term2.grid
 	JOBID=
 	SSHKEY=
+	SCHEDULER=oar
 	
 	while [[ $# -gt 0 ]]
 	do
@@ -247,6 +258,11 @@ case $ACTION in
 		    ;;
 		-j|--jobid)
 		    JOBID="$2"
+		    shift
+		    shift
+		    ;;
+		-s|--scheduler)
+		    SCHEDULER="$2"
 		    shift
 		    shift
 		    ;;
@@ -264,6 +280,7 @@ case $ACTION in
 	FRONTAL=term2.grid
 	JOBID=
 	SSHKEY=
+	SCHEDULER=oar
 	
 	while [[ $# -gt 0 ]]
 	do
@@ -281,6 +298,11 @@ case $ACTION in
 		    ;;
 		-j|--jobid)
 		    JOBID="$2"
+		    shift
+		    shift
+		    ;;
+		-s|--scheduler)
+		    SCHEDULER="$2"
 		    shift
 		    shift
 		    ;;
@@ -299,6 +321,7 @@ case $ACTION in
 	MACHINE=
 	PORT=
 	SSHKEY=
+	SCHEDULER=oar
 
 	while [[ $# -gt 0 ]]
 	do
@@ -334,6 +357,11 @@ case $ACTION in
 			shift
 			shift
 			;;
+		-s|--scheduler)
+		    SCHEDULER="$2"
+		    shift
+		    shift
+		    ;;
 		-h|--help)
 		    exec echo "$usage_p";;
 		*)
@@ -384,6 +412,11 @@ execute_on_frontal_withtty ()
 }
 
 
+
+###############################################################################
+#### OAR ######################################################################
+###############################################################################
+
 # test_job_state job_id
 # returns
 oar_test_job_state ()
@@ -425,6 +458,18 @@ oar_get_booked_host ()
 	execute_on_frontal "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
 }
 
+###############################################################################
+#### SLURM ####################################################################
+###############################################################################
+# book_node properties
+slurm_book_node ()
+{
+	display_info "SLURM In book node"
+	execute_on_frontal "salloc --time=$WALLTIME:00:00 -p $PARTITION" > reservation.log
+}
+
+
+
 make_port_forward () 
 {
 	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
@@ -432,12 +477,19 @@ make_port_forward ()
 
 # Alias the commands to use the OAR ones
 # so that the following part of the script is scheduler independent
-test_job_state=oar_test_job_state
-book_node=oar_book_node
-log_node=oar_log_node
-list_job_id=oar_list_job_id
-kill_reservation=oar_kill_reservation
-get_booked_host=oar_get_booked_host
+case $SCHEDULER in 
+	"oar")
+		test_job_state=oar_test_job_state
+		book_node=oar_book_node
+		log_node=oar_log_node
+		list_job_id=oar_list_job_id
+		kill_reservation=oar_kill_reservation
+		get_booked_host=oar_get_booked_host
+		;;
+	"slurm")
+		book_node=slurm_book_node
+		;;
+esac
 
 # For every single action, call its specific commands
 case $ACTION in
@@ -458,7 +510,7 @@ case $ACTION in
 
 
 	
-	msg="Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME"
+	msg="Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME, scheduler $SCHEDULER"
 	if [ ! -z $MACHINE ]; then
 		msg="$msg, machine is $MACHINE"
 	fi
