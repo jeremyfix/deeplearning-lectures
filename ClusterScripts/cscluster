@@ -67,6 +67,8 @@
 # We could then be using : 
 # book_node "${oar_properties[$CLUSTER]}"
 
+# Turn verbose on
+set -x
 
 usage_m="usage :  cscluster [--help] <command>
 
@@ -147,6 +149,10 @@ display_error() {
     echo -e "$RED $1 $NORMAL"
 }
 
+# This is the default session name of screen
+# After an allocation with SLURM is successfull,
+# we rename the session with the JOBID and the default_screen_name as prefix
+default_screen_name=clustersession
 
 # Let us parse the first level of commands
 if [[ $# -eq 0 ]]; then
@@ -442,7 +448,7 @@ oar_log_node ()
 	execute_on_frontal_withtty "oarsub -C $JOBID"
 }
 
-oar_list_job_id ()
+oar_list_allocation ()
 {
     execute_on_frontal "oarstat -u $USER"
 }
@@ -462,12 +468,25 @@ oar_get_booked_host ()
 #### SLURM ####################################################################
 ###############################################################################
 # book_node properties
+
 slurm_book_node ()
 {
 	display_info "SLURM In book node"
-	execute_on_frontal "salloc --time=$WALLTIME:00:00 -p $PARTITION" > reservation.log
+	# Create screen session on the frontal node in detached mode (-d -m)
+	execute_on_frontal "screen -d -m -S $clustersession"
+	# Book a node within the screen session byobu
+	execute_on_frontal "screen -S $clustersession -X stuff 'srun -N 1 -t $WALLTIME:00:00 --pty byobu^M'" > reservation.log
+	# Save the SLURM_JOBID in ~/resa.log
+	execute_on_frontal_withtty 'screen -S '$clustersession' -X stuff '\''rm -f resa.log; echo \$SLURM_JOBID > resa.log ^M'\'''
+	# And use it to rename the screen session to have easy binding between
+	# the slurm jobid and the screen session name
+	execute_on_frontal_withtty 'screen -S '$clustersession' -X sessionname clustersession-`cat resa.log`'
 }
 
+slurm_list_allocation ()
+{
+    execute_on_frontal "squeue -u $USER"
+}
 
 
 make_port_forward () 
@@ -482,12 +501,13 @@ case $SCHEDULER in
 		test_job_state=oar_test_job_state
 		book_node=oar_book_node
 		log_node=oar_log_node
-		list_job_id=oar_list_job_id
+		list_allocation=oar_list_allocation
 		kill_reservation=oar_kill_reservation
 		get_booked_host=oar_get_booked_host
 		;;
 	"slurm")
 		book_node=slurm_book_node
+		list_allocation=slurm_list_allocation
 		;;
 esac
 
@@ -516,6 +536,8 @@ case $ACTION in
 	fi
 	display_info "$msg"
 
+	# test_stuff
+	# exit
 	# Book a node
 	if [ -z $MACHINE ]
 	then
@@ -566,7 +588,7 @@ case $ACTION in
 	then
 	    display_error "No job_id is specified, you must provide one. Call with -h for more help  "
 	    display_info "Listing your current reservations"
-	    $list_job_id
+	    $list_allocation
 	    exit
 	fi
 
@@ -575,7 +597,7 @@ case $ACTION in
 	if [ "$job_state" != "Running" ]; then
 	    display_error "   The reservation is not running yet or anymore."
 	    display_error "   please select a valid job id"
-	    $list_job_id
+	    $list_allocation
 	    exit 0
 	fi
 
@@ -600,7 +622,7 @@ case $ACTION in
 	then
 	    display_error "No job_id is specified, you must provide one. Call with -h for more help  "
 	    display_info "Listing your current reservations"
-	    $list_job_id
+	    $list_allocation
 	    exit
 	fi
 
@@ -608,7 +630,7 @@ case $ACTION in
 	if [[ "$JOBID" = "all" ]]
 	then
 	    display_info "Collecting all the jobid booked for $USER"
-	    JOBID=`$list_job_id | tail +3 | awk '{print $1}' | tr '\n' ' '`
+	    JOBID=`$list_allocation | tail +3 | awk '{print $1}' | tr '\n' ' '`
 	    echo "JOB ID : $JOBID"
 	fi
 
@@ -640,7 +662,7 @@ case $ACTION in
 	    display_error "You must specify a machine with -m <MACHINE>  or a job id with -j <JOB_ID>"
 	    display_error "more info with $0 -h"
 	    display_info "Your current reservations are listed below :"
-	    $list_job_id
+	    $list_allocation
 	    exit -1
 	fi
 	if [ ! -z $JOBID ] && [ ! -z $MACHINE ]
