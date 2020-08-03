@@ -440,111 +440,6 @@ oar_book_node ()
 		oar_props="(cluster='$1' and host='$2')"
 	fi
     execute_on_frontal "oarsub -q $QUEUE -r \"$(date +'%F %T')\" -p \"$oar_props\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
-}
-
-oar_log_node ()
-{
-	display_info "In log node"
-	execute_on_frontal_withtty "oarsub -C $JOBID"
-}
-
-oar_list_allocation ()
-{
-    execute_on_frontal "oarstat -u $USER"
-}
-
-oar_kill_reservation ()
-{
-	execute_on_frontal "oardel $JOBID"
-}
-
-# get_booked_host job_id
-oar_get_booked_host ()
-{
-	execute_on_frontal "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
-}
-
-###############################################################################
-#### SLURM ####################################################################
-###############################################################################
-# book_node properties
-
-slurm_book_node ()
-{
-	display_info "SLURM In book node"
-	# Create screen session on the frontal node in detached mode (-d -m)
-	execute_on_frontal "screen -d -m -S $clustersession"
-	# Book a node within the screen session byobu
-	execute_on_frontal "screen -S $clustersession -X stuff 'srun -N 1 -t $WALLTIME:00:00 --pty byobu^M'" > reservation.log
-	# Save the SLURM_JOBID in ~/resa.log
-	execute_on_frontal_withtty 'screen -S '$clustersession' -X stuff '\''rm -f resa.log; echo \$SLURM_JOBID > resa.log ^M'\'''
-	# And use it to rename the screen session to have easy binding between
-	# the slurm jobid and the screen session name
-	execute_on_frontal_withtty 'screen -S '$clustersession' -X sessionname clustersession-`cat resa.log`'
-}
-
-slurm_list_allocation ()
-{
-    execute_on_frontal "squeue -u $USER"
-}
-
-
-make_port_forward () 
-{
-	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
-}
-
-# Alias the commands to use the OAR ones
-# so that the following part of the script is scheduler independent
-case $SCHEDULER in 
-	"oar")
-		test_job_state=oar_test_job_state
-		book_node=oar_book_node
-		log_node=oar_log_node
-		list_allocation=oar_list_allocation
-		kill_reservation=oar_kill_reservation
-		get_booked_host=oar_get_booked_host
-		;;
-	"slurm")
-		book_node=slurm_book_node
-		list_allocation=slurm_list_allocation
-		;;
-esac
-
-# For every single action, call its specific commands
-case $ACTION in
-	"book")
-		if [ -z $USER ]
-		then
-			display_error "A login is required. Specify it with -u|--user, run with -h for help"
-			exec echo "$usage_b"
-			exit
-		fi
-
-		case $CLUSTER in
-			"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
-			*)
-				display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john"
-				exit;;
-		esac
-
-
-	
-	msg="Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME, scheduler $SCHEDULER"
-	if [ ! -z $MACHINE ]; then
-		msg="$msg, machine is $MACHINE"
-	fi
-	display_info "$msg"
-
-	# test_stuff
-	# exit
-	# Book a node
-	if [ -z $MACHINE ]
-	then
-	    $book_node $CLUSTER
-	else
-	    $book_node $CLUSTER $MACHINE
-	fi
 	
 	# Check the status of the reservation
 	resa_status=`cat reservation.log | grep "Reservation valid" | awk -F "--> " '{print $NF}' -`
@@ -574,6 +469,143 @@ case $ACTION in
 	display_success "The reservation is running"
 
 
+}
+
+oar_log_node ()
+{
+	display_info "I am checking if the reservation $JOBID is still valid"
+	job_state=`$test_job_state $JOBID`
+	if [ "$job_state" != "Running" ]; then
+	    display_error "   The reservation is not running yet or anymore."
+	    display_error "   please select a valid job id"
+	    $list_allocation
+	    exit 0
+	fi
+
+	display_success "   The reservation $JOBID is still running"
+	execute_on_frontal_withtty "oarsub -C $JOBID"
+}
+
+oar_list_allocation ()
+{
+    execute_on_frontal "oarstat -u $USER"
+}
+
+oar_kill_reservation ()
+{
+	execute_on_frontal "oardel $JOBID"
+}
+
+# get_booked_host job_id
+oar_get_booked_host ()
+{
+	execute_on_frontal "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
+}
+
+###############################################################################
+#### SLURM ####################################################################
+###############################################################################
+# book_node properties
+
+slurm_book_node ()
+{
+	display_info "SLURM In book node"
+	# Create screen session on the frontal node in detached mode (-d -m)
+	execute_on_frontal "screen -d -m -S $default_screen_name"
+	# Book a node within the screen session byobu
+	execute_on_frontal "screen -S $default_screen_name -X stuff 'srun -N 1 -t $WALLTIME:00:00 --pty byobu^M'" > reservation.log
+	# Save the SLURM_JOBID in ~/resa.log
+	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X stuff '\''rm -f resa.log; echo \$SLURM_JOBID > resa.log ^M'\'''
+	# Check that resa.log exists
+	
+	####
+	#TODO
+	####
+
+	# And use it to rename the screen session to have easy binding between
+	# the slurm jobid and the screen session name
+	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X sessionname '$default_screen_name'-`cat resa.log`'
+
+	# Check if everything worked gracefully by checking if a session named 
+	# default_screen_name-`cat resa.log`  exists
+
+	####
+	#TODO
+	####
+}
+
+slurm_log_node() 
+{
+	# Check if the provided jobid is still a valid allocation 
+	####
+	#TODO
+	####
+
+	execute_on_frontal_withtty "screen -r $default_screen_name-$JOBID"
+}
+
+slurm_list_allocation ()
+{
+    execute_on_frontal "squeue -u $USER"
+}
+
+
+make_port_forward () 
+{
+	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
+}
+
+# Alias the commands to use the OAR ones
+# so that the following part of the script is scheduler independent
+case $SCHEDULER in 
+	"oar")
+		test_job_state=oar_test_job_state
+		book_node=oar_book_node
+		log_node=oar_log_node
+		list_allocation=oar_list_allocation
+		kill_reservation=oar_kill_reservation
+		get_booked_host=oar_get_booked_host
+		;;
+	"slurm")
+		book_node=slurm_book_node
+		log_node=slurm_log_node
+		list_allocation=slurm_list_allocation
+		;;
+esac
+
+# For every single action, call its specific commands
+case $ACTION in
+	"book")
+		if [ -z $USER ]
+		then
+			display_error "A login is required. Specify it with -u|--user, run with -h for help"
+			exec echo "$usage_b"
+			exit
+		fi
+
+		case $CLUSTER in
+			"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
+			*)
+				display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john"
+				exit;;
+		esac
+
+
+	
+	msg="Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME, scheduler $SCHEDULER"
+	if [ ! -z $MACHINE ]; then
+		msg="$msg, machine is $MACHINE"
+	fi
+	display_info "$msg"
+
+	# Book a node
+	if [ -z $MACHINE ]
+	then
+	    $book_node $CLUSTER
+	else
+	    $book_node $CLUSTER $MACHINE
+	fi
+	
 	;;
     "log")
 
@@ -592,16 +624,6 @@ case $ACTION in
 	    exit
 	fi
 
-	display_info "I am checking if the reservation $JOBID is still valid"
-	job_state=`$test_job_state $JOBID`
-	if [ "$job_state" != "Running" ]; then
-	    display_error "   The reservation is not running yet or anymore."
-	    display_error "   please select a valid job id"
-	    $list_allocation
-	    exit 0
-	fi
-
-	display_success "   The reservation $JOBID is still running"
 	display_info "Logging to the booked node"
 
 	$log_node
