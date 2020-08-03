@@ -386,34 +386,41 @@ execute_on_frontal_withtty ()
 
 # test_job_state job_id
 # returns
-test_job_state ()
+oar_test_job_state ()
 {
     execute_on_frontal "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
 }
 
 # book_node properties
-book_node ()
+oar_book_node ()
 {
-    execute_on_frontal "oarsub -q $QUEUE -r \"$(date +'%F %T')\" -p \"$1\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
+	display_info "In book node"
+	if [ "$#" == 1 ]; then
+		oar_props="cluster='$1'"
+	else
+		oar_props="(cluster='$1' and host='$2')"
+	fi
+    execute_on_frontal "oarsub -q $QUEUE -r \"$(date +'%F %T')\" -p \"$oar_props\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
 }
 
-log_node ()
+oar_log_node ()
 {
+	display_info "In log node"
 	execute_on_frontal_withtty "oarsub -C $JOBID"
 }
 
-list_job_id ()
+oar_list_job_id ()
 {
     execute_on_frontal "oarstat -u $USER"
 }
 
-kill_reservation ()
+oar_kill_reservation ()
 {
 	execute_on_frontal "oardel $JOBID"
 }
 
 # get_booked_host job_id
-get_booked_host ()
+oar_get_booked_host ()
 {
 	execute_on_frontal "oarstat -f -j $1 " | grep assigned_hostnames | awk -F " = " '{print $NF}'
 }
@@ -423,7 +430,14 @@ make_port_forward ()
 	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
 }
 
-
+# Alias the commands to use the OAR ones
+# so that the following part of the script is scheduler independent
+test_job_state=oar_test_job_state
+book_node=oar_book_node
+log_node=oar_log_node
+list_job_id=oar_list_job_id
+kill_reservation=oar_kill_reservation
+get_booked_host=oar_get_booked_host
 
 # For every single action, call its specific commands
 case $ACTION in
@@ -449,9 +463,9 @@ case $ACTION in
 	# Book a node
 	if [ -z $MACHINE ]
 	then
-	    book_node "cluster='$CLUSTER'"
+	    $book_node $CLUSTER
 	else
-	    book_node "(host='$MACHINE' and cluster='$CLUSTER')"
+	    $book_node $CLUSTER $MACHINE
 	fi
 	
 	# Check the status of the reservation
@@ -472,11 +486,11 @@ case $ACTION in
 
 
 	display_info "Waiting for the reservation to be running, might last few seconds"
-	job_state=`test_job_state $job_id`
+	job_state=`$test_job_state $job_id`
 	while [ "$job_state" != "Running" ]
 	do
 	    display_wait "   The reservation is not yet running "
-	    job_state=`test_job_state $job_id`
+	    job_state=`$test_job_state $job_id`
 	done
 
 	display_success "The reservation is running"
@@ -496,23 +510,23 @@ case $ACTION in
 	then
 	    display_error "No job_id is specified, you must provide one. Call with -h for more help  "
 	    display_info "Listing your current reservations"
-	    list_job_id
+	    $list_job_id
 	    exit
 	fi
 
 	display_info "I am checking if the reservation $JOBID is still valid"
-	job_state=`test_job_state $JOBID`
+	job_state=`$test_job_state $JOBID`
 	if [ "$job_state" != "Running" ]; then
 	    display_error "   The reservation is not running yet or anymore."
 	    display_error "   please select a valid job id"
-	    list_job_id
+	    $list_job_id
 	    exit 0
 	fi
 
 	display_success "   The reservation $JOBID is still running"
 	display_info "Logging to the booked node"
 
-	log_node
+	$log_node
 
 	display_info "Unlogged"
 
@@ -530,7 +544,7 @@ case $ACTION in
 	then
 	    display_error "No job_id is specified, you must provide one. Call with -h for more help  "
 	    display_info "Listing your current reservations"
-	    list_job_id
+	    $list_job_id
 	    exit
 	fi
 
@@ -538,7 +552,7 @@ case $ACTION in
 	if [[ "$JOBID" = "all" ]]
 	then
 	    display_info "Collecting all the jobid booked for $USER"
-	    JOBID=`list_job_id | tail +3 | awk '{print $1}' | tr '\n' ' '`
+	    JOBID=`$list_job_id | tail +3 | awk '{print $1}' | tr '\n' ' '`
 	    echo "JOB ID : $JOBID"
 	fi
 
@@ -551,7 +565,7 @@ case $ACTION in
 
 
 	display_info "Killing the reservation(s) $JOBID"
-	kill_reservation
+	$kill_reservation
 	display_success "Done"
 
 	;;
@@ -570,7 +584,7 @@ case $ACTION in
 	    display_error "You must specify a machine with -m <MACHINE>  or a job id with -j <JOB_ID>"
 	    display_error "more info with $0 -h"
 	    display_info "Your current reservations are listed below :"
-	    list_job_id
+	    $list_job_id
 	    exit -1
 	fi
 	if [ ! -z $JOBID ] && [ ! -z $MACHINE ]
@@ -592,14 +606,14 @@ case $ACTION in
 	else
 	    # Check the status of the job
 	    display_info "Checking the status of the reservation JOBID=$JOBID"
-	    job_state=`test_job_state $JOBID`
+	    job_state=`$test_job_state $JOBID`
 	    if [ "$job_state" != "Running" ]; then
 		display_error "   The reservation is not running yet or anymore. Please book a machine"
 		exit -1
 	    fi
 	    display_success "   The reservation $JOBID is still running"
 	    # Request the hostname
-	    host=`get_booked_host $JOBID`
+	    host=`$get_booked_host $JOBID`
 	fi
 	
 	if [ -z $host ]
