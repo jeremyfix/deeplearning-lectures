@@ -68,7 +68,7 @@
 # book_node "${oar_properties[$CLUSTER]}"
 
 # Turn verbose on
-set -x
+# set -x
 
 usage_m="usage :  cscluster [--help] <command>
 
@@ -507,6 +507,15 @@ oar_get_booked_host ()
 ###############################################################################
 # book_node properties
 
+# test_job_state job_id
+# returns
+slurm_test_job_state ()
+{
+    jobstates=`execute_on_frontal "squeue -j $1"`
+    #| tail -n +2 | awk '{print $5}' -
+	# To be matched against R : running, CG : completing, etc...
+}
+
 slurm_book_node ()
 {
 	display_info "SLURM In book node"
@@ -542,6 +551,14 @@ slurm_log_node()
 	####
 
 	execute_on_frontal_withtty "screen -r $default_screen_name-$JOBID"
+
+	exit_code=$?
+	echo "$exit_code"
+	if [ "$exit_code" != "0" ]; then
+		display_error "The logging command failed"
+		display_info "If this is a 'There is no screen session ..', check your jobid is in the following list"
+	    $list_allocation
+	fi
 }
 
 slurm_list_allocation ()
@@ -629,7 +646,6 @@ case $ACTION in
 	$log_node
 
 	display_info "Unlogged"
-
 	;;
     "kill")
 
