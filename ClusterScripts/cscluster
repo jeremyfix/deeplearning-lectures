@@ -458,7 +458,11 @@ case $ACTION in
 
 
 	
-	display_info "Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME, machine is $MACHINE"
+	msg="Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME"
+	if [ ! -z $MACHINE ]; then
+		msg="$msg, machine is $MACHINE"
+	fi
+	display_info "$msg"
 
 	# Book a node
 	if [ -z $MACHINE ]
