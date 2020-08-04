@@ -178,6 +178,10 @@ case $key in
 	ACTION="book"
 	shift # pass argument
 	;;
+    "test")
+	ACTION="test"
+	shift # pass argument
+	;;
     "log")
 	ACTION="log"
 	shift # pass argument
@@ -252,6 +256,46 @@ case $ACTION in
 	done
 	;;
 
+    "test")
+	
+    	# Parse the command line arguments
+	USER=
+	FRONTAL=term2.grid
+	JOBID=
+	SSHKEY=
+	SCHEDULER=oar
+	
+	while [[ $# -gt 0 ]]
+	do
+	    key="$1"
+	    case $key in
+		-u|--user)
+		    USER="$2"
+		    shift # pass argument
+		    shift # pass value
+		    ;;
+		-f|--frontal)
+		    FRONTAL="$2"
+		    shift # pass argument
+		    shift # pass value
+		    ;;
+		-j|--jobid)
+		    JOBID="$2"
+		    shift
+		    shift
+		    ;;
+		-s|--scheduler)
+		    SCHEDULER="$2"
+		    shift
+		    shift
+		    ;;
+		-h|--help)
+		    exec echo "$usage_l";;
+		*)
+		    exec echo "Unrecognized option $key"
+	    esac
+	done
+	;;
     "log")
 	
     	# Parse the command line arguments
@@ -554,8 +598,7 @@ slurm_book_node ()
 	##################### HERE !!! trying to give incorrect session names !!
 
 	# Check if the screen session is correctly created
-	exit_code=`execute_on_frontal "screen -list | grep -q $default_screen_name-$job_id; echo $?"`
-	display_info "Exit code is $exit_code"
+	exit_code=`execute_on_frontal 'screen -list | grep -q '$default_screen_name-$job_id'; echo $?'`
 	if [[ $exit_code != 0 ]]; then
 		display_error "Something went wrong in the reservation, there is no screen session named $default_screen_name-$job_id"
 	else
@@ -600,6 +643,10 @@ make_port_forward ()
 	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
 }
 
+test_func () {
+	display_info "Nothing to do"
+}
+
 # Alias the commands to use the OAR ones
 # so that the following part of the script is scheduler independent
 case $SCHEDULER in 
@@ -626,6 +673,12 @@ esac
 
 # For every single action, call its specific commands
 case $ACTION in
+
+	"test")
+		test_func
+
+		;;
+
 	"book")
 		if [ -z $USER ]
 		then
