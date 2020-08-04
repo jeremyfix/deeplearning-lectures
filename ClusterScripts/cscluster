@@ -63,7 +63,7 @@
 # oar_properties[cameron]="(cluster='cameron' and host in ('cam00', 'cam01', 'cam02', 'cam03', 'cam04','cam05','cam06', 'cam07','cam08','cam09','cam10','cam11', 'cam12','cam13','cam14','cam15','cam16'))"
 # oar_properties[tx]="(cluster='tx' and host in ('tx00', 'tx01', 'tx02', 'tx03', 'tx04','tx05','tx06', 'tx07','tx08','tx09','tx10','tx11', 'tx12','tx13','tx14','tx15','tx16'))"
 # oar_properties[sarah]="(cluster='sarah' and host in ('sar01', 'sar02', 'sar03', 'sar04','sar05','sar06', 'sar07','sar08','sar09','sar10','sar11', 'sar12','sar13','sar14','sar15','sar16', 'sar17','sar18','sar19','sar20','sar21', 'sar22','sar23','sar24','sar25','sar26','sar27','sar28','sar29','sar30','sar31', 'sar32'))"
-  
+
 # We could then be using : 
 # book_node "${oar_properties[$CLUSTER]}"
 
@@ -78,54 +78,54 @@ book          	    book a node on the CentraleSupelec Metz cluster
 log   	            log on an already booked node
 kill        	    kill a reservation on the CentraleSupelec Metz cluster 
 port_forward	    forward a port from a machine you booked to your 
-		            local computer
+local computer
 "
 usage_b="Usage :  cscluster book
 Books a node on the CS Metz clusters
 
-   -u, --user <login>          login to connect to CentraleSupelec Metz clusters 
-   -m, --machine <machine>     OPTIONAL, a specific machine
-   -f, --frontal <machine>     OPTIONAL, the frontal : either term2.grid, phome, slurm1 (default: term2.grid)
-   -c, --cluster <cluster>     the cluster (default: uSkynet)
-   -w, --walltime <walltime>   in hours (default: 24)
-   -s, --scheduler <scheduler> either oar or slurm
-   -h, --help                  prints this help message
+-u, --user <login>          login to connect to CentraleSupelec Metz clusters 
+-m, --machine <machine>     OPTIONAL, a specific machine
+-f, --frontal <machine>     OPTIONAL, the frontal : either term2.grid, phome, slurm1 (default: term2.grid)
+-c, --cluster <cluster>     the cluster (default: uSkynet)
+-w, --walltime <walltime>   in hours (default: 24)
+-s, --scheduler <scheduler> either oar or slurm
+-h, --help                  prints this help message
 "
 
 usage_l="Usage : cscluster log
 Logs to an already booked node on the CentraleSupelec Metz cluster 
 
-   -u, --user <login>          login to connect to CentraleSupelec Metz
-   -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
-   -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
-                               a list of your booked JOB_ID will be displayed
-   -s, --scheduler <scheduler> either oar or slurm
-   -h, --help                  prints this help message
+-u, --user <login>          login to connect to CentraleSupelec Metz
+-f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
+-j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
+a list of your booked JOB_ID will be displayed
+-s, --scheduler <scheduler> either oar or slurm
+-h, --help                  prints this help message
 "
 usage_k="usage :  cscluster kill 
 Deletes a reservation on the CentraleSupelec Metz cluster
 
-   -u, --user <login>          Login to connect to CentraleSupelec Metz
-   -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
-   -j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
-                               a list of your booked JOB_ID will be displayed
-   -j, --jobid all             Will kill all the jobs booked by <login>
-   -s, --scheduler <scheduler> either oar or slurm
-   -h, --help                  Prints this help message
+-u, --user <login>          Login to connect to CentraleSupelec Metz
+-f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
+-j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
+a list of your booked JOB_ID will be displayed
+-j, --jobid all             Will kill all the jobs booked by <login>
+-s, --scheduler <scheduler> either oar or slurm
+-h, --help                  Prints this help message
 "
 
 usage_p="usage :  cscluster port_forward
 Forward a port from a machine you booked to your local computer
 
-   -u, --user <login>          login to connect to CentraleSupelec Metz
-   -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
-   -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
-                               a list of your booked JOB_ID will be displayed
-   -m, --machine <MACHINE>     The booked hostname.
-   -p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
-   -k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
-   -s, --scheduler <scheduler> either oar or slurm
-   -h, --help                  prints this help message
+-u, --user <login>          login to connect to CentraleSupelec Metz
+-f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
+-j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
+a list of your booked JOB_ID will be displayed
+-m, --machine <MACHINE>     The booked hostname.
+-p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
+-k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
+-s, --scheduler <scheduler> either oar or slurm
+-h, --help                  prints this help message
 "
 
 
@@ -137,16 +137,16 @@ BLUE="\\e[1;34m"
 MAGENTA="\\e[1;35m"
 
 display_info() {
-    echo -e "$BLUE $1 $NORMAL" 1>&2
+	echo -e "$BLUE $1 $NORMAL" 1>&2
 }
 display_wait() {
-    echo -e "$MAGENTA $1 $NORMAL" 1>&2
+	echo -e "$MAGENTA $1 $NORMAL" 1>&2
 }
 display_success() {
-    echo -e "$GREEN $1 $NORMAL" 1>&2
+	echo -e "$GREEN $1 $NORMAL" 1>&2
 }
 display_error() {
-    echo -e "$RED $1 $NORMAL" 1>&2
+	echo -e "$RED $1 $NORMAL" 1>&2
 }
 
 wait_char() {
@@ -169,270 +169,270 @@ default_screen_name=clustersession
 
 # Let us parse the first level of commands
 if [[ $# -eq 0 ]]; then
-    exec echo "$usage_m"
+	exec echo "$usage_m"
 fi
 
 key="$1"
 case $key in 
-    "book")
-	ACTION="book"
-	shift # pass argument
-	;;
-    "test")
-	ACTION="test"
-	shift # pass argument
-	;;
-    "log")
-	ACTION="log"
-	shift # pass argument
-	;;
-    "kill")
-	ACTION="kill"
-	shift # pass argument
-	;;
-    "port_forward")
-	ACTION="port_forward"
-	shift # pass argument
-	;;
-    -h|--help)
-	exec echo "$usage_m";;
-    *)
-	display_error "Unrecognized option $key"
-	exec echo "$usage_m";;
+	"book")
+		ACTION="book"
+		shift # pass argument
+		;;
+	"test")
+		ACTION="test"
+		shift # pass argument
+		;;
+	"log")
+		ACTION="log"
+		shift # pass argument
+		;;
+	"kill")
+		ACTION="kill"
+		shift # pass argument
+		;;
+	"port_forward")
+		ACTION="port_forward"
+		shift # pass argument
+		;;
+	-h|--help)
+		exec echo "$usage_m";;
+	*)
+		display_error "Unrecognized option $key"
+		exec echo "$usage_m";;
 esac
 
 # For every single action, call its specific commands
 case $ACTION in
-    "book")
-	# Parse the command line arguments
-	USER=
-	MACHINE=
-	FRONTAL=term2.grid
-	CLUSTER=uSkynet
-	WALLTIME=24
-	SSHKEY=
-	QUEUE=default
-	SCHEDULER=oar
+	"book")
+		# Parse the command line arguments
+		USER=
+		MACHINE=
+		FRONTAL=term2.grid
+		CLUSTER=uSkynet
+		WALLTIME=24
+		SSHKEY=
+		QUEUE=default
+		SCHEDULER=oar
 
-	while [[ $# -gt 0 ]]
-	do
-	    key="$1"
-	    case $key in
-		-u|--user)
-		    USER="$2"
-		    shift # pass argument
-		    shift # pass value
-		    ;;
-		-m|--machine)
-		    MACHINE="$2"
-		    shift
-		    shift
-		    ;;
-		-f|--frontal)
-		    FRONTAL="$2"
-		    shift
-		    shift
-		    ;;
-		-c|--cluster)
-		    CLUSTER="$2"
-		    shift
-		    shift
-		    ;;
-		-w|--walltime)
-		    WALLTIME="$2"
-		    shift
-		    shift
-		    ;;
-		-s|--scheduler)
-		    SCHEDULER="$2"
-		    shift
-		    shift
-		    ;;
-		-h|--help)
-		    exec echo "$usage_b";;
-		*)
-		    exec echo "Unrecognized option $key"
-	    esac
-	done
-	;;
+		while [[ $# -gt 0 ]]
+		do
+			key="$1"
+			case $key in
+				-u|--user)
+					USER="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-m|--machine)
+					MACHINE="$2"
+					shift
+					shift
+					;;
+				-f|--frontal)
+					FRONTAL="$2"
+					shift
+					shift
+					;;
+				-c|--cluster)
+					CLUSTER="$2"
+					shift
+					shift
+					;;
+				-w|--walltime)
+					WALLTIME="$2"
+					shift
+					shift
+					;;
+				-s|--scheduler)
+					SCHEDULER="$2"
+					shift
+					shift
+					;;
+				-h|--help)
+					exec echo "$usage_b";;
+				*)
+					exec echo "Unrecognized option $key"
+			esac
+		done
+		;;
 
-    "test")
-	
-    	# Parse the command line arguments
-	USER=
-	FRONTAL=term2.grid
-	JOBID=
-	SSHKEY=
-	SCHEDULER=oar
-	
-	while [[ $# -gt 0 ]]
-	do
-	    key="$1"
-	    case $key in
-		-u|--user)
-		    USER="$2"
-		    shift # pass argument
-		    shift # pass value
-		    ;;
-		-f|--frontal)
-		    FRONTAL="$2"
-		    shift # pass argument
-		    shift # pass value
-		    ;;
-		-j|--jobid)
-		    JOBID="$2"
-		    shift
-		    shift
-		    ;;
-		-s|--scheduler)
-		    SCHEDULER="$2"
-		    shift
-		    shift
-		    ;;
-		-h|--help)
-		    exec echo "$usage_l";;
-		*)
-		    exec echo "Unrecognized option $key"
-	    esac
-	done
-	;;
-    "log")
-	
-    	# Parse the command line arguments
-	USER=
-	FRONTAL=term2.grid
-	JOBID=
-	SSHKEY=
-	SCHEDULER=oar
-	
-	while [[ $# -gt 0 ]]
-	do
-	    key="$1"
-	    case $key in
-		-u|--user)
-		    USER="$2"
-		    shift # pass argument
-		    shift # pass value
-		    ;;
-		-f|--frontal)
-		    FRONTAL="$2"
-		    shift # pass argument
-		    shift # pass value
-		    ;;
-		-j|--jobid)
-		    JOBID="$2"
-		    shift
-		    shift
-		    ;;
-		-s|--scheduler)
-		    SCHEDULER="$2"
-		    shift
-		    shift
-		    ;;
-		-h|--help)
-		    exec echo "$usage_l";;
-		*)
-		    exec echo "Unrecognized option $key"
-	    esac
-	done
-	;;
+	"test")
 
-    "kill")
-	# Parse the command line arguments
-	USER=
-	FRONTAL=term2.grid
-	JOBID=
-	SSHKEY=
-	SCHEDULER=oar
-	
-	while [[ $# -gt 0 ]]
-	do
-	    key="$1"
-	    case $key in
-		-u|--user)
-		    USER="$2"
-		    shift # pass argument
-		    shift # pass value
-		    ;;
-		-f|--frontal)
-		    FRONTAL="$2"
-		    shift # pass argument
-		    shift # pass value
-		    ;;
-		-j|--jobid)
-		    JOBID="$2"
-		    shift
-		    shift
-		    ;;
-		-s|--scheduler)
-		    SCHEDULER="$2"
-		    shift
-		    shift
-		    ;;
-		-h|--help)
-		    exec echo "$usage_k";;
-		*)
-		    exec echo "Unrecognized option $key"
-	    esac
-	done
-	;;
-    "port_forward")
-	# Parse the command line arguments
-	USER=
-	FRONTAL=term2.grid
-	JOBID=
-	MACHINE=
-	PORT=
-	SSHKEY=
-	SCHEDULER=oar
+		# Parse the command line arguments
+		USER=
+		FRONTAL=term2.grid
+		JOBID=
+		SSHKEY=
+		SCHEDULER=oar
 
-	while [[ $# -gt 0 ]]
-	do
-	    key="$1"
-	    case $key in
-		-u|--user)
-		    USER="$2"
-		    shift # pass argument
-		    shift # pass value
-		    ;;
-		-f|--frontal)
-		    FRONTAL="$2"
-		    shift # pass argument
-		    shift # pass value
-		    ;;
-		-j|--jobid)
-		    JOBID="$2"
-		    shift
-		    shift
-		    ;;
-		-m|--machine)
-		    MACHINE="$2"
-		    shift
-		    shift
-		    ;;
-		-p|--port)
-		    PORT="$2"
-		    shift
-		    shift
-		    ;;
-		-k|--key)
-			SSHKEY="$2"
-			shift
-			shift
-			;;
-		-s|--scheduler)
-		    SCHEDULER="$2"
-		    shift
-		    shift
-		    ;;
-		-h|--help)
-		    exec echo "$usage_p";;
-		*)
-		    exec echo "Unrecognized option $key"
-	    esac
-	done
-	
-	;;
+		while [[ $# -gt 0 ]]
+		do
+			key="$1"
+			case $key in
+				-u|--user)
+					USER="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-f|--frontal)
+					FRONTAL="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-j|--jobid)
+					JOBID="$2"
+					shift
+					shift
+					;;
+				-s|--scheduler)
+					SCHEDULER="$2"
+					shift
+					shift
+					;;
+				-h|--help)
+					exec echo "$usage_l";;
+				*)
+					exec echo "Unrecognized option $key"
+			esac
+		done
+		;;
+	"log")
+
+		# Parse the command line arguments
+		USER=
+		FRONTAL=term2.grid
+		JOBID=
+		SSHKEY=
+		SCHEDULER=oar
+
+		while [[ $# -gt 0 ]]
+		do
+			key="$1"
+			case $key in
+				-u|--user)
+					USER="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-f|--frontal)
+					FRONTAL="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-j|--jobid)
+					JOBID="$2"
+					shift
+					shift
+					;;
+				-s|--scheduler)
+					SCHEDULER="$2"
+					shift
+					shift
+					;;
+				-h|--help)
+					exec echo "$usage_l";;
+				*)
+					exec echo "Unrecognized option $key"
+			esac
+		done
+		;;
+
+	"kill")
+		# Parse the command line arguments
+		USER=
+		FRONTAL=term2.grid
+		JOBID=
+		SSHKEY=
+		SCHEDULER=oar
+
+		while [[ $# -gt 0 ]]
+		do
+			key="$1"
+			case $key in
+				-u|--user)
+					USER="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-f|--frontal)
+					FRONTAL="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-j|--jobid)
+					JOBID="$2"
+					shift
+					shift
+					;;
+				-s|--scheduler)
+					SCHEDULER="$2"
+					shift
+					shift
+					;;
+				-h|--help)
+					exec echo "$usage_k";;
+				*)
+					exec echo "Unrecognized option $key"
+			esac
+		done
+		;;
+	"port_forward")
+		# Parse the command line arguments
+		USER=
+		FRONTAL=term2.grid
+		JOBID=
+		MACHINE=
+		PORT=
+		SSHKEY=
+		SCHEDULER=oar
+
+		while [[ $# -gt 0 ]]
+		do
+			key="$1"
+			case $key in
+				-u|--user)
+					USER="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-f|--frontal)
+					FRONTAL="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-j|--jobid)
+					JOBID="$2"
+					shift
+					shift
+					;;
+				-m|--machine)
+					MACHINE="$2"
+					shift
+					shift
+					;;
+				-p|--port)
+					PORT="$2"
+					shift
+					shift
+					;;
+				-k|--key)
+					SSHKEY="$2"
+					shift
+					shift
+					;;
+				-s|--scheduler)
+					SCHEDULER="$2"
+					shift
+					shift
+					;;
+				-h|--help)
+					exec echo "$usage_p";;
+				*)
+					exec echo "Unrecognized option $key"
+			esac
+		done
+
+		;;
 esac
 
 ACCESS_NODE=ghome.metz.supelec.fr
@@ -442,22 +442,22 @@ ACCESS_NODE=ghome.metz.supelec.fr
 SSHKEY_COMMAND=
 if [ ! -z $SSHKEY ]
 then
-    display_info "I will use the file $SSHKEY as ssh key for the connection"
-    if [ ! -f $SSHKEY ]
-    then
-        display_error "The provided file $SSHKEY does not exist."
-        exit -1
-    fi
-    # Ok, the file exists, we need to check the permissions are 600
-    permissions=`stat -c %a $SSHKEY`
-    if [ ! $permissions == 600 ]
-    then
-        display_error "The provided ssh key has permissions $permissions"
-        display_error "but must have permissions 600. Executing the following should make it :"
-        display_error "chmod 600 $SSHKEY"
-        exit -1
-    fi
-    SSHKEY_COMMAND="-i $SSHKEY"
+	display_info "I will use the file $SSHKEY as ssh key for the connection"
+	if [ ! -f $SSHKEY ]
+	then
+		display_error "The provided file $SSHKEY does not exist."
+		exit -1
+	fi
+	# Ok, the file exists, we need to check the permissions are 600
+	permissions=`stat -c %a $SSHKEY`
+	if [ ! $permissions == 600 ]
+	then
+		display_error "The provided ssh key has permissions $permissions"
+		display_error "but must have permissions 600. Executing the following should make it :"
+		display_error "chmod 600 $SSHKEY"
+		exit -1
+	fi
+	SSHKEY_COMMAND="-i $SSHKEY"
 fi
 
 # For bouncing over the proxy
@@ -484,7 +484,7 @@ execute_on_frontal_withtty ()
 # returns
 oar_test_job_state ()
 {
-    execute_on_frontal "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
+	execute_on_frontal "oarstat -s -j $1" | awk -F ": " '{print $NF}' -
 }
 
 # book_node properties
@@ -496,19 +496,19 @@ oar_book_node ()
 	else
 		oar_props="(cluster='$1' and host='$2')"
 	fi
-    execute_on_frontal "oarsub -q $QUEUE -r \"$(date +'%F %T')\" -p \"$oar_props\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
-	
+	execute_on_frontal "oarsub -q $QUEUE -r \"$(date +'%F %T')\" -p \"$oar_props\" -l nodes=1,walltime=$WALLTIME:00:00" > reservation.log
+
 	# Check the status of the reservation
 	resa_status=`cat reservation.log | grep "Reservation valid" | awk -F "--> " '{print $NF}' -`
 	if [ "$resa_status" == "OK" ]
 	then
-	    display_success "Reservation successfull"
+		display_success "Reservation successfull"
 	else
-	    display_error "Reservation failed"
+		display_error "Reservation failed"
 
-	    display_error "Check disponibility here: http://www.lsi.metz.supelec.fr/grid/drawgantt/"
-	    display_error "Make sure that the requested cluster belongs to the requested frontal "
-	    exit
+		display_error "Check disponibility here: http://www.lsi.metz.supelec.fr/grid/drawgantt/"
+		display_error "Make sure that the requested cluster belongs to the requested frontal "
+		exit
 	fi
 
 	job_id=`cat reservation.log | grep OAR_JOB_ID | awk -F "=" '{ print $2}' -`
@@ -521,10 +521,10 @@ oar_log_node ()
 	display_info "I am checking if the reservation $1 is still valid"
 	job_state=`$test_job_state $1`
 	if [ "$job_state" != "Running" ]; then
-	    display_error "   The reservation is not running yet or anymore."
-	    display_error "   please select a valid job id"
-	    $list_allocation
-	    exit 0
+		display_error "   The reservation is not running yet or anymore."
+		display_error "   please select a valid job id"
+		$list_allocation
+		exit 0
 	fi
 
 	display_success "   The reservation $1 is still running"
@@ -533,7 +533,7 @@ oar_log_node ()
 
 oar_list_allocation ()
 {
-    execute_on_frontal "oarstat -u $USER"
+	execute_on_frontal "oarstat -u $USER"
 }
 
 oar_list_all_jobids()
@@ -562,7 +562,7 @@ oar_get_booked_host ()
 # returns "Running" or ""
 slurm_test_job_state ()
 {
-    jobstates=`execute_on_frontal "squeue -j $1" 2>/dev/null | tail -n +2 | awk '{print $5}' -`
+	jobstates=`execute_on_frontal "squeue -j $1" 2>/dev/null | tail -n +2 | awk '{print $5}' -`
 	# To be matched against R : running, CG : completing, etc...
 	if [[ $jobstates == "R" ]]; then
 		echo "Running"
@@ -594,9 +594,6 @@ slurm_book_node ()
 
 	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X sessionname '$default_screen_name'-'$job_id
 
-	### TO BE TESTED 
-	##################### HERE !!! trying to give incorrect session names !!
-
 	# Check if the screen session is correctly created
 	exit_code=`execute_on_frontal 'screen -list | grep -q '$default_screen_name-$job_id'; echo $?'`
 	if [[ $exit_code != 0 ]]; then
@@ -616,14 +613,14 @@ slurm_log_node()
 	if [ "$exit_code" != "0" ]; then
 		display_error "The logging command failed"
 		display_info "If this is a 'There is no screen session ..', check your jobid is in the following list"
-	    $list_allocation
+		$list_allocation
 		exit
 	fi
 }
 
 slurm_list_allocation ()
 {
-    execute_on_frontal "squeue -u $USER"
+	execute_on_frontal "squeue -u $USER"
 }
 
 slurm_list_all_jobids ()
@@ -641,7 +638,7 @@ slurm_kill_reservation ()
 
 slurm_get_booked_host () 
 {
-    node=`execute_on_frontal "squeue -j $1" 2>/dev/null | tail -n +2 | awk '{print $8}' -`
+	node=`execute_on_frontal "squeue -j $1" 2>/dev/null | tail -n +2 | awk '{print $8}' -`
 	if [ -z $node ]; then
 		display_error "Failed to retrieve the node for the reservation $1. Is it still running ?".
 		display_info "Check your jobid is in the following list of your reservations"
@@ -709,62 +706,62 @@ case $ACTION in
 		esac
 
 
-	
-	msg="Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME, scheduler $SCHEDULER"
-	if [ ! -z $MACHINE ]; then
-		msg="$msg, machine is $MACHINE"
-	fi
-	display_info "$msg"
 
-	# Book a node
-	if [ -z $MACHINE ]
-	then
-	    job_id=`$book_node $CLUSTER`
-	else
-	    job_id=`$book_node $CLUSTER $MACHINE`
-	fi
+		msg="Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME, scheduler $SCHEDULER"
+		if [ ! -z $MACHINE ]; then
+			msg="$msg, machine is $MACHINE"
+		fi
+		display_info "$msg"
 
-	# Ping the reservation and wait until it's Running
-	display_info "Waiting for the reservation $job_id to be running, might last few seconds"
-	wait_cnt=0
-	echo -ne "$MAGENTA   The reservation $job_id is not yet running `wait_char $wait_cnt` $NORMAL"
-	job_state=`$test_job_state $job_id`
-	while [ "$job_state" != "Running" ]
-	do
-		echo -ne "\r$MAGENTA   The reservation $job_id is not yet running `wait_char $wait_cnt` $NORMAL"
-		wait_cnt=`expr $wait_cnt + 1`
-		if [[ $wait_cnt > 3 ]]; then wait_cnt=0; fi
-	    job_state=`$test_job_state $job_id`
-	done
-	display_success "\nThe reservation $job_id is running"
+		# Book a node
+		if [ -z $MACHINE ]
+		then
+			job_id=`$book_node $CLUSTER`
+		else
+			job_id=`$book_node $CLUSTER $MACHINE`
+		fi
 
-	
-	;;
-    "log")
+		# Ping the reservation and wait until it's Running
+		display_info "Waiting for the reservation $job_id to be running, might last few seconds"
+		wait_cnt=0
+		echo -ne "$MAGENTA   The reservation $job_id is not yet running `wait_char $wait_cnt` $NORMAL"
+		job_state=`$test_job_state $job_id`
+		while [ "$job_state" != "Running" ]
+		do
+			echo -ne "\r$MAGENTA   The reservation $job_id is not yet running `wait_char $wait_cnt` $NORMAL"
+			wait_cnt=`expr $wait_cnt + 1`
+			if [[ $wait_cnt > 3 ]]; then wait_cnt=0; fi
+			job_state=`$test_job_state $job_id`
+		done
+		display_success "\nThe reservation $job_id is running"
 
-	if [ -z $USER ]
-	then
-	    display_error "A login is required. Specify it with -u|--user, run with -h for help"
-	    exec echo "$usage_l"
-	    exit
-	fi
 
-	if [ -z $JOBID ]
-	then
-	    display_error "No job_id is specified, you must provide one. Call with -h for more help  "
-	    display_info "Listing your current reservations"
-	    $list_allocation
-	    exit
-	fi
+		;;
+	"log")
 
-	display_info "Logging to the booked node"
+		if [ -z $USER ]
+		then
+			display_error "A login is required. Specify it with -u|--user, run with -h for help"
+			exec echo "$usage_l"
+			exit
+		fi
 
-	$log_node $JOBID
+		if [ -z $JOBID ]
+		then
+			display_error "No job_id is specified, you must provide one. Call with -h for more help  "
+			display_info "Listing your current reservations"
+			$list_allocation
+			exit
+		fi
 
-	display_info "Unlogged"
-	;;
+		display_info "Logging to the booked node"
 
-    "kill")
+		$log_node $JOBID
+
+		display_info "Unlogged"
+		;;
+
+	"kill")
 
 		if [ -z $USER ]
 		then
@@ -804,60 +801,60 @@ case $ACTION in
 		display_success "Done"
 
 		;;
-    "port_forward")
+	"port_forward")
 
 
-	if [ -z $USER ]
-	then
-	    display_error "A login is required. Specify it with -u|--user, run with -h for help"
-	    exec echo "$usage_p"	    
-	    exit
-	fi
+		if [ -z $USER ]
+		then
+			display_error "A login is required. Specify it with -u|--user, run with -h for help"
+			exec echo "$usage_p"	    
+			exit
+		fi
 
-	if [ -z $JOBID ] && [ -z $MACHINE ]
-	then
-	    display_error "You must specify a machine with -m <MACHINE>  or a job id with -j <JOB_ID>"
-	    display_error "more info with $0 -h"
-	    display_info "Your current reservations are listed below :"
-	    $list_allocation
-	    exit -1
-	fi
-	if [ ! -z $JOBID ] && [ ! -z $MACHINE ]
-	then
-	    display_error "You cannot specify both a machine and a jobid"
-	    exit -1
-	fi
-	if [ -z $PORT ]
-	then
-	    display_error "A port is required. Specify it with -p|--port, run with -h for help"
-	    exec echo "$usage_p"
-	    exit -1
-	fi
-	
-	
-	if [ ! -z $MACHINE ]
-	then
-	    host=$MACHINE
-	else
-	    # Check the status of the job
-	    display_info "Checking the status of the reservation JOBID=$JOBID"
-	    job_state=`$test_job_state $JOBID`
-	    if [ "$job_state" != "Running" ]; then
-		display_error "   The reservation is not running yet or anymore. Please book a machine"
-		exit -1
-	    fi
-	    display_success "   The reservation $JOBID is still running"
-	    # Request the hostname
-	    host=`$get_booked_host $JOBID`
-	fi
-	
-	if [ -z $host ]
-	then
-	    display_error "Error while trying to get the booked hostname"
-	    exit -1
-	fi
-	
-	display_info "Activating port forwarding from host $host:$PORT to 127.0.0.1:$PORT"
-	make_port_forward
-	;;
+		if [ -z $JOBID ] && [ -z $MACHINE ]
+		then
+			display_error "You must specify a machine with -m <MACHINE>  or a job id with -j <JOB_ID>"
+			display_error "more info with $0 -h"
+			display_info "Your current reservations are listed below :"
+			$list_allocation
+			exit -1
+		fi
+		if [ ! -z $JOBID ] && [ ! -z $MACHINE ]
+		then
+			display_error "You cannot specify both a machine and a jobid"
+			exit -1
+		fi
+		if [ -z $PORT ]
+		then
+			display_error "A port is required. Specify it with -p|--port, run with -h for help"
+			exec echo "$usage_p"
+			exit -1
+		fi
+
+
+		if [ ! -z $MACHINE ]
+		then
+			host=$MACHINE
+		else
+			# Check the status of the job
+			display_info "Checking the status of the reservation JOBID=$JOBID"
+			job_state=`$test_job_state $JOBID`
+			if [ "$job_state" != "Running" ]; then
+				display_error "   The reservation is not running yet or anymore. Please book a machine"
+				exit -1
+			fi
+			display_success "   The reservation $JOBID is still running"
+			# Request the hostname
+			host=`$get_booked_host $JOBID`
+		fi
+
+		if [ -z $host ]
+		then
+			display_error "Error while trying to get the booked hostname"
+			exit -1
+		fi
+
+		display_info "Activating port forwarding from host $host:$PORT to 127.0.0.1:$PORT"
+		make_port_forward
+		;;
 esac
