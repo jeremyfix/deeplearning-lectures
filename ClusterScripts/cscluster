@@ -617,6 +617,7 @@ slurm_log_node()
 		display_error "The logging command failed"
 		display_info "If this is a 'There is no screen session ..', check your jobid is in the following list"
 	    $list_allocation
+		exit
 	fi
 }
 
@@ -636,6 +637,18 @@ slurm_kill_reservation ()
 {
 	display_info "Killing the reservation $1"
 	execute_on_frontal "screen -S $default_screen_name-$1 -X kill"
+}
+
+slurm_get_booked_host () 
+{
+    node=`execute_on_frontal "squeue -j $1" 2>/dev/null | tail -n +2 | awk '{print $8}' -`
+	if [ -z $node ]; then
+		display_error "Failed to retrieve the node for the reservation $1. Is it still running ?".
+		display_info "Check your jobid is in the following list of your reservations"
+		$list_allocation
+		exit
+	fi
+	echo $node
 }
 
 make_port_forward () 
@@ -668,6 +681,7 @@ case $SCHEDULER in
 		list_allocation=slurm_list_allocation
 		list_all_jobids=slurm_list_all_jobids
 		kill_reservation=slurm_kill_reservation
+		get_booked_host=slurm_get_booked_host
 		;;
 esac
 
