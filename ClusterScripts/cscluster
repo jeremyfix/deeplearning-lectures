@@ -619,6 +619,7 @@ slurm_list_all_jobids ()
 slurm_kill_reservation () 
 {
 	display_info "Killing the reservation $1"
+	execute_on_frontal "scancel $1"
 	execute_on_frontal "screen -S $default_screen_name-$1 -X kill"
 }
 
