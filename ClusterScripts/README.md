@@ -9,57 +9,57 @@ For **booking** a node
 	Usage :  cscluster book
 	Books a node on the CS Metz clusters
 
-		-u, --user <login>          login to connect to CentraleSupelec Metz clusters
+		-u, --user <login>          login to connect to CentraleSupelec Metz clusters 
 		-m, --machine <machine>     OPTIONAL, a specific machine
-		-f, --frontal <machine>     OPTIONAL, the frontal : either term2.grid or phome (default: term2.grid)
 		-c, --cluster <cluster>     the cluster (default: uSkynet)
 		-w, --walltime <walltime>   in hours (default: 24)
 		-h, --help                  prints this help message
+
+		Options specific to clusters handled with SLURM (Kyle):
+		-p, --partition <partition> on which partition to book a node
 
 For **logging** to a booked node
 					
 	zaza:$ cscluster log -h	
 
     Usage : cscluster log
-    Logs to an already booked node on the grid5000 cluster 
-    
-       -u, --user <login>          login to connect to grid5000
-       -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
-       -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
-                                   a list of your booked JOB_ID will be displayed
-       -h, --help                  prints this help message
+	Logs to an already booked node on the CentraleSupelec Metz cluster 
+
+		-u, --user <login>          login to connect to CentraleSupelec Metz
+		-c, --cluster <cluster>     the cluster (default: uSkynet)
+		-j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
+		a list of your booked JOB_ID will be displayed
+		-h, --help                  prints this help message
 
 For **forwarding a port** from a booked node to your localhost
 
 	zaza:$ cscluster port_forward -h
 
     usage :  cscluster port_forward
-    Forward a port from a machine you booked to your local computer
-    
-       -u, --user <login>          login to connect to grid5000
-       -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
-       -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
-                                   a list of your booked JOB_ID will be displayed
-       -m, --machine <MACHINE>     The booked hostname.
-       -p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
-       -k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
-       -h, --help                  prints this help message
+	Forward a port from a machine you booked to your local computer
 
+		-u, --user <login>          login to connect to CentraleSupelec Metz
+		-c, --cluster <cluster>     the cluster (default: uSkynet)
+		-j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
+		a list of your booked JOB_ID will be displayed
+		-m, --machine <MACHINE>     The booked hostname.
+		-p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
+		-k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
+		-h, --help                  prints this help message
 
 For **releasing** a booked node
 
 	zaza:$ cscluster kill -h
 
     usage :  cscluster kill 
-    Deletes a reservation on the grid5000 cluster
-    
-       -u, --user <login>          Login to connect to grid5000
-       -f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
-       -j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
-                                   a list of your booked JOB_ID will be displayed
-       -j, --jobid all             Will kill all the jobs booked by <login>
-       -h, --help                  Prints this help message
+	Deletes a reservation on the CentraleSupelec Metz cluster
 
+		-u, --user <login>          Login to connect to CentraleSupelec Metz
+		-c, --cluster <cluster>     the cluster (default: uSkynet)
+		-j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
+		a list of your booked JOB_ID will be displayed
+		-j, --jobid all             Will kill all the jobs booked by <login>
+		-h, --help                  Prints this help message
 
 # Windows cluster scripts
 

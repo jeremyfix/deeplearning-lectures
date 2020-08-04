@@ -106,11 +106,10 @@ usage_k="usage :  cscluster kill
 Deletes a reservation on the CentraleSupelec Metz cluster
 
 -u, --user <login>          Login to connect to CentraleSupelec Metz
--f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
+-c, --cluster <cluster>     the cluster (default: uSkynet)
 -j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
 a list of your booked JOB_ID will be displayed
 -j, --jobid all             Will kill all the jobs booked by <login>
--s, --scheduler <scheduler> either oar or slurm
 -h, --help                  Prints this help message
 "
 
@@ -118,13 +117,12 @@ usage_p="usage :  cscluster port_forward
 Forward a port from a machine you booked to your local computer
 
 -u, --user <login>          login to connect to CentraleSupelec Metz
--f, --frontal <machine>     OPTIONAL, the frontal(default: term2.grid)
+-c, --cluster <cluster>     the cluster (default: uSkynet)
 -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
 a list of your booked JOB_ID will be displayed
 -m, --machine <MACHINE>     The booked hostname.
 -p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
 -k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
--s, --scheduler <scheduler> either oar or slurm
 -h, --help                  prints this help message
 "
 
