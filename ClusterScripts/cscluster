@@ -85,10 +85,8 @@ Books a node on the CS Metz clusters
 
 -u, --user <login>          login to connect to CentraleSupelec Metz clusters 
 -m, --machine <machine>     OPTIONAL, a specific machine
--f, --frontal <machine>     OPTIONAL, the frontal : either term2.grid, phome, slurm1 (default: term2.grid)
 -c, --cluster <cluster>     the cluster (default: uSkynet)
 -w, --walltime <walltime>   in hours (default: 24)
--s, --scheduler <scheduler> either oar or slurm
 -h, --help                  prints this help message
 "
 
@@ -207,12 +205,12 @@ case $ACTION in
 		# Parse the command line arguments
 		USER=
 		MACHINE=
-		FRONTAL=term2.grid
+		FRONTAL=
 		CLUSTER=uSkynet
 		WALLTIME=24
 		SSHKEY=
 		QUEUE=default
-		SCHEDULER=oar
+		SCHEDULER=
 
 		while [[ $# -gt 0 ]]
 		do
@@ -228,11 +226,6 @@ case $ACTION in
 					shift
 					shift
 					;;
-				-f|--frontal)
-					FRONTAL="$2"
-					shift
-					shift
-					;;
 				-c|--cluster)
 					CLUSTER="$2"
 					shift
@@ -240,11 +233,6 @@ case $ACTION in
 					;;
 				-w|--walltime)
 					WALLTIME="$2"
-					shift
-					shift
-					;;
-				-s|--scheduler)
-					SCHEDULER="$2"
 					shift
 					shift
 					;;
@@ -446,7 +434,7 @@ then
 	if [ ! -f $SSHKEY ]
 	then
 		display_error "The provided file $SSHKEY does not exist."
-		exit -1
+		exit 1
 	fi
 	# Ok, the file exists, we need to check the permissions are 600
 	permissions=`stat -c %a $SSHKEY`
@@ -455,7 +443,7 @@ then
 		display_error "The provided ssh key has permissions $permissions"
 		display_error "but must have permissions 600. Executing the following should make it :"
 		display_error "chmod 600 $SSHKEY"
-		exit -1
+		exit 1
 	fi
 	SSHKEY_COMMAND="-i $SSHKEY"
 fi
@@ -524,7 +512,7 @@ oar_log_node ()
 		display_error "   The reservation is not running yet or anymore."
 		display_error "   please select a valid job id"
 		$list_allocation
-		exit 0
+		exit 1
 	fi
 
 	display_success "   The reservation $1 is still running"
@@ -571,12 +559,21 @@ slurm_test_job_state ()
 	fi
 }
 
+# slurm_book_node CLUSTER <MACHINE>
 slurm_book_node ()
 {
 	# Create screen session on the frontal node in detached mode (-d -m)
 	execute_on_frontal "screen -d -m -S $default_screen_name"
 	# Book a node within the screen session byobu
-	execute_on_frontal "screen -S $default_screen_name -X stuff 'srun -N 1 -t $WALLTIME:00:00 --pty byobu^M'" > reservation.log
+	if [[ $# -eq 1 ]]; then
+		# Book a node with the given partition
+		slurm_cmd="'srun -N 1 -t '$WALLTIME':00:00 --pty byobu^M'"
+	else
+		# Book a specific node on a specific partition
+		slurm_cmd="'srun --nodelist=$2 -N 1 -t '$WALLTIME':00:00 --pty byobu^M'"
+	fi
+	execute_on_frontal "screen -S $default_screen_name -X stuff $slurm_cmd"
+
 	# Save the SLURM_JOBID in ~/resa.log
 	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X stuff '\''rm -f resa.log; echo \$SLURM_JOBID > resa.log ^M'\'''
 
@@ -587,7 +584,9 @@ slurm_book_node ()
 	if [ -z $job_id ]
 	then
 		display_error "Something went wrong in the reservation, I cannot get the jobid from the cluster"
-		exit
+		# We must kill the screen session
+		execute_on_frontal "screen -S $default_screen_name -X kill"
+		return 1
 	fi
 
 	display_success "Reservation $job_id successfull"
@@ -598,6 +597,9 @@ slurm_book_node ()
 	exit_code=`execute_on_frontal 'screen -list | grep -q '$default_screen_name-$job_id'; echo $?'`
 	if [[ $exit_code != 0 ]]; then
 		display_error "Something went wrong in the reservation, there is no screen session named $default_screen_name-$job_id"
+		# We kill the default session since it might still exist
+		execute_on_frontal "screen -S $default_screen_name -X kill"
+		return 1
 	else
 		display_success "Screen session $default_screen_name-$job_id created"
 	fi
@@ -614,7 +616,7 @@ slurm_log_node()
 		display_error "The logging command failed"
 		display_info "If this is a 'There is no screen session ..', check your jobid is in the following list"
 		$list_allocation
-		exit
+		return 1
 	fi
 }
 
@@ -643,7 +645,7 @@ slurm_get_booked_host ()
 		display_error "Failed to retrieve the node for the reservation $1. Is it still running ?".
 		display_info "Check your jobid is in the following list of your reservations"
 		$list_allocation
-		exit
+		return 1
 	fi
 	echo $node
 }
@@ -656,6 +658,31 @@ make_port_forward ()
 test_func () {
 	display_info "Nothing to do"
 }
+
+# Handle the cluster bindings setting up the variables FRONTAL and SCHEDULER
+case $CLUSTER in
+	"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
+	*)
+		display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john"
+		exit;;
+esac
+
+case $CLUSTER in
+	"uSkynet" | "cameron" | "tx")
+		FRONTAL=term2.grid
+		SCHEDULER=oar
+		;;
+	"john"|"sarah")
+		FRONTAL=phome
+		SCHEDULER=oar
+		;;
+	"kyle")
+		FRONTAL=slurm1
+		SCHEDULER=slurm
+		;;
+esac
+
+
 
 # Alias the commands to use the OAR ones
 # so that the following part of the script is scheduler independent
@@ -698,15 +725,6 @@ case $ACTION in
 			exit
 		fi
 
-		case $CLUSTER in
-			"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
-			*)
-				display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john"
-				exit;;
-		esac
-
-
-
 		msg="Booking a node for $USER, on cluster $CLUSTER, frontal $FRONTAL, with walltime $WALLTIME, scheduler $SCHEDULER"
 		if [ ! -z $MACHINE ]; then
 			msg="$msg, machine is $MACHINE"
@@ -719,6 +737,10 @@ case $ACTION in
 			job_id=`$book_node $CLUSTER`
 		else
 			job_id=`$book_node $CLUSTER $MACHINE`
+		fi
+
+		if [[ $? != 0 ]]; then
+			exit
 		fi
 
 		# Ping the reservation and wait until it's Running
