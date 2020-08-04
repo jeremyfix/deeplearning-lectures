@@ -85,45 +85,57 @@ Books a node on the CS Metz clusters
 
 -u, --user <login>          login to connect to CentraleSupelec Metz clusters 
 -m, --machine <machine>     OPTIONAL, a specific machine
--c, --cluster <cluster>     the cluster (default: uSkynet)
+-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 -w, --walltime <walltime>   in hours (default: 24)
 -h, --help                  prints this help message
 
 Options specific to clusters handled with SLURM (Kyle):
 -p, --partition <partition> on which partition to book a node
+
+You must specify either the cluster or the frontal but not both.
 "
 
 usage_l="Usage : cscluster log
 Logs to an already booked node on the CentraleSupelec Metz cluster 
 
 -u, --user <login>          login to connect to CentraleSupelec Metz
--c, --cluster <cluster>     the cluster (default: uSkynet)
+-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
 a list of your booked JOB_ID will be displayed
 -h, --help                  prints this help message
+
+You must specify either the cluster or the frontal but not both.
 "
 usage_k="usage :  cscluster kill 
 Deletes a reservation on the CentraleSupelec Metz cluster
 
 -u, --user <login>          Login to connect to CentraleSupelec Metz
--c, --cluster <cluster>     the cluster (default: uSkynet)
+-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 -j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
 a list of your booked JOB_ID will be displayed
 -j, --jobid all             Will kill all the jobs booked by <login>
 -h, --help                  Prints this help message
+
+You must specify either the cluster or the frontal but not both.
 "
 
 usage_p="usage :  cscluster port_forward
 Forward a port from a machine you booked to your local computer
 
 -u, --user <login>          login to connect to CentraleSupelec Metz
--c, --cluster <cluster>     the cluster (default: uSkynet)
+-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 -j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
 a list of your booked JOB_ID will be displayed
 -m, --machine <MACHINE>     The booked hostname.
 -p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
 -k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
 -h, --help                  prints this help message
+
+You must specify either the cluster or the frontal but not both.
 "
 
 
@@ -206,7 +218,7 @@ case $ACTION in
 		USER=
 		MACHINE=
 		FRONTAL=
-		CLUSTER=uSkynet
+		CLUSTER=
 		WALLTIME=24
 		SSHKEY=
 		QUEUE=default
@@ -224,6 +236,11 @@ case $ACTION in
 					;;
 				-m|--machine)
 					MACHINE="$2"
+					shift
+					shift
+					;;
+				-f|--frontal)
+					FRONTAL="$2"
 					shift
 					shift
 					;;
@@ -250,46 +267,6 @@ case $ACTION in
 		done
 		;;
 
-	"test")
-
-		# Parse the command line arguments
-		USER=
-		FRONTAL=term2.grid
-		JOBID=
-		SSHKEY=
-		SCHEDULER=oar
-
-		while [[ $# -gt 0 ]]
-		do
-			key="$1"
-			case $key in
-				-u|--user)
-					USER="$2"
-					shift # pass argument
-					shift # pass value
-					;;
-				-f|--frontal)
-					FRONTAL="$2"
-					shift # pass argument
-					shift # pass value
-					;;
-				-j|--jobid)
-					JOBID="$2"
-					shift
-					shift
-					;;
-				-s|--scheduler)
-					SCHEDULER="$2"
-					shift
-					shift
-					;;
-				-h|--help)
-					exec echo "$usage_l";;
-				*)
-					exec echo "Unrecognized option $key"
-			esac
-		done
-		;;
 	"log")
 
 		# Parse the command line arguments
@@ -307,6 +284,11 @@ case $ACTION in
 					USER="$2"
 					shift # pass argument
 					shift # pass value
+					;;
+				-f|--frontal)
+					FRONTAL="$2"
+					shift
+					shift
 					;;
 				-c|--cluster)
 					CLUSTER="$2"
@@ -343,6 +325,11 @@ case $ACTION in
 					shift # pass argument
 					shift # pass value
 					;;
+				-f|--frontal)
+					FRONTAL="$2"
+					shift
+					shift
+					;;
 				-c|--cluster)
 					CLUSTER="$2"
 					shift
@@ -378,6 +365,11 @@ case $ACTION in
 					USER="$2"
 					shift # pass argument
 					shift # pass value
+					;;
+				-f|--frontal)
+					FRONTAL="$2"
+					shift
+					shift
 					;;
 				-c|--cluster)
 					CLUSTER="$2"
@@ -654,33 +646,49 @@ make_port_forward ()
 	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
 }
 
-test_func () {
-	display_info "Nothing to do"
-}
-
 # Handle the cluster bindings setting up the variables FRONTAL and SCHEDULER
-case $CLUSTER in
-	"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
-	*)
-		display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john"
-		exit;;
-esac
+if [[ -z $CLUSTER && -z $FRONTAL ]]; then
+	display_error "The cluster or the frontal cannot be both undefined"
+	exit
+fi
 
-case $CLUSTER in
-	"uSkynet" | "cameron" | "tx")
-		FRONTAL=term2.grid
+if [[ ! -z $CLUSTER && ! -z $FRONTAL ]]; then
+	display_error "The cluster and the frontal cannot be both defined"
+	exit
+fi
+
+if [[ ! -z $CLUSTER ]]; then
+	case $CLUSTER in
+		"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
+		*)
+			display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john"
+			exit;;
+	esac
+
+	case $CLUSTER in
+		"uSkynet" | "cameron" | "tx")
+			FRONTAL=term2.grid
+			;;
+		"john"|"sarah")
+			FRONTAL=phome
+			;;
+		"kyle")
+			FRONTAL=slurm1
+			;;
+	esac
+fi
+
+case $FRONTAL in
+	"term2.grid" | "phome")
 		SCHEDULER=oar
 		;;
-	"john"|"sarah")
-		FRONTAL=phome
-		SCHEDULER=oar
-		;;
-	"kyle")
-		FRONTAL=slurm1
+	"slurm1")
 		SCHEDULER=slurm
 		;;
+	*)
+		display_error "Unknown frontal $FRONTAL"
+		exit
 esac
-
 
 
 # Alias the commands to use the OAR ones
@@ -710,11 +718,6 @@ esac
 
 # For every single action, call its specific commands
 case $ACTION in
-
-	"test")
-		test_func
-
-		;;
 
 	"book")
 		if [ -z $USER ]
@@ -753,6 +756,7 @@ case $ACTION in
 			wait_cnt=`expr $wait_cnt + 1`
 			if [[ $wait_cnt > 3 ]]; then wait_cnt=0; fi
 			job_state=`$test_job_state $job_id`
+			sleep 0.1
 		done
 		display_success "\nThe reservation $job_id is running"
 

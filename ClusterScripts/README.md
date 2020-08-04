@@ -11,12 +11,15 @@ For **booking** a node
 
 		-u, --user <login>          login to connect to CentraleSupelec Metz clusters 
 		-m, --machine <machine>     OPTIONAL, a specific machine
-		-c, --cluster <cluster>     the cluster (default: uSkynet)
+		-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+		-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 		-w, --walltime <walltime>   in hours (default: 24)
 		-h, --help                  prints this help message
 
 		Options specific to clusters handled with SLURM (Kyle):
 		-p, --partition <partition> on which partition to book a node
+
+		You must specify either the cluster or the frontal but not both.
 
 For **logging** to a booked node
 					
@@ -26,10 +29,13 @@ For **logging** to a booked node
 	Logs to an already booked node on the CentraleSupelec Metz cluster 
 
 		-u, --user <login>          login to connect to CentraleSupelec Metz
-		-c, --cluster <cluster>     the cluster (default: uSkynet)
+		-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+		-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 		-j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
 		a list of your booked JOB_ID will be displayed
 		-h, --help                  prints this help message
+
+		You must specify either the cluster or the frontal but not both.
 
 For **forwarding a port** from a booked node to your localhost
 
@@ -39,13 +45,16 @@ For **forwarding a port** from a booked node to your localhost
 	Forward a port from a machine you booked to your local computer
 
 		-u, --user <login>          login to connect to CentraleSupelec Metz
-		-c, --cluster <cluster>     the cluster (default: uSkynet)
+		-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+		-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 		-j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
 		a list of your booked JOB_ID will be displayed
 		-m, --machine <MACHINE>     The booked hostname.
 		-p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
 		-k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
 		-h, --help                  prints this help message
+
+		You must specify either the cluster or the frontal but not both.
 
 For **releasing** a booked node
 
@@ -55,11 +64,14 @@ For **releasing** a booked node
 	Deletes a reservation on the CentraleSupelec Metz cluster
 
 		-u, --user <login>          Login to connect to CentraleSupelec Metz
-		-c, --cluster <cluster>     the cluster (default: uSkynet)
+		-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+		-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 		-j, --jobid <JOB_ID>        OPTIONAL The JOB_ID to delete. If not provided
 		a list of your booked JOB_ID will be displayed
 		-j, --jobid all             Will kill all the jobs booked by <login>
 		-h, --help                  Prints this help message
+
+		You must specify either the cluster or the frontal but not both.
 
 # Windows cluster scripts
 
