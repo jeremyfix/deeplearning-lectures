@@ -85,15 +85,13 @@ Books a node on the CS Metz clusters
 
 -u, --user <login>          login to connect to CentraleSupelec Metz clusters 
 -m, --machine <machine>     OPTIONAL, a specific machine
--f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
--c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
+-c, --cluster <cluster>     the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 -w, --walltime <walltime>   in hours (default: 24)
 -h, --help                  prints this help message
 
 Options specific to clusters handled with SLURM (Kyle):
 -p, --partition <partition> on which partition to book a node
 
-You must specify either the cluster or the frontal but not both.
 "
 
 usage_l="Usage : cscluster log
@@ -236,11 +234,6 @@ case $ACTION in
 					;;
 				-m|--machine)
 					MACHINE="$2"
-					shift
-					shift
-					;;
-				-f|--frontal)
-					FRONTAL="$2"
 					shift
 					shift
 					;;
@@ -723,6 +716,13 @@ case $ACTION in
 		if [ -z $USER ]
 		then
 			display_error "A login is required. Specify it with -u|--user, run with -h for help"
+			exec echo "$usage_b"
+			exit
+		fi
+
+		if [ -z $CLUSTER ]
+		then
+			display_error "A cluster must be specified. Specify it with -c|--cluster, run with -h for help"
 			exec echo "$usage_b"
 			exit
 		fi
