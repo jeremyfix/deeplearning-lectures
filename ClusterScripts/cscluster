@@ -137,16 +137,29 @@ BLUE="\\e[1;34m"
 MAGENTA="\\e[1;35m"
 
 display_info() {
-    echo -e "$BLUE $1 $NORMAL"
+    echo -e "$BLUE $1 $NORMAL" 1>&2
 }
 display_wait() {
-    echo -e "$MAGENTA $1 $NORMAL"
+    echo -e "$MAGENTA $1 $NORMAL" 1>&2
 }
 display_success() {
-    echo -e "$GREEN $1 $NORMAL"
+    echo -e "$GREEN $1 $NORMAL" 1>&2
 }
 display_error() {
-    echo -e "$RED $1 $NORMAL"
+    echo -e "$RED $1 $NORMAL" 1>&2
+}
+
+wait_char() {
+	case $1 in
+		0)
+			echo '|';;
+		1)
+			echo '/';;
+		2)
+			echo '-';;
+		3)
+			echo '\';;
+	esac
 }
 
 # This is the default session name of screen
@@ -461,8 +474,8 @@ oar_book_node ()
 
 oar_log_node ()
 {
-	display_info "I am checking if the reservation $JOBID is still valid"
-	job_state=`$test_job_state $JOBID`
+	display_info "I am checking if the reservation $1 is still valid"
+	job_state=`$test_job_state $1`
 	if [ "$job_state" != "Running" ]; then
 	    display_error "   The reservation is not running yet or anymore."
 	    display_error "   please select a valid job id"
@@ -470,8 +483,8 @@ oar_log_node ()
 	    exit 0
 	fi
 
-	display_success "   The reservation $JOBID is still running"
-	execute_on_frontal_withtty "oarsub -C $JOBID"
+	display_success "   The reservation $1 is still running"
+	execute_on_frontal_withtty "oarsub -C $1"
 }
 
 oar_list_allocation ()
@@ -484,9 +497,10 @@ oar_list_all_jobids()
 	echo `oar_list_allocation | tail +3 | awk '{print $1}' | tr '\n' ' '`
 }
 
+# oar_kill_reservation jobid 
 oar_kill_reservation ()
 {
-	execute_on_frontal "oardel $JOBID"
+	execute_on_frontal "oardel $1"
 }
 
 # get_booked_host job_id
@@ -515,7 +529,6 @@ slurm_test_job_state ()
 
 slurm_book_node ()
 {
-	display_info "SLURM In book node"
 	# Create screen session on the frontal node in detached mode (-d -m)
 	execute_on_frontal "screen -d -m -S $default_screen_name"
 	# Book a node within the screen session byobu
@@ -544,15 +557,9 @@ slurm_book_node ()
 
 slurm_log_node() 
 {
-	# Check if the provided jobid is still a valid allocation 
-	####
-	#TODO
-	####
-
-	execute_on_frontal_withtty "screen -r $default_screen_name-$JOBID"
+	execute_on_frontal_withtty "screen -r $default_screen_name-$1"
 
 	exit_code=$?
-	echo "$exit_code"
 	if [ "$exit_code" != "0" ]; then
 		display_error "The logging command failed"
 		display_info "If this is a 'There is no screen session ..', check your jobid is in the following list"
@@ -571,6 +578,7 @@ slurm_list_all_jobids ()
 	echo `slurm_list_allocation | tail +2 | awk '{print $1}' | tr '\n' ' '`
 }
 
+# slurm_kill_reservation jobid
 slurm_kill_reservation () 
 {
 	display_info "Killing the reservation $1"
@@ -586,6 +594,7 @@ make_port_forward ()
 # so that the following part of the script is scheduler independent
 case $SCHEDULER in 
 	"oar")
+		display_info "Using OAR"
 		test_job_state=oar_test_job_state
 		book_node=oar_book_node
 		log_node=oar_log_node
@@ -604,11 +613,6 @@ case $SCHEDULER in
 		kill_reservation=slurm_kill_reservation
 		;;
 esac
-
-export -f slurm_kill_reservation
-export -f oar_kill_reservation
-export -f execute_on_frontal 
-export -f display_info
 
 # For every single action, call its specific commands
 case $ACTION in
@@ -643,17 +647,19 @@ case $ACTION in
 	    job_id=`$book_node $CLUSTER $MACHINE`
 	fi
 
-	display_info "Waiting for the reservation to be running, might last few seconds"
+	# Ping the reservation and wait until it's Running
+	display_info "Waiting for the reservation $job_id to be running, might last few seconds"
+	wait_cnt=0
+	echo -ne "$MAGENTA   The reservation $job_id is not yet running `wait_char $wait_cnt` $NORMAL"
 	job_state=`$test_job_state $job_id`
 	while [ "$job_state" != "Running" ]
 	do
-	    display_wait "   The reservation is $job_id not yet running "
+		echo -ne "\r$MAGENTA   The reservation $job_id is not yet running `wait_char $wait_cnt` $NORMAL"
+		wait_cnt=`expr $wait_cnt + 1`
+		if [[ $wait_cnt > 3 ]]; then wait_cnt=0; fi
 	    job_state=`$test_job_state $job_id`
-		echo "Job state  : $job_state"
-		sleep 0.1
 	done
-
-	display_success "The reservation is running"
+	display_success "\nThe reservation $job_id is running"
 
 	
 	;;
@@ -676,7 +682,7 @@ case $ACTION in
 
 	display_info "Logging to the booked node"
 
-	$log_node
+	$log_node $JOBID
 
 	display_info "Unlogged"
 	;;
