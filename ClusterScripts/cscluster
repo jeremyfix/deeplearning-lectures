@@ -535,23 +535,33 @@ slurm_book_node ()
 	execute_on_frontal "screen -S $default_screen_name -X stuff 'srun -N 1 -t $WALLTIME:00:00 --pty byobu^M'" > reservation.log
 	# Save the SLURM_JOBID in ~/resa.log
 	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X stuff '\''rm -f resa.log; echo \$SLURM_JOBID > resa.log ^M'\'''
-	# Check that resa.log exists
-
-	####
-	#TODO
-	####
 
 	# And use it to rename the screen session to have easy binding between
 	# the slurm jobid and the screen session name
 	job_id=`execute_on_frontal 'cat resa.log'`
+
+	if [ -z $job_id ]
+	then
+		display_error "Something went wrong in the reservation, I cannot get the jobid from the cluster"
+		exit
+	fi
+
+	display_success "Reservation $job_id successfull"
+
 	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X sessionname '$default_screen_name'-'$job_id
 
-	# Check if everything worked gracefully by checking if a session named 
-	# default_screen_name-`cat resa.log`  exists
+	### TO BE TESTED 
+	##################### HERE !!! trying to give incorrect session names !!
 
-	####
-	#TODO
-	####
+	# Check if the screen session is correctly created
+	exit_code=`execute_on_frontal "screen -list | grep -q $default_screen_name-$job_id; echo $?"`
+	display_info "Exit code is $exit_code"
+	if [[ $exit_code != 0 ]]; then
+		display_error "Something went wrong in the reservation, there is no screen session named $default_screen_name-$job_id"
+	else
+		display_success "Screen session $default_screen_name-$job_id created"
+	fi
+
 	echo $job_id
 }
 
