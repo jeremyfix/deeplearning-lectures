@@ -91,7 +91,7 @@ Books a node on the CS Metz clusters
 
 Options specific to clusters handled with SLURM (Kyle):
 -p, --partition <partition> on which partition to book a node
-
+-n, --ntasks <ntasks>       the number of physical CPUs to be allocated (max 16 per Kyle machines),(default 1)
 "
 
 usage_l="Usage : cscluster log
@@ -220,8 +220,11 @@ case $ACTION in
 		WALLTIME=24
 		SSHKEY=
 		QUEUE=default
-		PARTITION=
 		SCHEDULER=
+
+		# SLURM specific options
+		SLURM_PARTITION=
+		SLURM_NTASKS=1
 
 		while [[ $# -gt 0 ]]
 		do
@@ -248,7 +251,12 @@ case $ACTION in
 					shift
 					;;
 				-p|--partition)
-					PARTITION="$2"
+					SLURM_PARTITION="$2"
+					shift
+					shift
+					;;
+				-n|--ntasks)
+					SLURM_NTASKS="$2"
 					shift
 					shift
 					;;
@@ -539,7 +547,7 @@ slurm_test_job_state ()
 slurm_book_node ()
 {
 
-	if [[ -z $PARTITION ]]; then
+	if [[ -z $SLURM_PARTITION ]]; then
 		display_error "You must specify a partition for the cluster"
 		display_info "The possible values are given below"
 		execute_on_frontal "sinfo" 1>&2
@@ -551,10 +559,10 @@ slurm_book_node ()
 	# Book a node within the screen session byobu
 	if [[ $# -eq 1 ]]; then
 		# Book a node with the given partition
-		slurm_cmd="'srun -N 1 -p '$PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
+		slurm_cmd="'srun -n '$SLURM_NTASKS' -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
 	else
 		# Book a specific node on a specific partition
-		slurm_cmd="'srun --nodelist=$2 -N 1 -p '$PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
+		slurm_cmd="'srun --nodelist=$2 -N 1 -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
 	fi
 	execute_on_frontal "screen -S $default_screen_name -X stuff $slurm_cmd"
 
