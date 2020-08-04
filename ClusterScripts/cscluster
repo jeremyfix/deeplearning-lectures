@@ -88,6 +88,9 @@ Books a node on the CS Metz clusters
 -c, --cluster <cluster>     the cluster (default: uSkynet)
 -w, --walltime <walltime>   in hours (default: 24)
 -h, --help                  prints this help message
+
+Options specific to clusters handled with SLURM (Kyle):
+-p, --partition <partition> on which partition to book a node
 "
 
 usage_l="Usage : cscluster log
@@ -209,6 +212,7 @@ case $ACTION in
 		WALLTIME=24
 		SSHKEY=
 		QUEUE=default
+		PARTITION=
 		SCHEDULER=
 
 		while [[ $# -gt 0 ]]
@@ -232,6 +236,11 @@ case $ACTION in
 					;;
 				-w|--walltime)
 					WALLTIME="$2"
+					shift
+					shift
+					;;
+				-p|--partition)
+					PARTITION="$2"
 					shift
 					shift
 					;;
@@ -546,15 +555,23 @@ slurm_test_job_state ()
 # slurm_book_node CLUSTER <MACHINE>
 slurm_book_node ()
 {
+
+	if [[ -z $PARTITION ]]; then
+		display_error "You must specify a partition for the cluster"
+		display_info "The possible values are given below"
+		execute_on_frontal "sinfo" 1>&2
+		return 1
+	fi
+
 	# Create screen session on the frontal node in detached mode (-d -m)
 	execute_on_frontal "screen -d -m -S $default_screen_name"
 	# Book a node within the screen session byobu
 	if [[ $# -eq 1 ]]; then
 		# Book a node with the given partition
-		slurm_cmd="'srun -N 1 -t '$WALLTIME':00:00 --pty bash^M'"
+		slurm_cmd="'srun -N 1 -p '$PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
 	else
 		# Book a specific node on a specific partition
-		slurm_cmd="'srun --nodelist=$2 -N 1 -t '$WALLTIME':00:00 --pty bash^M'"
+		slurm_cmd="'srun --nodelist=$2 -N 1 -p '$PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
 	fi
 	execute_on_frontal "screen -S $default_screen_name -X stuff $slurm_cmd"
 
@@ -567,7 +584,7 @@ slurm_book_node ()
 
 	if [ -z $job_id ]
 	then
-		display_error "Something went wrong in the reservation, I cannot get the jobid from the cluster"
+		display_error "Something went wrong in the reservation, I cannot get the jobid from the cluster. Check your provided options."
 		# We must kill the screen session
 		execute_on_frontal "screen -S $default_screen_name -X kill"
 		return 1
