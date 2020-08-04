@@ -39,7 +39,7 @@ access it. To access it locally, just execute the port_forward
 script specifying the port 8888 :
 
 ``` console
-mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -p 8888 -k id_rsa_SM20
+mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -f term2.grid -p 8888 -k id_rsa_SM20
 ```
 
 You can now open **locally** a browser and open the page :
@@ -52,7 +52,7 @@ terminal in jupyter lab. To view locally the tensorboard interface, just
 run :
 
 ``` console
-mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -p 6006 -k id_rsa_SM20
+mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -f term2.grid -p 6006 -k id_rsa_SM20
 ```
 
 You can now open **locally** a browser and open the page :
@@ -96,7 +96,7 @@ access it. To access it locally, just execute the port_forward
 script specifying the port 8888 :
 
 ``` console
-mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -p 8888 -k path/to/id_rsa
+mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -f term2.grid -p 8888 -k path/to/id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
@@ -109,7 +109,7 @@ terminal in jupyter lab. To view locally the tensorboard interface, just
 run :
 
 ``` console
-mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -p 6006 -k path/to/id_rsa
+mymachine:~:mylogin$ ./cscluster port_forward -u dummyLog -m dummyGPU -f term2.grid -p 6006 -k path/to/id_rsa
 ```
 
 You can now open **locally** a browser and open the page :
@@ -123,6 +123,7 @@ You can now open **locally** a browser and open the page :
 <div class="w3-card w3-red w3-padding-16">
 Do not just copy/paste the scripts below. If you do not understand anything, ask your teachers
 </div>
+
 ### The scripts
 
 Allocation of the GPU machines are handled by a resource manager called
@@ -153,36 +154,34 @@ Get the script and run cscluster as below. We also show a
 typical output from the execution of the script.
 
 <div class="w3-card w3-red w3-padding-16 ">
-If you have been assigned a specific GPU, the call to cscluster below has to contain a -m and -c . Look for help if required. 
+If you have been assigned a specific GPU, the call to cscluster below has to contain a -m and -c . Look for help if required.
+
+If you have not been assigned a specific GPU, you still need to specific the cluster on which to book a node. For GPUs, it can be either uSkynet, cam or tx.
 </div>
+
 ``` console
-mymachine:~:mylogin$ ./cscluster book -u mylogin
+mymachine:~:mylogin$ ./cscluster book -u mylogin -c <uSkynet, tx, cam>
 Booking a node
 Reservation successfull
 Booking requested : OAR_JOB_ID =  99785
-Waiting for the reservation to be running, might last few seconds
-   The reservation is not yet running 
-   The reservation is not yet running 
-   The reservation is not yet running 
-   The reservation is not yet running 
-   [...]
-   The reservation is not yet running 
-   The reservation is not yet running 
-   The reservation is running
-The reservation is running
+Waiting for the reservation 99785 to be running, might last few seconds
+   The reservation is not yet running / 
+The reservation 99785 is running
 mymachine:~:mylogin$
 ```
 
 If the reservation is successfull, you can then log to the booked GPU. If you do not know or remember your jobid, proceed the following way
 
 ```console
-mymachine:~:mylogin$ ./cscluster log -u mylogin
+mymachine:~:mylogin$ ./cscluster log -u mylogin -f term2.grid
+Listing your current reservations
+...
 ```
 
 As you get your job id, you can proceed
 
 ``` console
-mymachine:~:mylogin$ ./cscluster log -u mylogin -j 99785
+mymachine:~:mylogin$ ./cscluster log -u mylogin -f term2.grid -j 99785
 The file job_id exists. I am checking the reservation is still valid 
    The reservation is still running 
 Logging to the booked node 
@@ -201,12 +200,12 @@ tensorboard and activate port forwarding :
 
 ``` console
 [ In a first terminal ]
-mymachine:~:mylogin$ ./cscluster log -u mylogin -j 99785
+mymachine:~:mylogin$ ./cscluster log -u mylogin -f term2.grid -j 99785
 ...
 sh11:~:mylogin$ tensorboard --logdir path_to_the_logs
 
 [ In a second terminal ]
-mymachine:~:mylogin$ ./cscluster port_forward -u mylogin -j 99785 -p 6006
+mymachine:~:mylogin$ ./cscluster port_forward -u mylogin -f term2.grid -j 99785 -p 6006
 ...
 ```
 
@@ -221,7 +220,7 @@ Connection to sh11 closed.
 Disconnected from OAR job 99785
 Connection to term2.grid closed.
   Unlogged 
-mymachine:/home/mylogin:mylogin$ ./cscluster kill -u mylogin -j 99785
+mymachine:/home/mylogin:mylogin$ ./cscluster kill -u mylogin -f term2.grid -j 99785
  The file job_id exists. I will kill the previous reservation in case it is running
 Deleting the job = 99785 ...REGISTERED.
 The job(s) [ 99785 ] will be deleted in a near future.

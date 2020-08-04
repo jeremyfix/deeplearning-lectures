@@ -11,15 +11,12 @@ For **booking** a node
 
 		-u, --user <login>          login to connect to CentraleSupelec Metz clusters 
 		-m, --machine <machine>     OPTIONAL, a specific machine
-		-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
-		-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
+		-c, --cluster <cluster>     the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
 		-w, --walltime <walltime>   in hours (default: 24)
 		-h, --help                  prints this help message
 
 		Options specific to clusters handled with SLURM (Kyle):
 		-p, --partition <partition> on which partition to book a node
-
-		You must specify either the cluster or the frontal but not both.
 
 For **logging** to a booked node
 					
