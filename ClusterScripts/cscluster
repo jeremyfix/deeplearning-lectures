@@ -651,11 +651,13 @@ make_port_forward ()
 # Handle the cluster bindings setting up the variables FRONTAL and SCHEDULER
 if [[ -z $CLUSTER && -z $FRONTAL ]]; then
 	display_error "The cluster or the frontal cannot be both undefined"
+	exec echo "$usage_m"
 	exit
 fi
 
 if [[ ! -z $CLUSTER && ! -z $FRONTAL ]]; then
 	display_error "The cluster and the frontal cannot be both defined"
+	exec echo "$usage_m"
 	exit
 fi
 
