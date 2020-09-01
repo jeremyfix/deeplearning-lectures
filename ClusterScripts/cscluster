@@ -414,9 +414,6 @@ case $ACTION in
 		;;
 esac
 
-ACCESS_NODE=ghome.metz.supelec.fr
-
-
 # Handle the ssh key if one is provided
 SSHKEY_COMMAND=
 if [ ! -z $SSHKEY ]
@@ -438,22 +435,6 @@ then
 	fi
 	SSHKEY_COMMAND="-i $SSHKEY"
 fi
-
-# For bouncing over the proxy
-ssh_options="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@$ACCESS_NODE"
-ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@$ACCESS_NODE\" $USER@$FRONTAL"
-
-
-execute_on_frontal ()
-{
-	ssh "$ssh_options" $USER@$FRONTAL $1
-}
-execute_on_frontal_withtty ()
-{
-	ssh "$ssh_options" -t $USER@$FRONTAL $1
-}
-
-
 
 ###############################################################################
 #### OAR ######################################################################
@@ -697,12 +678,15 @@ if [[ ! -z $CLUSTER ]]; then
 	case $CLUSTER in
 		"uSkynet" | "cameron" | "tx")
 			FRONTAL=term2.grid
+			ACCESS_NODE=ghome.metz.supelec.fr
 			;;
 		"john"|"sarah")
 			FRONTAL=phome
+			ACCESS_NODE=phome.metz.supelec.fr
 			;;
 		"kyle")
 			FRONTAL=slurm1
+			ACCESS_NODE=phome.metz.supelec.fr
 			;;
 	esac
 fi
@@ -710,9 +694,11 @@ fi
 case $FRONTAL in
 	"term2.grid" | "phome")
 		SCHEDULER=oar
+		ACCESS_NODE=ghome.metz.supelec.fr
 		;;
 	"slurm1")
 		SCHEDULER=slurm
+		ACCESS_NODE=phome.metz.supelec.fr
 		;;
 	*)
 		display_error "Unknown frontal $FRONTAL"
@@ -744,6 +730,24 @@ case $SCHEDULER in
 		get_booked_host=slurm_get_booked_host
 		;;
 esac
+
+
+# For bouncing over the proxy
+ssh_options="-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@$ACCESS_NODE"
+ssh_options_node="-o ProxyCommand=ssh $SSHKEY_COMMAND -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p \"-o ProxyCommand=ssh $SSHKEY_COMMAND -W %h:%p $USER@$ACCESS_NODE\" $USER@$FRONTAL"
+
+
+execute_on_frontal ()
+{
+	ssh "$ssh_options" $USER@$FRONTAL $1
+}
+execute_on_frontal_withtty ()
+{
+	ssh "$ssh_options" -t $USER@$FRONTAL $1
+}
+
+
+
 
 # For every single action, call its specific commands
 case $ACTION in
