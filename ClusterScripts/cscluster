@@ -92,6 +92,7 @@ Books a node on the CS Metz clusters
 Options specific to clusters handled with SLURM (Kyle):
 -p, --partition <partition> on which partition to book a node
 -n, --ntasks <ntasks>       the number of physical CPUs to be allocated (max 16 per Kyle machines),(default 1)
+-r, --reservation <name>    for the specific reservation name
 "
 
 usage_l="Usage : cscluster log
@@ -225,6 +226,7 @@ case $ACTION in
 		# SLURM specific options
 		SLURM_PARTITION=
 		SLURM_NTASKS=1
+		SLURM_RESERVATION=
 
 		while [[ $# -gt 0 ]]
 		do
@@ -257,6 +259,11 @@ case $ACTION in
 					;;
 				-n|--ntasks)
 					SLURM_NTASKS="$2"
+					shift
+					shift
+					;;
+				-r|--reservation)
+					SLURM_RESERVATION="$2"
 					shift
 					shift
 					;;
@@ -547,23 +554,41 @@ slurm_test_job_state ()
 slurm_book_node ()
 {
 
-	if [[ -z $SLURM_PARTITION ]]; then
-		display_error "You must specify a partition for the cluster"
-		display_info "The possible values are given below"
+	if [[ -z $SLURM_PARTITION && -z $SLURM_RESERVATION ]]; then
+		display_error "You must specify either a partition or reservation name"
+		display_error "for the cluster"
+		display_info "For the partitions, the possible values are given below"
 		execute_on_frontal "sinfo" 1>&2
+		return 1
+	fi
+	if [[ ! -z $SLURM_PARTITION && ! -z $SLURM_RESERVATION ]]; then
+		display_error "You cannot specify both partition and reservation"
 		return 1
 	fi
 
 	# Create screen session on the frontal node in detached mode (-d -m)
 	execute_on_frontal "screen -d -m -S $default_screen_name"
 	# Book a node within the screen session byobu
-	if [[ $# -eq 1 ]]; then
-		# Book a node with the given partition
-		slurm_cmd="'srun -n '$SLURM_NTASKS' -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
-	else
-		# Book a specific node on a specific partition
-		slurm_cmd="'srun --nodelist=$2 -N 1 -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
+	if [[ ! -z $SLURM_PARTITION ]]; then
+		if [[ $# -eq 1 ]]; then
+			# Book a node with the given partition
+			slurm_cmd="'srun -n '$SLURM_NTASKS' -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
+		else
+			# Book a specific node on a specific partition
+			slurm_cmd="'srun --nodelist=$2 -N 1 -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
+		fi
 	fi
+	if [[ ! -z $SLURM_RESERVATION  ]]; then
+		if [[ $# -eq 1 ]]; then
+			# Book a node with the given partition
+			slurm_cmd="'srun -n '$SLURM_NTASKS' --reservation '$SLURM_RESERVATION' --pty bash^M'"
+		else
+			# Book a specific node on a specific partition
+			slurm_cmd="'srun --nodelist=$2 -N 1 --reservation '$SLURM_RESERVATION' --pty bash^M'"
+		fi
+	fi
+	display_info "Commande : $slurm_cmd"
+
 	execute_on_frontal "screen -S $default_screen_name -X stuff $slurm_cmd"
 
 	# Save the SLURM_JOBID in ~/resa.log
