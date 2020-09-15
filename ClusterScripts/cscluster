@@ -553,7 +553,7 @@ slurm_book_node ()
 	if [[ ! -z $SLURM_PARTITION ]]; then
 		if [[ $# -eq 1 ]]; then
 			# Book a node with the given partition
-			slurm_cmd="'srun -n '$SLURM_NTASKS' -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
+			slurm_cmd="'srun -N 1 --ntasks-per-node '$SLURM_NTASKS' -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
 		else
 			# Book a specific node on a specific partition
 			slurm_cmd="'srun --nodelist=$2 -N 1 -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
@@ -562,7 +562,7 @@ slurm_book_node ()
 	if [[ ! -z $SLURM_RESERVATION  ]]; then
 		if [[ $# -eq 1 ]]; then
 			# Book a node with the given partition
-			slurm_cmd="'srun -n '$SLURM_NTASKS' --reservation '$SLURM_RESERVATION' --pty bash^M'"
+			slurm_cmd="'srun -N 1 --ntasks-per-node '$SLURM_NTASKS' --reservation '$SLURM_RESERVATION' --pty bash^M'"
 		else
 			# Book a specific node on a specific partition
 			slurm_cmd="'srun --nodelist=$2 -N 1 --reservation '$SLURM_RESERVATION' --pty bash^M'"
