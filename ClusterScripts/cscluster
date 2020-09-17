@@ -592,7 +592,7 @@ slurm_book_node ()
 	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X sessionname '$default_screen_name'-'$job_id
 
 	# Check if the screen session is correctly created
-	exit_code=`execute_on_frontal 'screen -list | grep -q '$default_screen_name-$job_id'; echo $?'`
+	exit_code=`execute_on_frontal 'screen -list | grep -q '$default_screen_name-$job_id'; echo $?' 2> /dev/null`
 	if [[ $exit_code != 0 ]]; then
 		display_error "Something went wrong in the reservation, there is no screen session named $default_screen_name-$job_id"
 		# We kill the default session since it might still exist
