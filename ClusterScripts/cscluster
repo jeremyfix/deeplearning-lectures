@@ -124,15 +124,16 @@ You must specify either the cluster or the frontal but not both.
 usage_p="usage :  cscluster port_forward
 Forward a port from a machine you booked to your local computer
 
--u, --user <login>          login to connect to CentraleSupelec Metz
--f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
--c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
--j, --jobid <JOB_ID>        The JOB_ID to which to connect. If not provided
-a list of your booked JOB_ID will be displayed
--m, --machine <MACHINE>     The booked hostname.
--p, --port <PORT>           The distant port <PORT> will be binded to 127.0.0.1:PORT
--k, --key <PATH_TO_KEY>     Use the provided ssh key for connection
--h, --help                  prints this help message
+-u, --user <login>                           login to connect to CentraleSupelec Metz
+-f, --frontal <frontal>                      OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+-c, --cluster <cluster>                      OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
+-j, --jobid <JOB_ID>                         The JOB_ID to which to connect. If not provided
+                                             a list of your booked JOB_ID will be displayed
+-m, --machine <MACHINE>                      The booked hostname.
+-p, --port <PORT>                            The distant port <PORT> will be binded to 127.0.0.1:PORT
+-p, --port <REMOTE_PORT:LOCAL_PORT>          The distant port <REMOTE_PORT> will be binded to 127.0.0.1:LOCAL_PORT
+-k, --key <PATH_TO_KEY>                      Use the provided ssh key for connection
+-h, --help                                   prints this help message
 
 You must specify either the cluster or the frontal but not both.
 "
@@ -396,6 +397,11 @@ case $ACTION in
 					;;
 				-p|--port)
 					PORT="$2"
+					REMOTE_PORT=`echo $PORT | awk -F ":" '{print $1}'`
+					LOCAL_PORT=`echo $PORT | awk -F ":" '{print $2}'`
+					if [ -z "$LOCAL_PORT" ]; then
+						LOCAL_PORT=$REMOTE_PORT
+					fi
 					shift
 					shift
 					;;
@@ -413,6 +419,9 @@ case $ACTION in
 
 		;;
 esac
+
+echo "remote $REMOTE_PORT"
+echo "local $LOCAL_PORT"
 
 # Handle the ssh key if one is provided
 SSHKEY_COMMAND=
@@ -651,7 +660,7 @@ slurm_get_booked_host ()
 
 make_port_forward () 
 {
-	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $PORT:127.0.0.1:$PORT $USER@$host
+	ssh $SSHKEY_COMMAND "$ssh_options_node" -N -L $LOCAL_PORT:127.0.0.1:$REMOTE_PORT $USER@$host
 }
 
 # Handle the cluster bindings setting up the variables FRONTAL and SCHEDULER
@@ -889,7 +898,7 @@ case $ACTION in
 			display_error "You cannot specify both a machine and a jobid"
 			exit -1
 		fi
-		if [ -z $PORT ]
+		if [ -z $LOCAL_PORT ]
 		then
 			display_error "A port is required. Specify it with -p|--port, run with -h for help"
 			exec echo "$usage_p"
@@ -919,7 +928,7 @@ case $ACTION in
 			exit -1
 		fi
 
-		display_info "Activating port forwarding from host $host:$PORT to 127.0.0.1:$PORT"
+		display_info "Activating port forwarding from host $host:$REMOTE_PORT to 127.0.0.1:$LOCAL_PORT"
 		make_port_forward
 		;;
 esac
