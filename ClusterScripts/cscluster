@@ -140,11 +140,11 @@ You must specify either the cluster or the frontal but not both.
 
 
 
-GREEN="\\e[1;32m"
-NORMAL="\\e[0;39m"
-RED="\\e[1;31m"
-BLUE="\\e[1;34m"
-MAGENTA="\\e[1;35m"
+GREEN="\033[1;32m"
+NORMAL="\033[0;39m"
+RED="\033[1;31m"
+BLUE="\033[1;34m"
+MAGENTA="\033[1;35m"
 
 display_info() {
 	echo -e "$BLUE $1 $NORMAL" 1>&2
@@ -419,9 +419,6 @@ case $ACTION in
 
 		;;
 esac
-
-echo "remote $REMOTE_PORT"
-echo "local $LOCAL_PORT"
 
 # Handle the ssh key if one is provided
 SSHKEY_COMMAND=
