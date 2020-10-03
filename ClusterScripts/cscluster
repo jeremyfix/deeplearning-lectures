@@ -555,14 +555,25 @@ slurm_book_node ()
 
 	# Create screen session on the frontal node in detached mode (-d -m)
 	execute_on_frontal "screen -d -m -S $default_screen_name"
+
+	# Temporary hack for the walltime; specify minutes for
+	# ic, hours for others. TODO: should better handle walltime
+	# with the full range of possibilities : seconds, minutes:secondes,
+	# hours:minutes:seconds
+	if [[ "$CLUSTER" -eq "ic" ]]; then
+		WALLTIME="$WALLTIME:00"
+	else
+		WALLTIME="$WALLTIME:00:00"
+	fi
+
 	# Book a node within the screen session byobu
 	if [[ ! -z $SLURM_PARTITION ]]; then
 		if [[ $# -eq 1 ]]; then
 			# Book a node with the given partition
-			slurm_cmd="'srun -N 1 --ntasks-per-node '$SLURM_NTASKS' -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
+			slurm_cmd="'srun -N 1 --ntasks-per-node '$SLURM_NTASKS' -p '$SLURM_PARTITION' -t '$WALLTIME' --pty bash^M'"
 		else
 			# Book a specific node on a specific partition
-			slurm_cmd="'srun --nodelist=$2 -N 1 -p '$SLURM_PARTITION' -t '$WALLTIME':00:00 --pty bash^M'"
+			slurm_cmd="'srun --nodelist=$2 -N 1 -p '$SLURM_PARTITION' -t '$WALLTIME' --pty bash^M'"
 		fi
 	fi
 	if [[ ! -z $SLURM_RESERVATION  ]]; then
@@ -675,9 +686,9 @@ fi
 
 if [[ ! -z $CLUSTER ]]; then
 	case $CLUSTER in
-		"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle") ;;
+		"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle"|"ic") ;;
 		*)
-			display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john"
+			display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john, ic"
 			exit;;
 	esac
 
@@ -694,6 +705,10 @@ if [[ ! -z $CLUSTER ]]; then
 			FRONTAL=slurm1
 			ACCESS_NODE=phome.metz.supelec.fr
 			;;
+		"ic")
+			FRONTAL=ic10.ic
+			ACCESS_NODE=phome.metz.supelec.fr
+			;;
 	esac
 fi
 
@@ -702,7 +717,7 @@ case $FRONTAL in
 		SCHEDULER=oar
 		ACCESS_NODE=ghome.metz.supelec.fr
 		;;
-	"slurm1")
+	"slurm1" | "ic10.ic")
 		SCHEDULER=slurm
 		ACCESS_NODE=phome.metz.supelec.fr
 		;;
