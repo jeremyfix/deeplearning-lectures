@@ -590,7 +590,11 @@ slurm_book_node ()
 	execute_on_frontal "screen -S $default_screen_name -X stuff $slurm_cmd"
 
 	# Save the SLURM_JOBID in ~/resa.log
-	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X stuff '\''rm -f resa.log; echo \$SLURM_JOBID > resa.log ^M'\'''
+	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X stuff '\''rm -f resa.log; echo \$SLURM_JOBID > resa.log; sync ^M'\'''
+	
+	# Add a little sleep in addition to the sync above
+	# because sometimes, the resa.log on the machine is still an old one
+	sleep 1
 
 	# And use it to rename the screen session to have easy binding between
 	# the slurm jobid and the screen session name
