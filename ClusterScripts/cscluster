@@ -175,6 +175,7 @@ wait_char() {
 # This is the default session name of screen
 # After an allocation with SLURM is successfull,
 # we rename the session with the JOBID and the default_screen_name as prefix
+basic_screen_name=defaultclustersession
 default_screen_name=clustersession
 
 # Let us parse the first level of commands
@@ -554,10 +555,14 @@ slurm_book_node ()
 	fi
 
 	# Kill a screen session with default name if it exists already
-	execute_on_frontal "screen -S $default_screen_name -X kill"
+	execute_on_frontal "screen -S $basic_screen_name -X kill 1> /dev/null"
 
 	# Create screen session on the frontal node in detached mode (-d -m)
-	execute_on_frontal "screen -d -m -S $default_screen_name"
+	execute_on_frontal "screen -d -m -S $basic_screen_name & echo \$! > screen_pid.log; sync"
+
+	# screen_pid=`execute_on_frontal "screen -ls | grep $basic_screen_name | awk '{print \$1}' | cut -d'.' -f1"`
+	screen_pid=`execute_on_frontal "screen -ls | grep $basic_screen_name" | awk '{print \$1}' | cut -d'.' -f1`
+	display_info "Got a screen session with PID $screen_pid"
 
 	# Temporary hack for the walltime; specify minutes for
 	# ic, hours for others. TODO: should better handle walltime
@@ -569,31 +574,51 @@ slurm_book_node ()
 		WALLTIME="$WALLTIME:00:00"
 	fi
 
+	# Create the script to kill the screen session on slurm epilog
+	cat <<EOF | ssh "$ssh_options" $USER@$FRONTAL "cat - > /tmp/kill_screen_$screen_pid"
+#!/bin/bash
+
+# Kill the screen session
+kill $screen_pid
+# Remove this script
+rm /tmp/kill_screen_$screen_pid
+EOF
+	# Make the kill script runnable
+	execute_on_frontal "chmod u+x /tmp/kill_screen_$screen_pid"
+
 	# Book a node within the screen session byobu
+	# SRUN_EPILOG="kill -9 $screen_pid"
+	SRUN_EPILOG="/tmp/kill_screen_$screen_pid"
 	if [[ ! -z $SLURM_PARTITION ]]; then
 		if [[ $# -eq 1 ]]; then
 			# Book a node with the given partition
-			slurm_cmd="'srun -N 1 --ntasks-per-node '$SLURM_NTASKS' -p '$SLURM_PARTITION' -t '$WALLTIME' --pty bash^M'"
+			slurm_cmd="'srun -N 1 --ntasks-per-node '$SLURM_NTASKS' -p '$SLURM_PARTITION' -t '$WALLTIME' --epilog=\"$SRUN_EPILOG\" --pty bash^M'"
 		else
 			# Book a specific node on a specific partition
-			slurm_cmd="'srun --nodelist=$2 -N 1 -p '$SLURM_PARTITION' -t '$WALLTIME' --pty bash^M'"
+			slurm_cmd="'srun --nodelist=$2 -N 1 -p '$SLURM_PARTITION' -t '$WALLTIME' --epilog=\"$SRUN_EPILOG\" --pty bash^M'"
 		fi
 	fi
 	if [[ ! -z $SLURM_RESERVATION  ]]; then
 		if [[ $# -eq 1 ]]; then
 			# Book a node with the given partition
-			slurm_cmd="'srun -N 1 --ntasks-per-node '$SLURM_NTASKS' --reservation '$SLURM_RESERVATION' --pty bash^M'"
+			slurm_cmd="'srun -N 1 --ntasks-per-node '$SLURM_NTASKS' --reservation '$SLURM_RESERVATION' --epilog=\"$SRUN_EPILOG\" --pty bash^M'"
 		else
 			# Book a specific node on a specific partition
-			slurm_cmd="'srun --nodelist=$2 -N 1 --reservation '$SLURM_RESERVATION' --pty bash^M'"
+			slurm_cmd="'srun --nodelist=$2 -N 1 --reservation '$SLURM_RESERVATION' --epilog=\"$SRUN_EPILOG\" --pty bash^M'"
 		fi
 	fi
 	display_info "Commande : $slurm_cmd"
 
-	execute_on_frontal "screen -S $default_screen_name -X stuff $slurm_cmd"
+	execute_on_frontal "screen -S $basic_screen_name -X stuff $slurm_cmd"
 
 	# Save the SLURM_JOBID in ~/resa.log
-	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X stuff '\''rm -f resa.log; echo \$SLURM_JOBID > resa.log; sync ^M'\'''
+	execute_on_frontal_withtty 'screen -S '$basic_screen_name' -X stuff '\''rm -f resa.log; sync ^M'\'''
+
+	# Add a little sleep in addition to the sync above
+	# because sometimes, the resa.log on the machine is still an old one
+	sleep 1
+
+	execute_on_frontal_withtty 'screen -S '$basic_screen_name' -X stuff '\''echo \$SLURM_JOBID > resa.log; sync ^M'\'''
 	
 	# Add a little sleep in addition to the sync above
 	# because sometimes, the resa.log on the machine is still an old one
@@ -607,20 +632,20 @@ slurm_book_node ()
 	then
 		display_error "Something went wrong in the reservation, I cannot get the jobid from the cluster. Check your provided options."
 		# We must kill the screen session
-		execute_on_frontal "screen -S $default_screen_name -X kill"
+		execute_on_frontal "screen -S $basic_screen_name -X kill"
 		return 1
 	fi
 
 	display_success "Reservation $job_id successfull"
 
-	execute_on_frontal_withtty 'screen -S '$default_screen_name' -X sessionname '$default_screen_name'-'$job_id
+	execute_on_frontal_withtty 'screen -S '$basic_screen_name' -X sessionname '$default_screen_name'-'$job_id
 
 	# Check if the screen session is correctly created
 	exit_code=`execute_on_frontal 'screen -list | grep -q '$default_screen_name-$job_id'; echo $?' 2> /dev/null`
 	if [[ $exit_code != 0 ]]; then
 		display_error "Something went wrong in the reservation, there is no screen session named $default_screen_name-$job_id"
 		# We kill the default session since it might still exist
-		execute_on_frontal "screen -S $default_screen_name -X kill"
+		execute_on_frontal "screen -S $basic_screen_name -X kill"
 		return 1
 	else
 		display_success "Screen session $default_screen_name-$job_id created"
