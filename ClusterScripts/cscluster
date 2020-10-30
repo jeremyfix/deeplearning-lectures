@@ -553,6 +553,9 @@ slurm_book_node ()
 		return 1
 	fi
 
+	# Kill a screen session with default name if it exists already
+	execute_on_frontal "screen -S $default_screen_name -X kill"
+
 	# Create screen session on the frontal node in detached mode (-d -m)
 	execute_on_frontal "screen -d -m -S $default_screen_name"
 
