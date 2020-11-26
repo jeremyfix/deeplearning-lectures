@@ -1,5 +1,7 @@
+import math
 import torch
 import torch.nn as nn
+import torch.nn.init
 
 
 def linear(dim_in, dim_out):
@@ -55,19 +57,45 @@ class LinearNet(nn.Module):
 
 
 class FullyConnected(nn.Module):
-
     def __init__(self, input_size, num_classes):
         super(FullyConnected, self).__init__()
-        self.classifier =  nn.Sequential(
+        self.model = nn.ModuleList([
             *linear_relu(input_size, 256),
             *linear_relu(256, 256),
             nn.Linear(256, num_classes)
-        )
+        ])
+        self.init()
+
+    def init(self):
+        with torch.no_grad():
+            # Let init randomly the first layer
+            # our inputs being standardized
+            m = self.model[0]
+            m.weight.normal_(0.0, 1.0)
+            m.bias.fill_(0.0)
+            m = self.model[2]
+            torch.nn.init.kaiming_uniform_(m.weight, a=math.sqrt(2.0))
+            m.bias.fill_(0.0)
+            m = self.model[4]
+            torch.nn.init.kaiming_uniform_(m.weight, a=math.sqrt(2.0))
+            m.bias.fill_(0.0)
+
+    # A "simpler" but not completely satisfactory because the 
+    # first layer has something special. Its input features are centered
+    # reduced
+    # def init(self):
+    #     @torch.no_grad()
+    #     def finit(m):
+    #         if type(m) == nn.Linear:
+    #             torch.nn.init.kaiming_uniform_(m.weight, a=math.sqrt(2.0))
+    #             m.bias.fill_(0.0)
+    #     self.apply(finit)
 
     def forward(self, x):
-        x = x.view(x.size()[0], -1)
-        y = self.classifier(x)
-        return y
+        x = x.view(x.shape[0], -1)
+        for l in self.model:
+            x = l(x)
+        return x
 
 
 class FullyConnectedRegularized(nn.Module):
