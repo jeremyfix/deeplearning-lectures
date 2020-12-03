@@ -718,15 +718,19 @@ fi
 
 if [[ ! -z $CLUSTER ]]; then
 	case $CLUSTER in
-		"uSkynet"|"cameron"|"tx"|"john"|"sarah"|"kyle"|"ic") ;;
+		"uSkynet"|"gpu"|"john"|"sarah"|"kyle"|"ic") ;;
 		*)
-			display_error "The cluster must be one of uSkynet, cameron, tx, sarah, kyle, john, ic"
+			display_error "The cluster must be one of uSkynet, gpu, sarah, kyle, john, ic"
 			exit;;
 	esac
 
 	case $CLUSTER in
-		"uSkynet" | "cameron" | "tx")
+		"uSkynet")
 			FRONTAL=term2.grid
+			ACCESS_NODE=ghome.metz.supelec.fr
+			;;
+		"gpu")
+			FRONTAL=slurm2
 			ACCESS_NODE=ghome.metz.supelec.fr
 			;;
 		"john"|"sarah")
@@ -747,6 +751,10 @@ fi
 case $FRONTAL in
 	"term2.grid" | "phome")
 		SCHEDULER=oar
+		ACCESS_NODE=ghome.metz.supelec.fr
+		;;
+	"slurm2")
+		SCHEDULER=slurm
 		ACCESS_NODE=ghome.metz.supelec.fr
 		;;
 	"slurm1" | "ic10.ic")
