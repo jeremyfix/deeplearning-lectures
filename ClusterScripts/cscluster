@@ -656,7 +656,7 @@ EOF
 
 slurm_log_node() 
 {
-	execute_on_frontal_withtty "screen -r $default_screen_name-$1"
+	execute_on_frontal_withtty "screen -rd $default_screen_name-$1"
 
 	exit_code=$?
 	if [ "$exit_code" != "0" ]; then
