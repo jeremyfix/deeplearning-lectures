@@ -117,19 +117,51 @@ We know how to convert the transcripts into tensors of integers, we know how to 
 - the waveforms have different time-spans and therefore their spectrograms have different time-spans
 - the transcripts have different time-spans 
 
-To represent sequences of variable length, pytorch provides you with the [PackedSequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.PackedSequence.html) datatype. We will not dig into the implementation details of this data structure. Sufficient to say that you are not expected to create PackedSequence directly but use the [pad_packed_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pad_packed_sequence.html) and [pack_padded_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pack_padded_sequence.html) functions. Let us see these in actions :
+To represent sequences of variable length, pytorch provides you with the [PackedSequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.PackedSequence.html) datatype. We will not dig into the implementation details of this data structure. Sufficient to say that you are not expected to create PackedSequence directly but use the [pad_packed_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pad_packed_sequence.html) and [pack_padded_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pack_padded_sequence.html) functions. Let us see these in actions on one example :
 
 ```{.python}
 
+def ex_pack():
+    import random
+    from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
+
+    batch_size = 10
+    n_mels = 80
+    max_length = 512
+    # Given a list of batch_size tensors of variable sizes of shape (Ti, n_mels)
+    tensors = [torch.randn(random.randint(1, max_length), n_mels)for i in range(batch_size)]
+
+    # To be packed, the tensors need to be sorted by
+    # decreasing length
+    tensors = sorted(tensors,
+                     key=lambda tensor: tensor.shape[0],
+                     reverse=True)
+    lengths = [t.shape[0] for t in tensors]
+
+    # We start by padding the sequences to the max_length
+    tensors = pad_sequence(tensors, batch_first=True)
+    # tensors is (batch_size, T, n_mels)
+    # note T is equal to the maximal length of the sequences
+
+    # We can pack the sequence
+    # Note we need to provide the timespans of the individual tensors
+    packed_data = pack_padded_sequence(tensors, lengths=lengths,
+                                      batch_first=True)
+
+    # Later, we can unpack the sequence
+    # Note we recover the lengths that can be used to slice the "dense"
+    # tensor unpacked_data appropriatly
+    unpacked_data, lens_data = pad_packed_sequence(packed_data,
+                                                  batch_first=True)
 
 ```
 
+Note that you may want to use usual "dense" tensors, padding at the end your tensors of variable size, but that is not a good idea because 1) the processing on the GPU can be limited to just the right amount if it knows the length of the sequences, 2) padding at the end is not a big deal with unidirectional RNNs but can possibly be a problem with bidirectional RNNs.
+
+**Exercice** Equipped with these new PackedSequence tools, you now have to work on the build up of the minibatches.
 
 
-
-
-
-**Exercice** Complete the *data.py* script and write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) plot the spectrograms associated with their transcripts. For the plot part, you can take inspiration from the following python code. Note you are provided with the `plot_spectro` function.
+Complete the *data.py* script and write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) plot the spectrograms associated with their transcripts. For the plot part, you can take inspiration from the following python code. Note you are provided with the `plot_spectro` function.
 
 Below is an example expected output :
 
