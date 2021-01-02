@@ -13,7 +13,7 @@ The data we will be using are collected within the [Mozilla common voice](https:
 
 You will be experimenting with different models :
 
-- Connectionist Temporal Classification (CTC) as introduced in [@Graves2014]
+- Connectionist Temporal Classification (CTC) as introduced in [@Graves2014], which is the basis of the Deep Speech models (proposed by Baidu research[@Amodei2015] and also implemented by [Mozilla](https://github.com/mozilla/DeepSpeech)), 
 - Seq2Seq with attention as introduced in the Listen Attend and Spell [@Chan2016]
 
 Through this labwork, you will also learn about dealing with the specific tensor representations of variable length sequences.
@@ -42,7 +42,16 @@ The end result of this module is essentially the get_dataloaders which, by makin
 
 The transcripts are encoded into integers and decoded from integers thanks to a vocabulary in the CharMap object, representend as the char2idx dictionnary and idx2char list. Let us play a little bit with this object.
 
-**Exercice** Which function call gives you the vocabulary size ? What is this vocabulary size ? What is the encoding of the sentence "Je vais m'éclater avec des RNNS!". What do you obtain if you decode the encoded sentence ? Does it make sense to you ?
+**Exercice** Which function call gives you the vocabulary size ? What is this vocabulary size ? What is the encoding of the sentence "Je vais m'éclater avec des RNNS!". What do you obtain if you decode the encoded sentence ? Does it make sense to you ? The code you write for answering these questions is expected to be written within the `data.py` script in dedicated functions called within the *main* block :
+
+```{.python}
+
+if __name__ == '__main__':
+    question1()
+    question2()
+    ...
+
+```
 
 <!--
 
@@ -65,44 +74,56 @@ You can test your code with the following
 ```{.python}
 
 import matplotlib.pyplot as plt
-import data
 
-dataset = data.load_dataset("train",
-                            data._DEFAULT_COMMONVOICE_ROOT,
-                            data._DEFAULT_COMMONVOICE_VERSION)
+def test_spectro():
+    dataset = load_dataset("train",
+                           _DEFAULT_COMMONVOICE_ROOT,
+                           _DEFAULT_COMMONVOICE_VERSION)
 
-# Take one of the waveforms 
-idx = 10
-waveform, rate, dictionary = dataset[idx]
+    # Take one of the waveforms 
+    idx = 10
+    waveform, rate, dictionary = dataset[idx]
 
-win_step = data._DEFAULT_WIN_STEP*1e-3
-trans_mel_spectro = data.WaveformProcessor(rate=rate,
-                                           win_length=data._DEFAULT_WIN_LENGTH*1e-3,
-                                           win_step=win_step,
-                                           nmels=data._DEFAULT_NUM_MELS,
-                                           augment=False)
-mel_spectro = trans_mel_spectro(waveform)[0]
+    win_step = data._DEFAULT_WIN_STEP*1e-3
+    trans_mel_spectro = WaveformProcessor(rate=rate,
+                                          win_length=data._DEFAULT_WIN_LENGTH*1e-3,
+                                          win_step=win_step,
+                                          nmels=data._DEFAULT_NUM_MELS,
+                                          augment=False)
+    mel_spectro = trans_mel_spectro(waveform)[0]
 
-fig = plt.figure(figsize=(10, 2))
-ax = fig.add_subplot()
+    fig = plt.figure(figsize=(10, 2))
+    ax = fig.add_subplot()
 
-im = ax.imshow(mel_spectro.T,
-               extent=[0, mel_spectro.shape[0]*win_step,
-                       0, mel_spectro.shape[1]],
-               aspect='auto',
-               cmap='magma',
-               origin='lower')
-ax.set_ylabel('Mel scale')
-ax.set_xlabel('TIme (s.)')
-ax.set_title('Log mel spectrogram')
-plt.colorbar(im)
-plt.tight_layout()
-plt.show()
+    im = ax.imshow(mel_spectro.T,
+                   extent=[0, mel_spectro.shape[0]*win_step,
+                           0, mel_spectro.shape[1]],
+                   aspect='auto',
+                   cmap='magma',
+                   origin='lower')
+    ax.set_ylabel('Mel scale')
+    ax.set_xlabel('TIme (s.)')
+    ax.set_title('Log mel spectrogram')
+    plt.colorbar(im)
+    plt.tight_layout()
+    plt.show()
+
 ```
 
 ### Collating variable size spectrograms and transcripts in minibatches
 
-We know how to convert the transcripts into tensors of integers, we know how to convert waveforms to spectrograms, it remains to collate together multiple samples into minibatches but there is one difficulty : the waveforms have different time-spans. 
+We know how to convert the transcripts into tensors of integers, we know how to convert waveforms to spectrograms, it remains to collate together multiple samples into minibatches but there are two difficulties :
+
+- the waveforms have different time-spans and therefore their spectrograms have different time-spans
+- the transcripts have different time-spans 
+
+To represent sequences of variable length, pytorch provides you with the [PackedSequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.PackedSequence.html) datatype. We will not dig into the implementation details of this data structure. Sufficient to say that you are not expected to create PackedSequence directly but use the [pad_packed_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pad_packed_sequence.html) and [pack_padded_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pack_padded_sequence.html) functions. Let us see these in actions :
+
+```{.python}
+
+
+```
+
 
 
 
@@ -117,6 +138,58 @@ Below is an example expected output :
 
 
 ## Connectionist Temporal Classification (CTC)
+
+The Connectionist Temporal Classification approach is based on a multi-layer recurrent neural network taking as input the successive frames of the spectrogram and outputting, at every time step, a probability distribution over the vocabulary to which we add a $\epsilon$ blank character. The CTC model is outputting one character at every iteration, therefore, it produces an output sequence of the same length of the input sequence, possibly with some $\epsilon$ blank characters and also some duplicated characters. 
+
+![Illustration of the CTC model](./data/02-pytorch-asr/ctc.png){width=80%}
+
+It also uses a specific loss which estimates the likelihood of the transcript, conditioned on the spectrogram, by summing over the probabilities of all the possible alignments with the blank character. Given a spectrogram $x$ and a transcript $y$ (e.g. ['t','u','_', 'e', 's']), its probability is computed as :
+
+$$
+p(y | x) = \sum_{a \in \mathcal{A}_{|x|}(y)} h_\theta(a | x) = \sum_{a_j \in \mathcal{A}_{|x|}(y)} \prod_t h_\theta(a_t | x)
+$$
+
+where $A_n(y)$ is the set of all the possible alignments of length $n$ of the sequence $y$. For example, for the sequence $y=(t,u,\_, e, s)$, some elements of $A_6(y)$ are $(\epsilon, \epsilon, t, u, \_, e, s), (\epsilon, t, \epsilon, u, \_,e,s), (t, \epsilon, u, \_,e,\epsilon, s), (t, t, \epsilon, u, \_, e, s), ...$ and this is tricky to compute efficiently. Fortunately, the CTC loss is [provided in pytorch](https://pytorch.org/docs/stable/generated/torch.nn.CTCLoss.html). The CTC loss of pytorch accepts tensors of probabilities of shape $(T_x, Batch, vocab\_size)$ and tensors of labels of shape $(batch, T_y)$ with $T_x$ respectively the maximal sequence length of the spectrogram and $T_y$ the maximal length of the transcript. An example call is given below : 
+
+```{.python}
+
+def ex_ctc():
+    # The size of our minibatches
+    batch_size = 32
+    # The size of our vocabulary (including the blank character)
+    vocab_size = 44
+    # The class id for the blank token
+    blank_id = 43
+
+    max_spectro_length = 50
+    min_transcript_length = 10
+    max_transcript_length = 30
+
+    # Compute a dummy vector of probabilities over the vocabulary (including the blank)
+    # log_probs is here batch_first, i.e. (Batch, Tx, vocab_size)
+    log_probs = torch.randn(batch_size, max_spectro_length, vocab_size).log_softmax(dim=1)
+    spectro_lengths = torch.randint(low=max_transcript_length,
+                                    high=max_spectro_length,
+                                    size=(batch_size, ))
+
+    # Compute some dummy transcripts
+    # targets is here (batch_size, Ty)
+    targets = torch.randint(low=0, high=vocab_size+1,  # include the blank character
+                            size=(batch_size, max_transcript_length))
+    target_lengths = torch.randint(low=min_transcript_length,
+                                   high=max_transcript_length,
+                                   size=(batch_size, ))
+    loss = torch.nn.CTCLoss(blank=blank_id)
+
+    # The log_probs must be given as (Tx, Batch, vocab_size)
+    vloss = loss(log_probs.transpose(0, 1),
+                 targets,
+                 spectro_lengths,
+                 target_lengths)
+
+    print(f"Our dummy loss equals {vloss}")
+
+```
 
 
 
@@ -140,4 +213,6 @@ Below is an example of the resulting spectrogram, masked in time for up to $0.5$
 
 If you are interested in automatic speech recognition, you might be interested in the [End-to-End speech processing toolkit](https://github.com/espnet/espnet).
 
-Also, to go further in terms of models, you might be interested in making use of a language model 
+Also, to go further in terms of models, you might be interested in implementing beam search for decoding, eventually introducing some language model.
+
+## References
