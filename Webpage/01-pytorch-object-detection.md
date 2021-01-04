@@ -255,7 +255,7 @@ feature_extractor = nn.Sequential(*list(model.children())[:-2])
 device = torch.device('cpu')
 
 # If working with the GPU
-device = torch.device('gpu')
+device = torch.device('cuda')
 
 feature_extractor.to(device)
 ```
