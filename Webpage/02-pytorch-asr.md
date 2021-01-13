@@ -28,7 +28,7 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/models.py)
 - [main_ctc.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/main_ctc.py)
 - [train.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/train.idx), [test.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test.idx), [dev.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/dev.idx)
-- [test_implementation.py]((https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test_implementation.py)
+- [test_implementation.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test_implementation.py)
 
 
 
