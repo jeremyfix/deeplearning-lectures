@@ -18,6 +18,20 @@ You will be experimenting with different models :
 
 Through this labwork, you will also learn about dealing with the specific tensor representations of variable length sequences.
 
+## Lab work materials
+
+During this lab work, it is unreasonable to ask you to code everything from scratch. Therefore, we provide you with some starter code that is supposed to help you to work on the interesting parts.
+
+**Download** the starter codes below but do not spend too much time digging into them for now (we will discuss them step by step). All these files are expected to be placed in the same directory.
+
+- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/data.py)
+- [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/models.py)
+- [main_ctc.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/main_ctc.py)
+- [train.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/train.idx), [test.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test.idx), [dev.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/dev.idx)
+- [test_implementation.py]((https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test_implementation.py)
+
+
+
 ## Setting up the dataloaders
 
 In the CommonVoice dataset, you are provided with MP3 waveforms, usually sampled at 48 kHz (sometimes, slightly less on the version 6.1 corpus) with their unaligned transcripts. Unaligned means the annotation does not tell you when each word has been pronounced. No worries, the two models from the literature can deal with non aligned sequence to sequence.
@@ -27,7 +41,7 @@ The data are therefore : a waveform as input and a sequence of characters for th
 - instead of taking as input the waveform, we will be computing a spectrogram in Mel scale
 - the characters will be filtered (to remove some variability) and converted to lists of integers
 
-And these signals need to be stacked in mini-batch tensors. For doing so, you will have to fill in the [data.py](./data/02-pytorch-asr/data.py) script but before doing so, let us discuss some details. From a general point of view, it contains :
+And these signals need to be stacked in mini-batch tensors. For doing so, you will have to fill in the `data.py` script but before doing so, let us discuss some details. From a general point of view, it contains :
 
 - load_dataset : the function for loading the CommonVoice datasets
 - CharMap : the object in charge of performing the encoding/decoding from the characters to the integer representation
@@ -67,7 +81,7 @@ Let us now have a look to the waveforms. Usually the models do not take the raw 
 
 ![The pipeline from the waveform to the logmel spectrogram](./data/02-pytorch-asr/waveform_to_spectro.png){width=100%}
 
-**Exercice** In the WaveformProcessor, fill-in the code in the constructor for initializing the `transform` attribute. It must be a `torch.nn.Sequential` with the [MelSpectrogram](https://pytorch.org/audio/stable/transforms.html#melspectrogram) followed by a [conversion to DB](https://pytorch.org/audio/stable/transforms.html#amplitudetodb).
+**Exercice** In the WaveformProcessor, fill-in the code in the constructor for initializing the `transform` attribute. It must be a `torch.nn.Sequential` with the [MelSpectrogram](https://pytorch.org/audio/stable/transforms.html#melspectrogram) followed by a [conversion to DB](https://pytorch.org/audio/stable/transforms.html#amplitudetodb). To validate your implementation, run the script `test_implementation.py`, the corresponding test should pass.
 
 You can test your code with the following
 
@@ -156,10 +170,10 @@ def ex_pack():
 
 Note that you may want to use usual "dense" tensors, padding at the end your tensors of variable size, but that is not a good idea because 1) the processing on the GPU can be limited to just the right amount if it knows the length of the sequences, 2) padding at the end is not a big deal with unidirectional RNNs but can possibly be a problem with bidirectional RNNs.
 
-**Exercice** Equipped with these new PackedSequence tools, you now have to work on the build up of the minibatches.
+**Exercice** Equipped with these new PackedSequence tools, you now have to work on the build up of the minibatches. To validate your implementation, the dataloaders test in the `test_implementation.py` script should pass.
 
 
-Complete the *data.py* script and write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) plot the spectrograms associated with their transcripts. For the plot part, you can take inspiration from the following python code. Note you are provided with the `plot_spectro` function.
+After completion, write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) plot the spectrograms associated with their transcripts. For the plot part, you can make use of the `plot_spectro` function (in data.py).
 
 Below is an example expected output :
 
@@ -168,7 +182,7 @@ Below is an example expected output :
 
 ## Connectionist Temporal Classification (CTC)
 
-The Connectionist Temporal Classification approach is based on a multi-layer recurrent neural network taking as input the successive frames of the spectrogram and outputting, at every time step, a probability distribution over the vocabulary to which we add a $\epsilon$ blank character. The CTC model is outputting one character at every iteration, therefore, it produces an output sequence of the same length of the input sequence, possibly with some $\epsilon$ blank characters and also some duplicated characters. The labeling, though, is constrained to be of length smaller than the input (the RNN transducer overcomes that possible constraint).
+Now that our data are ready, it is time to setup our first model. The Connectionist Temporal Classification approach is based on a multi-layer recurrent neural network taking as input the successive frames of the spectrogram and outputting, at every time step, a probability distribution over the vocabulary to which we add a $\epsilon$ blank character. The CTC model is outputting one character at every iteration, therefore, it produces an output sequence of the same length of the input sequence, possibly with some $\epsilon$ blank characters and also some duplicated characters. The labeling, though, is constrained to be of length smaller than the input (the RNN transducer overcomes that possible constraint).
 
 ![Illustration of the CTC model](./data/02-pytorch-asr/ctc.png){width=80%}
 
@@ -180,17 +194,6 @@ $$
 
 where $A_n(y)$ is the set of all the possible alignments of length $n$ of the sequence $y$. For example, for the sequence $y=(t,u,\_, e, s)$, some elements of $A_6(y)$ are $(\epsilon, \epsilon, t, u, \_, e, s), (\epsilon, t, \epsilon, u, \_,e,s), (t, \epsilon, u, \_,e,\epsilon, s), (t, t, \epsilon, u, \_, e, s), ...$ and this is tricky to compute efficiently. Fortunately, the CTC loss is [provided in pytorch](https://pytorch.org/docs/stable/generated/torch.nn.CTCLoss.html).
 
-You are provided with a skeleton [main_ctc.py](./data/02-pytorch-asr/main_ctc.py) script. This script calls training and testing functions from the [deepcs](https://pypi.org/project/deepcs/) package that you can install with :
-
-```{.console}
-mymachine:~:mylogin$ python3 -m pip install --user  deepcs
-```
-
-You can open, read and run this script. It provides : 
-
-- a training function for training a network with possibly customized parameters
-- a testing function for testing a pretrained network on a waveform
-- a main function handling the parameters
 
 ### Defining the model
 
@@ -242,7 +245,7 @@ because the time downsampling is 4 and the frequency downsampling is 2.
 
 -->
 
-**Exercice** construct the layers in the constructor of the CTCModel class. You should end up with an architecture with almost 50M parameters to learn. Please keep the names of the attributes of the class "cnn, rnn, charlin", these are used for a test when intepreting the script models.py. Test your implementation by calling 
+**Exercice** construct the layers in the constructor of the CTCModel class. You should end up with an architecture with almost 50M parameters to learn. Please keep the names of the attributes of the class "cnn, rnn, charlin", these are used for a test when interpreting the script models.py. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
 
 ``` {.console}
 mymachine:~:mylogin$ python3 models.py
@@ -256,6 +259,7 @@ The RNN must be defined as GRU(32 * n_mels//2, ...)
 
 
 ### Forward propagation through the model
+
 
 ### Defining the loss
 
@@ -302,6 +306,20 @@ def ex_ctc():
     print(f"Our dummy loss equals {vloss}")
 
 ```
+
+### Running a training
+
+You are provided with a skeleton in the `main_ctc.py` script. This script calls training and testing functions from the [deepcs](https://pypi.org/project/deepcs/) package that you can install with :
+
+```{.console}
+mymachine:~:mylogin$ python3 -m pip install --user  deepcs
+```
+
+You can open, read and run this script. It provides : 
+
+- a training function for training a network with possibly customized parameters
+- a testing function for testing a pretrained network on a waveform
+- a main function handling the parameters
 
 
 
