@@ -129,7 +129,7 @@ def ex_pack():
     n_mels = 80
     max_length = 512
     # Given a list of batch_size tensors of variable sizes of shape (Ti, n_mels)
-    tensors = [torch.randn(random.randint(1, max_length), n_mels)for i in range(batch_size)]
+    tensors = [torch.randn(random.randint(1, max_length), n_mels) for i in range(batch_size)]
 
     # To be packed, the tensors need to be sorted by
     # decreasing length
@@ -139,20 +139,18 @@ def ex_pack():
     lengths = [t.shape[0] for t in tensors]
 
     # We start by padding the sequences to the max_length
-    tensors = pad_sequence(tensors, batch_first=True)
-    # tensors is (batch_size, T, n_mels)
+    tensors = pad_sequence(tensors)
+    # tensors is (T, batch_size, n_mels)
     # note T is equal to the maximal length of the sequences
 
     # We can pack the sequence
     # Note we need to provide the timespans of the individual tensors
-    packed_data = pack_padded_sequence(tensors, lengths=lengths,
-                                      batch_first=True)
+	packed_data = pack_padded_sequence(tensors, lengths=lengths)
 
     # Later, we can unpack the sequence
     # Note we recover the lengths that can be used to slice the "dense"
     # tensor unpacked_data appropriatly
-    unpacked_data, lens_data = pad_packed_sequence(packed_data,
-                                                  batch_first=True)
+	unpacked_data, lens_data = pad_packed_sequence(packed_data)
 
 ```
 
@@ -168,10 +166,9 @@ Below is an example expected output :
 ![An example spectrogram in log-Mel scale of the validation set with its transcript](./data/02-pytorch-asr/spectro_valid.png){width=75%}
 
 
-
 ## Connectionist Temporal Classification (CTC)
 
-The Connectionist Temporal Classification approach is based on a multi-layer recurrent neural network taking as input the successive frames of the spectrogram and outputting, at every time step, a probability distribution over the vocabulary to which we add a $\epsilon$ blank character. The CTC model is outputting one character at every iteration, therefore, it produces an output sequence of the same length of the input sequence, possibly with some $\epsilon$ blank characters and also some duplicated characters. 
+The Connectionist Temporal Classification approach is based on a multi-layer recurrent neural network taking as input the successive frames of the spectrogram and outputting, at every time step, a probability distribution over the vocabulary to which we add a $\epsilon$ blank character. The CTC model is outputting one character at every iteration, therefore, it produces an output sequence of the same length of the input sequence, possibly with some $\epsilon$ blank characters and also some duplicated characters. The labeling, though, is constrained to be of length smaller than the input (the RNN transducer overcomes that possible constraint).
 
 ![Illustration of the CTC model](./data/02-pytorch-asr/ctc.png){width=80%}
 
@@ -181,7 +178,88 @@ $$
 p(y | x) = \sum_{a \in \mathcal{A}_{|x|}(y)} h_\theta(a | x) = \sum_{a_j \in \mathcal{A}_{|x|}(y)} \prod_t h_\theta(a_t | x)
 $$
 
-where $A_n(y)$ is the set of all the possible alignments of length $n$ of the sequence $y$. For example, for the sequence $y=(t,u,\_, e, s)$, some elements of $A_6(y)$ are $(\epsilon, \epsilon, t, u, \_, e, s), (\epsilon, t, \epsilon, u, \_,e,s), (t, \epsilon, u, \_,e,\epsilon, s), (t, t, \epsilon, u, \_, e, s), ...$ and this is tricky to compute efficiently. Fortunately, the CTC loss is [provided in pytorch](https://pytorch.org/docs/stable/generated/torch.nn.CTCLoss.html). The CTC loss of pytorch accepts tensors of probabilities of shape $(T_x, Batch, vocab\_size)$ and tensors of labels of shape $(batch, T_y)$ with $T_x$ respectively the maximal sequence length of the spectrogram and $T_y$ the maximal length of the transcript. An example call is given below : 
+where $A_n(y)$ is the set of all the possible alignments of length $n$ of the sequence $y$. For example, for the sequence $y=(t,u,\_, e, s)$, some elements of $A_6(y)$ are $(\epsilon, \epsilon, t, u, \_, e, s), (\epsilon, t, \epsilon, u, \_,e,s), (t, \epsilon, u, \_,e,\epsilon, s), (t, t, \epsilon, u, \_, e, s), ...$ and this is tricky to compute efficiently. Fortunately, the CTC loss is [provided in pytorch](https://pytorch.org/docs/stable/generated/torch.nn.CTCLoss.html).
+
+You are provided with a skeleton [main_ctc.py](./data/02-pytorch-asr/main_ctc.py) script. This script calls training and testing functions from the [deepcs](https://pypi.org/project/deepcs/) package that you can install with :
+
+```{.console}
+mymachine:~:mylogin$ python3 -m pip install --user  deepcs
+```
+
+You can open, read and run this script. It provides : 
+
+- a training function for training a network with possibly customized parameters
+- a testing function for testing a pretrained network on a waveform
+- a main function handling the parameters
+
+### Defining the model
+
+The model is built from:
+
+- a spatial feature extraction stage with several 2D convolutional layers
+- a temporal part with a bidirectionnal recurrent neural network
+- a classification output stage 
+
+One difficulty in defining this architecture in pytorch is that you must be specifying the "number of features" in the previous layer when you define your Conv2D, GRU and Linear layers. But have a breath or two and let us go.
+
+#### The convolution stage
+
+I propose you to use the implement the following architecture :
+
+- **Spatial feature extraction** : 
+	- Conv2D(32 kernels of size (41, 11), stride=(2,2), padding=(20, 5)) - BatchNorm - HardTanh(0, 20)  
+	- Conv2D(32 kernels of size (21, 11), stride=(2,1), padding=(10, 5)) - BatchNorm - HardTanh(0, 20)  
+
+**Exercice** If you spectrogram is a tensor of shape $(B=1, C=1, T=122, Mels=80)$, meaning one sample with one channel, $122$ time samples for $80$ mel scale frequencies, what is the size of the tensor you expect after forward propagating through the convolutional part ?
+
+**Exercice** Define in the constructor the *cnn* attribute. Test your implementation by calling 
+
+
+#### The recurrent stage
+
+I propose you to use the implement the following architecture :
+
+- **Recurrent neural network** :
+	- 3 layers of bidirectionnal GRU with 1024 units in every layer
+
+#### The output stage
+
+I propose you to use the implement the following architecture :
+
+- **Output classification**:
+	- Linear(vocab\_size)
+
+	- for a Conv layer, you must be specifying the number of channels of the previous layer
+	- for the GRU layer, you must be specifying the number of elements along the frequency axis (not the temporal axis) taking care of the downsampling due to the stride of the convolutions
+	- for the linear layer, you must take into account the number of hidden reccurent units along the fact that these layers are bidirectionnal
+
+
+
+<!--
+ 
+So in general, for (B, 1, Tx, nmels) , the output tensor is (B, 32, Tx//4, nmels//2)
+because the time downsampling is 4 and the frequency downsampling is 2.
+
+-->
+
+**Exercice** construct the layers in the constructor of the CTCModel class. You should end up with an architecture with almost 50M parameters to learn. Please keep the names of the attributes of the class "cnn, rnn, charlin", these are used for a test when intepreting the script models.py. Test your implementation by calling 
+
+``` {.console}
+mymachine:~:mylogin$ python3 models.py
+```
+
+<!--
+
+The RNN must be defined as GRU(32 * n_mels//2, ...)
+
+-->
+
+
+### Forward propagation through the model
+
+### Defining the loss
+
+The CTC loss of pytorch accepts tensors of probabilities of shape $(T_x, Batch, vocab\_size)$ and tensors of labels of shape $(batch, T_y)$ with $T_x$ respectively the maximal sequence length of the spectrogram and $T_y$ the maximal length of the transcript. An example call is given below : 
 
 ```{.python}
 
@@ -190,23 +268,25 @@ def ex_ctc():
     batch_size = 32
     # The size of our vocabulary (including the blank character)
     vocab_size = 44
-    # The class id for the blank token
-    blank_id = 43
+	# The class id for the blank token (we take the default of the CTC loss)
+    blank_id = 0
 
     max_spectro_length = 50
     min_transcript_length = 10
     max_transcript_length = 30
 
     # Compute a dummy vector of probabilities over the vocabulary (including the blank)
-    # log_probs is here batch_first, i.e. (Batch, Tx, vocab_size)
-    log_probs = torch.randn(batch_size, max_spectro_length, vocab_size).log_softmax(dim=1)
+    # log_probs is (Tx, Batch, vocab_size)
+    log_probs = torch.randn(max_spectro_length, batch_size, vocab_size).log_softmax(dim=2)
     spectro_lengths = torch.randint(low=max_transcript_length,
                                     high=max_spectro_length,
                                     size=(batch_size, ))
 
     # Compute some dummy transcripts
-    # targets is here (batch_size, Ty)
-    targets = torch.randint(low=0, high=vocab_size+1,  # include the blank character
+	# longer than necessary. The true length of the transcripts is given
+	# in the target_lengths tensor
+	# targets is here (batch_size, Ty)
+    targets = torch.randint(low=0, high=vocab_size,  # include the blank character
                             size=(batch_size, max_transcript_length))
     target_lengths = torch.randint(low=min_transcript_length,
                                    high=max_transcript_length,
@@ -214,7 +294,7 @@ def ex_ctc():
     loss = torch.nn.CTCLoss(blank=blank_id)
 
     # The log_probs must be given as (Tx, Batch, vocab_size)
-    vloss = loss(log_probs.transpose(0, 1),
+    vloss = loss(log_probs,
                  targets,
                  spectro_lengths,
                  target_lengths)
