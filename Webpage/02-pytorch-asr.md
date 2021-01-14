@@ -11,12 +11,9 @@ In this labwork, you will be experimenting with various recurrent neural network
 
 The data we will be using are collected within the [Mozilla common voice](https://commonvoice.mozilla.org/) which are multi-language datasets of audio recordings and unaligned text transcripts. At the time of writing, there are almost 2000 hours in English and 700 hours in French. You can contribute yourself by either recording or validating recordings.
 
-You will be experimenting with different models :
+You will be experimenting with the Connectionist Temporal Classification model (CTC) as introduced in [@Graves2014], which is the basis of the Deep Speech models (proposed by Baidu research[@Amodei2015] and also implemented by [Mozilla](https://github.com/mozilla/DeepSpeech)). Soon or later, this labwork might be extended to encompass Seq2Seq with attention as introduced in the Listen Attend and Spell [@Chan2016].
 
-- Connectionist Temporal Classification (CTC) as introduced in [@Graves2014], which is the basis of the Deep Speech models (proposed by Baidu research[@Amodei2015] and also implemented by [Mozilla](https://github.com/mozilla/DeepSpeech)), 
-- Seq2Seq with attention as introduced in the Listen Attend and Spell [@Chan2016]
-
-Through this labwork, you will also learn about dealing with the specific tensor representations of variable length sequences.
+Throughout this labwork, you will also learn about dealing with the specific tensor representations of variable length sequences.
 
 ## Lab work materials
 
