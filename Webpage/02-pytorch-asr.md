@@ -21,12 +21,11 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 
 **Download** the starter codes below but do not spend too much time digging into them for now (we will discuss them step by step). All these files are expected to be placed in the same directory.
 
-- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/data.py)
-- [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/models.py)
-- [main_ctc.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/main_ctc.py)
-- [train.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/train.idx), [test.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test.idx), [dev.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/dev.idx)
-- [test_implementation.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test_implementation.py)
-
+- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
+- [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/models.py) : code defining the neural network architectures
+- [main_ctc.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
+- [train.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/train.idx), [test.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test.idx), [dev.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/dev.idx) : files with the indices of the CommonVoice v1 fr dataset filtered between 1s. and 5.
+- [test_implementation.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
 You will also need to install an external python dependency, the [deepcs](https://pypi.org/project/deepcs/) package, that you can install with :
 
@@ -105,7 +104,8 @@ def test_spectro():
                                           win_length=data._DEFAULT_WIN_LENGTH*1e-3,
                                           win_step=win_step,
                                           nmels=data._DEFAULT_NUM_MELS,
-                                          augment=False)
+                                          augment=False,
+										  spectro_normalization=None)
     mel_spectro = trans_mel_spectro(waveform)[0]
 
     fig = plt.figure(figsize=(10, 2))
@@ -181,6 +181,11 @@ Below is an example expected output :
 
 ![An example spectrogram in log-Mel scale of the validation set with its transcript](./data/02-pytorch-asr/spectro_valid.png){width=75%}
 
+### Final remarks about dataloading
+
+As a final note on the data loading part, you may notice that in the `get_dataloaders` function, the BatchCollate object are created with **normalization coefficients** of the spectrogram. I hard-coded the mean and variance. This is dirty, I agree, but that's speeding up your ability to experiment since otherwise it takes quite a while to compute these values. Nevertheless, keep this in mind that if you experiment with some other data, you may need to uncomment the code computing these normalization coefficients.
+
+Also, please note that the train.idx, dev.idx and test.idx files are precomputed to contain the list of the datasamples that have a duration between 1s. and 5s. In case you want to modify these timelengths in the get_dataloaders, you may need to remove these idx files so that they regenerated (see the DatasetFilter object).
 
 ## Connectionist Temporal Classification (CTC)
 
@@ -311,14 +316,13 @@ The next step is to design a sufficiently rich architecture to overfit the train
 mymachine:~:mylogin$ python3 main_ctc.py train
 ```
 
+It takes approximately 800ms per minibatch of size 128.
+
 You should be able to get a null loss on the training set. Have a look on the tensorboard to observe overfitting. See below an example run.
 
-![CTC loss on the train/valid/test sets with an overfitting architecture](./Figs/data/02-pytorch-asr/overfit_losses.png)
+![CTC loss on the test/train/valid sets with an overfitting architecture.](./data/02-pytorch-asr/overfit_losses.png){.bordered}
 
 ### Improving the generalization
-
-#### Regularization
-
 
 #### Data augmentation with SpecAugment
 
@@ -333,6 +337,19 @@ Below is an example of the resulting spectrogram, masked in time for up to $0.5$
 ![An example log-Mel spectrogram with SpecAugment](./data/02-pytorch-asr/spectro_train.png){width=75%}
 
 SpecAugment is already implemented in the `data.py` script. Have a look to the transform_augment attribute of WaveformProcessor. To use it, simply add the `--train_augment` argument when you call the main_ctc script.
+
+#### Dropout
+
+In the DeepSpeech paper, the authors suggest to add dropout layers in the convolutional part. The constructor of CTCModel receives a dropout argument which you can use to add Dropout2D layers after every HardTanh.
+
+#### L1/L2/Dropout Regularization
+
+
+### Testing on a new audioclip
+
+
+
+
 
 ## Extras
 
