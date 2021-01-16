@@ -16,7 +16,10 @@
    version="1.1"
    id="svg8"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   sodipodi:docname="forward.svg">
+   sodipodi:docname="forward.svg"
+   inkscape:export-filename="/home/fix_jer/GIT/deeplearning-lectures/Webpage/data/02-pytorch-asr/forward.svg.png"
+   inkscape:export-xdpi="300"
+   inkscape:export-ydpi="300">
   <defs
      id="defs2">
     <marker
@@ -203,7 +206,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="446.85894"
+     inkscape:cx="445.84879"
      inkscape:cy="82.18905"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
