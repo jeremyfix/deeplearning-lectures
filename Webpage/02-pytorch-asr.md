@@ -237,7 +237,7 @@ because the time downsampling is 4 and the frequency downsampling is 2.
 I propose you to use the implement the following architecture :
 
 - **Recurrent neural network** :
-	- 3 layers of bidirectionnal GRU with 1024 units in every layer
+	- 4 layers of bidirectionnal GRU with 1024 units in every layer
 
 Note that, as usual, when you instantiate the RNN module, you need to provide the size of the its inputs. In the case of recurrent layers, even thought the input tensors do contain a temporal dimension, you do not count it when specifying the size of the input to the RNN. In other words, if your input tensors are $(B, T, C)$, the RNN constructor expects the input_size $C$.
 

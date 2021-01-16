@@ -380,7 +380,7 @@ if __name__ == '__main__':
     parser.add_argument("--nlayers_rnn",
                         type=int,
                         help="The number of RNN layers",
-                        default=3)
+                        default=4)
     parser.add_argument("--nhidden_rnn",
                         type=int,
                         help="The number of units per recurrent layer",
