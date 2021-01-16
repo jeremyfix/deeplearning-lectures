@@ -64,6 +64,7 @@ $endif$-->
     <div class="w3-bar-item w3-light-gray w3-text-black">Pytorch</div>
     <a class="w3-bar-item w3-button" href="00-pytorch-fashionMnist.html">1- First steps with Pytorch</a>
     <a class="w3-bar-item w3-button" href="01-pytorch-object-detection.html">2- Transfer learning/Object detection</a>
+    <a class="w3-bar-item w3-button" href="02-pytorch-asr.html">3- Automatic Speech Recognition</a>
     <div class="w3-bar-item w3-light-gray w3-text-black">Technical aspects</div>
     <a class="w3-bar-item w3-button" href="cluster.html">Using the CentraleSupelec GPUs</a>
     <a class="w3-bar-item w3-button" href="argparse.html">Parametrizing a script with argparse</a>
