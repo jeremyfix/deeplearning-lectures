@@ -342,21 +342,27 @@ SpecAugment is already implemented in the `data.py` script. Have a look to the t
 
 In the DeepSpeech paper, the authors suggest to add dropout layers in the convolutional part. The constructor of CTCModel receives a dropout argument which you can use to add Dropout2D layers after every HardTanh.
 
-#### L1/L2/Dropout Regularization
+#### L1/L2 Regularization
 
+To add L1 or L2 regularization, you can add a `penalty()` method to your CTCModel class that should return your penalty. If such a method exists the training function from deepcs called in main_ctc will call it.
 
 ### Testing on a new audioclip
 
+To test of an audio clip, you can record yourself as a mp3 and call main_ctc :
 
+```console
+mymachine:~:mylogin$ python3 main_ctc.py test --modelpath a/path/to/a/best_model.pt --audiofile myclip.mp3
+```
 
-
+If you used non default values for the other arguments (the ones for the model), you must provide them again. We need them in the test function for recreating the exact same model than the one used during training.
 
 ## Extras
 
+### ESP-Net
+
 If you are interested in automatic speech recognition, you might be interested in the [End-to-End speech processing toolkit](https://github.com/espnet/espnet).
 
-
-### Defining the loss, the optimizer, the callbacks, 
+### CTCLoss example
 
 The CTC loss of pytorch accepts tensors of probabilities of shape $(T_x, Batch, vocab\_size)$ and tensors of labels of shape $(batch, T_y)$ with $T_x$ respectively the maximal sequence length of the spectrogram and $T_y$ the maximal length of the transcript. An example call is given below : 
 
