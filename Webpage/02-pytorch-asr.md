@@ -28,6 +28,11 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [test_implementation.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test_implementation.py)
 
 
+You will also need to install an external python dependency, the [deepcs](https://pypi.org/project/deepcs/) package, that you can install with :
+
+```{.console}
+mymachine:~:mylogin$ python3 -m pip install --user deepcs
+```
 
 ## Setting up the dataloaders
 
@@ -167,7 +172,7 @@ def ex_pack():
 
 Note that you may want to use usual "dense" tensors, padding at the end your tensors of variable size, but that is not a good idea because 1) the processing on the GPU can be limited to just the right amount if it knows the length of the sequences, 2) padding at the end is not a big deal with unidirectional RNNs but can possibly be a problem with bidirectional RNNs.
 
-**Exercice** Equipped with these new PackedSequence tools, you now have to work on the build up of the minibatches. To validate your implementation, the dataloaders test in the `test_implementation.py` script should pass.
+**Exercice** Equipped with these new PackedSequence tools, you now have to work on the build up of the minibatches by filling in the missing code in the BatchCollate class. To validate your implementation, the dataloaders test in the `test_implementation.py` script should pass.
 
 
 After completion, write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) plot the spectrograms associated with their transcripts. For the plot part, you can make use of the `plot_spectro` function (in data.py).
@@ -212,7 +217,14 @@ I propose you to use the implement the following architecture :
 
 **Exercice** If you spectrogram is a tensor of shape $(B=1, C=1, T=122, Mels=80)$, meaning one sample with one channel, $122$ time samples for $80$ mel scale frequencies, what is the size of the tensor you expect after forward propagating through the convolutional part ?
 
-**Exercice** Define in the constructor the *cnn* attribute. Test your implementation by calling 
+<!--
+ 
+So in general, for (B, 1, Tx, nmels) , the output tensor is (B, 32, Tx//4, nmels//2)
+because the time downsampling is 4 and the frequency downsampling is 2.
+
+-->
+
+**Exercice** Define in the constructor the *cnn* attribute. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
 
 
 #### The recurrent stage
@@ -222,31 +234,9 @@ I propose you to use the implement the following architecture :
 - **Recurrent neural network** :
 	- 3 layers of bidirectionnal GRU with 1024 units in every layer
 
-#### The output stage
+Note that, as usual, when you instantiate the RNN module, you need to provide the size of the its inputs. In the case of recurrent layers, even thought the input tensors do contain a temporal dimension, you do not count it when specifying the size of the input to the RNN. In other words, if your input tensors are $(B, T, C)$, the RNN constructor expects the input_size $C$.
 
-I propose you to use the implement the following architecture :
-
-- **Output classification**:
-	- Linear(vocab\_size)
-
-	- for a Conv layer, you must be specifying the number of channels of the previous layer
-	- for the GRU layer, you must be specifying the number of elements along the frequency axis (not the temporal axis) taking care of the downsampling due to the stride of the convolutions
-	- for the linear layer, you must take into account the number of hidden reccurent units along the fact that these layers are bidirectionnal
-
-
-
-<!--
- 
-So in general, for (B, 1, Tx, nmels) , the output tensor is (B, 32, Tx//4, nmels//2)
-because the time downsampling is 4 and the frequency downsampling is 2.
-
--->
-
-**Exercice** construct the layers in the constructor of the CTCModel class. You should end up with an architecture with almost 50M parameters to learn. Please keep the names of the attributes of the class "cnn, rnn, charlin", these are used for a test when interpreting the script models.py. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
-
-``` {.console}
-mymachine:~:mylogin$ python3 models.py
-```
+**Exercice** Define in the constructor the *rnn* attribute. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
 
 <!--
 
@@ -254,11 +244,102 @@ The RNN must be defined as GRU(32 * n_mels//2, ...)
 
 -->
 
+#### The output stage
+
+I propose you to use the implement the following architecture :
+
+- **Output classification**:
+	- Linear(vocab\_size)
+
+You also need to properly specify the input_size of the linear layer. Remember that you have bidirectional RNN layers. Note also that if the output tensor of the RNN is $(B, T, C)$, the expected input_size of the linear layer is $C$ since a prediction is produced at every time step.
+
+**Exercice** Define in the constructor the *char_lin* attribute. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
+
 
 ### Forward propagation through the model
 
+Now that the different parts of the model are defined, we need to handle the forward propagation which is almost straightforward except that we have to deal with the PackedSequences. The tensors should be unpacked before feeding in the feedforward components (convolutional, fully connected classification) and packed otherwise. Below is a depiction of the Tensor shapes through the pipeline.
 
-### Defining the loss
+![The packing/unpacking in the forward pass](./data/02-pytorch-asr/forward.svg.png){.bordered width=100%}
+
+
+**Exercice** Fill in the forward method of the `models.py` script. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
+
+
+### Instantiating the model and defining the optimizer
+
+All right, we now move on the `main_ctc.py` script. This script will allow you to train and test your networks. You can open, read and run this script. It provides : 
+
+- a training function for training a network with possibly customized parameters
+- a testing function for testing a pretrained network on a waveform
+- a main function handling the parameters
+
+The script is almost complete, three steps remain to be done :
+
+- instantiate your model in the `train` function  
+- define an optimizer (I suggest you to use an Adam optimizer)
+
+The other code should be already familiar. 
+
+**Exercice** Instantiate the model and define the optimizer in the `train` function of the `main_ctc.py` script. For the parameters, have a look at the beggining of the `train` function.
+
+## Experimentation with the CTC model
+
+It is now time to experiment. I suggest you to proceed this way :
+
+1- Try to overfit a single minibatch
+2- Try to overfit the training by disabling any sort of regularization and finding an appropriate architecture
+3- Try to improve the generalization performances by appropriately setting the regularization
+
+These three steps are described in the next subsections.
+
+### Overfitting a single minibatch
+
+In order to ensure you do not have bugs in your implementation, a sanity check is to check you can overfit a single minibatch of your training set. If you are unable to fit a single minibatch, you are guaranteed to have an issue in your code. To just load one single minibatch, you can pass in the `--debug` argument when calling `main_ctc.py` :
+
+```console
+mymachine:~:mylogin$ python3 main_ctc.py train --debug
+```
+
+You should pretty quickly see a null loss on the training set with a perfect decoding.
+
+### Overfitting the training set
+
+The next step is to design a sufficiently rich architecture to overfit the training set when any sort of regularization is disabled (L2/L1, dropout, data augmentation, ...) :
+
+```console
+mymachine:~:mylogin$ python3 main_ctc.py train
+```
+
+You should be able to get a null loss on the training set. Have a look on the tensorboard to observe overfitting. See below an example run.
+
+![CTC loss on the train/valid/test sets with an overfitting architecture](./Figs/data/02-pytorch-asr/overfit_losses.png)
+
+### Improving the generalization
+
+#### Regularization
+
+
+#### Data augmentation with SpecAugment
+
+It was recently suggested, in the [SpecAugment](https://arxiv.org/abs/1904.08779) paper [@Park2019] that a valuable data augmentation is to partially mask the spectrograms both in the frequency and time domains.
+
+Fortunately, torchaudio already implements the necessary functions for masking both in the time and frequency domains. I invite you to check the torchaudio documentation about the [FrequencyMasking](https://pytorch.org/audio/stable/transforms.html#frequencymasking) and [TimeMasking](https://pytorch.org/audio/stable/transforms.html#timemasking) transforms. 
+
+These transforms can be implemented within the data.WaveformProcessor object. Just be sure to add a flag to the constructor to decide if you want or not to include these transforms. These transforms should probably be included only in the training set.
+
+Below is an example of the resulting spectrogram, masked in time for up to $0.5$ s. and the mel scale for up to $27$ scales.
+
+![An example log-Mel spectrogram with SpecAugment](./data/02-pytorch-asr/spectro_train.png){width=75%}
+
+SpecAugment is already implemented in the `data.py` script. Have a look to the transform_augment attribute of WaveformProcessor. To use it, simply add the `--train_augment` argument when you call the main_ctc script.
+
+## Extras
+
+If you are interested in automatic speech recognition, you might be interested in the [End-to-End speech processing toolkit](https://github.com/espnet/espnet).
+
+
+### Defining the loss, the optimizer, the callbacks, 
 
 The CTC loss of pytorch accepts tensors of probabilities of shape $(T_x, Batch, vocab\_size)$ and tensors of labels of shape $(batch, T_y)$ with $T_x$ respectively the maximal sequence length of the spectrogram and $T_y$ the maximal length of the transcript. An example call is given below : 
 
@@ -303,43 +384,5 @@ def ex_ctc():
     print(f"Our dummy loss equals {vloss}")
 
 ```
-
-### Running a training
-
-You are provided with a skeleton in the `main_ctc.py` script. This script calls training and testing functions from the [deepcs](https://pypi.org/project/deepcs/) package that you can install with :
-
-```{.console}
-mymachine:~:mylogin$ python3 -m pip install --user  deepcs
-```
-
-You can open, read and run this script. It provides : 
-
-- a training function for training a network with possibly customized parameters
-- a testing function for testing a pretrained network on a waveform
-- a main function handling the parameters
-
-
-
-## Data augmentation with SpecAugment
-
-It was recently suggested, in the [SpecAugment](https://arxiv.org/abs/1904.08779) paper [@Park2019] that a valuable data augmentation is to partially mask the spectrograms both in the frequency and time domains.
-
-Fortunately, torchaudio already implements the necessary functions for masking both in the time and frequency domains. I invite you to check the torchaudio documentation about the [FrequencyMasking](https://pytorch.org/audio/stable/transforms.html#frequencymasking) and [TimeMasking](https://pytorch.org/audio/stable/transforms.html#timemasking) transforms. 
-
-These transforms can be implemented within the data.WaveformProcessor object. Just be sure to add a flag to the constructor to decide if you want or not to include these transforms. These transforms should probably be included only in the training set.
-
-Below is an example of the resulting spectrogram, masked in time for up to $0.5$ s. and the mel scale for up to $27$ scales.
-
-![An example log-Mel spectrogram with SpecAugment](./data/02-pytorch-asr/spectro_train.png){width=75%}
-
-
-## Attention based recurrent neural network
-
-
-## Going further
-
-If you are interested in automatic speech recognition, you might be interested in the [End-to-End speech processing toolkit](https://github.com/espnet/espnet).
-
-Also, to go further in terms of models, you might be interested in implementing beam search for decoding, eventually introducing some language model.
 
 ## References
