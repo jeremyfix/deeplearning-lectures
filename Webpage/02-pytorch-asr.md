@@ -47,11 +47,11 @@ The python packages deepcs and torchaudio are not installed on the CentraleSupé
 
 ## Setting up the dataloaders
 
-In the CommonVoice dataset, you are provided with MP3 waveforms, usually sampled at 48 kHz (sometimes, slightly less on the version 6.1 corpus) with their unaligned transcripts. Unaligned means the annotation does not tell you when each word has been pronounced. No worries, the two models from the literature can deal with non aligned sequence to sequence.
+In the CommonVoice dataset, you are provided with MP3 waveforms, usually sampled at 48 kHz (sometimes, slightly less on the version 6.1 corpus) with their unaligned transcripts. Unaligned means the annotation does not tell you when each word has been pronounced. No worries, the CTC model is designed to deal with non aligned sequence to sequence.
 
 The data are therefore : a waveform as input and a sequence of characters for the output. These two signals will be processed :
 
-- instead of taking as input the waveform, we will be computing a spectrogram in Mel scale
+- instead of taking as input the waveform (that we will resample at 16kHz), we will be computing a spectrogram in Mel scale
 - the characters will be filtered (to remove some variability) and converted to lists of integers
 
 And these signals need to be stacked in mini-batch tensors. For doing so, you will have to fill in the `data.py` script but before doing so, let us discuss some details. From a general point of view, it contains :
