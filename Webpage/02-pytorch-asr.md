@@ -17,6 +17,8 @@ Throughout this labwork, you will also learn about dealing with the specific ten
 
 ## Lab work materials
 
+### Starter code
+
 During this lab work, it is unreasonable to ask you to code everything from scratch. Therefore, we provide you with some starter code that is supposed to help you to work on the interesting parts.
 
 **Download** the starter codes below but do not spend too much time digging into them for now (we will discuss them step by step). All these files are expected to be placed in the same directory.
@@ -27,11 +29,21 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [train.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/train.idx), [test.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test.idx), [dev.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/dev.idx) : files with the indices of the CommonVoice v1 fr dataset filtered between 1s. and 5.
 - [test_implementation.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
+### Requirements
+
 You will also need to install an external python dependency, the [deepcs](https://pypi.org/project/deepcs/) package, that you can install with :
 
 ```{.console}
 mymachine:~:mylogin$ python3 -m pip install --user deepcs
 ```
+
+At the time of writing (Jan 2021), the labwork uses a more recent [torchaudio](https://github.com/pytorch/audio) version than the one currently released on Pypi (release in Dec 2020). To install it :
+
+```{.console}
+mymachine:~:mylogin$ python3 -m pip install  git+https://github.com/pytorch/audio.git@aa56d30c937ab48c0e93234046e19f0e128a03fc --user
+```
+
+Finally, the labwork has been developed with [torch](https://github.com/pytorch/pytorch) 1.7.0.
 
 ## Setting up the dataloaders
 
