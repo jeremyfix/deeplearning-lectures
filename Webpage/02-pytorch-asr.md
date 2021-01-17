@@ -43,7 +43,7 @@ At the time of writing (Jan 2021), the labwork uses a more recent [torchaudio](h
 mymachine:~:mylogin$ python3 -m pip install  git+https://github.com/pytorch/audio.git@aa56d30c937ab48c0e93234046e19f0e128a03fc --user
 ```
 
-Finally, the labwork has been developed with [torch](https://github.com/pytorch/pytorch) 1.7.0.
+The python packages deepcs and torchaudio are not installed on the CentraleSupélec GPU clusters. However, pytorch is already installed. If needed, the labwork has been developed with [torch](https://github.com/pytorch/pytorch) 1.7.0.
 
 ## Setting up the dataloaders
 
