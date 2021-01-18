@@ -31,6 +31,12 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 
 ### Requirements
 
+For correctly handling the print of UTF-8, you may need to define your locale appropriately (and feel free to add to your rc file) :
+
+```{.console}
+mymachine:~:mylogin$ export LANG=en_US.UTF-8
+```
+
 You will also need to install an external python dependency, the [deepcs](https://pypi.org/project/deepcs/) package, that you can install with :
 
 ```{.console}
