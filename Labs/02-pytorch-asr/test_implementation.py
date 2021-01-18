@@ -49,8 +49,8 @@ def build_ctc_model(T, B):
 
     return models.CTCModel(charmap,
                            n_mels=80,
-                           num_hidden=185,
-                           num_layers=3,
+                           nhidden_rnn=185,
+                           nlayers_rnn=3,
                            cell_type='GRU',
                            dropout=0.1)
 
