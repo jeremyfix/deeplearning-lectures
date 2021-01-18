@@ -427,4 +427,8 @@ def ex_ctc():
 
 ```
 
+## A possible solution
+
+You will find a possible solution in the [LabsSolutions/02-pytorch-asr](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/02-pytorch-asr) directory.
+
 ## References
