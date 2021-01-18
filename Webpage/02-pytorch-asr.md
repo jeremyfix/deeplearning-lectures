@@ -116,6 +116,7 @@ def test_spectro():
     # Take one of the waveforms 
     idx = 10
     waveform, rate, dictionary = dataset[idx]
+    waveform = waveform.transpose(0, 1)  # (B, T) to (T, B) as expected by WaveformProcessor
 
     win_step = data._DEFAULT_WIN_STEP*1e-3
     trans_mel_spectro = WaveformProcessor(rate=rate,
@@ -124,7 +125,7 @@ def test_spectro():
                                           nmels=data._DEFAULT_NUM_MELS,
                                           augment=False,
 										  spectro_normalization=None)
-    mel_spectro = trans_mel_spectro(waveform)[0]
+    mel_spectro = trans_mel_spectro(waveform).squeeze()  # (T, 1, N_MELS) to (T, N_MELS)
 
     fig = plt.figure(figsize=(10, 2))
     ax = fig.add_subplot()
