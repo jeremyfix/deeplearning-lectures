@@ -44,8 +44,9 @@ This loss is to be minimised with respect to the parameters of the generator $\t
 You are provided with some starter code which already implements some functionalities :
 
 - [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/data.py) : code performing the data loading 
-- [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/data.py) : code defining the GAN 
-- [main.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/data.py) : code containing the training and testing functions
+- [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/models.py) : code defining the GAN 
+- [main.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/main.py) : code containing the training and testing functions
+- [generator.pt](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/generator.pt) : a pretrained generator used for the end of the labwork
 
 
 ## Implementing the Vanilla GAN
