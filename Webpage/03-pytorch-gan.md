@@ -96,7 +96,7 @@ The proposed architecture of the generator is:
 - GBlock(64)
 - Conv(1 channel, 1x1) - Tanh
 
-In between the linear layer and the first convolution, note you will have to "reshape" the tensor (using the [Tensor.view]()) method. The tanh activation for the last layer is suggested in [@Radford2016] to be a good idea.
+In between the linear layer and the first convolution, note you will have to "reshape" the tensor (using the [Tensor.view](https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view)) method. The tanh activation for the last layer is suggested in [@Radford2016] to be a good idea.
 
 **Exercice** Implement the generator in the `data.py` script. You have to create the network in the constructor of the Generator class and to implement the forward function. Note you can use the `up_conv_bn_relu` builder function provided in this script. The forward(X, batch_size) either takes as input a random vector $X$ or the number of samples you want. As for the critic, the bias is useless in the convolutional layers that are followed by a batch-normalization.
 
