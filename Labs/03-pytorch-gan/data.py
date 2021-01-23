@@ -3,6 +3,7 @@
 # Standard imports
 from typing import Union
 from pathlib import Path
+import functools
 # External imports
 import tqdm
 import numpy as np
@@ -41,43 +42,54 @@ def get_dataloaders(dataset_root: Union[str, Path],
                                  dataset (usefull for debuging)
     """
 
-    datasets = ["MNIST"]
+    datasets = ["MNIST", "FashionMNIST", "EMNIST", "SVHN"]
     if dataset not in datasets:
         raise NotImplementedError(f"Cannot import the dataset {dataset}."
                                   f" Available datasets are {datasets}")
 
-    if dataset == "MNIST":
-        # Get the two datasets, make them tensors in [0, 1]
-        transform= transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize( (_MNIST_MEAN,), (_MNIST_STD,))
-        ]
-        )
-        train_dataset = torchvision.datasets.MNIST(root=dataset_root,
-                                                   train=True,
-                                                   download=True,
-                                                   transform=transform
-                                                  )
-        test_dataset = torchvision.datasets.MNIST(root=dataset_root,
-                                                  train=False,
-                                                  download=True,
-                                                  transform=transform
-                                                 )
-        dataset = torch.utils.data.ConcatDataset([train_dataset,
-                                                 test_dataset])
+    dataset_loader = getattr(torchvision.datasets, f"{dataset}")
+    train_kwargs = {}
+    test_kwargs = {}
+    if dataset in ["MNIST", "FashionMNIST", "EMNIST"]:
+        train_kwargs['train'] = True
+        test_kwargs['train'] = False
+    if dataset == "EMNIST":
+        train_kwargs['split'] = 'balanced'
+    elif dataset == "SVHN":
+        train_kwargs['split'] = 'train'
+        test_kwargs['split'] = 'test'
 
-        # Compute the channel-wise normalization coefficients
-        # mean = std = 0
-        # img, _ = dataset[0]
-        # print(img.shape)
-        # N = len(dataset) * img.shape[1] * img.shape[2]
-        # for img, _ in tqdm.tqdm(dataset):
-        #     mean += img.sum()/N
-        # for img, _ in tqdm.tqdm(dataset):
-        #     std += ((img - mean)**2).sum()/N
-        # std = np.sqrt(std)
-        # print(mean, std)
 
+    # Get the two datasets, make them tensors in [0, 1]
+    transform= transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize( (_MNIST_MEAN,), (_MNIST_STD,))
+    ]
+    )
+    train_dataset = dataset_loader(root=dataset_root,
+                                   **train_kwargs,
+                                   download=True,
+                                   transform=transform
+                                  )
+    test_dataset = dataset_loader(root=dataset_root,
+                                  **test_kwargs,
+                                  download=True,
+                                  transform=transform
+                                 )
+    dataset = torch.utils.data.ConcatDataset([train_dataset,
+                                              test_dataset])
+
+    # Compute the channel-wise normalization coefficients
+    # mean = std = 0
+    # img, _ = dataset[0]
+    # print(img.shape)
+    # N = len(dataset) * img.shape[1] * img.shape[2]
+    # for img, _ in tqdm.tqdm(dataset):
+    #     mean += img.sum()/N
+    # for img, _ in tqdm.tqdm(dataset):
+    #     std += ((img - mean)**2).sum()/N
+    # std = np.sqrt(std)
+    # print(mean, std)
 
     if small_experiment:
         dataset = torch.utils.data.Subset(dataset, range(batch_size))

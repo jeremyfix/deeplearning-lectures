@@ -197,6 +197,7 @@ class Generator(nn.Module):
         self.latent_size = latent_size
         self.base_c = base_c
 
+        H, W = img_shape[1:]
         ######################
         # START CODING HERE ##
         ######################

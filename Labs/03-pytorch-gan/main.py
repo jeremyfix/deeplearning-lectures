@@ -11,12 +11,8 @@ import torch
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
-import deepcs
 import deepcs.display
-from deepcs.training import train as ftrain, ModelCheckpoint
-from deepcs.testing import test as ftest
 from deepcs.fileutils import generate_unique_logpath
-import deepcs.metrics
 import tqdm
 # Local imports
 import data
@@ -31,6 +27,7 @@ def train(args):
     logger.info("Training")
 
     # Parameters
+    dataset = args.dataset
     dataset_root = args.dataset_root
     nthreads = args.nthreads
     batch_size = args.batch_size
@@ -52,7 +49,7 @@ def train(args):
                                                                  cuda=use_cuda,
                                                                  batch_size=batch_size,
                                                                  n_threads = nthreads,
-                                                                 dataset="MNIST",
+                                                                 dataset=dataset,
                                                                 small_experiment=debug)
 
     # Model definition
@@ -278,7 +275,7 @@ if __name__ == '__main__':
 
     # Data parameters
     parser.add_argument("--dataset",
-                        choices=["MNIST"],
+                        choices=["MNIST", "FashionMNIST", "EMNIST", "SVHN"],
                         help="Which dataset to use")
     parser.add_argument("--dataset_root",
                         type=str,
