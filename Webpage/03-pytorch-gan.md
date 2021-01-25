@@ -67,9 +67,9 @@ mymachine:~:mylogin$ python3 -m pip install --user deepcs
 
 ### Implementing the critic
 
-The critic is a simple convolutional neural network which has to stay if the input image is a real or a fake. You are free to experiment with any architecture but I can suggest you one. Denote by `Block(k)` the following sequence of layers :
+The critic is a simple convolutional neural network which has to stay if the input image is a real or a fake. You are free to experiment with any architecture but I can suggest you one. Denote by `CBlock(k)` the following sequence of layers :
 
-- $2 \times [$Conv($k$ channels, 3x3, padding=same) - BatchNorm - LeakyRely(0.2)$]$
+- $2 \times [$Conv($k$ channels, 3x3, padding=same) - BatchNorm - LeakyRelu(0.2)$]$
 - Conv($k$ channels, 3x3, padding=valid) - BatchNorm - LeakyRelu(0.2)
 - Dropout(0.3)
 
@@ -79,7 +79,7 @@ The architecture for the discriminator I propose you is :
 
 Every block is downsampling the representation so that with a $(B, 1, 28, 28)$ input, we end the convolutional part with a $(B, 96, 4, 4)$ and the linear layer has therefore $1536$ weights and $1$ bias. The output of the network is the logit, i.e. before the application of the sigmoid which is actually embedded in the [BCEWithLogitsLoss](https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html) we will be using.
 
-**Exercice** Implement the critic in the `data.py` script. You have to define the neural network in the constructor Discriminator class and implement the forward method. Note that since every convolutional layer is followed by a batch-normalization, you can remove the bias from the convolutional layer that would anyway be canceled by the normalization (see the constructor of Conv2d). 
+**Exercice** Implement the critic in the `models.py` script. You have to define the neural network in the constructor Discriminator class and implement the forward method. Note that since every convolutional layer is followed by a batch-normalization, you can remove the bias from the convolutional layer that would anyway be canceled by the normalization (see the constructor of Conv2d). 
 
 **Sanity check** : 
 
@@ -114,7 +114,7 @@ If you use SVHN, you should start with a Linear($8\times8\times256$) since SVHN 
 
 In between the linear layer and the first convolution, note you will have to "reshape" the tensor (using the [Tensor.view](https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view)) method. The tanh activation for the last layer is suggested in [@Radford2016] to be a good idea.
 
-**Exercice** Implement the generator in the `data.py` script. You have to create the network in the constructor of the Generator class and to implement the forward function. Note you can use the `up_conv_bn_relu` builder function provided in this script. The forward(X, batch_size) either takes as input a random vector $X$ or the number of samples you want. As for the critic, the bias is useless in the convolutional layers that are followed by a batch-normalization.
+**Exercice** Implement the generator in the `models.py` script. You have to create the network in the constructor of the Generator class and to implement the forward function. Note you can use the `up_conv_bn_relu` builder function provided in this script. The forward(X, batch_size) either takes as input a random vector $X$ or the number of samples you want. As for the critic, the bias is useless in the convolutional layers that are followed by a batch-normalization.
 
 **Sanity check** : 
 
@@ -161,7 +161,7 @@ $$
 \mathcal{L}_c = BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \\ f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix} 1 \\ \vdots \\ 1 \\ 0 \\ \vdots \\ 0 \end{bmatrix}) = -\frac{1}{2b_i} (\sum_i \log(r_i) + \sum_k \log(1-f_i)) = \frac{BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \end{bmatrix}, \begin{bmatrix}1 \\ \vdots \\ 1\end{bmatrix}) + BCELoss(\begin{bmatrix} f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix}0 \\ \vdots \\ 0\end{bmatrix}) }{2}
 $$
 
-**Exercice** Implement the above loss in the `main.py` script within the training loop. Note that you have two vectors named pos_labels and neg_labels containing respectively only 1 and 0. Implement also the three lines for the backward pass (reset the gradient accumulator, perform the backward pass, update the parameters).
+**Exercice** Implement the above loss in the `main.py` script within the training loop. Note that you have two vectors named pos_labels and neg_labels containing respectively only ones and zeros. Implement also the three lines for the backward pass (reset the gradient accumulator, perform the backward pass, update the parameters).
 
 Finally, for the generator, since it wants to fool the critic, denoting $f_i$ the logits assigned by the critic to a newly sampled set of fake images, the loss to be minimized by the generator is :
 
@@ -169,7 +169,7 @@ $$
 \mathcal{L}_g = BCELoss(\begin{bmatrix} f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix} 1 \\ \vdots \\ 1 \end{bmatrix}) = -\frac{1}{b_i} (\sum_i \log(f_i)) 
 $$
 
-**Exercice** Implement the above loss in the `main.py` script within the training loop. Note that you have the vector named pos_labels containing respectively only 1s. Implement also the three lines for the backward pass (reset the gradient accumulator, perform the backward pass, update the parameters) for the generator.
+**Exercice** Implement the above loss in the `main.py` script within the training loop. Note that you have the vector named pos_labels containing respectively only ones. Implement also the three lines for the backward pass (reset the gradient accumulator, perform the backward pass, update the parameters) for the generator.
 
 ### Training
 
@@ -197,6 +197,8 @@ To generate new samples, we just need to evaluate the generator of normally dist
 ```{.console}
 mymachine:~:mylogin$ python3 main.py generate --modelpath generator.pt 
 ```
+
+Note that the generated images have been already denormalized in the code you are provided.
 
 ### Interpolating in the latent space
 
