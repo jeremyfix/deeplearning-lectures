@@ -69,8 +69,8 @@ mymachine:~:mylogin$ python3 -m pip install --user deepcs
 
 The critic is a simple convolutional neural network which has to stay if the input image is a real or a fake. You are free to experiment with any architecture but I can suggest you one. Denote by `CBlock(k)` the following sequence of layers :
 
-- $2 \times [$Conv($k$ channels, 3x3, padding=same) - BatchNorm - LeakyRelu(0.2)$]$
-- Conv($k$ channels, 3x3, padding=valid) - BatchNorm - LeakyRelu(0.2)
+- $2 \times [$Conv($k$ channels, 3x3, stride=1, padding=same) - BatchNorm - LeakyRelu(0.2)$]$
+- Conv($k$ channels, 3x3, stride=2, padding=same) - BatchNorm - LeakyRelu(0.2)
 - Dropout(0.3)
 
 The architecture for the discriminator I propose you is :
