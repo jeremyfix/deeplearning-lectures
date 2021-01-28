@@ -156,6 +156,7 @@ You must specify either the cluster or the frontal but not both.
 GREEN="\033[1;32m"
 NORMAL="\033[0;39m"
 RED="\033[1;31m"
+YELLOW="\033[1;33m"
 BLUE="\033[1;34m"
 MAGENTA="\033[1;35m"
 
@@ -167,6 +168,9 @@ display_wait() {
 }
 display_success() {
 	echo -e "$GREEN $1 $NORMAL" 1>&2
+}
+display_warn() {
+	echo -e "$YELLOW $1 $NORMAL" 1>&2
 }
 display_error() {
 	echo -e "$RED $1 $NORMAL" 1>&2
@@ -1015,10 +1019,20 @@ case $ACTION in
 
 		if [ -z $JOBID ]
 		then
-			display_error "No job_id is specified, you must provide one. Call with -h for more help  "
+			display_warn "No job_id is specified, you must provide one. Call with -h for more help  "
 			display_info "Listing your current reservations"
 			$list_allocation
-			exit
+
+			# If there is at least one jobid, we will use this one
+			allocations=`$list_allocation | tail +2`
+			if [[ "$allocations" == "" ]]; then
+				display_error "There is no running allocations."
+				exit
+			else
+				display_info "There is at least one running allocation"
+				JOBID=`echo $allocations | awk -F '[[:space:]]' '{print $1}' | head -n 1`
+				display_info "I will use JOBID $JOBID"
+			fi
 		fi
 
 		if [ -z $KOMMAND ]
@@ -1026,8 +1040,6 @@ case $ACTION in
 			display_error "A command is required. Specify it with -k|--kommand, run with -h for help"
 			exec echo "$usage_r"
 			exit
-		else
-			display_info "cool"
 		fi
 
 		display_info "Running the command \"$KOMMAND\" on the booked node"
