@@ -1,7 +1,8 @@
 import sys
 
 from tensorflow.keras import backend as K
-from tensorflow.keras.datasets import mnist
+from tensorflow.keras.datasets import mnist, fashion_mnist
+from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.layers import Lambda
 from tensorflow.keras.models import load_model
 from tensorflow.keras.utils import to_categorical
@@ -59,7 +60,7 @@ args = parser.parse_args()
 
 # Loading the MNIST dataset
 # For MNIST, input_shape is (28, 28). The images are monochrome
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
+(X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
 
 num_classes = 10
 img_rows = X_train.shape[1]
@@ -97,7 +98,6 @@ if args.normalize:
 	       		arguments={'mu': mean, 'std': std})(xi)
 
 
-
 # We build the requested model
 model = models.build_network(args.model, input_shape, num_classes,
 		  	     normalization, args.dropout, args.L2)
@@ -124,6 +124,7 @@ checkpoint_filepath = os.path.join(logpath,  "best_model.h5")
 checkpoint_cb = ModelCheckpoint(checkpoint_filepath, save_best_only=True)
 
 # Compilation
+# optim = SGD(learning_rate=0.001)
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
