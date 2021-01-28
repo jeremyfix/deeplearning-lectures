@@ -77,6 +77,7 @@ These are available commands :
 book          	    book a node on the CentraleSupelec Metz cluster
 log   	            log on an already booked node
 kill        	    kill a reservation on the CentraleSupelec Metz cluster 
+run                 run a command on an already booked node
 port_forward	    forward a port from a machine you booked to your 
 local computer
 "
@@ -120,7 +121,19 @@ a list of your booked JOB_ID will be displayed
 
 You must specify either the cluster or the frontal but not both.
 "
+usage_r="usage :  cscluster run
+Runs a specific command on the CentraleSupelec Metz cluster
 
+-u, --user <login>          Login to connect to CentraleSupelec Metz
+-k, --kommand <command>      The command to run (c is already used for the cluster)
+-f, --frontal <frontal>     OPTIONAL, the frontal (e.g. term2.grid, slurm1, ..)
+-c, --cluster <cluster>     OPTIONAL, the cluster (e.g: uSkynet, cam, tx, kyle, sarah, john)
+-j, --jobid <JOB_ID>        OPTIONAL The JOB_ID of the job. If not provided
+a list of your booked JOB_ID will be displayed
+-h, --help                  Prints this help message
+
+You must specify either the cluster or the frontal but not both.
+"
 usage_p="usage :  cscluster port_forward
 Forward a port from a machine you booked to your local computer
 
@@ -195,6 +208,10 @@ case $key in
 		;;
 	"log")
 		ACTION="log"
+		shift # pass argument
+		;;
+	"run")
+		ACTION="run"
 		shift # pass argument
 		;;
 	"kill")
@@ -357,6 +374,53 @@ case $ACTION in
 			esac
 		done
 		;;
+
+	"run")
+
+		# Parse the command line arguments
+		USER=
+		KOMMAND=
+		FRONTAL=
+		CLUSTER=
+		JOBID=	
+
+		while [[ $# -gt 0 ]]
+		do
+			key="$1"
+			case $key in
+				-u|--user)
+					USER="$2"
+					shift # pass argument
+					shift # pass value
+					;;
+				-k|--kommand)
+					KOMMAND="$2"
+					shift 
+					shift
+					;;
+				-f|--frontal)
+					FRONTAL="$2"
+					shift
+					shift
+					;;
+				-c|--cluster)
+					CLUSTER="$2"
+					shift
+					shift
+					;;
+				-j|--jobid)
+					JOBID="$2"
+					shift
+					shift
+					;;
+				-h|--help)
+					exec echo "$usage_r";;
+				*)
+					exec echo "Unrecognized option $key"
+			esac
+		done
+		;;
+
 	"port_forward")
 		# Parse the command line arguments
 		USER=
@@ -496,6 +560,11 @@ oar_log_node ()
 
 	display_success "   The reservation $1 is still running"
 	execute_on_frontal_withtty "oarsub -C $1"
+}
+
+oar_run_command()
+{
+	display_error "The run_command is not yet implemented for OAR"
 }
 
 oar_list_allocation ()
@@ -667,6 +736,13 @@ slurm_log_node()
 	fi
 }
 
+slurm_run_command() 
+{
+	# $1(jobid) $2(command)
+	display_info "Running the command within the screen $default_screen_name-$1"
+	execute_on_frontal_withtty 'screen -S '$default_screen_name-$1' -X stuff '\'$2' ^M'\'
+}
+
 slurm_list_allocation ()
 {
 	execute_on_frontal "squeue -u $USER"
@@ -775,6 +851,7 @@ case $SCHEDULER in
 		test_job_state=oar_test_job_state
 		book_node=oar_book_node
 		log_node=oar_log_node
+		run_command=oar_run_command
 		list_allocation=oar_list_allocation
 		list_all_jobids=oar_list_all_jobids
 		kill_reservation=oar_kill_reservation
@@ -785,6 +862,7 @@ case $SCHEDULER in
 		test_job_state=slurm_test_job_state
 		book_node=slurm_book_node
 		log_node=slurm_log_node
+		run_command=slurm_run_command
 		list_allocation=slurm_list_allocation
 		list_all_jobids=slurm_list_all_jobids
 		kill_reservation=slurm_kill_reservation
@@ -904,7 +982,6 @@ case $ACTION in
 			exit
 		fi
 
-
 		if [[ "$JOBID" = "all" ]]
 		then
 			display_info "Collecting all the jobid booked for $USER"
@@ -927,6 +1004,38 @@ case $ACTION in
 		display_success "Done"
 
 		;;
+	"run")
+
+		if [ -z $USER ]
+		then
+			display_error "A login is required. Specify it with -u|--user, run with -h for help"
+			exec echo "$usage_p"	    
+			exit
+		fi
+
+		if [ -z $JOBID ]
+		then
+			display_error "No job_id is specified, you must provide one. Call with -h for more help  "
+			display_info "Listing your current reservations"
+			$list_allocation
+			exit
+		fi
+
+		if [ -z $KOMMAND ]
+		then
+			display_error "A command is required. Specify it with -k|--kommand, run with -h for help"
+			exec echo "$usage_r"
+			exit
+		else
+			display_info "cool"
+		fi
+
+		display_info "Running the command \"$KOMMAND\" on the booked node"
+
+		$run_command $JOBID $KOMMAND
+
+		;;
+
 	"port_forward")
 
 
