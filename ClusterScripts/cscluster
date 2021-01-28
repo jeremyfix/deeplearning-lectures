@@ -1058,19 +1058,29 @@ case $ACTION in
 			exit
 		fi
 
-		if [ -z $JOBID ] && [ -z $MACHINE ]
-		then
-			display_error "You must specify a machine with -m <MACHINE>  or a job id with -j <JOB_ID>"
-			display_error "more info with $0 -h"
-			display_info "Your current reservations are listed below :"
-			$list_allocation
-			exit -1
-		fi
 		if [ ! -z $JOBID ] && [ ! -z $MACHINE ]
 		then
 			display_error "You cannot specify both a machine and a jobid"
 			exit -1
 		fi
+		if [ -z $JOBID ] && [ -z $MACHINE ]
+		then
+			display_warn "You must specify a machine with -m <MACHINE>  or a job id with -j <JOB_ID>"
+			display_info "Your current reservations are listed below :"
+			$list_allocation
+
+			# If there is at least one jobid, we will use this one
+			allocations=`$list_allocation | tail +2`
+			if [[ "$allocations" == "" ]]; then
+				display_error "There is no running allocations."
+				exit -1
+			else
+				display_info "There is at least one running allocation"
+				JOBID=`echo $allocations | awk -F '[[:space:]]' '{print $1}' | head -n 1`
+				display_info "I will use JOBID $JOBID"
+			fi
+		fi
+
 		if [ -z $LOCAL_PORT ]
 		then
 			display_error "A port is required. Specify it with -p|--port, run with -h for help"
