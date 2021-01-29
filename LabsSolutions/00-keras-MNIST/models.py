@@ -5,7 +5,9 @@ from tensorflow.keras.models import Model
 from tensorflow.keras import regularizers
 
 def make_linear(input_shape, num_classes,
-        normalization=None, use_dropout=False, use_L2=False):
+                normalization=None,
+                use_dropout=False,
+                use_L2=False):
     xi = Input(shape=input_shape)
     x  = xi
     if normalization:
@@ -149,5 +151,10 @@ builders = {'linear': make_linear,
             'fancy': make_fancy_cnn
            }
 def build_network(model, input_shape, num_classes, normalization, use_dropout, use_L2):
-    return builders[model](input_shape, num_classes, normalization, use_dropout, use_L2)
+    if normalization is not None:
+        print(normalization)
+        lambda_normalization = lambda xi: Lambda(lambda image, mu, std: (image - mu) / std,
+                                                 arguments={'mu': normalization[0], 
+                                                            'std': normalization[1]})(xi)
+    return builders[model](input_shape, num_classes, lambda_normalization, use_dropout, use_L2)
 
