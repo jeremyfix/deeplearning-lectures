@@ -726,6 +726,6 @@ set. An average of 4 models might eventually lead you to a loss of
 
 ## A possible solution
 
-You will find a possible solution, with a little bit more than what we have seen in this practical in the [LabsSolutions/00-keras-MNIST](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/00-keras-MNIST) directory.
+You will find a possible solution, with a little bit more than what we have seen in this practical in the [LabsSolutions/00-keras-MNIST](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/00-keras-MNIST) directory. It is structured in three scripts, one for data loading (data.py), one for defining the models (models.py) and one for orchestrating everything (main.py). The script is also ran on FashionMNIST rather than MNIST.
 
 ## References
