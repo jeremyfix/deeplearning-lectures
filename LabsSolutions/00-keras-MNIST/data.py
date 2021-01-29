@@ -62,5 +62,25 @@ def get_data(normalize: bool,
     return traindata, (X_val, y_val), (X_test, y_test), normalization, input_shape, num_classes
 
 
+def get_test_data():
+    """
+    Loads the test dataset
+    """
+
+    # Loading the MNIST dataset
+    # For MNIST, input_shape is (28, 28). The images are monochrome
+    _, (X_test, y_test) = fashion_mnist.load_data()
+
+    num_classes = 10
+    img_rows = X_test.shape[1]
+    img_cols = X_test.shape[2]
+    num_test = X_test.shape[0]
+
+    X_test = X_test.reshape(num_test, img_rows, img_cols, 1)
+    y_test = to_categorical(y_test, num_classes)
+
+    return (X_test, y_test)
+
+
 if __name__ == '__main__':
     pass
