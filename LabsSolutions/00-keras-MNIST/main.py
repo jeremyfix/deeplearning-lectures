@@ -3,6 +3,7 @@
 
 # Standard imports
 import argparse
+import sys
 import os
 import functools
 # External imports
@@ -24,6 +25,7 @@ def generate_unique_logpath(logdir, raw_run_name):
         run_name = raw_run_name + "-" + str(i)
         log_path = os.path.join(logdir, run_name)
         if not os.path.isdir(log_path):
+            os.mkdir(log_path)
             return log_path
         i = i + 1
 
@@ -48,12 +50,21 @@ def train(args):
     # Callbacks
     logpath = generate_unique_logpath(args.logdir, args.model)
     tbcb = TensorBoard(log_dir=logpath)
+
     print("=" * 20)
     print("The logs will be saved in {}".format(logpath))
     print("=" * 20)
 
     checkpoint_filepath = os.path.join(logpath,  "best_model.h5")
-    checkpoint_cb = ModelCheckpoint(checkpoint_filepath, save_best_only=True)
+    checkpoint_cb = ModelCheckpoint(checkpoint_filepath,
+                                    save_best_only=True)
+
+    # Write down the summary of the experiment
+    with open(os.path.join(logpath, "summary.txt"), 'w') as f:
+        f.write("## Executed command \n")
+        f.write(" ".join(sys.argv) + '\n')
+        f.write("\n## Args\n"
+                f"{args}""")
 
     # Compilation
     model.compile(loss='categorical_crossentropy',
