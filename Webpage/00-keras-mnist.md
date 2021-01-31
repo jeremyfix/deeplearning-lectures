@@ -31,20 +31,39 @@ to:
 -   save/load a model and evaluate its performances
 -   monitor the training progress by interfacing with tensorboard
 
-A Linear classifier
--------------------
+<div class="w3-card w3-red">
+**VERY VERY Important**: Below, we see together step by step how to set up our training script. While reading the following lines you will progressively fill in python script. We also see the modules to be imported only when these are required for the presentation. But obviously, it is clearer to put these imports at the beginning of your scripts. So the following python codes **should not be strictly copy-pasted** on the fly.
+</div>
+
+## Having a running python interpreter with the required modules
+
+For making the labs, I propose the following way to work :
+
+- for the CentraleSupelec students, you can edit your code on the labs machines, and run it directly on the GPUs. Your home directory is a network home so that any modifications you do locally are seen from the GPUs,
+- for SM20 lifelong trainees, you can edit and run your code within the jupyter lab
+- for masters students (AVR, PSA), you can edit and run your code within the jupyter lab or, for experienced users, edit your code with VIM within a ssh session, a within the VNC client
+
+To connect to the GPUs, use one of the procedures described in [Using the CentraleSupelec GPUs](cluster.html).
+
+You should now have at your disposal a python interpreter with the installed package, i.e. the
+following should work successfully :
+
+``` console
+sh11:~:mylogin$ python3 -c "from tensorflow import keras" 
+```
+
+If the above fails, stop here and ask me, I'll be glad to help you.
+
+## A Linear classifier
+
 
 Before training deep neural networks, it is good to get an idea of the
 performances of a simple linear classifier. So we will define and train
 a linear classifier and see together how this is written in
 Python/Keras.
 
-**Important**: Below, we see together step by step how to set up our
-training script. While reading the following lines, edit a file named
-**train\_mnist\_linear.py** that you will fill. We also see the modules
-to be imported only when these are required but obviously, it is clearer
-to put these imports at the beginning of your scripts. So the following
-python codes should not be strictly copy-pasted on the fly.
+While reading the following lines, edit a file named
+**train\_mnist\_linear.py** that you will fill.
 
 ### Loading and basic preprocessing the dataset
 
