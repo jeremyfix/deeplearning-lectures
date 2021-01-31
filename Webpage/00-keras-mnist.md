@@ -135,6 +135,8 @@ respectively and the first 10 entries of y\_train are:
 [ 0.  0.  0.  0.  1.  0.  0.  0.  0.  0.]
 ```
 
+Does these values make sense to you ? What is the label of the fourth sample ? Can you plot the corresponding input to check that the label is correct ?
+
 For now, this is all we do for loading the dataset. Preprocessing the
 input actually influences the performances of the training but we come
 back to this later when normalizing the input.
@@ -242,7 +244,7 @@ accuracy?). At the end, we evaluate the performances on the test set.
 
 You are now ready for executing your first training. You need first to
 log on a GPU node as described in section
-Using the GPU cluster of CentraleSupelec\_
+[Using the GPU cluster of CentraleSupelec](cluster.html).
 
 ``` console
 # First you log to the cluster
@@ -269,7 +271,7 @@ define two callbacks :
     metric
 
 For both these callbacks, we need to specify a path to which data will
-be logged. I propose you the following utilitary function which
+be logged. I propose you the following utility function which
 generates a unique path:
 
 ``` {.sourceCode .python}
@@ -285,8 +287,10 @@ def generate_unique_logpath(logdir, raw_run_name):
         i = i + 1
 ```
 
+Note that this function will create a unique directory for storing all the things to need to store for one experiment. We will store there the history of the metrics during training, the best model we found, etc...
+
 For defining a TensorBoard callback, you need to add its import,
-instanciate it by specifying a directory in which the callback will log
+instantiate it by specifying a directory in which the callback will log
 the progress and then modify the call to fit to specify the callback.
 
 ``` {.sourceCode .python}
@@ -304,8 +308,7 @@ model.fit(X_train, y_train,
       callbacks=[tbcb])
 ```
 
-Once this is done, you have to start tensorboard on the GPU and run
-[port_forward.sh](data/scripts/port_forward.sh) (or [port_forward_host.sh](data/scripts/port_forward_host.sh) for SM20 life long training sessions) to get locally access to the remote tensorboard.
+Once this is done, you have to start tensorboard on the GPU and follow the instructions in the section on [Using the CentraleSupelec GPUs](cluster.html) to see how to get connected to your running tensorboard.
 
 ``` console
 [In one terminal on the GPU]
@@ -361,7 +364,7 @@ You should reach a validation and test accuracy between $55\%$ and $85\%$.
 The curves above seem to suggest that there might be several local
 minima...but do not be misleaded, the optimization problem is convex so
 the results above are just indications that we are not solving our
-optimization problem the right way.
+optimization problem the right way. Actually, with recent versions of Keras, it does not appear to be the case anymore.
 
 ### Loading a model
 
@@ -394,8 +397,8 @@ print('Test accuracy:', score[1])
 So far, we used the raw data, i.e. images with pixels in the range
 [0, 255]. It is usually a good idea to normalize the input because it
 allows to make training faster (because the loss becomes more circular
-symmetric) and also allows to use a consistent learning rate for all the
-parameters in the architecture.
+symmetric), allows to use a consistent learning rate for all the
+parameters in the architecture and finally allows to use the same regularization coefficient for every parameter.
 
 There are various ways to normalize the data and various ways to
 translate it into Keras. The point of normalization is to equalize the
@@ -411,7 +414,11 @@ $$
 X_\mu = \frac{1}{N} \sum_{i=0}^{N-1} X_i
 $$
 $$
-X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1.0$$$$\hat{X} = (X - X_\mu)/X_\sigma
+X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 10^{-5}
+$$
+
+$$
+\hat{X} = (X - X_\mu)/X_\sigma
 $$
 
 How do we introduce normalization in a Keras model ? One way is to
@@ -436,6 +443,8 @@ yo = Activation('softmax', name="y_act")(xo)
 model = Model(inputs=[xi], outputs=[yo])
 ```
 
+The advantage of embedding a standardizing layer is that it makes it easier to use the model on new unseen data. Indeed, the normalization coefficients are stored within the model and you do not have to save them separately.
+
 > **Logistic regression with input standardization**
 >
 > Two metrics are displayed for several runs; on the left the training
@@ -451,7 +460,7 @@ accuracy of around $92.4\%$.
 
 ### Basics
 
-Let us change the network to build a 2 hidden layers perceptron. This is
+Let us change the network to build a 2 hidden layers feedforward network. This is
 simply about adding dense layers with appropriate activations in between
 the input and the output layer. Basically, the only thing you need to
 change compared to the linear model is when you build up the model. A
@@ -483,7 +492,7 @@ easily distinguish the architectures in the tensorboard.
 For example, training a Input-256(Relu)-256(Relu)-10(Softmax) network
 ($270.000$ trainable parameters), the inputs being standardized, the
 training accuracy gets around $99.6\%$, the validation accuracy around
-$97.6\%$ and evaluating it on the test set, we get around 97.37\\%. This
+$97.6\%$ and evaluating it on the test set, we get around $97.37\%$. This
 model is slightly overfitting. We can try to improve the generalization
 performance by introducing some regularization, which is addressed in
 the next paragraph.
@@ -522,7 +531,7 @@ output (see also [CS231n regularizers](http://cs231n.github.io/neural-networks-2
 Keras, we simply need to introduce [Dropout
 layers](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dropout) specifying the rate at
 which to drop units. Below we create a Dense(relu) layer followed by
-dropout where 50\\% of the output are set to 0. Learning a neural
+dropout where $50\%$ of the output are set to 0. Learning a neural
 network with dropout is usually slower than without dropout so that you
 may need to consider increasing the number of epochs.
 
@@ -531,13 +540,12 @@ from tensorflow.keras.layers import Dropout
 ...
 x = Dense(hidden1)(x)
 x = Activation('relu')(x)
-if(args.dropout): 
-   x = Dropout(0.5)(x)
+x = Dropout(0.5)(x)
 ```
 
 ## A vanilla convolutional neural network
 
-The MultiLayer Perceptron does not take any benefit from the intrinsic
+The multiLayer feedforward network does not take any benefit from the intrinsic
 structure of the input space, here images. We propose in this paragraph
 to explore the performances of Convolutional Neural Networks (CNN) which
 exploit that structure. Our first experiment with CNN will consider a
@@ -545,7 +553,7 @@ exploit that structure. Our first experiment with CNN will consider a
 some dense layers.
 
 In order to write our script from training CNN, compared to the script
-for training a linear or MLP model, we need to change the input\_shape
+for training a linear or multilayer fully connected model, we need to change the input\_shape
 and also introduce new layers: [Convolutional
 layers](https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D), [Pooling
 layers](https://www.tensorflow.org/api_docs/python/tf/keras/layers/MaxPool2D) and a [Flatten
@@ -677,7 +685,7 @@ is an averaging layer computing an average over a whole feature map.
 This should bring you with a test accuracy around $99.2\%$ with 72.890
 trainable parameters.
 
-### Dataset Augmention and model averaging
+### Dataset Augmentation and model averaging
 
 One process which can bring you improvements is Dataset Augmentation.
 The basic idea is to apply transformations to your input images that
@@ -729,10 +737,10 @@ y_val = to_categorical(y_val, num_classes)
 
 datagen = ImageDataGenerator(....)
 train_flow = datagen.flow(X_train, y_train, batch_size=128)
-model.fit_generator(train_flow,
-                    steps_per_epoch=X_train.shape[0]/128,
-                    validation_data=(X_val, y_val),
-                    .....)
+model.fit(train_flow,
+          steps_per_epoch=X_train.shape[0]/128,
+          validation_data=(X_val, y_val),
+          .....)
 ```
 
 Fitting the same architecture as before but with dataset augmentation,
