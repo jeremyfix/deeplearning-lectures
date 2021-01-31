@@ -685,6 +685,33 @@ is an averaging layer computing an average over a whole feature map.
 This should bring you with a test accuracy around $99.2\%$ with 72.890
 trainable parameters.
 
+### Parametrizing your experiments
+
+Before going further, I invite you to read the section on [Parametrizing a script with argparse](argparse.html). This will show you a way to provide options to your script so that you can easily test different configurations. 
+
+Now, it is also a good practice to save the command that was executed for a given experiment. Remember, we created a directory for storing the metrics and the best model, what about also saving the command we executed to keep track of it ? For this, we can both save a summary file and dump its content on the tensorboard.
+
+```{.python}
+# Write down the summary of the experiment
+summary_text = """
+## Executed command
+
+{command}
+
+## Args
+
+{args}
+
+""".format(command=" ".join(sys.argv), args=args)
+with open(os.path.join(logpath, "summary.txt"), 'w') as f:
+    f.write(summary_text)
+
+writer = tf.summary.create_file_writer(os.path.join(logpath,'summary'))
+with writer.as_default():
+    tf.summary.text("Summary", summary_text, 0)
+```
+
+
 ### Dataset Augmentation and model averaging
 
 One process which can bring you improvements is Dataset Augmentation.

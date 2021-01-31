@@ -8,6 +8,7 @@ import os
 import functools
 # External imports
 from PIL import Image
+import tensorflow as tf
 from tensorflow.keras import backend as K
 from tensorflow.keras.optimizers import SGD
 from tensorflow.keras.layers import Lambda
@@ -66,11 +67,24 @@ def train(args):
                                     save_best_only=True)
 
     # Write down the summary of the experiment
+    summary_text = """
+    ## Executed command
+
+    {command}
+
+    ## Args
+
+    {args}
+
+    ## Architecture
+
+    """.format(command=" ".join(sys.argv), args=args)
     with open(os.path.join(logpath, "summary.txt"), 'w') as f:
-        f.write("## Executed command \n")
-        f.write(" ".join(sys.argv) + '\n')
-        f.write("\n## Args\n"
-                f"{args}""")
+        f.write(summary_text)
+
+    writer = tf.summary.create_file_writer(os.path.join(logpath,'summary'))
+    with writer.as_default():
+        tf.summary.text("Summary", summary_text, 0)
 
     # Compilation
     model.compile(loss='categorical_crossentropy',

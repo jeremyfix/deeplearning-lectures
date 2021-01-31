@@ -151,6 +151,7 @@ builders = {'linear': make_linear,
             'fancy': make_fancy_cnn
            }
 def build_network(model, input_shape, num_classes, normalization, use_dropout, use_L2):
+    lambda_normalization = None
     if normalization is not None:
         print(normalization)
         lambda_normalization = lambda xi: Lambda(lambda image, mu, std: (image - mu) / std,
