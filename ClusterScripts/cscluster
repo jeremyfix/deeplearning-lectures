@@ -956,10 +956,23 @@ case $ACTION in
 
 		if [ -z $JOBID ]
 		then
-			display_error "No job_id is specified, you must provide one. Call with -h for more help  "
-			display_info "Listing your current reservations"
+			display_warn "You must specify a machine with -m <MACHINE>  or a job id with -j <JOB_ID>"
+			display_info "Your current reservations are listed below :"
 			$list_allocation
-			exit
+
+			# If there is at least one jobid, we will use this one
+			allocations=`$list_allocation | tail +2`
+			if [[ "$allocations" == "" ]]; then
+				display_error "There is no running allocations."
+				exit -1
+			else
+				display_info "There is at least one running allocation"
+				JOBID=`echo $allocations | awk -F '[[:space:]]' '{print $1}' | head -n 1`
+				display_info "I will use JOBID $JOBID"
+			fi
+
+
+
 		fi
 
 		display_info "Logging to the booked node"
