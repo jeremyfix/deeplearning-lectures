@@ -573,7 +573,8 @@ oar_run_command()
 
 oar_list_allocation ()
 {
-	execute_on_frontal "oarstat -u $USER"
+	echo "Job id     Name           User           Submission Date     S Queue     "
+	execute_on_frontal "oarstat -u $USER | tail -n +3"
 }
 
 oar_list_all_jobids()
