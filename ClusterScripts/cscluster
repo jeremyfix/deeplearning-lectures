@@ -79,7 +79,16 @@ log   	            log on an already booked node
 kill        	    kill a reservation on the CentraleSupelec Metz cluster 
 run                 run a command on an already booked node
 port_forward	    forward a port from a machine you booked to your 
-local computer
+                    local computer
+
+Note that every command also has its own command you can access with 
+ 
+				cscsluter <command> --help
+
+For example the help for book is provided with   cscluster book --help
+
+If you just issue cscluster --help <command> this will ignore the provided 
+command and throw this help message.
 "
 usage_b="Usage :  cscluster book
 Books a node on the CS Metz clusters
