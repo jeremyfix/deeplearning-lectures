@@ -823,11 +823,11 @@ if [[ ! -z $CLUSTER ]]; then
 			FRONTAL=slurm2
 			ACCESS_NODE=ghome.metz.supelec.fr
 			;;
-		"john"|"sarah")
+		"john")
 			FRONTAL=phome
 			ACCESS_NODE=phome.metz.supelec.fr
 			;;
-		"kyle")
+		"kyle"|"sarah")
 			FRONTAL=slurm1
 			ACCESS_NODE=phome.metz.supelec.fr
 			;;
