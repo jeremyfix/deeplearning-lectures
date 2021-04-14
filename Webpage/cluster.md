@@ -13,7 +13,7 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [cscluster](./data/ClusterScripts/cscluster) : to activate
+-   [cscluster](http://tutos.metz.centralesupelec.fr/TPs/Clusters/data/cscluster) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
@@ -65,7 +65,7 @@ OAR ... but this is not very important for you because I should have
 already booked the machines for you ! However, you need the following
 script to easily use your GPU machine :
 
--   [cscluster](./data/ClusterScripts/cscluster) : to activate
+-   [cscluster](http://tutos.metz.centralesupelec.fr/TPs/Clusters/data/cscluster) : to activate
     port forwarding for Tensorboard, jupyter lab, ...
 
 You should add the execution permission on this file :
