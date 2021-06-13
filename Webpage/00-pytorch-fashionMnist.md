@@ -160,7 +160,7 @@ Now that we get our datasets, we need to define
 s that will allow us to iterate over the eventually shuffled sets,
 creating minibatches on the fly. Preparing the mini batches is performed
 in a parallel way, ensure to set num\_threads to an appropriate values
-depending on your setup (sh machines have 8 cores). Parallel processing
+depending on your setup (the `lscpu` command will give that information). Parallel processing
 of the mini batches really has an impact and can actually be a limiting
 factor. To give you an idea, when preparing this tutorial, switching
 from 1 to 8 workers on a 8 cores machine changed the running time of a
