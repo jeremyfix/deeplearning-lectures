@@ -72,10 +72,10 @@ If the above fails, stop here and ask me, I'll be glad to help you.
 A [torch.utils.data.dataset](https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset)
 is an object which provides a set of data accessed with the operator\[
 \]. Pytorch already inherits dataset within the torchvision module for
-for [classical image datasets](https://pytorch.org/docs/stable/torchvision/datasets.html).
+for [classical image datasets](https://pytorch.org/vision/stable/datasets.html).
 
 In this pratical, we will be working on the
-[FashionMNIST](https://pytorch.org/docs/stable/torchvision/datasets.html#torchvision.datasets.FashionMNIST).
+[FashionMNIST](https://pytorch.org/vision/stable/datasets.html#fashion-mnist).
 Let us discuss what we need to do with our dataset. Obviously, we need
 to load the data and FashionMNIST provides a training set and a test set
 (train flag in the FashionMNIST constructor). In order to latter perform
@@ -129,7 +129,7 @@ set).
 
 We now need to convert the PIL images into Pytorch tensors, a simple
 call to
-[torchvision.transforms.ToTensor()](https://pytorch.org/docs/stable/torchvision/transforms.html?highlight=totensor#torchvision.transforms.ToTensor)
+[torchvision.transforms.ToTensor()](https://pytorch.org/vision/stable/transforms.html#torchvision.transforms.ToTensor)
 will do the job for now. Later on, we will add other transforms in the
 pipeline (e.g. dataset normalization and dataset augmentation) and I
 would like to already define the code which later will make inserting
@@ -228,8 +228,7 @@ plt.savefig('fashionMNIST_samples.png', bbox_inches='tight')
 plt.show()
 ```
 
-A Linear classifier
--------------------
+## A Linear classifier
 
 Before training deep neural networks, it is good to get an idea of the
 performances of a simple linear classifier. So we will define and train
@@ -256,7 +255,7 @@ by subclassing
 which provides already a bunch of useful methods. Subclassing the Module
 class usually consists only in redefining the constructor and the
 [forward
-method](https://pytorch.org/docs/stable/nn.html#torch.nn.Module.forward).
+method](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.forward).
 Hereafter is a proposed implementation explained below.
 
 <div class="w3-card w3-sand">
@@ -299,9 +298,9 @@ model.to(device)
 <div class="w3-card w3-sand">
 
 We could have ended the forward function by calling the [softmax
-function](https://pytorch.org/docs/stable/nn.html#torch.nn.Softmax) but
+function](https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html) but
 there is the all-in-one efficient [CrossEntropy
-loss](https://pytorch.org/docs/stable/nn.html#torch.nn.CrossEntropyLoss)
+loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)
 expecting the scores and not the probabilities.
 
 </div>
@@ -309,7 +308,7 @@ expecting the scores and not the probabilities.
 I suppose the piece of code above requires some further explanation. The
 code above is going to compute the scores for each classes. In the
 constructor, we simply instantiate a
-[torch.nn.Linear](https://pytorch.org/docs/stable/nn.html#torch.nn.Linear)
+[torch.nn.Linear](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html)
 object which is hosting the weights (a matrix of size (10, 784)) and the
 biases (a vector of size (10,)). Now, in the **forward** function, we
 start by reshaping our inputs from images to vectors before applying the
@@ -337,9 +336,9 @@ torch.nn.Linear](https://github.com/pytorch/pytorch/blob/master/torch/nn/modules
 to see that both the weights and biases are initialized with a uniform
 distribution
 $\mathcal{U}(-\frac{1}{\sqrt{fan_{in}}},\frac{1}{\sqrt{fan_{in}}})$.
-If you wan't to experiment with different initialization schemes, you
+If you want to experiment with different initialization schemes, you
 can invoke the
-[torch.nn.Module.apply](https://pytorch.org/docs/stable/nn.html#torch.nn.Module.apply)
+[torch.nn.Module.apply](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.apply)
 function. Check the documentation for an example use case.
 
 #### Instantiating The Cross entropy loss
@@ -347,7 +346,7 @@ function. Check the documentation for an example use case.
 As we saw in the lecture, multiclass logistic regression with the cross
 entropy loss function is convex which is very nice from an optimization
 perspective : local minima are all global minima. Pytorch provides the
-[torch.nn.CrossEntropyLoss()](https://pytorch.org/docs/stable/nn.html#torch.nn.CrossEntropyLoss)
+[torch.nn.CrossEntropyLoss()](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html)
 object which computes the softmax followed by the cross entropy.
 
 Let us see this in action by considering a 3-class problem. Let us take
@@ -448,7 +447,7 @@ the [torch.no_grad()
 object](https://pytorch.org/docs/stable/autograd.html#locally-disable-grad).
 This disables any gradient computation therefore improving the
 performances. The second statement is the
-[model.eval](https://pytorch.org/docs/stable/nn.html#torch.nn.Module.eval)
+[model.eval](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.eval)
 which indicates to all the modules to switch into evaluation mode
 (layers such as Batch Normalization layers behave differently in
 training or inference modes).
@@ -652,14 +651,14 @@ for t in range(epochs):
 ```
 
 Saving the model is done here by calling
-[torch.save](https://pytorch.org/docs/stable/torch.html?highlight=torch%20save#torch.save)
+[torch.save](https://pytorch.org/docs/stable/generated/torch.save.html)
 on
-[model.state_dict()](https://pytorch.org/docs/stable/nn.html?highlight=state_dict#torch.nn.Module.state_dict)
+[model.state_dict()](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.state_dict)
 which is the [recommended approach for saving the
-model](https://pytorch.org/docs/stable/notes/serialization.html#recommend-saving-models).
+model](https://pytorch.org/docs/stable/notes/serialization.html#saving-and-loading-torch-nn-modules).
 The state_dict function returns the parameters as well as the
 information like running averages that you have within
-batchnormalization layers.
+batch normalization layers.
 
 **Modify your script** to make use of the ModelCheckpoint object.
 
@@ -667,7 +666,7 @@ batchnormalization layers.
 
 To load a saved model, you need to instantiate your model and to invoke
 the
-[load_state_dict](https://pytorch.org/docs/stable/nn.html?highlight=state_dict#torch.nn.Module.load_state_dict)
+[load_state_dict](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict)
 function. Below is an example script loading and testing the model.
 
 ``` {.sourceCode .python}
@@ -902,8 +901,7 @@ def compute_mean_std(loader):
 ```
 
 
-A Fully connected 2 hidden layers classifier
---------------------------------------------
+## A Fully connected 2 hidden layers classifier
 
 ### Basics
 
@@ -936,10 +934,10 @@ class FullyConnected(nn.Module):
 
 The code above creates a feedforward network with 2 hidden layers. We
 here used a [torch.nn.ReLu activation
-function](https://pytorch.org/docs/stable/nn.html?highlight=relu#torch.nn.ReLU)
+function](https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html)
 but you are free to experiment with other activation functions, e.g.
-[torch.nn.PReLU](https://pytorch.org/docs/stable/nn.html?highlight=relu#torch.nn.PReLU),
-[torch.nn.ELU](https://pytorch.org/docs/stable/nn.html?highlight=relu#torch.nn.ELU)
+[torch.nn.PReLU](https://pytorch.org/docs/stable/generated/torch.nn.PReLU.html),
+[torch.nn.ELU](https://pytorch.org/docs/stable/generated/torch.nn.ELU.html)
 
 Before running your experiments, remember to adapt the call to
 **generate_unique_logpath**, replacing "linear" by "fc" for example to
@@ -963,9 +961,9 @@ regularization, which is addressed in the next paragraph.
 
 There are various ways to regularize our networks. One can penalize the
 norms of the parameter vector using
-[torch.norm](https://pytorch.org/docs/stable/torch.html?highlight=norm#torch.norm))
+[torch.linalg.norm](https://pytorch.org/docs/stable/linalg.html#torch.linalg.norm))
 or use dedicated layers such as
-[torch.nn.Dropout](https://pytorch.org/docs/stable/nn.html#torch.nn.Dropout).
+[torch.nn.Dropout](https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html).
 
 L2 regularization (or weight decay) is usually applied to the kernel
 only and not the bias. It adds a term in the loss function to be
@@ -1040,7 +1038,7 @@ optimal*. A dropout mask is generated for every training sample. At test
 time, an ensemble of dropped out networks are combined to compute the
 output (see also <http://cs231n.github.io/neural-networks-2/#reg>). In
 Pytorch, we simply need to introduce [nn.Dropout
-layers](https://pytorch.org/docs/stable/nn.html#torch.nn.Dropout)
+layers](https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html)
 specifying the rate at which to drop (i.e. zero) units. You will see
 below an example of how to make use of dropout in your network. Learning
 a neural network with dropout is usually slower than without dropout so
@@ -1065,8 +1063,7 @@ I let you modify your code to test this approach.
 
 ![Metrics on the validation set when adding dropout of 0.2](./data/00-pytorch-fashionMnist/fc_dropout0_2_val_metrics.png){width="75%"}
 
-A vanilla convolutional neural network
---------------------------------------
+## A vanilla convolutional neural network
 
 The MultiLayer Perceptron does not take any benefit from the intrinsic
 structure of the input space, here images. We propose in this paragraph
@@ -1078,7 +1075,7 @@ some dense layers.
 In order to write our script from training CNN, compared to the script
 for training a linear or a multilayer feedforward model, we need to
 change the input_shape and also introduce new layers: [torch.nn.Conv2d
-layers](https://pytorch.org/docs/stable/nn.html#torch.nn.Conv2d),
+layers](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html),
 [torch.nn Pooling
 layers](https://pytorch.org/docs/stable/nn.html#pooling-layers) .
 
@@ -1162,8 +1159,7 @@ with around 92% of validation and test accuracies with losses around
 assigning the correct class a probability around 80% (remember the
 cross entropy loss for a single sample is $-\log(\hat{y}_y))$.
 
-Small kernels, no fully connected layers, Dataset Augmentation, Model averaging
--------------------------------------------------------------------------------
+## Small kernels, no fully connected layers, Dataset Augmentation, Model averaging
 
 ### Architecture
 
@@ -1193,7 +1189,7 @@ Therefore, I suggest you to give a try to the following architecture :
 where **64C3s1** denotes a convolutional layer with 64 kernels, of size
 $3\times 3$, with stride 1, with zero padding to keep the same size for the
 input and output. **BN** is a [torch.nn.BatchNorm2d
-layer](https://pytorch.org/docs/stable/nn.html#torch.nn.BatchNorm2d) .
+layer](https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html) .
 **MaxPool2s2** is a max-pooling layer with receptive field size $2\times 2$ and
 stride 2. GlobalAverage is an averaging layer computing an average over
 a whole feature map. The input of the global average layer being 256
@@ -1224,7 +1220,7 @@ Now, the idea is to produce a stream (actually infinite if you allow
 continuous perturbations) of training samples generated from your finite
 set of training samples. Transformation of images can be performed by
 composing and calling functions in
-[torchvision.transforms](https://pytorch.org/docs/stable/torchvision/transforms.html).
+[torchvision.transforms](https://pytorch.org/vision/stable/transforms.html).
 These functions work on PIL images. For example, I show you below how I
 would perform some random transformations on an image "toto.png"
 
@@ -1303,12 +1299,10 @@ Averaged model :
 Test : Loss : 0.1510, Acc : 0.9459
 ```
 
-A possible solution
--------------------
+## A possible solution
 
 You will find a possible solution, with a little bit more than what we have seen in this practical in the [LabsSolutions/00-pytorch-FashionMNIST](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/00-pytorch-FashionMNIST) directory.
 
-References
-----------
+## References
 
 
