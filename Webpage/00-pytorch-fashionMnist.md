@@ -113,7 +113,7 @@ test_dataset = torchvision.datasets.FashionMNIST(root=dataset_dir,
                                                  train=False)
 ```
 
-When running this script on the GPU, uou may encounter a time out issue which is due to the way our GPUs connect to internet. If this is the case, have a look to the [FAQ](faq.html).
+When running this script on the GPU of CentraleSupélec, you may encounter a timeout issue which is due to the way our GPUs connect to internet via a proxy. If this is the case, have a look to the [FAQ](faq.html).
 
 <div class="w3-card w3-sand">
 
