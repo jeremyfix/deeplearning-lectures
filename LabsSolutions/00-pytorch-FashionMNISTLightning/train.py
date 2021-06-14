@@ -120,19 +120,27 @@ if __name__ == '__main__':
         def training_step(self, batch, batch_idx):
             x, y = batch
             y_hat = self(x)
-            return self.loss(y_hat, y)
+            loss = self.loss(y_hat, y)
+            self.log('celoss', {'train': loss.detach()})
+            return loss
         
         def validation_step(self, batch, batch_idx):
             x, y = batch
             y_hat = self(x)
-            return self.loss(y_hat, y)
-
+            loss = self.loss(y_hat, y)
+            self.log('celoss', {'valid': loss.detach()})
+            return loss
+    
         def test_step(self, batch, batch_idx):
             x, y = batch
             y_hat = self(x)
-            return self.loss(y_hat, y)
+            loss = self.loss(y_hat, y)
+            self.log('celoss', {'test': loss.detach()})
+            return loss
        
     lmodel = LitModel(args.weight_decay, model)
 
     trainer = pl.Trainer()  
     trainer.fit(lmodel, train_loader, valid_loader)
+
+    metrics = trainer.test(test_dataloders=test_loader)
