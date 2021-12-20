@@ -19,7 +19,7 @@ from torchaudio.transforms import Spectrogram, AmplitudeToDB, MelScale, MelSpect
 import matplotlib.pyplot as plt
 import tqdm
 
-_DEFAULT_COMMONVOICE_ROOT = "/opt/Datasets/CommonVoice/"
+_DEFAULT_COMMONVOICE_ROOT = "/mounts//Datasets2/CommonVoice/"
 _DEFAULT_COMMONVOICE_VERSION = "v1"
 _DEFAULT_RATE = 16000  # Hz
 _DEFAULT_WIN_LENGTH = 25  # ms
