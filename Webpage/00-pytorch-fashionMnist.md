@@ -727,21 +727,16 @@ Now, each time you are running your training, you will see some
 "events.out.xxxxx" files created in your logdir. These files contain the logs and can be read with tensorboard.
 
 Once this is done, you have to
-start tensorboard on the GPU and connect to it following one of the appropriate process as described in run [Using the GPU cluster of CentraleSupelec](cluster.html)
+start tensorboard on the GPU and open the provided URL [http://localhost:6006](http://localhost:6006) with your browser.
 
 ```console
 [In one terminal on the GPU]
 sh11:~:mylogin$ tensorboard --logdir ./logs
 Starting TensorBoard b'47' at http://0.0.0.0:6006
 (Press CTRL+C to quit)
-
-[In a terminal local to your machine]
-mymachine:~:mylogin$ ./cscluster port_forward ..... -p 6006
 ```
 
-And then raise up a browser and go to
-[http://localhost:6006](http://localhost:6006) . Once this is done, you will be able to monitor
-your metrics in the browser while the training is running.
+Once this is done, you will be able to monitor your metrics in the browser while the training is running.
 
 You can now run several experiments, monitor them and get a copy of the
 best models. A handy bash command to run several experiments is given
