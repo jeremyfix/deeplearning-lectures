@@ -308,16 +308,13 @@ model.fit(X_train, y_train,
       callbacks=[tbcb])
 ```
 
-Once this is done, you have to start tensorboard on the GPU and follow the instructions in the section on [Using the CentraleSupelec GPUs](cluster.html) to see how to get connected to your running tensorboard.
+Once this is done, you have to start tensorboard on the GPU.
 
 ``` console
 [In one terminal on the GPU]
 sh11:~:mylogin$ tensorboard --logdir ./logs_linear
 Starting TensorBoard b'47' at http://0.0.0.0:6006
 (Press CTRL+C to quit)
-
-[In a terminal local to your machine]
-mymachine:~:mylogin$ ./cscluster port_forward ....... -p 6006
 ```
 
 And then start a browser and log to <http://localhost:6006> . Once this
