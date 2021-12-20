@@ -42,7 +42,7 @@ For correctly handling the print of UTF-8, you must ensure to define your locale
 ```{.console}
 mymachine:~:mylogin$ echo $LANG
 ```
-and set it if necessary (e.g. `mymachine:~:mylogin$ export LANG=en_US.UTF-8`)
+and set it if necessary (e.g. `export LANG=en_US.UTF-8`)
 
 The lab has been tested with torch 1.9.1 and torchaudio 0.9.1.
 
