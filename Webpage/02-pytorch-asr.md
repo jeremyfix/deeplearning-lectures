@@ -31,25 +31,20 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 
 ### Requirements
 
-For correctly handling the print of UTF-8, you may need to define your locale appropriately (and feel free to add to your rc file) :
-
-```{.console}
-mymachine:~:mylogin$ export LANG=en_US.UTF-8
-```
-
-You will also need to install an external python dependency, the [deepcs](https://pypi.org/project/deepcs/) package, that you can install with :
+You need an external dependency, the [deepcs](https://pypi.org/project/deepcs/) package, that you can install with :
 
 ```{.console}
 mymachine:~:mylogin$ python3 -m pip install --user deepcs
 ```
 
-At the time of writing (Jan 2021), the labwork uses a more recent [torchaudio](https://github.com/pytorch/audio) version than the one currently released on Pypi (release in Dec 2020). To install it :
+For correctly handling the print of UTF-8, you must ensure to define your locale appropriately (and feel free to add to your rc file) :
 
 ```{.console}
-mymachine:~:mylogin$ python3 -m pip install  git+https://github.com/pytorch/audio.git@aa56d30c937ab48c0e93234046e19f0e128a03fc --user
+mymachine:~:mylogin$ echo $LANG
 ```
+and set it if necessary (e.g. `mymachine:~:mylogin$ export LANG=en_US.UTF-8`)
 
-The python packages deepcs and torchaudio are not installed on the CentraleSupélec GPU clusters. However, pytorch is already installed. If needed, the labwork has been developed with [torch](https://github.com/pytorch/pytorch) 1.7.0.
+The lab has been tested with torch 1.9.1 and torchaudio 0.9.1.
 
 ## Setting up the dataloaders
 
