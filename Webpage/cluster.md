@@ -12,7 +12,9 @@ To connect to the GPUs at CentraleSupelec, I strongly recommend you to use [dcej
 
 During a lab session, you are provided with a reservation code that you must use for your labwork. The video below shows how to perform an allocation and start a graphical session with an example reservation called **demoresa**.
 
-**TO BE DONE : video**
+<video width="50%" controls autoplay>
+  <source src="./data/gpu_resa.mp4" type="video/mp4">
+</video>
 
 ## Connecting to the GPUs during free times to finish a labwork
 
@@ -20,4 +22,7 @@ You have the possibility to allocate a GPU for working after the official lab wo
 
 Below, I show you how to allocate a node on **gpu_tp** for 2 hours.
 
-**TO BE DONE : video**
+<video width="50%" controls autoplay>
+  <source src="./data/tp_dce.mp4" type="video/mp4">
+</video>
+
