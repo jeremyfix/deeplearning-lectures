@@ -20,7 +20,7 @@ def makejob(nruns, partition, walltime,
 
 date
 
-python3 train.py --use_gpu --dataset_dir $TMPDIR {paramsstr} train
+python3 train.py --use_gpu --dataset_dir $TMPDIR {paramsstr}
 
 date
 
