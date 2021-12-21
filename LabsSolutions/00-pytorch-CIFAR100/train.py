@@ -1,14 +1,25 @@
+# coding: utf-8
 
-import torch
-import torch.optim
-import torch.nn as nn
-import torchvision.transforms as transforms
-from tensorboardX import SummaryWriter
-
+# Standard imports
 import argparse
 import os
 import sys
 
+# External imports
+import torch
+import torch.optim
+import torch.nn as nn
+import torchvision.transforms as transforms
+from torch.utils.tensorboard import SummaryWriter
+
+import deepcs
+import deepcs.display
+from deepcs.training import train, ModelCheckpoint
+from deepcs.testing import test
+from deepcs.fileutils import generate_unique_logpath
+from deepcs.metrics import accuracy
+
+# Local imports
 import data
 import models
 import utils
