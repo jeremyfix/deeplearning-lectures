@@ -28,7 +28,6 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-
     parser.add_argument(
         '--use_gpu',
         action='store_true',
@@ -162,48 +161,42 @@ if __name__ == '__main__':
     # Callbacks
 
     ## Where to store the logs
-    logdir = utils.generate_unique_logpath(args.logdir, args.model)
-    print("\n Logging to {} \n".format(logdir))
+    logdir = generate_unique_logpath('./logs', args.model)
+    print(f"Logging to {logdir} ")
     if not os.path.exists(args.logdir):
         os.mkdir(args.logdir)
     if not os.path.exists(logdir):
         os.mkdir(logdir)
 
 
-    ## Summary file
-    model_summary = utils.torch_summarize(model)
-    print("Summary:\n {}".format(model_summary))
+    # Display information about the model
+    summary_text = f"""## Summary of the model architecture
 
-    summary_file = open(logdir + "/summary.txt", 'w')
-    summary_text = """
+{deepcs.display.torch_summarize(model, (batch_size, ) + input_dim)}
 
-Executed command
-===============
-{}
+## Executed command
 
-Dataset
-=======
+{' '.join(sys.argv)}
+
+
+## Dataset
+
 CIFAR-100
 
-Normalization : {}
+Normalization : {args.normalization}
 
-Model summary
-=============
-\t{}
+Train augmentation : {train_augment_transforms}
 
-{} trainable parameters
+## Optimizer
 
-Optimizer
-========
-\t{}
+{optimizer}
 
-    """.format(" ".join(sys.argv), args.normalization,
-            str(model).replace('\n','\n\t'),
-            sum(p.numel() for p in model.parameters() if p.requires_grad),
-            str(optimizer).replace('\n', '\n\t'))
+"""
 
-    summary_file.write(summary_text)
-    summary_file.close()
+
+    print(summary_text)
+    with open(logdir + "/summary.txt", 'w') as f:
+        f.write(summary_text)
 
     ## Tensorboard writer
     tensorboard_writer   = SummaryWriter(log_dir = logdir)
