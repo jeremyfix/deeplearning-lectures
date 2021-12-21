@@ -2,105 +2,7 @@ import os
 import torch
 from torch.nn.modules.module import _addindent
 
-def train(model, loader, f_loss, optimizer, device):
-    """
-        Train a model for one epoch, iterating over the loader
-        using the f_loss to compute the loss and the optimizer
-        to update the parameters of the model.
-
-        Arguments :
-        model     -- A torch.nn.Module object
-        loader    -- A torch.utils.data.DataLoader
-        f_loss -- The loss function, i.e. a loss Module
-        optimizer -- A torch.optim.Optimzer object
-        use_gpu  -- Boolean, whether to use GPU
-
-        Returns :
-
-    """
-
-    # We enter train mode. This is useless for the linear model
-    # but is important for layers such as dropout, batchnorm, ...
-    model.train()
-    N = 0
-    tot_loss, correct = 0.0, 0
-    for i, (inputs, targets) in enumerate(loader):
-
-        inputs, targets = inputs.to(device), targets.to(device)
-
-        # Compute the forward propagation
-        outputs = model(inputs)
-
-        loss = f_loss(outputs, targets)
-
-        # Accumulate the number of processed samples
-        N += inputs.shape[0]
-
-        # For the total loss
-        tot_loss += inputs.shape[0] * loss.item()
-
-        # For the total accuracy
-        predicted_targets = outputs.argmax(dim=1)
-        correct += (predicted_targets == targets).sum().item()
-
-        # Backward and optimize
-        optimizer.zero_grad()
-        loss.backward()
-        try:
-            model.penalty().to(device).backward()
-        except AttributeError:
-            pass
-        optimizer.step()
-
-        # Display status
-        progress_bar(i, len(loader), msg = "Loss : {:.4f}, Acc : {:.4f}".format(tot_loss/N, correct/N))
-    return tot_loss/N, correct/N
-
-def test(model, loader, f_loss, device):
-    """
-    Test a model by iterating over the loader
-
-    Arguments :
-
-        model     -- A torch.nn.Module object
-        loader    -- A torch.utils.data.DataLoader
-        f_loss    -- The loss function, i.e. a loss Module
-        device    -- a torch.device object
-
-    Returns :
-
-        A tuple with the mean loss and mean accuracy
-
-    """
-    # We disable gradient computation which speeds up the computation
-    # and reduces the memory usage
-    with torch.no_grad():
-        # We enter evaluation mode. This is useless for the linear model
-        # but is important with layers such as dropout, batchnorm, ..
-        model.eval()
-        N = 0
-        tot_loss, correct = 0.0, 0
-        for i, (inputs, targets) in enumerate(loader):
-
-            inputs, targets = inputs.to(device), targets.to(device)
-
-            outputs = model(inputs)
-
-            loss = f_loss(outputs, targets)
-
-            N += inputs.shape[0]
-
-            # For the loss
-            tot_loss += inputs.shape[0] * loss.item()
-
-            # For the accuracy
-            predicted_targets = outputs.argmax(dim=1)
-            correct += (predicted_targets == targets).sum().item()
-        return tot_loss/N, correct/N
-
-
 # from https://github.com/kuangliu/pytorch-cifar/blob/master/utils.py
-
 import os
 import sys
 import time
@@ -182,64 +84,9 @@ def format_time(seconds):
     return f
 
 
-def generate_unique_logpath(logdir, raw_run_name):
-    i = 0
-    while(True):
-        run_name = raw_run_name + "_" + str(i)
-        log_path = os.path.join(logdir, run_name)
-        if not os.path.isdir(log_path):
-            return log_path
-        i = i + 1
-
-class ModelCheckpoint:
-
-    def __init__(self, filepath, dict_to_save):
-        self.min_loss = None
-        self.filepath = filepath
-        self.dict_to_save = dict_to_save
-
-    def update(self, loss):
-        if (self.min_loss is None) or (loss < self.min_loss):
-            print("Saving a better model")
-            #torch.save(self.model.state_dict(), self.filepath)
-            torch.save(self.dict_to_save, self.filepath)
-            self.min_loss = loss
-
 # https://stackoverflow.com/questions/42480111/model-summary-in-pytorch
 def prod_dim(dims: torch.Size):
     p = 1
     for s in dims:
         p = p*s
     return p
-
-def torch_summarize(model, show_weights=True, show_parameters=True):
-    """Summarizes torch model by showing trainable parameters and weights."""
-    tmpstr = model.__class__.__name__ + ' (\n'
-    total_params = 0
-    for key, module in model._modules.items():
-        # if it contains layers let call it recursively to get params and weights
-        if type(module) in [
-            torch.nn.modules.container.Container,
-            torch.nn.modules.container.Sequential
-        ]:
-            modstr = torch_summarize(module)
-        else:
-            modstr = module.__repr__()
-        modstr = _addindent(modstr, 2)
-
-        params = sum([prod_dim(p.size()) for p in module.parameters()])
-        total_params += params
-        weights = tuple([tuple(p.size()) for p in module.parameters()])
-
-        tmpstr += '  (' + key + '): ' + modstr
-        if show_weights:
-            tmpstr += ', weights={}'.format(weights)
-        if show_parameters:
-            tmpstr +=  ', parameters={}'.format(params)
-        tmpstr += '\n'
-
-    tmpstr = tmpstr + ')'
-    tmpstr += '\n {} learnable parameters'.format(total_params)
-    return tmpstr
-
-

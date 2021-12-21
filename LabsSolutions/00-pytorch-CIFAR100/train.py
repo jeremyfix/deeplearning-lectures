@@ -143,6 +143,10 @@ if __name__ == '__main__':
 
     # Loss function
     loss = nn.CrossEntropyLoss()  # This computes softmax internally
+    metrics = {
+        'CE': loss,
+        'accuracy': accuracy
+    }
 
     # Optimizer
     #optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0)
@@ -202,33 +206,40 @@ Train augmentation : {train_augment_transforms}
         f.write(summary_text)
 
     ## Tensorboard writer
-    tensorboard_writer   = SummaryWriter(log_dir = logdir)
+    tensorboard_writer = SummaryWriter(log_dir = logdir)
     tensorboard_writer.add_text("Experiment summary", summary_text)
 
     ## Checkpoint
-    model_checkpoint = utils.ModelCheckpoint(logdir + "/best_model.pt",
-                                             {'model': model,
-                                              'normalization_function': normalization_function})
-
+    model_checkpoint = ModelCheckpoint(model,
+                                       os.path.join(logdir, 'best_model.pt'))
+    #TODO: save the normalization_function
+    
     # Training loop
     for t in range(epochs):
-        scheduler.step()
-
         print("Epoch {}".format(t))
-        train_loss, train_acc = utils.train(model, train_loader, loss, optimizer, device)
+        train(model, train_loader, loss, optimizer, device, metrics,
+              num_epoch=t,
+              tensorboard_writer=tensorboard_writer, 
+              dynamic_display=True)
 
-        val_loss, val_acc = utils.test(model, valid_loader, loss, device)
-        print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
+        val_metrics = test(model, valid_loader, device, metrics)
+        updated = model_checkpoint.update(val_metrics['CE'])
+        print("[%d/%d] Valid:   Loss : %.3f | Acc : %.3f%% %s"% (t,
+                                                             epochs,
+                                                             val_metrics['CE'],
+                                                             100.*val_metrics['accuracy'],
+                                                             "[>> BETTER <<]" if updated else ""))
 
-        test_loss, test_acc = utils.test(model, test_loader, loss, device)
-        print(" Test : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
+        test_metrics = test(model, test_loader, device, metrics)
+        print("[%d/%d] Test:    Loss : %.3f | Acc : %.3f%%"% (t,
+                                                              epochs,
+                                                              test_metrics['CE'],
+                                                              100.*test_metrics['accuracy']))
 
-        model_checkpoint.update(val_loss)
-        tensorboard_writer.add_scalar('metrics/train_loss', train_loss, t)
-        tensorboard_writer.add_scalar('metrics/train_acc',  train_acc, t)
-        tensorboard_writer.add_scalar('metrics/val_loss', val_loss, t)
-        tensorboard_writer.add_scalar('metrics/val_acc',  val_acc, t)
-        tensorboard_writer.add_scalar('metrics/test_loss', test_loss, t)
-        tensorboard_writer.add_scalar('metrics/test_acc',  test_acc, t)
+        # Write the metrics to the tensorboard
+        for m_name, m_value in val_metrics.items():
+            tensorboard_writer.add_scalar(f'metrics/val_{m_name}', m_value, t)
+        for m_name, m_value in test_metrics.items():
+            tensorboard_writer.add_scalar(f'metrics/test_{m_name}', m_value, t)
 
-
+        scheduler.step()
