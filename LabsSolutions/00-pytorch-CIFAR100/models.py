@@ -14,6 +14,16 @@ def penalty(modules):
                 penalty_term += m.weight.norm(2)**2
     return penalty_term
 
+def finit(m):
+    if type(m) == nn.Conv2d:
+        init.xavier_uniform_(m.weight, gain=np.sqrt(2))
+        init.constant_(m.bias, 0)
+    elif type(m) == nn.BatchNorm2d:
+        init.constant_(m.weight, 1)
+        init.constant_(m.bias, 0)
+    #elif type(m) == nn.Linear:
+    #
+
 def conv_bn_relu_maxp(in_channels, out_channels, ks):
     return [nn.Conv2d(in_channels, out_channels,
                       kernel_size=ks,
@@ -43,6 +53,8 @@ class Linear(nn.Module):
             layers.append(nn.Dropout(0.5))
         layers.append(nn.Linear(input_dim[0]*input_dim[1]*input_dim[2], num_classes))
         self.classifier = nn.Sequential(*layers)
+
+        self.apply(finit)
 
     def penalty(self):
         return self.weight_decay * penalty(self.modules())
@@ -153,30 +165,11 @@ class WRN(nn.Module):
         features_dim = features.view(-1)
 
         self.classifier = nn.Linear(features_dim.shape[0], num_classes)
-        self.init()
 
-    def init(self):
-        def finit(m):
-            if type(m) == nn.Conv2d:
-                init.xavier_uniform_(m.weight, gain=np.sqrt(2))
-                init.constant_(m.bias, 0)
-            elif type(m) == nn.BatchNorm2d:
-                init.constant_(m.weight, 1)
-                init.constant_(m.bias, 0)
-            #elif type(m) == nn.Linear:
-            #
         self.apply(finit)
 
-
     def penalty(self):
-        penalty_term = None
-        for m in self.modules():
-            if type(m) in [nn.Conv2d, nn.Linear]:
-                if not penalty_term:
-                    penalty_term = m.weight.norm(2)**2
-                else:
-                    penalty_term += m.weight.norm(2)**2
-        return self.weight_decay * penalty_term
+        return self.weight_decay * penalty(self.modules())
 
     def forward(self, inputs):
         features = self.features(inputs)
