@@ -26,6 +26,29 @@ def finit(m):
     #elif type(m) == nn.Linear:
     #
 
+
+def conv(c_in, c_out, ks, stride):
+    return [nn.Conv2d(c_in, c_out,
+                      kernel_size=ks,
+                      stride=stride,
+                      padding=int((ks-1)/2), bias=True)]
+
+def conv_relu_bn(c_in, c_out, ks, stride):
+    return [nn.Conv2d(c_in, c_out,
+                      kernel_size=ks,
+                      stride=stride,
+                      padding=int((ks-1)/2), bias=True),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(c_out)]
+
+def conv_bn_relu(c_in, c_out, ks, stride):
+    return [nn.Conv2d(c_in, c_out,
+                      kernel_size=ks,
+                      stride=stride,
+                      padding=int((ks-1)/2), bias=True),
+            nn.BatchNorm2d(c_out),
+            nn.ReLU(inplace=True)]
+
 def conv_bn_relu_maxp(in_channels, out_channels, ks):
     return [nn.Conv2d(in_channels, out_channels,
                       kernel_size=ks,
@@ -43,6 +66,13 @@ def conv_bn_relu_maxp(in_channels, out_channels, ks):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2)]
 
+def bn_relu_conv(c_in, c_out, ks, stride):
+    return [nn.BatchNorm2d(c_in),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(c_in, c_out,
+                      kernel_size=ks,
+                      stride=stride,
+                      padding=int((ks-1)/2), bias=True)]
 
 class Linear(nn.Module):
 
@@ -101,41 +131,6 @@ class CNN(nn.Module):
         features = self.features(inputs)
         features = features.view(features.size()[0], -1)
         return self.classifier(features)
-
-
-def conv(c_in, c_out, ks, stride):
-    return [nn.Conv2d(c_in, c_out,
-                      kernel_size=ks,
-                      stride=stride,
-                      padding=int((ks-1)/2), bias=True)]
-
-def conv_relu_bn(c_in, c_out, ks, stride):
-    return [nn.Conv2d(c_in, c_out,
-                      kernel_size=ks,
-                      stride=stride,
-                      padding=int((ks-1)/2), bias=True),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(c_out)]
-
-def conv_bn_relu(c_in, c_out, ks, stride):
-    return [nn.Conv2d(c_in, c_out,
-                      kernel_size=ks,
-                      stride=stride,
-                      padding=int((ks-1)/2), bias=True),
-            nn.BatchNorm2d(c_out),
-            nn.ReLU(inplace=True)]
-
-
-
-def bn_relu_conv(c_in, c_out, ks, stride):
-    return [nn.BatchNorm2d(c_in),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(c_in, c_out,
-                      kernel_size=ks,
-                      stride=stride,
-                      padding=int((ks-1)/2), bias=True)]
-
-
 
 class WRN_Block(nn.Module):
 
