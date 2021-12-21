@@ -14,8 +14,8 @@ def makejob(nruns, partition, walltime,
 #SBATCH --nodes=1
 #SBATCH --partition={partition}
 #SBATCH --time={walltime}
-#SBATCH --output=logslurms/slurm-%j.out
-#SBATCH --error=logslurms/slurm-%j.err
+#SBATCH --output=logslurms/slurm-%A_%a.out
+#SBATCH --error=logslurms/slurm-%A_%a.err
 #SBATCH --array=0-{nruns}
 
 date
