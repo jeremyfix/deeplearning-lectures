@@ -100,7 +100,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     epochs      = 200
-    valid_ratio = 0.2
+    valid_ratio = 0.1
     batch_size  = 128
     weight_decay= args.weight_decay
     num_workers = args.num_workers
