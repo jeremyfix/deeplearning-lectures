@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--model',
-        choices=['linear', 'cnn', 'wrn', 'wide'],
+        choices=['linear', 'cnn', 'wrn', 'wide', 'resnet18'],
         action='store',
         required=True
     )

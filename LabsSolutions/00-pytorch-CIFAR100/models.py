@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.init as init
-
+import torchvision.models
 import math
 import wide_resnet
 
@@ -190,10 +190,26 @@ class WRN(nn.Module):
         return self.classifier(features)
 
 
+class ResNet(nn.Module):
+
+    def __init__(self, input_dim, num_classes, dropout, weight_decay):
+        super(ResNet, self).__init__()
+        self.model = torchvision.models.resnet18(pretrained=False,
+                                                 num_classes=num_classes)
+        self.apply(finit)
+
+    def penalty(self):
+        return self.weight_decay * penalty(self.modules())
+
+    def forward(self, inputs):
+        return self.model(inputs)
+
 model_builder = {'linear': Linear,
                  'cnn': lambda *args: CNN(*args),
-                 'wrn': lambda idim, nc, dropout, wd: WRN(idim, nc, 4, 10, dropout, wd),
-                 'wide': lambda idim, nc, dropout, wd:wide_resnet.Wide_ResNet(28, 10, dropout, wd, nc) }
+                 'wrn': lambda *args: WRN(4, 10, *args),
+                 'wide': lambda idim, nc, dropout, wd:wide_resnet.Wide_ResNet(28, 10, dropout, wd, nc) ,
+                 'resnet18': lambda *args: ResNet(*args)
+                }
 
 
 def build_model(model_name  : str,
