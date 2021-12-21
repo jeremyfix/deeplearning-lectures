@@ -4,6 +4,16 @@ import torch.nn.init as init
 
 import wide_resnet
 
+def penalty(modules):
+    penalty_term = None
+    for m in modules:
+        if type(m) in [nn.Conv2d, nn.Linear]:
+            if not penalty_term:
+                penalty_term = m.weight.norm(2)**2
+            else:
+                penalty_term += m.weight.norm(2)**2
+    return penalty_term
+
 def conv_bn_relu_maxp(in_channels, out_channels, ks):
     return [nn.Conv2d(in_channels, out_channels,
                       kernel_size=ks,
@@ -24,13 +34,20 @@ def conv_bn_relu_maxp(in_channels, out_channels, ks):
 
 class Linear(nn.Module):
 
-    def __init__(self, input_dim, num_classes):
+    def __init__(self, input_dim, num_classes, use_dropout, weight_decay):
         super(Linear, self).__init__()
 
-        self.classifier = nn.Linear(input_dim[0]*input_dim[1]*input_dim[2], num_classes)
+        self.weight_decay = weight_decay
+        layers = [nn.Flatten()]
+        if use_dropout:
+            layers.append(nn.Dropout(0.5))
+        layers.append(nn.Linear(input_dim[0]*input_dim[1]*input_dim[2], num_classes))
+        self.classifier = nn.Sequential(*layers)
+
+    def penalty(self):
+        return self.weight_decay * penalty(self.modules())
 
     def forward(self, inputs):
-        inputs = inputs.view(inputs.shape[0], -1)
         return self.classifier(inputs)
 
 
