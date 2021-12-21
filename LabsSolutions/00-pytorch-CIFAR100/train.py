@@ -22,7 +22,6 @@ from deepcs.metrics import accuracy
 # Local imports
 import data
 import models
-import utils
 
 if __name__ == '__main__':
 
