@@ -49,7 +49,6 @@ augmentation_params =[
     [
         False,
         {
-            'data_augment': False, 
             'weight_decay': 0.0,
             'dropout': 0.0
         }
