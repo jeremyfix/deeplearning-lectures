@@ -757,6 +757,7 @@ def test_spectro():
 
 #SOL@                
 if __name__ == '__main__':
+    pass
     #@TEMPL@pass
     #@SOL
     # order_by_length()
