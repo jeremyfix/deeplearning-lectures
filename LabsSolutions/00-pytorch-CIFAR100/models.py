@@ -83,7 +83,8 @@ class Linear(nn.Module):
         layers = [nn.Flatten()]
         if use_dropout:
             layers.append(nn.Dropout(0.5))
-        layers.append(nn.Linear(input_dim[0]*input_dim[1]*input_dim[2], num_classes))
+        layers.append(nn.Linear(input_dim[0]*input_dim[1]*input_dim[2],
+                                num_classes))
         self.classifier = nn.Sequential(*layers)
 
         self.apply(finit)
@@ -106,31 +107,30 @@ class CNN(nn.Module):
 
         self.weight_decay = weight_decay
 
-        layers = conv_bn_relu_maxp(3, 64, 3)\
-                +conv_bn_relu_maxp(64, 128, 3)\
-                +conv_bn_relu_maxp(128, 256, 3)
-
+        layers = [*conv_bn_relu_maxp(3, 64, 3),
+                  *conv_bn_relu_maxp(64, 128, 3),
+                  *conv_bn_relu_maxp(128, 256, 3),
+                  nn.Flatten()
+                 ]
         if use_dropout:
-            self.features = nn.Sequential(*layers, nn.Dropout(0.5))
-        else:
-            self.features = nn.Sequential(*layers)
+            layers.append(nn.Dropout(0.5))
 
-        probe_tensor = torch.zeros((1,) + input_dim)
-        features = self.features(probe_tensor)
-        print("Feature maps size : {}".format(features.shape))
+        # Convolutional part
+        self.classifier = nn.Sequential(*layers)
+
+        probe_tensor = torch.zeros((1, ) + input_dim)        
+        features = self.classifier(probe_tensor)
         features_dim = features.view(-1)
 
-        self.classifier = nn.Linear(features_dim.shape[0], num_classes)
+        self.classifier.add_module("linear", nn.Linear(features_dim.shape[0],
+                                                       num_classes))
         self.apply(finit)
 
     def penalty(self):
         return self.weight_decay * penalty(self.modules())
 
-
     def forward(self, inputs):
-        features = self.features(inputs)
-        features = features.view(features.size()[0], -1)
-        return self.classifier(features)
+        return self.classifier(inputs)
 
 class WRN_Block(nn.Module):
 
