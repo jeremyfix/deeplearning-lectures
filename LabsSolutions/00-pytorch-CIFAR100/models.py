@@ -137,10 +137,10 @@ class WRN_Block(nn.Module):
     def __init__(self, c_in, c_out, dropout, stride):
         super(WRN_Block, self).__init__()
 
-        layers = bn_relu_conv(c_in, c_out, 3)
+        layers = bn_relu_conv(c_in, c_out, 3, 1)
         if dropout != 0.0:
             layers += [nn.Dropout(dropout)]
-        layers += bn_relu_conv(c_out, c_out, 3)
+        layers += bn_relu_conv(c_out, c_out, 3, 1)
 
         self.c33 = nn.Sequential(*layers)
         self.c11 = nn.Sequential(*conv(c_in, c_out, 1, stride=stride))
@@ -151,8 +151,14 @@ class WRN_Block(nn.Module):
 
 class WRN(nn.Module):
 
-    def __init__(self, input_dim, num_classes, num_blocks, widen_factor, dropout, weight_decay):
+    #TODO: fix this code which does not seem to work
+    # complaining about wrong channel depth between c33 and c11
+    # above, sometime is 32 for one, 16 for other ??
+    def __init__(self, num_blocks, widen_factor,
+                 input_dim, num_classes,
+                 dropout, weight_decay):
         super(WRN, self).__init__()
+        raise NotImplementedError
 
         self.weight_decay = weight_decay
 
