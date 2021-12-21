@@ -132,7 +132,10 @@ if __name__ == '__main__':
                                                 dataset_dir,
                                                 train_augment_transforms)
 
-    test_loader = data.load_test_data(batch_size, num_workers, dataset_dir, normalization_function)
+    test_loader = data.load_test_data(batch_size,
+                                      num_workers,
+                                      dataset_dir,
+                                      normalization_function)
 
     # Model definition
     model = models.build_model(args.model, input_dim, num_classes, use_dropout, weight_decay)
