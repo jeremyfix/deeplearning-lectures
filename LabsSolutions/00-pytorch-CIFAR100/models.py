@@ -188,8 +188,10 @@ def build_model(model_name  : str,
                 num_classes : int,
                 dropout : float,
                 weight_decay: float):
-    return model_builder[model_name](input_dim, num_classes, dropout, weight_decay)
-
+    return model_builder[model_name](input_dim,
+                                     num_classes,
+                                     dropout,
+                                     weight_decay)
 
 if __name__ == '__main__':
 
