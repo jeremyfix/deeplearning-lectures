@@ -16,8 +16,9 @@ def penalty(modules):
 
 def finit(m):
     if type(m) == nn.Conv2d:
-        init.xavier_uniform_(m.weight, gain=np.sqrt(2))
-        init.constant_(m.bias, 0)
+        init.xavier_uniform_(m.weight, gain=math.sqrt(2))
+        if m.bias is not None:
+            init.constant_(m.bias, 0)
     elif type(m) == nn.BatchNorm2d:
         init.constant_(m.weight, 1)
         init.constant_(m.bias, 0)
