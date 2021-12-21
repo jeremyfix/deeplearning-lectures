@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 
+import math
 import wide_resnet
 
 def penalty(modules):
@@ -66,8 +67,14 @@ class Linear(nn.Module):
 
 class CNN(nn.Module):
 
-    def __init__(self, input_dim, num_classes, use_dropout):
+    def __init__(self,
+                 input_dim,
+                 num_classes,
+                 use_dropout,
+                 weight_decay):
         super(CNN, self).__init__()
+
+        self.weight_decay = weight_decay
 
         layers = conv_bn_relu_maxp(3, 64, 3)\
                 +conv_bn_relu_maxp(64, 128, 3)\
@@ -84,6 +91,10 @@ class CNN(nn.Module):
         features_dim = features.view(-1)
 
         self.classifier = nn.Linear(features_dim.shape[0], num_classes)
+        self.apply(finit)
+
+    def penalty(self):
+        return self.weight_decay * penalty(self.modules())
 
 
     def forward(self, inputs):
@@ -179,7 +190,7 @@ class WRN(nn.Module):
 
 
 model_builder = {'linear': Linear,
-                 'cnn': lambda idim, nc, dropout: CNN(idim, nc, dropout),
+                 'cnn': lambda *args: CNN(*args),
                  'wrn': lambda idim, nc, dropout, wd: WRN(idim, nc, 4, 10, dropout, wd),
                  'wide': lambda idim, nc, dropout, wd:wide_resnet.Wide_ResNet(28, 10, dropout, wd, nc) }
 
@@ -200,8 +211,14 @@ if __name__ == '__main__':
     num_classes = 100
     model_name  = 'cnn'
     batch_size  = 4
+    use_dropout = True
+    weight_decay = 0.001
 
-    model = build_model(model_name, input_dim, num_classes)
+    model = build_model(model_name,
+                        input_dim,
+                        num_classes,
+                        use_dropout,
+                        weight_decay)
 
     inputs = torch.randn((batch_size,) + input_dim)
     outputs = model(inputs)
