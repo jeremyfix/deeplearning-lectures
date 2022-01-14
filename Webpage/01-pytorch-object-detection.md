@@ -33,12 +33,12 @@ The python code below shows you how to load your dataset. The function `data.mak
 - **transform** : the operations to be applied on the images before feeding in the models. We will use this parameter when defining our first model in [Largest object detection](#largest_object_detection),
 - **image_transform_params** : this defines how the images are resized, this is a dictionary which can be one of :
     - `{'image_mode': 'none'}` : keeps the original image size
-    - `{'image_mode'='shrink', output_image_size={'width':.., 'height': ..}}` : squeezes the image to fit in the provided dimensions
-    - `{'image_mode'='crop'  , output_image_size={'width':.., 'height': ..}}` : center crops the image to fit in the provided dimensions
+    - `{'image_mode':'shrink', 'output_image_size' :{'width':.., 'height': ..}}` : squeezes the image to fit in the provided dimensions
+    - `{'image_mode':'crop', 'output_image_size' :{'width':.., 'height': ..}}` : center crops the image to fit in the provided dimensions
 - **target_transform_params** : 
-    - `{'target_mode'='preprocessed'}` : the original labels slightly preprocessed
-    - `{'target_mode'='largest_bbox', 'image_transform_params': dict}` : a mode you will implement in [Largest object detection/Preprocessing the targets](#preprocessing-the-targets)
-    - `{'target_mode'='all_bbox'    , 'image_transform_params': dict, 'num_cells': int}` : a mode you will implement in [Multiple object detection/Preprocessing the targets](#preprocessing-the-targets-1)
+    - `{'target_mode':'preprocessed'}` : the original labels slightly preprocessed
+    - `{'target_mode':'largest_bbox', 'image_transform_params': dict}` : a mode you will implement in [Largest object detection/Preprocessing the targets](#preprocessing-the-targets)
+    - `{'target_mode':'all_bbox', 'image_transform_params': dict, 'num_cells': int}` : a mode you will implement in [Multiple object detection/Preprocessing the targets](#preprocessing-the-targets-1)
 
 
 
