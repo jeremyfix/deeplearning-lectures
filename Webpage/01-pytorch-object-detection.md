@@ -84,7 +84,40 @@ This should output
         ...,
          [0.5922, 0.6000, 0.6196,  ..., 0.2863, 0.2510, 0.2745]]]), 
 
-{'annotation': {'folder': 'VOC2012', 'filename': '2008_000008.jpg', 'source': {'database': 'The VOC2008 Database', 'annotation': 'PASCAL VOC2008', 'image': 'flickr'}, 'size': {'width': 500, 'height': 442, 'depth': 3}, 'segmented': True, 'object': [{'name': 'horse', 'pose': 'Left', 'truncated': False, 'occluded': True, 'bndbox': {'xmin': 53, 'ymin': 87, 'xmax': 471, 'ymax': 420}, 'difficult': False}, {'name': 'person', 'pose': 'Unspecified', 'truncated': True, 'occluded': False, 'bndbox': {'xmin': 158, 'ymin': 44, 'xmax': 289, 'ymax': 167}, 'difficult': False}]}})
+{
+'annotation':{
+    'folder': 'VOC2012', 
+    'filename': '2008_000008.jpg', 
+    'source': {
+        'database': 'The VOC2008 Database', 
+        'annotation': 'PASCAL VOC2008', 
+        'image': 'flickr'
+    }, 
+    'size': {
+        'width': 500, 
+        'height': 442, 
+        'depth': 3
+    }, 
+    'segmented': True, 
+    'object': [
+        {
+            'name': 'horse', 
+            'pose': 'Left', 
+            'truncated': False, 
+            'occluded': True, 
+            'bndbox': {'xmin': 53, 'ymin': 87, 'xmax': 471, 'ymax': 420}, 
+            'difficult': False
+        }, 
+        {
+            'name': 'person', 
+            'pose': 'Unspecified', 
+            'truncated': True, 
+            'occluded': False, 
+            'bndbox': {'xmin': 158, 'ymin': 44, 'xmax': 289, 'ymax': 167}, 
+            'difficult': False
+        }
+    ]
+}})
 ```
 
 To discover the dataset and how to manipulate our dataset objects, I suggest below two exercises. 
