@@ -1,14 +1,14 @@
 
 # Largest bounding box model
 
-In the following, I suppose the dataset Pascal VOC2012 has been saved into **/opt/Datasets/Pascal-VOC2012/**
+In the following, I suppose the dataset Pascal VOC2012 has been saved into **/mounts/Datasets2/Pascal-VOC2012/**
 
 ## Extracting the features
 
 For extracting the features with a Resnet152 , the precomputed features being saved in /tmp/tensors-single. 
 You can tweak the number of workers, below I use 7. 
 
-    python3 extract_features.py  --use_gpu --model resnet152 --target_mode largest_bbox --image_mode shrink --output_dir /tmp/tensors-single --dataset_dir /opt/Datasets/Pascal-VOC2012/ --num_workers 7
+    python3 extract_features.py  --use_gpu --model resnet152 --target_mode largest_bbox --image_mode shrink --output_dir /tmp/tensors-single --dataset_dir /mounts/Datasets2/Pascal-VOC2012/ --num_workers 7
 
 ## Learning the largest bounding box predictor
 
@@ -35,7 +35,7 @@ Here is an example with the [Irish jaunting car image](https://en.wikipedia.org/
 For extracting the features with a Resnet152 , the precomputed features being saved in /tmp/tensors-single. 
 You can tweak the number of workers, below I use 7. 
 
-    python3 extract_features.py  --use_gpu --model resnet152 --target_mode all_bbox --image_mode shrink --output_dir /tmp/tensors-multi --dataset_dir /opt/Datasets/Pascal-VOC2012/ --num_workers 7
+    python3 extract_features.py  --use_gpu --model resnet152 --target_mode all_bbox --image_mode shrink --output_dir /tmp/tensors-multi --dataset_dir /mounts/Datasets2/Pascal-VOC2012/ --num_workers 7
 
 ## Learning the multibox predictor
 

@@ -12,7 +12,7 @@ batch_size = 128
 num_workers = 7
 
 # The datasets is already downloaded on the cluster
-dataset_dir = "/opt/Datasets/Pascal-VOC2012/"
+dataset_dir = "/mounts/Datasets2/Pascal-VOC2012/"
 download = False
 
 # How do we preprocessing the image (e.g. none, crop, shrink)
