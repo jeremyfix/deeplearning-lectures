@@ -113,11 +113,11 @@ def test_spectro():
     waveform, rate, dictionary = dataset[idx]
     waveform = waveform.transpose(0, 1)  # (B, T) to (T, B) as expected by WaveformProcessor
 
-    win_step = data._DEFAULT_WIN_STEP*1e-3
+    win_step = _DEFAULT_WIN_STEP*1e-3
     trans_mel_spectro = WaveformProcessor(rate=rate,
-                                          win_length=data._DEFAULT_WIN_LENGTH*1e-3,
+                                          win_length=_DEFAULT_WIN_LENGTH*1e-3,
                                           win_step=win_step,
-                                          nmels=data._DEFAULT_NUM_MELS,
+                                          nmels=_DEFAULT_NUM_MELS,
                                           augment=False,
 										  spectro_normalization=None)
     mel_spectro = trans_mel_spectro(waveform).squeeze()  # (T, 1, N_MELS) to (T, N_MELS)
