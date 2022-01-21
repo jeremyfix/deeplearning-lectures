@@ -28,7 +28,7 @@ import data
 import models
 
 
-def wrap_ctc_args(packed_predictions, packed_targets):
+def wrap_ctc_args(packed_predictions, targets):
     """
     Returns:
         log_softmax predictions, targets, lens_predictions, lens_targets
@@ -38,7 +38,7 @@ def wrap_ctc_args(packed_predictions, packed_targets):
     # compute the log_softmax
     unpacked_predictions = unpacked_predictions.log_softmax(dim=2)  # T, B, vocab_size
 
-    unpacked_targets, lens_targets = pad_packed_sequence(packed_targets)  # T, B
+    unpacked_targets, lens_targets = targets  # T, B
     unpacked_targets = unpacked_targets.transpose(0, 1)  # B, T
     # Stack the subslices of the tensors
     unpacked_targets = torch.cat([batchi[:ti] for batchi, ti in zip(unpacked_targets, lens_targets)])

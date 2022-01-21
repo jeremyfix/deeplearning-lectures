@@ -19,7 +19,7 @@ from torchaudio.transforms import Spectrogram, AmplitudeToDB, MelScale, MelSpect
 import matplotlib.pyplot as plt
 import tqdm
 
-_DEFAULT_COMMONVOICE_ROOT = "/opt/Datasets/CommonVoice/"
+_DEFAULT_COMMONVOICE_ROOT = "/mounts/Datasets2/CommonVoice/"
 _DEFAULT_COMMONVOICE_VERSION = "v1"
 _DEFAULT_RATE = 16000  # Hz
 _DEFAULT_WIN_LENGTH = 25  # ms
@@ -354,24 +354,10 @@ class BatchCollate(object):
         #@TEMPL@transcripts = None
         transcripts = pad_sequence(transcripts)  #@SOL@
 
-        # Step 4 : pack the tensor of transcripts given their lenght as 
-        #          computed in transcripts_length
-        #          Note : this packed tensor must be given enforce_sorted=False
-        #          to ensure the i-th transcript corresponds to the i-th
-        #          spectrogram
-        #          (1 line)
-
-        #@TEMPL@transcripts = None
-        #@SOL
-        transcripts = pack_padded_sequence(transcripts,
-                                           lengths=transcripts_lengths,
-                                           enforce_sorted=False)
-        #SOL@
-
         ##########################
         #### STOP CODING HERE ####
         ##########################
-        return spectrograms, transcripts
+        return spectrograms, (transcripts, torch.tensor(transcripts_lengths))
 
 
 def get_dataloaders(commonvoice_root: str,
