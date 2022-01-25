@@ -83,8 +83,6 @@ if __name__ == '__main__':
     # FashionMNIST dataset
     train_augment_transforms = None
     if args.data_augment:
-        train_augment_transforms = transforms.Compose([transforms.RandomHorizontalFlip(0.5),
-                                                       RandomAffine(degrees=10, translate=(0.1, 0.1))])
 
 
     train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,

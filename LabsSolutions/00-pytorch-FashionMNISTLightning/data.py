@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 
+# Standard imports
+import os.path
+import copy
+from typing import List
+# External imports
 import torch
+from torch.utils.data.dataset import random_split
+from torch.utils.data import Dataset, DataLoader
 import torchvision
 import torchvision.transforms as transforms
 from torchvision.transforms import RandomAffine
-
 import numpy as np
-
-import os.path
-import copy
 
 def compute_mean_std(loader):
     # Compute the mean over minibatches
@@ -33,9 +36,10 @@ def compute_mean_std(loader):
 
     return mean_img, std_img
 
-class DatasetTransformer(torch.utils.data.Dataset):
+class DatasetTransformer(Dataset):
 
     def __init__(self, base_dataset, transform):
+        super().__init__()
         self.base_dataset = base_dataset
         self.transform = transform
 
@@ -57,9 +61,9 @@ def load_test_data(batch_size, dataset_dir=None):
 
 
     test_dataset  = DatasetTransformer(test_dataset , transforms.ToTensor())
-    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                              batch_size=batch_size,
-                                              shuffle=False)
+    test_loader = DataLoader(dataset=test_dataset,
+                             batch_size=batch_size,
+                             shuffle=False)
 
     return test_loader
 
@@ -72,52 +76,52 @@ class CenterReduce:
     def __call__(self, x):
         return (x-self.mean)/self.std
 
-def load_fashion_mnist(valid_ratio, batch_size,
-        num_workers, normalize,
-        dataset_dir=None, train_augment_transforms=None,
-        normalizing_tensor_path=None):
+
+def make_dataloaders(valid_ratio,
+                     batch_size,
+                     num_workers,
+                     normalize,
+                     dataset_dir=None,
+                     dataaugment_train: bool = False,
+                     normalizing_tensor_path=None):
 
     if not dataset_dir:
-        dataset_dir = os.path.join(os.path.expanduser("~"), 'Datasets', 'FashionMNIST')
+        dataset_dir = os.path.join(os.path.expanduser("~"),
+                                   'Datasets', 'FashionMNIST')
 
 
     # Load the dataset for the training/validation sets
     train_valid_dataset = torchvision.datasets.FashionMNIST(root=dataset_dir,
-                                               train=True,
-                                               download=True)
-
-    # Split it into training and validation sets
-    nb_train, nb_valid = int((1.0 - valid_ratio) * len(train_valid_dataset)), int(valid_ratio * len(train_valid_dataset))
-    train_dataset, valid_dataset = torch.utils.data.dataset.random_split(train_valid_dataset, [nb_train, nb_valid])
-
-
+                                                            train=True,
+                                                            download=True)
     # Load the test set
     test_dataset = torchvision.datasets.FashionMNIST(root=dataset_dir,
                                                      train=False)
 
-    # Do we want to normalize the dataset given the statistics of the training set ?
+    # Split it into training and validation sets
+    nb_train, nb_valid = int((1.0 - valid_ratio) * len(train_valid_dataset)), int(valid_ratio * len(train_valid_dataset))
+    train_dataset, valid_dataset = random_split(train_valid_dataset,
+                                                [nb_train, nb_valid])
+
+    # Base data transform pipeline, modified latter dependening on the options
     data_transforms = {'train' : transforms.ToTensor(),
                        'valid' : transforms.ToTensor(),
                        'test'  : transforms.ToTensor() }
 
-    if train_augment_transforms:
-        data_transforms['train'] = transforms.Compose([train_augment_transforms, transforms.ToTensor()])
-
     if normalize:
-
-        normalizing_dataset = DatasetTransformer(train_dataset, transforms.ToTensor())
-        normalizing_loader = torch.utils.data.DataLoader(dataset=normalizing_dataset,
-                                                   batch_size=batch_size,
-                                                   num_workers=num_workers)
+        normalizing_dataset = DatasetTransformer(train_dataset,
+                                                 transforms.ToTensor())
+        normalizing_loader = DataLoader(dataset=normalizing_dataset,
+                                        batch_size=batch_size,
+                                        num_workers=num_workers)
 
         # Compute mean and variance from the training set
         mean_train_tensor, std_train_tensor = compute_mean_std(normalizing_loader)
 
-
         normalization_function = CenterReduce(mean_train_tensor,
                                               std_train_tensor)
 
-        # Apply the transformation to our dataset
+        # Apply the transformation to all the three datasets
         for k, old_transforms in data_transforms.items():
             data_transforms[k] = transforms.Compose([
                 old_transforms,
@@ -126,68 +130,88 @@ def load_fashion_mnist(valid_ratio, batch_size,
     else:
         normalization_function = None
 
-    train_dataset = DatasetTransformer(train_dataset, data_transforms['train'])
-    valid_dataset = DatasetTransformer(valid_dataset, data_transforms['valid'])
-    test_dataset  = DatasetTransformer(test_dataset , data_transforms['test'])
+    if dataaugment_train:
+        # Data augmentation on the training set
+        # Note the default fill value for the RandomAffine is 0.0 (black)
+        train_augment_transforms = transforms.Compose([
+            transforms.RandomHorizontalFlip(0.5),
+            RandomAffine(degrees=10, translate=(0.1, 0.1)),
+        ])
+        # Add the augmentation in the pipeline of the training set
+        # transform
+        data_transforms['train'] = transforms.Compose([
+            train_augment_transforms,
+            data_transforms['train']
+        ])
 
-    # shuffle = True : reshuffles the data at every epoch
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                              batch_size=batch_size,
-                                              shuffle=True,
-                                              num_workers=num_workers)
+    # Build the three datasets with their transforms
+    train_dataset = DatasetTransformer(train_dataset,
+                                       data_transforms['train'])
+    valid_dataset = DatasetTransformer(valid_dataset,
+                                       data_transforms['valid'])
+    test_dataset  = DatasetTransformer(test_dataset,
+                                       data_transforms['test'])
 
-    valid_loader = torch.utils.data.DataLoader(dataset=valid_dataset,
-                                              batch_size=batch_size, shuffle=True,
-                                              num_workers=num_workers)
+    # Build the three dataloaders with shuffling at every epoch
+    # for the training set
+    train_loader = DataLoader(dataset=train_dataset,
+                              batch_size=batch_size,
+                              shuffle=True,
+                              num_workers=num_workers)
+
+    valid_loader = DataLoader(dataset=valid_dataset,
+                              batch_size=batch_size, shuffle=True,
+                              num_workers=num_workers)
 
 
-    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                              batch_size=batch_size,
-                                              shuffle=False,
-                                              num_workers=num_workers)
+    test_loader =  DataLoader(dataset=test_dataset,
+                              batch_size=batch_size,
+                              shuffle=False,
+                              num_workers=num_workers)
 
 
-    return train_loader, valid_loader, test_loader, copy.copy(normalization_function)
+    return (train_loader, valid_loader, test_loader), copy.copy(normalization_function)
 
 
-def display_tensor_samples(tensor_samples, labels=None, filename=None):
+def display_tensor_samples(tensor_samples,
+                           labels,
+                           filename,
+                           classes_names: List[str]):
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
 
-
-    fig=plt.figure(figsize=(20,5),facecolor='w')
+    fig=plt.figure(figsize=(20,3),facecolor='w')
     nsamples= tensor_samples.shape[0]
+
     for i in range(nsamples):
         ax = plt.subplot(1,nsamples, i+1)
         plt.imshow(tensor_samples[i, 0, :, :], vmin=0, vmax=1.0, cmap=cm.gray)
         #plt.axis('off')
-        if labels is not None:
+        if isinstance(labels, torch.Tensor):
             ax.set_title("{}".format(classes_names[labels[i]]), fontsize=15)
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
+
+    if not isinstance(labels, torch.Tensor):
+        # Consider labels as a super title
+        plt.suptitle(classes_names[labels])
+
+    plt.tight_layout()
     if filename:
         plt.savefig(filename, bbox_inches='tight')
     plt.show()
 
-def display_samples(loader, nsamples, filename=None):
+def display_samples(loader, nsamples,
+                    filename,
+                    classes_names):
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
 
     imgs, labels = next(iter(train_loader))
-    display_tensor_samples(imgs[:nsamples], labels[:nsamples], filename)
-    #print("imgs is of shape {},  labels of shape {}'".format(imgs.shape, labels.shape))
-
-    #fig=plt.figure(figsize=(20,5),facecolor='w')
-    #for i in range(nsamples):
-    #    ax = plt.subplot(1,nsamples, i+1)
-    #    plt.imshow(imgs[i, 0, :, :], vmin=0, vmax=1.0, cmap=cm.gray)
-    #    #plt.axis('off')
-    #    ax.set_title("{}".format(classes_names[labels[i]]), fontsize=15)
-    #    ax.get_xaxis().set_visible(False)
-    #    ax.get_yaxis().set_visible(False)
-    #if filename:
-    #    plt.savefig(filename, bbox_inches='tight')
-    #plt.show()
+    display_tensor_samples(imgs[:nsamples],
+                           labels[:nsamples],
+                           filename,
+                           classes_names)
 
 
 if __name__ == '__main__':
@@ -195,47 +219,47 @@ if __name__ == '__main__':
     num_threads = 4
     valid_ratio = 0.2
     batch_size = 128
-    classes_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal','Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+    classes_names = ['T-shirt/top', 'Trouser', 'Pullover',
+                     'Dress', 'Coat', 'Sandal','Shirt',
+                     'Sneaker', 'Bag', 'Ankle boot']
 
-    train_loader, valid_loader, test_loader = load_fashion_mnist(valid_ratio, batch_size, num_threads, False)
+    ###################################################################################
+    # Simple data loader creation
+    loaders, fnorm = make_dataloaders(valid_ratio,
+                                      batch_size,
+                                      num_threads,
+                                      False,
+                                      None,
+                                      False,
+                                      None)
+    train_loader, valid_loader, test_loader = loaders
+    print(f"The train set contains {len(train_loader.dataset)} images, in {len(train_loader)} batches")
+    print(f"The validation set contains {len(valid_loader.dataset)} images, in {len(valid_loader)} batches")
+    print(f"The test set contains {len(test_loader.dataset)} images, in {len(test_loader)} batches")
 
-    print("The train set contains {} images, in {} batches".format(len(train_loader.dataset), len(train_loader)))
-    print("The validation set contains {} images, in {} batches".format(len(valid_loader.dataset), len(valid_loader)))
-    print("The test set contains {} images, in {} batches".format(len(test_loader.dataset), len(test_loader)))
-
-    #display_samples(train_loader, 10, 'fashionMNIST_samples.png')
+    display_samples(train_loader, 10, 'fashionMNIST_samples.png', classes_names)
 
     ###################################################################################
     ## Data augmentation
 
-    train_valid_dataset = torchvision.datasets.FashionMNIST(root=os.path.join(os.path.expanduser("~"), 'Datasets', 'FashionMNIST'),
-                                               train=True,
-                                               download=True)
+    loaders, fnorm = make_dataloaders(valid_ratio,
+                                      batch_size,
+                                      num_threads,
+                                      False,
+                                      None,
+                                      True,
+                                      None)
+    # Let us take the first sample of the dataset and sample it several
+    # times 
+    train_loader, _, _ = loaders
+    sample_idx = 0
+    samples = [train_loader.dataset[sample_idx][0] for i in range(10)]
+    label = train_loader.dataset[sample_idx][1] 
 
+    # Build a torch tensor from the list of samples
+    samples = torch.cat(samples, dim=0).unsqueeze(dim=1) # to add C=1
 
-
-    train_augment = transforms.Compose([transforms.RandomHorizontalFlip(0.5), RandomAffine(degrees=10, translate=(0.1,0.1))])
-
-
-    # data augment a single sample several times
-    img, label = train_valid_dataset[np.random.randint(len(train_valid_dataset))]
-    Timg = transforms.functional.to_tensor(img)
-    n_augmented_samples = 10
-    aug_imgs = torch.zeros(n_augmented_samples, Timg.shape[0], Timg.shape[1],Timg.shape[2])
-    for i in range(n_augmented_samples):
-        aug_imgs[i] = transforms.ToTensor()(train_augment(img))
-    print("I augmented a {}".format(classes_names[label]))
-    display_tensor_samples(aug_imgs, filename="fashionMNIST_sample_augment.png")
-
-
-
-    # Test with data augmentation
-    train_augment = transforms.Compose([transforms.RandomHorizontalFlip(0.5), RandomAffine(degrees=10, translate=(0.1,0.1))])
-
-    train_loader, _, _ = load_fashion_mnist(valid_ratio, batch_size, num_threads, False, train_augment_transforms=train_augment)
-    display_samples(train_loader, 10, 'fashionMNIST_samples_augment.png')
-
-
-    # Loading normalized datasets
-    train_loader, valid_loader, test_loader = load_fashion_mnist(valid_ratio, batch_size, num_threads, True)
+    display_tensor_samples(samples, label,
+                           'fashionMNIST_sample_aug.png',
+                           classes_names)
 
