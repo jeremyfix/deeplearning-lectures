@@ -1,8 +1,10 @@
+# coding: utf-8
 
+# Standard imports
 import argparse
 import os
 import sys
-
+# External imports
 import torch
 import torch.nn as nn
 import torchvision
@@ -10,13 +12,60 @@ import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision.transforms import RandomAffine
 from torch.utils.tensorboard import SummaryWriter
-
 import pytorch_lightning as pl
-
-import numpy as np
-
+# Local imports
 import models
 import data
+
+class LitModel(pl.LightningModule):
+
+    def __init__(self,
+                 weight_decay,
+                 model: nn.Module = None) -> None:
+        super().__init__()
+        self.weight_decay = weight_decay
+        self.model = model
+        self.loss = nn.CrossEntropyLoss()
+
+    def forward(self, x):
+        return self.model(x)
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(model.parameters(),
+                                     lr=0.01,
+                                     weight_decay=self.weight_decay)
+        return optimizer
+
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        loss = self.loss(y_hat, y)
+        acc = (y_hat.argmax(dim=1) == y).sum() / y.shape[0]
+        # Note: the log function automatically reduces the stored metrics
+        # with its reduce_fx (default: mean)
+        # Which means the value is not correct if not all the minibatches
+        # have the same size
+        self.log('train_loss', loss.detach(), prog_bar=True)
+        self.log('train_acc', acc.detach(), prog_bar=True)
+        return loss
+    
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        loss = self.loss(y_hat, y)
+        acc = (y_hat.argmax(dim=1) == y).sum() / y.shape[0]
+        self.log('valid_loss', loss.detach(), prog_bar=True)
+        self.log('valid_acc', acc.detach(), prog_bar=True)
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        loss = self.loss(y_hat, y)
+        acc = (y_hat.argmax(dim=1) == y).sum() / y.shape[0]
+        self.log('test_loss', loss.detach(), prog_bar=True)
+        self.log('test_acc', acc.detach(), prog_bar=True)
+        return loss
 
 if __name__ == '__main__':
 
@@ -32,7 +81,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--num_workers',
         type=int,
-        default=1,
+        default=7,
         help='The number of CPU threads used'
     )
 
@@ -56,19 +105,11 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '--logdir',
-        type=str,
-        default="./logs",
-        help='The directory in which to store the logs'
-    )
-
-    parser.add_argument(
         '--model',
         choices=['linear', 'fc', 'fcreg', 'vanilla', 'fancyCNN'],
         action='store',
         required=True
     )
-
 
     args = parser.parse_args()
 
@@ -77,68 +118,34 @@ if __name__ == '__main__':
     img_size = (1, img_height, img_width)
     num_classes = 10
     batch_size=128
-    epochs=10
+    epochs = 1
     valid_ratio=0.2
 
-    # FashionMNIST dataset
-    train_augment_transforms = None
-    if args.data_augment:
-
-
-    train_loader, valid_loader, test_loader, normalization_function = data.load_fashion_mnist(valid_ratio,
-                                                                                              batch_size,
-                                                                                              args.num_workers,
-                                                                                              args.normalize,
-                                                                                              dataset_dir = args.dataset_dir,
-                                                                                              train_augment_transforms = train_augment_transforms)
-
-
+    # Load the dataloaders
+    loaders, fnorm = data.make_dataloaders(valid_ratio,
+                                           batch_size,
+                                           args.num_workers,
+                                           args.normalize,
+                                           args.data_augment,
+                                           args.dataset_dir,
+                                           None)
+    train_loader, valid_loader, test_loader = loaders
 
     # Init model, loss, optimizer
-    model = models.build_model(args.model, img_size, num_classes)
+    model = models.build_model(args.model,
+                               img_size,
+                               num_classes)
+ 
+    lmodel = LitModel(args.weight_decay,
+                      model)
 
-    class LitModel(pl.LightningModule):
+    trainer = pl.Trainer(max_epochs=epochs)  
+    # Train the model on the training set and record the best
+    # from the validation set
+    trainer.fit(lmodel,
+                train_loader,
+                valid_loader)
 
-        def __init__(self,
-                     weight_decay,
-                     model: nn.Module = None) -> None:
-            super().__init__()
-            self.weight_decay = weight_decay
-            self.model = model
-            self.loss = nn.CrossEntropyLoss()
-
-        def forward(self, x):
-            return self.model(x)
-
-        def configure_optimizers(self):
-            #optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9, nesterov=True)
-            optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=self.weight_decay)
-            return optimizer
-
-        def training_step(self, batch, batch_idx):
-            x, y = batch
-            y_hat = self(x)
-            loss = self.loss(y_hat, y)
-            self.log('celoss', {'train': loss.detach()})
-            return loss
-        
-        def validation_step(self, batch, batch_idx):
-            x, y = batch
-            y_hat = self(x)
-            loss = self.loss(y_hat, y)
-            self.log('celoss', {'valid': loss.detach()})
-            return loss
-    
-        def test_step(self, batch, batch_idx):
-            x, y = batch
-            y_hat = self(x)
-            loss = self.loss(y_hat, y)
-            self.log('celoss', {'test': loss.detach()})
-            return loss
-       
-    lmodel = LitModel(args.weight_decay, model)
-
-    trainer = pl.Trainer()  
-    trainer.fit(lmodel, train_loader, valid_loader)
-
-    metrics = trainer.test(test_dataloders=test_loader)
+    # And test the best model on the test set
+    metrics = trainer.test(dataloaders=test_loader,
+                           ckpt_path='best')
