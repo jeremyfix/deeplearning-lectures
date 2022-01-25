@@ -160,7 +160,8 @@ def make_dataloaders(valid_ratio,
                               num_workers=num_workers)
 
     valid_loader = DataLoader(dataset=valid_dataset,
-                              batch_size=batch_size, shuffle=True,
+                              batch_size=batch_size,
+                              shuffle=False,
                               num_workers=num_workers)
 
 
