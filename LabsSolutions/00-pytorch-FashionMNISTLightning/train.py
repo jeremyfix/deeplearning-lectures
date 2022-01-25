@@ -13,6 +13,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision.transforms import RandomAffine
 from torch.utils.tensorboard import SummaryWriter
 import pytorch_lightning as pl
+import neptune.new as neptune
 # Local imports
 import models
 import data
@@ -112,13 +113,21 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
+    
+
+    if 'NEPTUNE_TOKEN' in os.environ:
+        print('Using Neptune API')
+        run = neptune.init(
+                project="jeremyfix/fashion-mnist-pytorch-lightning",
+                api_token=os.environ['NEPTUNE_TOKEN'],
+        )  # your credentials
 
     img_width = 28
     img_height = 28
     img_size = (1, img_height, img_width)
     num_classes = 10
     batch_size=128
-    epochs = 1
+    epochs = 50
     valid_ratio=0.2
 
     # Load the dataloaders
