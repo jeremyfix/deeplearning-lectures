@@ -85,6 +85,6 @@ os.system("mkdir -p logslurms")
 for model in ['linear', 'fc', 'vanilla', 'fancyCNN']:
     submit_job(makejob(commit_id, 2, 'gpu_prod_night', "1:00:00",
                        True, True,
-                       {'model': 'linear',
+                       {'model': model,
                         'weight_decay': 0.00,
                        }))

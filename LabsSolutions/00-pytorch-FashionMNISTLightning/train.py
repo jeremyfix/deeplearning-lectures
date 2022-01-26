@@ -130,7 +130,7 @@ if __name__ == '__main__':
         neptune_logger = NeptuneLogger(
             api_key=os.environ['NEPTUNE_TOKEN'],
             project=os.environ['NEPTUNE_PROJECT'],
-            tags=["fashionMNIST"],
+            tags=["fashionMNIST", args.model],
             source_files=glob.glob('*.py')
         )
         loggers.append(neptune_logger)
