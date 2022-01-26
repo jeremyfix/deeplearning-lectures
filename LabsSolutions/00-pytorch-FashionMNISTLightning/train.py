@@ -140,7 +140,7 @@ if __name__ == '__main__':
     img_size = (1, img_height, img_width)
     num_classes = 10
     batch_size = 128
-    epochs = 1
+    epochs = 20
     valid_ratio = 0.2
 
     if neptune_logger:
