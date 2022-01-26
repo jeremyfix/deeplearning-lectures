@@ -179,7 +179,9 @@ if __name__ == '__main__':
 
     trainer = pl.Trainer(max_epochs=epochs,
                          logger=loggers,
-                         callbacks=[lr_logger, model_checkpoint])
+                         callbacks=[lr_logger, model_checkpoint],
+                         gpus=1 if torch.cuda.is_available() else None)
+
     # Train the model on the training set and record the best
     # from the validation set
     trainer.fit(lmodel,
