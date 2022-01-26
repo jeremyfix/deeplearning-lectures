@@ -82,10 +82,9 @@ commit_id = subprocess.check_output("git log --pretty=format:'%H' -n 1", shell=T
 os.system("mkdir -p logslurms")
 
 # Launch the batch jobs
-data_augment = True
-normalize = True
-submit_job(makejob(commit_id, 2, 'gpu_prod_long', "1:00:00",
-                   normalize, data_augment,
-                   {'model': 'linear',
-                    'weight_decay': 0.00,
-                   }))
+for model in ['linear', 'fc', 'vanilla', 'fancyCNN']:
+    submit_job(makejob(commit_id, 2, 'gpu_prod_night', "1:00:00",
+                       True, True,
+                       {'model': 'linear',
+                        'weight_decay': 0.00,
+                       }))
