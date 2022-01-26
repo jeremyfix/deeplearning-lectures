@@ -41,10 +41,17 @@ cd $TMPDIR/
 git checkout {commit_id}
 
 echo ""
+echo "Virtual env setting"
+
+virtualenv -p python3 venv
+source venv/bin/activate
+python -m pip install -r requirements_cuda.txt
+
+echo ""
 echo "Training"
 date
 
-python3 train.py {paramsstr} 
+python train.py {paramsstr} 
 
 if [[ $? != 0 ]]; then
     exit -1
