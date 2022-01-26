@@ -35,7 +35,7 @@ echo "Running on $(hostname)"
 echo "Copying the source directory and data"
 date
 
-rsync -r . $TMPDIR --exclude 'logslurms' --exclude 'logs'
+rsync -r . $TMPDIR --exclude 'logslurms'
 
 cd $TMPDIR/
 git checkout {commit_id}
@@ -46,6 +46,9 @@ echo "Virtual env setting"
 virtualenv -p python3 venv
 source venv/bin/activate
 python -m pip install -r requirements_cuda.txt
+
+# Definition of the neptune token and project
+source myenviron.sh
 
 echo ""
 echo "Training"
