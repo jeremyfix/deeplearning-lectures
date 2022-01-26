@@ -4,6 +4,7 @@
 import argparse
 import os
 import sys
+import glob
 # External imports
 import torch
 import torch.nn as nn
@@ -13,7 +14,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision.transforms import RandomAffine
 from torch.utils.tensorboard import SummaryWriter
 import pytorch_lightning as pl
-import neptune.new as neptune
+from pytorch_lightning.loggers import NeptuneLogger
 # Local imports
 import models
 import data
@@ -46,8 +47,8 @@ class LitModel(pl.LightningModule):
         # with its reduce_fx (default: mean)
         # Which means the value is not correct if not all the minibatches
         # have the same size
-        self.log('train_loss', loss.detach(), prog_bar=True)
-        self.log('train_acc', acc.detach(), prog_bar=True)
+        self.log('train/loss', loss.detach(), prog_bar=True)
+        self.log('train/acc', acc.detach(), prog_bar=True)
         return loss
     
     def validation_step(self, batch, batch_idx):
@@ -55,8 +56,8 @@ class LitModel(pl.LightningModule):
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         acc = (y_hat.argmax(dim=1) == y).sum() / y.shape[0]
-        self.log('valid_loss', loss.detach(), prog_bar=True)
-        self.log('valid_acc', acc.detach(), prog_bar=True)
+        self.log('valid/loss', loss.detach(), prog_bar=True)
+        self.log('valid/acc', acc.detach(), prog_bar=True)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -64,8 +65,8 @@ class LitModel(pl.LightningModule):
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         acc = (y_hat.argmax(dim=1) == y).sum() / y.shape[0]
-        self.log('test_loss', loss.detach(), prog_bar=True)
-        self.log('test_acc', acc.detach(), prog_bar=True)
+        self.log('test/loss', loss.detach(), prog_bar=True)
+        self.log('test/acc', acc.detach(), prog_bar=True)
         return loss
 
 if __name__ == '__main__':
@@ -115,12 +116,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
 
-    if 'NEPTUNE_TOKEN' in os.environ:
-        print('Using Neptune API')
-        run = neptune.init(
-                project="jeremyfix/fashion-mnist-pytorch-lightning",
-                api_token=os.environ['NEPTUNE_TOKEN'],
-        )  # your credentials
+    loggers = []
+    if 'NEPTUNE_TOKEN' in os.environ and 'NEPTUNE_PROJECT' in os.environ:
+        print('Using Neptune.ai logger')
+        neptune_logger = NeptuneLogger(
+            api_key=os.environ['NEPTUNE_TOKEN'],
+            project=os.environ['NEPTUNE_PROJECT'],
+            tags=["fashionMNIST"],
+            source_files=glob.glob('*.py')
+        )
+        loggers.append(neptune_logger)
 
     img_width = 28
     img_height = 28
@@ -148,7 +153,8 @@ if __name__ == '__main__':
     lmodel = LitModel(args.weight_decay,
                       model)
 
-    trainer = pl.Trainer(max_epochs=epochs)  
+    trainer = pl.Trainer(max_epochs=epochs,
+                         logger=loggers)
     # Train the model on the training set and record the best
     # from the validation set
     trainer.fit(lmodel,
