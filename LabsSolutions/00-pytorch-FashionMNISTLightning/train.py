@@ -146,12 +146,6 @@ if __name__ == '__main__':
     if neptune_logger:
         neptune_logger.log_hyperparams(args)
 
-#             {
-#             **args, 
-#             'batch_size': batch_size,
-#             'valid_ratio': valid_ratio
-#         })
-
     # Load the dataloaders
     loaders, fnorm = data.make_dataloaders(valid_ratio,
                                            batch_size,
