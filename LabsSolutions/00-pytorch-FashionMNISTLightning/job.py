@@ -43,6 +43,7 @@ git checkout {commit_id}
 echo ""
 echo "Virtual env setting"
 
+python3 -m pip install virtualenv
 virtualenv -p python3 venv
 source venv/bin/activate
 python -m pip install -r requirements_cuda.txt
