@@ -130,7 +130,7 @@ if __name__ == '__main__':
         neptune_logger = NeptuneLogger(
             api_key=os.environ['NEPTUNE_TOKEN'],
             project=os.environ['NEPTUNE_PROJECT'],
-            tags=["fashionMNIST"],
+            tags=["fashionMNIST", args.model],
             source_files=glob.glob('*.py')
         )
         loggers.append(neptune_logger)
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     img_size = (1, img_height, img_width)
     num_classes = 10
     batch_size = 128
-    epochs = 1
+    epochs = 20
     valid_ratio = 0.2
 
     if neptune_logger:
@@ -179,7 +179,9 @@ if __name__ == '__main__':
 
     trainer = pl.Trainer(max_epochs=epochs,
                          logger=loggers,
-                         callbacks=[lr_logger, model_checkpoint])
+                         callbacks=[lr_logger, model_checkpoint],
+                         gpus=1 if torch.cuda.is_available() else None)
+
     # Train the model on the training set and record the best
     # from the validation set
     trainer.fit(lmodel,

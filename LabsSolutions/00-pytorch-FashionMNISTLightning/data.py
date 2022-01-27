@@ -81,8 +81,8 @@ def make_dataloaders(valid_ratio,
                      batch_size,
                      num_workers,
                      normalize,
-                     dataset_dir=None,
                      dataaugment_train: bool = False,
+                     dataset_dir=None,
                      normalizing_tensor_path=None):
 
     if not dataset_dir:
@@ -230,8 +230,8 @@ if __name__ == '__main__':
                                       batch_size,
                                       num_threads,
                                       False,
-                                      None,
                                       False,
+                                      None,
                                       None)
     train_loader, valid_loader, test_loader = loaders
     print(f"The train set contains {len(train_loader.dataset)} images, in {len(train_loader)} batches")
@@ -247,8 +247,8 @@ if __name__ == '__main__':
                                       batch_size,
                                       num_threads,
                                       False,
-                                      None,
                                       True,
+                                      None,
                                       None)
     # Let us take the first sample of the dataset and sample it several
     # times 
