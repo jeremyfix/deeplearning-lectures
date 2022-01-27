@@ -47,6 +47,9 @@ def get_dataloaders(dataset_root: Union[str, Path],
         raise NotImplementedError(f"Cannot import the dataset {dataset}."
                                   f" Available datasets are {datasets}")
 
+    if isinstance(dataset_root, str):
+        dataset_root = Path(dataset_root)
+
     dataset_loader = getattr(torchvision.datasets, f"{dataset}")
     train_kwargs = {}
     test_kwargs = {}
@@ -56,6 +59,7 @@ def get_dataloaders(dataset_root: Union[str, Path],
     if dataset == "EMNIST":
         train_kwargs['split'] = 'balanced'
     elif dataset == "SVHN":
+        dataset_root = dataset_root / 'SVHN'
         train_kwargs['split'] = 'train'
         test_kwargs['split'] = 'test'
 
