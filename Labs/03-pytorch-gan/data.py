@@ -12,7 +12,7 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
-_DEFAULT_DATASET_ROOT = "/opt/Datasets"
+_DEFAULT_DATASET_ROOT = "/mounts/Datasets2"
 _DEFAULT_MNIST_DIGIT = 6
 
 # _MNIST_MEAN = 0.1309
