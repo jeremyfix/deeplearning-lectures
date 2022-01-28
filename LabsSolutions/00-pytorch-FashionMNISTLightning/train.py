@@ -37,7 +37,7 @@ class LitModel(pl.LightningModule):
         return self.model(x)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(model.parameters(),
+        optimizer = torch.optim.Adam(self.model.parameters(),
                                      lr=0.01,
                                      weight_decay=self.weight_decay)
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer)
