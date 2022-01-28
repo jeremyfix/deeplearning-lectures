@@ -1,3 +1,5 @@
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jeremyfix/deeplearning-lectures/blob/lightning/LabsSolutions/00-pytorch-FashionMNISTLightning/illustration.ipynb)
+
 # Installation
 
 To install the requirements, simply
