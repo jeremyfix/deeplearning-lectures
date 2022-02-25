@@ -10,7 +10,7 @@ import pprint
 import data
 
 # The datasets is already downloaded on the cluster
-dataset_dir = "/mounts/Datasets2/Pascal-VOC2012/"
+dataset_dir = "/mounts/Datasets4/Pascal-VOC2012/"
 download = False
 
 # How do we preprocess the targets
