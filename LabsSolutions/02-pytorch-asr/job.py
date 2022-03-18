@@ -12,7 +12,7 @@ def makejob(commit_id, nruns, partition, walltime, augment, debug, params):
         paramsstr += " --debug "
     return f"""#!/bin/bash
 
-#SBATCH --job-name=asr-{params['model']}
+#SBATCH --job-name=asr-ctc
 #SBATCH --nodes=1
 #SBATCH --partition={partition}
 #SBATCH --time={walltime}
