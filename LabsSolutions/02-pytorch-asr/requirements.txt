@@ -1,0 +1,18 @@
+albumentations==1.1.0
+deepcs==0.1.7
+imageio==2.13.5
+matplotlib==3.3.1
+numpy==1.19.2
+opencv-python-headless==4.5.5.62
+pandas==1.1.5
+Pillow==8.4.0
+pytest==3.3.2
+receptivefield==0.5.0
+scipy==1.5.2
+tensorboard==2.6.0
+timm==0.4.12
+-f https://download.pytorch.org/whl/cu113/torch_stable.html
+torch==1.10.1+cu113
+torchinfo==1.5.4
+torchvision==0.11.2+cu113
+tqdm==4.30.0
