@@ -164,7 +164,7 @@ def train(args):
 
     logger.info(summary_text)
 
-    logdir = generate_unique_logpath("./logs", "ctc")
+    logdir = generate_unique_logpath(args.baselogdir, "ctc")
     tensorboard_writer = SummaryWriter(log_dir=logdir, flush_secs=5)
     tensorboard_writer.add_text(
         "Experiment summary", deepcs.display.htmlize(summary_text)
@@ -446,6 +446,13 @@ if __name__ == "__main__":
         "--beamsearch",
         action="store_true",
         help="Whether or not to use beam search. If not, use" " max decoding.",
+    )
+
+    parser.add_argument(
+        "--baselogdir",
+        type=Path,
+        default=Path("./logs"),
+        help="The base directory in which to save the logs"
     )
 
     args = parser.parse_args()
