@@ -164,7 +164,10 @@ def train(args):
 
     logger.info(summary_text)
 
-    logdir = generate_unique_logpath(args.baselogdir, "ctc")
+    if args.logname is not None:
+        logdir = args.baselogdir / args.logname
+    else:
+        logdir = generate_unique_logpath(args.baselogdir, "ctc")
     tensorboard_writer = SummaryWriter(log_dir=logdir, flush_secs=5)
     tensorboard_writer.add_text(
         "Experiment summary", deepcs.display.htmlize(summary_text)
@@ -453,6 +456,13 @@ if __name__ == "__main__":
         type=Path,
         default=Path("./logs"),
         help="The base directory in which to save the logs"
+    )
+
+    parser.add_argument(
+        "--logname",
+        type=str,
+        default=None,
+        help="The name of the run used to define the logdir"
     )
 
     args = parser.parse_args()

@@ -26,7 +26,7 @@ current_dir=`pwd`
 export LOCAL=$HOME/.local
 export PATH=$PATH:$LOCAL/bin
 
-echo "Session " {params['model']}_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}}
+echo "Session " ${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}}
 date
 
 echo "Running on $(hostname)"
