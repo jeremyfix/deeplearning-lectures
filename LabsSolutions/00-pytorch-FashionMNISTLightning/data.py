@@ -208,7 +208,7 @@ def display_samples(loader, nsamples,
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
 
-    imgs, labels = next(iter(train_loader))
+    imgs, labels = next(iter(loader))
     display_tensor_samples(imgs[:nsamples],
                            labels[:nsamples],
                            filename,

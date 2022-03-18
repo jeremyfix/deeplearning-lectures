@@ -37,8 +37,8 @@ class LitModel(pl.LightningModule):
         return self.model(x)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(model.parameters(),
-                                     lr=0.01,
+        optimizer = torch.optim.Adam(self.model.parameters(),
+                                     lr=0.001,
                                      weight_decay=self.weight_decay)
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer)
         return {"optimizer": optimizer,
@@ -75,6 +75,84 @@ class LitModel(pl.LightningModule):
         self.log('test/loss', loss.detach(), prog_bar=True)
         self.log('test/acc', acc.detach(), prog_bar=True)
         return loss
+
+def main(args):
+    """
+    Train a neural network on FashionMNIST
+    args : dict
+    """
+    loggers = []
+    neptune_logger = None
+    if 'NEPTUNE_TOKEN' in os.environ and 'NEPTUNE_PROJECT' in os.environ:
+        print('Using Neptune.ai logger')
+        neptune_logger = NeptuneLogger(
+            api_key=os.environ['NEPTUNE_TOKEN'],
+            project=os.environ['NEPTUNE_PROJECT'],
+            tags=["fashionMNIST", args['model']],
+            source_files=glob.glob('*.py')
+        )
+        loggers.append(neptune_logger)
+
+    img_width = 28
+    img_height = 28
+    img_size = (1, img_height, img_width)
+    num_classes = 10
+    batch_size = 128
+    epochs = 20
+    valid_ratio = 0.2
+
+    if neptune_logger:
+        neptune_logger.log_hyperparams(args)
+
+    # Load the dataloaders
+    loaders, fnorm = data.make_dataloaders(valid_ratio,
+                                           batch_size,
+                                           args["num_workers"],
+                                           args["normalize"],
+                                           args["data_augment"],
+                                           args["dataset_dir"],
+                                           None)
+    train_loader, valid_loader, test_loader = loaders
+
+    # Init model, loss, optimizer
+    model = models.build_model(args["model"],
+                               img_size,
+                               num_classes)
+
+    # Callbacks
+    lr_logger = LearningRateMonitor(logging_interval="epoch")
+    model_checkpoint = ModelCheckpoint(
+        dirpath="model/checkpoints/",
+        filename="{epoch:02d}-{val/loss:.2f}",
+        save_weights_only=True,
+        save_top_k=1,
+        save_last=True,
+        monitor="valid/loss",
+        every_n_epochs=1
+    )
+
+    lmodel = LitModel((batch_size, ) + img_size,
+                      args["weight_decay"],
+                      model)
+
+    trainer = pl.Trainer(max_epochs=epochs,
+                         logger=loggers,
+                         callbacks=[lr_logger, model_checkpoint],
+                         gpus=1 if torch.cuda.is_available() else None)
+
+    # Train the model on the training set and record the best
+    # from the validation set
+    trainer.fit(lmodel,
+                train_loader,
+                valid_loader)
+
+    # And test the best model on the test set
+    metrics = trainer.test(dataloaders=test_loader,
+                           ckpt_path='best')
+
+    # Log the model and additional metadata
+    if neptune_logger:
+        neptune_logger.log_model_summary(model=lmodel, max_depth=-1)
 
 if __name__ == '__main__':
 
@@ -121,77 +199,4 @@ if __name__ == '__main__':
     )
 
     args = parser.parse_args()
-    
-
-    loggers = []
-    neptune_logger = None
-    if 'NEPTUNE_TOKEN' in os.environ and 'NEPTUNE_PROJECT' in os.environ:
-        print('Using Neptune.ai logger')
-        neptune_logger = NeptuneLogger(
-            api_key=os.environ['NEPTUNE_TOKEN'],
-            project=os.environ['NEPTUNE_PROJECT'],
-            tags=["fashionMNIST", args.model],
-            source_files=glob.glob('*.py')
-        )
-        loggers.append(neptune_logger)
-
-    img_width = 28
-    img_height = 28
-    img_size = (1, img_height, img_width)
-    num_classes = 10
-    batch_size = 128
-    epochs = 20
-    valid_ratio = 0.2
-
-    if neptune_logger:
-        neptune_logger.log_hyperparams(args)
-
-    # Load the dataloaders
-    loaders, fnorm = data.make_dataloaders(valid_ratio,
-                                           batch_size,
-                                           args.num_workers,
-                                           args.normalize,
-                                           args.data_augment,
-                                           args.dataset_dir,
-                                           None)
-    train_loader, valid_loader, test_loader = loaders
-
-    # Init model, loss, optimizer
-    model = models.build_model(args.model,
-                               img_size,
-                               num_classes)
-
-    # Callbacks
-    lr_logger = LearningRateMonitor(logging_interval="epoch")
-    model_checkpoint = ModelCheckpoint(
-        dirpath="model/checkpoints/",
-        filename="{epoch:02d}-{val/loss:.2f}",
-        save_weights_only=True,
-        save_top_k=1,
-        save_last=True,
-        monitor="valid/loss",
-        every_n_epochs=1
-    )
-
-    lmodel = LitModel((batch_size, ) + img_size,
-                      args.weight_decay,
-                      model)
-
-    trainer = pl.Trainer(max_epochs=epochs,
-                         logger=loggers,
-                         callbacks=[lr_logger, model_checkpoint],
-                         gpus=1 if torch.cuda.is_available() else None)
-
-    # Train the model on the training set and record the best
-    # from the validation set
-    trainer.fit(lmodel,
-                train_loader,
-                valid_loader)
-
-    # And test the best model on the test set
-    metrics = trainer.test(dataloaders=test_loader,
-                           ckpt_path='best')
-
-    # Log the model and additional metadata
-    if neptune_logger:
-        neptune_logger.log_model_summary(model=lmodel, max_depth=-1)
+    main(vars(args))
