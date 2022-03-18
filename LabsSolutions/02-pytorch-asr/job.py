@@ -4,10 +4,12 @@ import os
 import subprocess
 
 
-def makejob(commit_id, nruns, partition, walltime, augment, params):
+def makejob(commit_id, nruns, partition, walltime, augment, debug, params):
     paramsstr = " ".join([f"--{name} {value}" for name, value in params.items()])
     if augment:
         paramsstr += " --train_augment "
+    if debug:
+        paramsstr += " --debug "
     return f"""#!/bin/bash
 
 #SBATCH --job-name=asr-{params['model']}
@@ -52,7 +54,8 @@ echo ""
 echo "Training"
 date
 
-python3 project/main.py  --datadir ./ChallengeDeep/training {paramsstr} --logname {params['model']}_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} --commit_id '{commit_id}' --logdir ${{current_dir}}/logs train
+python3 main_ctc.py  --logname {params['model']}_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} --commit_id
+'{commit_id}' --baselogdir ${{current_dir}}/logs train
 
 if [[ $? != 0 ]]; then
     exit -1
@@ -87,13 +90,16 @@ commit_id = subprocess.check_output(
 os.system("mkdir -p logslurms")
 
 # Launch the batch jobs
+debug = True
+augment = True
 submit_job(
     makejob(
         commit_id,
-        4,
+        1,
         "gpu_prod_long",
         "48:00:00",
-        True,
+        augment,
+        debug,
         {
             "batch_size": 128,
             "num_epochs": 50,
@@ -105,6 +111,7 @@ submit_job(
             "nhidden_rnn": 1024,
             "weight_decay": 0.01,
             "dropout": 0.1,
+            "datasetversion": "v6.1"
         },
     )
 )
