@@ -4,23 +4,19 @@ import os
 import subprocess
 
 
-def makejob(commit_id, nruns, partition, walltime, normalize, params):
+def makejob(commit_id, nruns, partition, walltime, augment, params):
     paramsstr = " ".join([f"--{name} {value}" for name, value in params.items()])
-    if normalize:
-        paramsstr += " --normalize "
+    if augment:
+        paramsstr += " --train_augment "
     return f"""#!/bin/bash
 
-#SBATCH --job-name=challenge-{params['model']}
+#SBATCH --job-name=asr-{params['model']}
 #SBATCH --nodes=1
 #SBATCH --partition={partition}
 #SBATCH --time={walltime}
 #SBATCH --output=logslurms/slurm-%A_%a.out
 #SBATCH --error=logslurms/slurm-%A_%a.err
 #SBATCH --array=0-{nruns-1}
-#SBATCH --exclude=sh[00,10-16]
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=jeremy.fix@centralesupelec.fr
-#SBATCH --dependency=afterok:11444
 
 current_dir=`pwd`
 
@@ -36,7 +32,7 @@ echo "Running on $(hostname)"
 
 echo "Copying the source directory and data"
 date
-mkdir $TMPDIR/challenge
+mkdir $TMPDIR/asr
 rsync -r . $TMPDIR/ --exclude 'logslurms' --exclude 'logs'
 
 cd $TMPDIR/
@@ -61,11 +57,6 @@ python3 project/main.py  --datadir ./ChallengeDeep/training {paramsstr} --lognam
 if [[ $? != 0 ]]; then
     exit -1
 fi
-
-# Once the job is finished, copy back the logs
-# ls ./logs/
-
-# cp -r ./logs/{params['model']}_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} $current_dir/logs/
 
 date
 
@@ -96,18 +87,24 @@ commit_id = subprocess.check_output(
 os.system("mkdir -p logslurms")
 
 # Launch the batch jobs
-# submit_job(makejob(4, 'gpu_prod', "6:00:00",
-#                    False,
-#                    {'model': 'linear',
-#                     'weight_decay': 0.0
-#                    }))
-submit_job(makejob(commit_id, 4, 'gpu_prod_long', "48:00:00",
-                   True,
-                   {'model': 'cait_s24_224',
-                    'batch_size': 32,
-                    'weight_decay': 0.00,
-                    'nepochs': 40,
-                    'base_lr': 0.0003,
-                    'loss': 'BCE',
-                    'mixup': 0.2
-                   }))
+submit_job(
+    makejob(
+        commit_id,
+        4,
+        "gpu_prod_long",
+        "48:00:00",
+        True,
+        {
+            "batch_size": 128,
+            "num_epochs": 50,
+            "base_lr": 0.001,
+            "grad_clip": 5.0,
+            "min_duration": 1.0,
+            "max_duration": 6.0,
+            "nlayers_rnn": 4,
+            "nhidden_rnn": 1024,
+            "weight_decay": 0.01,
+            "dropout": 0.1,
+        },
+    )
+)
