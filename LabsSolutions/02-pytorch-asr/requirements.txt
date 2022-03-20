@@ -1,6 +1,6 @@
 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 torch==1.10.1+cu113
-torchaudio==0.10.0+cu113 
+torchaudio==0.10.1+cu113 
 tensorboard==2.6.0
 deepcs==0.1.7
 tqdm==4.30.0
