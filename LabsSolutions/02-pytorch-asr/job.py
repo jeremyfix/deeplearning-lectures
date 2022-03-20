@@ -109,7 +109,7 @@ submit_job(
             "nhidden_rnn": 1024,
             "weight_decay": 0.01,
             "dropout": 0.1,
-            "datasetversion": "v6.1",
+            "datasetversion": "v8.0",
         },
     )
 )
