@@ -107,9 +107,9 @@ submit_job(
             "max_duration": 6.0,
             "nlayers_rnn": 4,
             "nhidden_rnn": 1024,
-            "weight_decay": 0.01,
-            "dropout": 0.1,
-            "datasetversion": "v8.0",
+            "weight_decay": 0.0,
+            "dropout": 0.0,
+            "datasetversion": "v6.1",
         },
     )
 )
