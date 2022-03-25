@@ -53,7 +53,7 @@ echo ""
 echo "Training"
 date
 
-python3 main_ctc.py  --logname ctc_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} --baselogdir ${{current_dir}}/logs train
+python3 main_ctc.py  --logname ctc_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} --baselogdir ${{current_dir}}/logs {paramstr} train
 
 if [[ $? != 0 ]]; then
     exit -1
