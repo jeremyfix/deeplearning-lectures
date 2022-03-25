@@ -102,7 +102,6 @@ submit_job(
             "batch_size": 128,
             "num_epochs": 50,
             "base_lr": 0.001,
-            "grad_clip": None,
             "min_duration": 1.0,
             "max_duration": 6.0,
             "nlayers_rnn": 4,
