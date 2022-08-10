@@ -9,11 +9,14 @@ import logging
 import random
 
 # External imports
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 import PIL.Image as Image
 import torchvision
 import torchvision.transforms as transforms
 import torch
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class StanfordDataset(torchvision.datasets.vision.VisionDataset):
@@ -43,6 +46,7 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
         self.labels = set([lblname.split("_")[0] for lblname in json_labels])
         # Keep the list sorted
         self.labels = sorted(list(self.labels))
+        print(self.labels)
         self.unknown_label = self.labels.index("<UNK>")
         # Build a translation directory to map all the differently named labels
         # to the same ids;
@@ -113,7 +117,9 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
         )
         # Replace the unlabeled pixels by UNK
         semantic_idx[semantic_idx == int(0x0D0D0D)] = self.unknown_label
-        semantics = self.lbl_map[semantic_idx].reshape(semantic_img.shape[:2])
+        semantics = torch.from_numpy(
+            self.lbl_map[semantic_idx].reshape(semantic_img.shape[:2])
+        )
 
         return *self.transforms(rgb_image, semantics), area_name
 
@@ -169,8 +175,44 @@ def test_dataset():
     rootdir = pathlib.Path("/opt/Datasets/stanford")
     data_transforms = transforms.Compose([transforms.ToTensor()])
     dataset = StanfordDataset(rootdir, transform=data_transforms)
-    rgb, semantics, area = dataset[random.randint(0, len(dataset) - 1)]
-    print(type(rgb), type(semantics), type(area))
+    data_idx = random.randint(0, len(dataset) - 1)
+    rgb, semantics, area = dataset[data_idx]
+
+    logging.info("Test augmented dataset")
+
+    def data_transforms(img, mask):
+        tf = A.Compose(
+            [
+                A.RandomCrop(768, 768),
+                A.Resize(256, 256),
+                A.HorizontalFlip(),
+                ToTensorV2(),
+            ]
+        )
+        aug = tf(image=np.array(img), mask=mask.numpy())
+        return (aug["image"], aug["mask"])
+
+    dataset = StanfordDataset(rootdir, transforms=data_transforms)
+    aug_rgb, aug_semantics, aug_area = dataset[data_idx]
+
+    fig, axes = plt.subplots(2, 2)
+    ax = axes[0, 0]
+    ax.imshow(rgb.permute(1, 2, 0).numpy())
+    ax.axis("off")
+
+    ax = axes[0, 1]
+    ax.imshow(semantics.numpy())
+    ax.axis("off")
+
+    ax = axes[1, 0]
+    ax.imshow(aug_rgb.permute(1, 2, 0).numpy())
+    ax.axis("off")
+
+    ax = axes[1, 1]
+    ax.imshow(aug_semantics.numpy())
+    ax.axis("off")
+
+    plt.show()
 
 
 def test_dataloaders():
