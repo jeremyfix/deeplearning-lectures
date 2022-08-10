@@ -19,6 +19,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+class TransformedDataset(torch.utils.data.Dataset):
+    def __init__(self, dataset, transforms):
+        self.dataset = dataset
+        self.transforms = transforms
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, index):
+        rgb, semantics, area = self.dataset[index]
+        return *self.transforms(rgb, semantics), area
+
+
 class StanfordDataset(torchvision.datasets.vision.VisionDataset):
     def __init__(
         self,
@@ -131,11 +144,14 @@ def get_dataloaders(
     n_workers: int,
     small_experiment: bool,
     val_ratio: int,
-    transform,
+    train_transforms,
+    valid_transforms,
 ):
     # Get the raw dataset
-    print(f"Transform is : {transform}")
-    dataset = StanfordDataset(rootdir, transform=transform)
+    print(f"Transform is : {train_transforms}")
+    dataset = StanfordDataset(
+        rootdir, transforms=torchvision.datasets.vision.StandardTransform()
+    )
 
     # Split it randomly in train/valid folds
     indices = list(range(len(dataset)))
@@ -150,6 +166,9 @@ def get_dataloaders(
     # Build the train/valid datasets with the selected indices
     train_dataset = torch.utils.data.Subset(dataset, train_indices)
     valid_dataset = torch.utils.data.Subset(dataset, valid_indices)
+
+    train_dataset = TransformedDataset(train_dataset, train_transforms)
+    valid_dataset = TransformedDataset(valid_dataset, valid_transforms)
 
     # And the dataloaders
     train_loader = torch.utils.data.DataLoader(
@@ -227,7 +246,32 @@ def test_dataloaders():
 
     # Note: ToTensor converts B,H,W,C to B, C, H, W and
     # maps [0, 255] to [0.0, 1.0]
-    transform = transforms.Compose([transforms.ToTensor()])
+    train_aug = A.Compose(
+        [
+            A.RandomCrop(768, 768),
+            A.Resize(256, 256),
+            A.HorizontalFlip(),
+            A.RandomBrightnessContrast(p=0.2),
+            A.Normalize(mean=0.0, std=1.0),
+            ToTensorV2(),
+        ]
+    )
+    valid_aug = A.Compose(
+        [
+            A.RandomCrop(768, 768),
+            A.Resize(256, 256),
+            A.Normalize(mean=0.0, std=1.0),
+            ToTensorV2(),
+        ]
+    )
+
+    def train_transforms(img, mask):
+        aug = train_aug(image=np.array(img), mask=mask.numpy())
+        return (aug["image"], aug["mask"])
+
+    def valid_transforms(img, mask):
+        aug = valid_aug(image=np.array(img), mask=mask.numpy())
+        return (aug["image"], aug["mask"])
 
     train_loader, valid_loader = get_dataloaders(
         rootdir,
@@ -236,13 +280,15 @@ def test_dataloaders():
         n_workers,
         small_experiment,
         val_ratio,
-        transform,
+        train_transforms,
+        valid_transforms,
     )
     logging.info(f"Train loader has {len(train_loader)} minibatches")
     logging.info(f"Valid loader has {len(valid_loader)} minibatches")
 
     logging.info("Loading a minibatch from the training set")
     train_rgb, train_semantics, areas = next(iter(train_loader))
+
     logging.info(f"The rgb images tensor has shape {train_rgb.shape}")
     logging.info(f"The semantic images tensor has shape {train_semantics.shape}")
     logging.info(f"The data come from the areas {set(areas)}")
@@ -258,5 +304,5 @@ if __name__ == "__main__":
     """
     logging.info(license)
 
-    test_dataset()
+    # test_dataset()
     test_dataloaders()
