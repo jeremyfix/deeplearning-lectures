@@ -88,13 +88,13 @@ def get_dataloaders(
 
     # Split it randomly in train/valid folds
     indices = list(range(len(dataset)))
-    num_data = len(dataset)
+    num_data = 128 if small_experiment else len(dataset)
     num_valid = int(val_ratio * num_data)
     num_train = num_data - num_valid
 
-    np.random.shuffle(indices)
+    # np.random.shuffle(indices)
     train_indices = indices[:num_train]
-    valid_indices = indices[num_train:]
+    valid_indices = indices[num_train : (num_train + num_valid)]
 
     # Build the train/valid datasets with the selected indices
     train_dataset = torch.utils.data.Subset(dataset, train_indices)
