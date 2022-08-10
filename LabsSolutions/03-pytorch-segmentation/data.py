@@ -1,5 +1,24 @@
 #!/usr/bin/env python3
 # coding : utf-8
+"""
+    This script belongs to the lab work on semantic segmenation of the
+    deep learning lectures https://github.com/jeremyfix/deeplearning-lectures
+    Copyright (C) 2022 Jeremy Fix
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 
 # Standard imports
 import sys
@@ -59,7 +78,6 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
         self.labels = set([lblname.split("_")[0] for lblname in json_labels])
         # Keep the list sorted
         self.labels = sorted(list(self.labels))
-        print(self.labels)
         self.unknown_label = self.labels.index("<UNK>")
         # Build a translation directory to map all the differently named labels
         # to the same ids;
@@ -185,7 +203,7 @@ def get_dataloaders(
         pin_memory=cuda,
     )
 
-    return train_loader, valid_loader
+    return train_loader, valid_loader, dataset.labels
 
 
 def test_dataset():
@@ -273,7 +291,7 @@ def test_dataloaders():
         aug = valid_aug(image=np.array(img), mask=mask.numpy())
         return (aug["image"], aug["mask"])
 
-    train_loader, valid_loader = get_dataloaders(
+    train_loader, valid_loader, labels = get_dataloaders(
         rootdir,
         cuda,
         batch_size,
