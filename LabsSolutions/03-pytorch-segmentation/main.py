@@ -144,6 +144,7 @@ def train(args):
     input_size = next(iter(train_loader))[0].shape
     summary_text = (
         f"Logdir : {logdir}\n"
+        + f"Commit id : {args.commit_id}\n"
         + "## Command \n"
         + " ".join(sys.argv)
         + "\n\n"
@@ -214,6 +215,7 @@ if __name__ == "__main__":
     parser.add_argument("command", choices=["train", "test"])
 
     parser.add_argument("--logdir", type=pathlib.Path, default="./logs")
+    parser.add_argument("--commit_id", type=str, default=None)
     parser.add_argument("--datadir", type=pathlib.Path, required=True)
     parser.add_argument("--num_workers", type=int, default=4)
     parser.add_argument("--batch_size", type=int, default=32)
