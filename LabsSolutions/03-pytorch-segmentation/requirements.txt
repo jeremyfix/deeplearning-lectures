@@ -1,0 +1,15 @@
+albumentations==1.1.0
+imageio==2.13.5
+matplotlib==3.3.1
+numpy>=1.19.2
+Pillow==8.4.0
+pytest==3.3.2
+tensorboard==2.6.0
+timm==0.4.12
+-f https://download.pytorch.org/whl/cu113/torch_stable.html
+torch==1.10.1+cu113
+torchinfo==1.5.4
+torchvision==0.11.2+cu113
+tqdm==4.30.0
+# Fix protobuf issue https://github.com/protocolbuffers/protobuf/issues/10051
+protobuf==3.20.1
