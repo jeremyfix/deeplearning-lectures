@@ -33,6 +33,7 @@ class StanfordDataset:
         self.labels = set([lblname.split("_")[0] for lblname in json_labels])
         # Keep the list sorted
         self.labels = sorted(list(self.labels))
+        self.unknown_label = self.labels.index("<UNK>")
         # Build a translation directory to map all the differently named labels
         # to the same ids;
         # For example, beam_10_hallway_6_1 and beam_10_storage_4_2 will be mapped
@@ -102,8 +103,8 @@ class StanfordDataset:
             + semantic_img[:, :, 1] * 256
             + semantic_img[:, :, 2]
         )
-        # Replace the unlabeled pixels by UNK which is label 0
-        semantic_idx[semantic_idx == int(0x0D0D0D)] = 0
+        # Replace the unlabeled pixels by UNK
+        semantic_idx[semantic_idx == int(0x0D0D0D)] = self.unknown_label
         semantics = self.lbl_map[semantic_idx].reshape(rgb_image.shape[1:])
 
         return rgb_image, semantics, area_name
