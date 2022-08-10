@@ -69,7 +69,10 @@ def train(args):
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
     # Set up the train and valid transforms
-    img_size = (16, 16)
+    if args.debug:
+        img_size = (16, 16)
+    else:
+        img_size = (256, 256)
     train_aug = A.Compose(
         [
             A.RandomCrop(768, 768),
