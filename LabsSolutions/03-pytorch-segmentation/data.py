@@ -6,15 +6,25 @@ import sys
 import pathlib
 import json
 import logging
+import random
 
 # External imports
 import PIL.Image as Image
+import torchvision
+import torchvision.transforms as transforms
 import torch
 import numpy as np
 
 
-class StanfordDataset:
-    def __init__(self, rootdir: pathlib.Path):
+class StanfordDataset(torchvision.datasets.vision.VisionDataset):
+    def __init__(
+        self,
+        rootdir: pathlib.Path,
+        transforms=None,
+        transform=None,
+        target_transform=None,
+    ):
+        super().__init__(rootdir, transforms, transform, target_transform)
 
         self.rootdir = rootdir
 
@@ -90,9 +100,7 @@ class StanfordDataset:
 
         rgb_filename = self.filenames[area_name][idx]
         rgb_filepath = area_path / "data" / "rgb" / rgb_filename
-        rgb_image = np.array(Image.open(rgb_filepath))
-        # Transpose the image to be channel first
-        rgb_image = rgb_image.transpose(2, 0, 1)
+        rgb_image = Image.open(rgb_filepath)
 
         # Load the semantic tensor
         semantic_filename = rgb_filename.replace("rgb", "semantic")
@@ -105,9 +113,9 @@ class StanfordDataset:
         )
         # Replace the unlabeled pixels by UNK
         semantic_idx[semantic_idx == int(0x0D0D0D)] = self.unknown_label
-        semantics = self.lbl_map[semantic_idx].reshape(rgb_image.shape[1:])
+        semantics = self.lbl_map[semantic_idx].reshape(semantic_img.shape[:2])
 
-        return rgb_image, semantics, area_name
+        return *self.transforms(rgb_image, semantics), area_name
 
 
 def get_dataloaders(
@@ -117,9 +125,11 @@ def get_dataloaders(
     n_workers: int,
     small_experiment: bool,
     val_ratio: int,
+    transform,
 ):
     # Get the raw dataset
-    dataset = StanfordDataset(rootdir)
+    print(f"Transform is : {transform}")
+    dataset = StanfordDataset(rootdir, transform=transform)
 
     # Split it randomly in train/valid folds
     indices = list(range(len(dataset)))
@@ -153,7 +163,19 @@ def get_dataloaders(
     return train_loader, valid_loader
 
 
+def test_dataset():
+    logging.info("Test dataset")
+
+    rootdir = pathlib.Path("/opt/Datasets/stanford")
+    data_transforms = transforms.Compose([transforms.ToTensor()])
+    dataset = StanfordDataset(rootdir, transform=data_transforms)
+    rgb, semantics, area = dataset[random.randint(0, len(dataset) - 1)]
+    print(type(rgb), type(semantics), type(area))
+
+
 def test_dataloaders():
+    logging.info("Test dataloaders")
+
     rootdir = pathlib.Path("/opt/Datasets/stanford")
     cuda = False
     batch_size = 32
@@ -161,8 +183,18 @@ def test_dataloaders():
     small_experiment = False
     val_ratio = 0.2
 
+    # Note: ToTensor converts B,H,W,C to B, C, H, W and
+    # maps [0, 255] to [0.0, 1.0]
+    transform = transforms.Compose([transforms.ToTensor()])
+
     train_loader, valid_loader = get_dataloaders(
-        rootdir, cuda, batch_size, n_workers, small_experiment, val_ratio
+        rootdir,
+        cuda,
+        batch_size,
+        n_workers,
+        small_experiment,
+        val_ratio,
+        transform,
     )
     logging.info(f"Train loader has {len(train_loader)} minibatches")
     logging.info(f"Valid loader has {len(valid_loader)} minibatches")
@@ -184,4 +216,5 @@ if __name__ == "__main__":
     """
     logging.info(license)
 
+    test_dataset()
     test_dataloaders()
