@@ -16,7 +16,6 @@ dependencies:
   - pip=22.1.2=py39h06a4308_0
   - python=3.9.12=h12debd9_1
   - readline=8.1.2=h7f8727e_1
-  - setuptools=61.2.0=py39h06a4308_0
   - sqlite=3.39.2=h5082296_0
   - tk=8.6.12=h1ccaba5_0
   - tzdata=2022a=hda174b7_0
@@ -30,6 +29,7 @@ dependencies:
     - cachetools==4.2.4
     - charset-normalizer==2.1.0
     - cycler==0.11.0
+    - deepcs==0.1.9
     - google-auth==1.35.0
     - google-auth-oauthlib==0.4.6
     - grpcio==1.47.0
@@ -64,6 +64,7 @@ dependencies:
     - scikit-image==0.19.3
     - scikit-learn==1.1.2
     - scipy==1.9.0
+    - setuptools==59.5.0
     - six==1.16.0
     - tensorboard==2.6.0
     - tensorboard-data-server==0.6.1
