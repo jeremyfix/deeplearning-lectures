@@ -8,12 +8,16 @@ import json
 import logging
 
 # External imports
+import PIL.Image as Image
 import torch
 import numpy as np
 
 
 class StanfordDataset:
     def __init__(self, rootdir: pathlib.Path):
+
+        self.rootdir = rootdir
+
         semantic_json = rootdir / "assets" / "semantic_labels.json"
         if not semantic_json.exists():
             raise FileNotFoundError(f"File {semantic_json} does not exist")
@@ -33,12 +37,13 @@ class StanfordDataset:
         # to the same ids;
         # For example, beam_10_hallway_6_1 and beam_10_storage_4_2 will be mapped
         # to the same label id
-        self.lbl_map = {
-            ik: self.labels.index(k.split("_")[0]) for ik, k in enumerate(json_labels)
-        }
-        self.lbl_map[int(0x0D0D0D)] = self.labels.index(
-            "<UNK>"
-        )  # 0x0D0D0D is encoding missing labeling
+        self.lbl_map = np.zeros((len(json_labels),), dtype=int)
+        for ik, k in enumerate(json_labels):
+            self.lbl_map[ik] = self.labels.index(k.split("_")[0])
+        # This will be done while loading the semantics
+        # self.lbl_map[int(0x0D0D0D)] = self.labels.index(
+        #     "<UNK>"
+        # )  # 0x0D0D0D is encoding missing labeling
 
         self.num_labels = len(self.labels)
         logging.debug(f"I loaded {self.num_labels} labels : {self.labels}")
@@ -68,11 +73,40 @@ class StanfordDataset:
 
         Returns
             (rgb, semantics, area_id) where
-                rgb : (H, W, 3) source image
-                semantics : (H, W, nclasses) labels
+                rgb : (H, W, 3) PIL image
+                semantics : (H, W) nd array of labels
                 area_id : int
         """
-        pass
+        # Looking for the area in which the sample is
+        area_path = None
+        for area_name, filenames_for_area in self.filenames.items():
+            if idx < len(filenames_for_area):
+                area_path = self.rootdir / area_name
+                break
+            # Otherwise decrement the index by the number of elements for this
+            # area
+            idx -= len(filenames_for_area)
+
+        rgb_filename = self.filenames[area_name][idx]
+        rgb_filepath = area_path / "data" / "rgb" / rgb_filename
+        rgb_image = np.array(Image.open(rgb_filepath))
+        # Transpose the image to be channel first
+        rgb_image = rgb_image.transpose(2, 0, 1)
+
+        # Load the semantic tensor
+        semantic_filename = rgb_filename.replace("rgb", "semantic")
+        semantic_filepath = area_path / "data" / "semantic" / semantic_filename
+        semantic_img = np.array(Image.open(semantic_filepath))
+        semantic_idx = (
+            semantic_img[:, :, 0] * (256**2)
+            + semantic_img[:, :, 1] * 256
+            + semantic_img[:, :, 2]
+        )
+        # Replace the unlabeled pixels by UNK which is label 0
+        semantic_idx[semantic_idx == int(0x0D0D0D)] = 0
+        semantics = self.lbl_map[semantic_idx].reshape(rgb_image.shape[1:])
+
+        return rgb_image, semantics, area_name
 
 
 def get_dataloaders(
@@ -123,7 +157,7 @@ def test_dataloaders():
     cuda = False
     batch_size = 32
     n_workers = 4
-    small_experiment = True
+    small_experiment = False
     val_ratio = 0.2
 
     train_loader, valid_loader = get_dataloaders(
@@ -132,9 +166,15 @@ def test_dataloaders():
     logging.info(f"Train loader has {len(train_loader)} minibatches")
     logging.info(f"Valid loader has {len(valid_loader)} minibatches")
 
+    logging.info("Loading a minibatch from the training set")
+    train_rgb, train_semantics, areas = next(iter(train_loader))
+    logging.info(f"The rgb images tensor has shape {train_rgb.shape}")
+    logging.info(f"The semantic images tensor has shape {train_semantics.shape}")
+    logging.info(f"The data come from the areas {set(areas)}")
+
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format="%(message)s")
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     license = """
     data.py  Copyright (C) 2022  Jeremy Fix
     This program comes with ABSOLUTELY NO WARRANTY;
