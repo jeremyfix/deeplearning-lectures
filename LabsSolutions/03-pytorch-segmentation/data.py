@@ -92,7 +92,7 @@ def get_dataloaders(
     num_valid = int(val_ratio * num_data)
     num_train = num_data - num_valid
 
-    # np.random.shuffle(indices)
+    np.random.shuffle(indices)
     train_indices = indices[:num_train]
     valid_indices = indices[num_train : (num_train + num_valid)]
 
