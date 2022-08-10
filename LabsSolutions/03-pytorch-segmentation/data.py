@@ -47,8 +47,11 @@ class TransformedDataset(torch.utils.data.Dataset):
         return len(self.dataset)
 
     def __getitem__(self, index):
-        rgb, semantics, area = self.dataset[index]
-        return *self.transforms(rgb, semantics), area
+        rgb, semantics = self.dataset[index]
+        return self.transforms(rgb, semantics)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__} [\n -Dataset : {self.dataset} \n -Transforms : {self.transforms}\n]"
 
 
 class StanfordDataset(torchvision.datasets.vision.VisionDataset):
@@ -151,8 +154,7 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
         semantics = torch.from_numpy(
             self.lbl_map[semantic_idx].reshape(semantic_img.shape[:2])
         )
-
-        return *self.transforms(rgb_image, semantics), area_name
+        return self.transforms(rgb_image, semantics)
 
 
 def get_dataloaders(
@@ -213,7 +215,7 @@ def test_dataset():
     data_transforms = transforms.Compose([transforms.ToTensor()])
     dataset = StanfordDataset(rootdir, transform=data_transforms)
     data_idx = random.randint(0, len(dataset) - 1)
-    rgb, semantics, area = dataset[data_idx]
+    rgb, semantics = dataset[data_idx]
 
     logging.info("Test augmented dataset")
 
@@ -230,7 +232,7 @@ def test_dataset():
         return (aug["image"], aug["mask"])
 
     dataset = StanfordDataset(rootdir, transforms=data_transforms)
-    aug_rgb, aug_semantics, aug_area = dataset[data_idx]
+    aug_rgb, aug_semantics = dataset[data_idx]
 
     fig, axes = plt.subplots(2, 2)
     ax = axes[0, 0]
@@ -305,11 +307,10 @@ def test_dataloaders():
     logging.info(f"Valid loader has {len(valid_loader)} minibatches")
 
     logging.info("Loading a minibatch from the training set")
-    train_rgb, train_semantics, areas = next(iter(train_loader))
+    train_rgb, train_semantics = next(iter(train_loader))
 
     logging.info(f"The rgb images tensor has shape {train_rgb.shape}")
     logging.info(f"The semantic images tensor has shape {train_semantics.shape}")
-    logging.info(f"The data come from the areas {set(areas)}")
 
 
 if __name__ == "__main__":
@@ -322,5 +323,5 @@ if __name__ == "__main__":
     """
     logging.info(license)
 
-    # test_dataset()
+    test_dataset()
     test_dataloaders()
