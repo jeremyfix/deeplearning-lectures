@@ -54,7 +54,7 @@ def wrap_dtype(loss):
 
 
 def train(args):
-    """Train a neural network on the plankton classification task
+    """Train a neural network on the stanford 2D-3D S semantic segmentation dataset
 
     Args:
         args (dict): parameters for the training

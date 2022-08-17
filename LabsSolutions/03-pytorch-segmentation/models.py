@@ -27,7 +27,7 @@ import torch
 import torch.nn as nn
 import torchvision.models
 
-available_models = ["fcn_resnet50"]
+available_models = ["fcn_resnet50", "UNet"]
 
 
 class TorchvisionModel(nn.Module):
@@ -67,6 +67,38 @@ class TorchvisionModel(nn.Module):
 
 def fcn_resnet50(input_size, num_classes):
     return TorchvisionModel("fcn_resnet50", input_size, num_classes, True, 3)
+
+
+class UNetEncoder(nn.Module):
+    def __init__(self, num_inputs, num_blocks):
+        pass
+
+    def forward(self, inputs):
+        pass
+
+
+class UNetDecoder(nn.Module):
+    def __init__(self, num_inputs, num_blocks):
+        pass
+
+    def forward(self, inputs):
+        pass
+
+
+class UNet(nn.Module):
+    def __init__(self, img_size, num_classes, num_blocks=5, num_inputs=3):
+        self.encoder = UNetEncoder(num_inputs, num_blocks)
+        self.decoder = UNetDecoder(num_classes, num_blocks)
+
+    def forward(self, inputs):
+        # inputs is B, 3, H, W
+
+        # features is a list of features to
+        # be taken as inputs, at different steps
+        # by the decoder
+        features = self.encoder(inputs)
+        outputs = self.decoder(features)  # B, num_classes, H, W
+        return outputs
 
 
 def build_model(model_name, img_size, num_classes):
