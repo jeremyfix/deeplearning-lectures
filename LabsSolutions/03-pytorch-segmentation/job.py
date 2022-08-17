@@ -58,10 +58,11 @@ echo "Running on $(hostname)"
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/lw_deeplearning_semantic
-cd ..
-rsync -r . $TMPDIR/lw_deeplearning_semantic/ --exclude 'logs' 
+cd ../../
+rsync -r . $TMPDIR/lw_deeplearning_semantic/ --exclude 'logs'  --exclude 'logslurms'
 
 cd $TMPDIR/lw_deeplearning_semantic
+cd LabsSolutions/03-pytorch-segmentation
 
 ls 
 
