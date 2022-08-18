@@ -40,10 +40,16 @@ from torch.utils.tensorboard import SummaryWriter
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import numpy as np
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import ImageGrid
 
 # Local modules
 import data
 import models
+import utils
 
 
 def wrap_dtype(loss):
@@ -171,6 +177,8 @@ def train(args):
         model, os.path.join(logdir, "best_model.pt"), min_is_best=True
     )
 
+    valid_images, valid_gt = next(iter(valid_loader))
+
     for e in range(args.nepochs):
         deepcs.training.train(
             model,
@@ -199,6 +207,25 @@ def train(args):
         # Metrics recording
         for m_name, m_value in test_metrics.items():
             tensorboard_writer.add_scalar(f"metrics/test_{m_name}", m_value, e)
+
+        # Get some test samples and predict the associated mask on a 4 samples
+        # Predict the labels
+        with torch.no_grad():
+            valid_predictions = model(valid_images).argmax(dim=1).detach().numpy()
+        fig = plt.figure(figsize=(2, 4))
+        grid = ImageGrid(fig, 111, nrows_ncols=(2, 4), direction="column", axes_pad=0.1)
+        for axgt, axp, vimg, vgt, vpred in zip(
+            grid[::2], grid[1::2], valid_images, valid_gt, valid_predictions
+        ):
+            img_i = vimg.permute(1, 2, 0).numpy().squeeze()
+            gt_i = vgt.numpy().squeeze()
+            pred_i = vpred.squeeze()
+            axgt.imshow(utils.overlay(img_i, gt_i))
+            axgt.axis("off")
+            axp.imshow(utils.overlay(img_i, pred_i))
+            axp.axis("off")
+        plt.tight_layout()
+        tensorboard_writer.add_figure("GT and predicted mask", fig, global_step=e)
         scheduler.step(test_metrics["CE"])
 
 
