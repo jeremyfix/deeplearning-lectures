@@ -103,6 +103,11 @@ class UNetConvBlock(nn.Module):
 class UNetEncoder(nn.Module):
     def __init__(self, num_inputs, num_blocks):
         super().__init__()
+        # Note: use ModuleList to correctly register
+        #       the modules it contains rather than plain list
+        #  e.g. with plain list, the model.parameters() do not
+        #       return the internal parameters of the modules contained
+        #       in the list
         self.blocks = nn.ModuleList()
         num_channels = 32
         for i in range(num_blocks):
@@ -189,6 +194,11 @@ class UNetDecoder(nn.Module):
 
         num_inputs = num_channels
         num_channels = num_channels // 2
+        # Note: use ModuleList to correctly register
+        #       the modules it contains rather than plain list
+        #  e.g. with plain list, the model.parameters() do not
+        #       return the internal parameters of the modules contained
+        #       in the list
         self.blocks = nn.ModuleList()
         for i in range(num_blocks):
             self.blocks.append(UNetUpConvBlock(num_inputs, num_channels))
