@@ -213,13 +213,13 @@ def train(args):
         # Get some test samples and predict the associated mask on a 4 samples
         # Predict the labels
         with torch.no_grad():
-            valid_predictions = model(valid_images).argmax(dim=1).detach().numpy()
+            valid_predictions = model(valid_images).argmax(dim=1).detach().cpu().numpy()
         fig = plt.figure(figsize=(2, 4))
         grid = ImageGrid(fig, 111, nrows_ncols=(2, 4), direction="column", axes_pad=0.1)
         for axgt, axp, vimg, vgt, vpred in zip(
             grid[::2], grid[1::2], valid_images, valid_gt, valid_predictions
         ):
-            img_i = vimg.permute(1, 2, 0).numpy().squeeze()
+            img_i = vimg.permute(1, 2, 0).cpu().numpy().squeeze()
             gt_i = vgt.numpy().squeeze()
             pred_i = vpred.squeeze()
             axgt.imshow(utils.overlay(img_i, gt_i))
