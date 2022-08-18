@@ -53,3 +53,15 @@ def colorize(target):
     # Double the colors to make them lighter
     # the max value of the colormap being 95
     return 2 * colored
+
+
+def overlay(rgb, targets):
+    """
+    Overlay the semantic prediction on the input image
+    rgb expected range in [0, 1], shape (H, W, 3)
+    targets : nd array of predicted labels, shape (H, W)
+    """
+    colored_semantics = colorize(targets)
+    lbd = 0.4
+    ovlay = lbd * rgb + (1 - lbd) * colored_semantics / 255.0
+    return ovlay

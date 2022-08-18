@@ -228,6 +228,7 @@ def test_dataset():
                 A.RandomCrop(768, 768),
                 A.Resize(256, 256),
                 A.HorizontalFlip(),
+                A.Normalize(0, 1),
                 ToTensorV2(),
             ]
         )
@@ -237,23 +238,15 @@ def test_dataset():
     dataset = StanfordDataset(rootdir, transforms=data_transforms)
     aug_rgb, aug_semantics = dataset[data_idx]
 
-    fig, axes = plt.subplots(2, 2)
-    ax = axes[0, 0]
-    ax.imshow(rgb.permute(1, 2, 0).numpy())
+    fig, axes = plt.subplots(1, 2)
+    ax = axes[0]
+    ax.imshow(utils.overlay(rgb.permute(1, 2, 0).numpy(), semantics.numpy()))
+    ax.set_title("Original image")
     ax.axis("off")
 
-    colored_semantics = utils.colorize(semantics.numpy())
-    ax = axes[0, 1]
-    ax.imshow(colored_semantics)
-    ax.axis("off")
-
-    colored_semantics = utils.colorize(aug_semantics.numpy())
-    ax = axes[1, 0]
-    ax.imshow(aug_rgb.permute(1, 2, 0).numpy())
-    ax.axis("off")
-
-    ax = axes[1, 1]
-    ax.imshow(colored_semantics)
+    ax = axes[1]
+    ax.imshow(utils.overlay(aug_rgb.permute(1, 2, 0).numpy(), aug_semantics.numpy()))
+    ax.set_title("Augmented image")
     ax.axis("off")
 
     plt.show()
