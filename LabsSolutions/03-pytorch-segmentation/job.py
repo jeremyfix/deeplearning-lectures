@@ -110,7 +110,7 @@ commit_id = subprocess.check_output(
 os.system("mkdir -p logslurms")
 
 # Launch the batch jobs
-for model in ["fcn_resnet50"]:
+for model in ["UNet"]:
     submit_job(
         makejob(
             commit_id,

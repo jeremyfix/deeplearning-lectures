@@ -192,6 +192,8 @@ def get_dataloaders(
 
     train_dataset = TransformedDataset(train_dataset, train_transforms)
     valid_dataset = TransformedDataset(valid_dataset, valid_transforms)
+    logging.info(f"Train dataset has {len(train_dataset)} samples")
+    logging.info(f"Validation dataset has {len(valid_dataset)} samples")
 
     # And the dataloaders
     train_loader = torch.utils.data.DataLoader(
