@@ -103,7 +103,7 @@ class UNetConvBlock(nn.Module):
 class UNetEncoder(nn.Module):
     def __init__(self, num_inputs, num_blocks):
         super().__init__()
-        self.blocks = []
+        self.blocks = nn.ModuleList()
         num_channels = 32
         for i in range(num_blocks):
             self.blocks.append(UNetConvBlock(num_inputs, num_channels))
@@ -180,7 +180,6 @@ class UNetUpConvBlock(nn.Module):
 class UNetDecoder(nn.Module):
     def __init__(self, num_inputs, num_blocks, num_classes):
         super().__init__()
-        self.blocks = []
         num_inputs = 32 * 2**num_blocks
         num_channels = num_inputs
         self.first_block = nn.Sequential(
@@ -190,6 +189,7 @@ class UNetDecoder(nn.Module):
 
         num_inputs = num_channels
         num_channels = num_channels // 2
+        self.blocks = nn.ModuleList()
         for i in range(num_blocks):
             self.blocks.append(UNetUpConvBlock(num_inputs, num_channels))
             # Prepare the parameters for the next layer
