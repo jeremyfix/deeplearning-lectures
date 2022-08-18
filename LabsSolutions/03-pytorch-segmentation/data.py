@@ -37,6 +37,9 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Local imports
+import utils
+
 
 class TransformedDataset(torch.utils.data.Dataset):
     def __init__(self, dataset, transforms):
@@ -239,16 +242,18 @@ def test_dataset():
     ax.imshow(rgb.permute(1, 2, 0).numpy())
     ax.axis("off")
 
+    colored_semantics = utils.colorize(semantics.numpy())
     ax = axes[0, 1]
-    ax.imshow(semantics.numpy())
+    ax.imshow(colored_semantics)
     ax.axis("off")
 
+    colored_semantics = utils.colorize(aug_semantics.numpy())
     ax = axes[1, 0]
     ax.imshow(aug_rgb.permute(1, 2, 0).numpy())
     ax.axis("off")
 
     ax = axes[1, 1]
-    ax.imshow(aug_semantics.numpy())
+    ax.imshow(colored_semantics)
     ax.axis("off")
 
     plt.show()
@@ -324,4 +329,4 @@ if __name__ == "__main__":
     logging.info(license)
 
     test_dataset()
-    test_dataloaders()
+    # test_dataloaders()
