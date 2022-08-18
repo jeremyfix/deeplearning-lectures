@@ -106,7 +106,7 @@ def train(args):
         aug = valid_aug(image=np.array(img), mask=mask.numpy())
         return (aug["image"], aug["mask"])
 
-    train_loader, valid_loader, labels = data.get_dataloaders(
+    train_loader, valid_loader, labels, unk_class_idx = data.get_dataloaders(
         args.datadir,
         use_cuda,
         args.batch_size,
@@ -124,7 +124,8 @@ def train(args):
     model.to(device)
 
     # Make the loss
-    ce_loss = wrap_dtype(nn.CrossEntropyLoss())
+    # We ignore the pixels which are labeled as <UNK>
+    ce_loss = wrap_dtype(nn.CrossEntropyLoss(ignore_index=unk_class_idx))
 
     # Make the optimizer
     optimizer = torch.optim.Adam(

@@ -210,7 +210,7 @@ def get_dataloaders(
         pin_memory=cuda,
     )
 
-    return train_loader, valid_loader, dataset.labels
+    return train_loader, valid_loader, dataset.labels, dataset.unknown_label
 
 
 def test_dataset():
@@ -293,7 +293,7 @@ def test_dataloaders():
         aug = valid_aug(image=np.array(img), mask=mask.numpy())
         return (aug["image"], aug["mask"])
 
-    train_loader, valid_loader, labels = get_dataloaders(
+    train_loader, valid_loader, labels, _ = get_dataloaders(
         rootdir,
         cuda,
         batch_size,
