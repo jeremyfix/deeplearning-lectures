@@ -122,7 +122,7 @@ for model in ["UNet"]:
                 "batch_size": 32,
                 "weight_decay": 0.00,
                 "nepochs": 100,
-                "base_lr": 0.01,
+                "base_lr": 0.001,
             },
         )
     )
