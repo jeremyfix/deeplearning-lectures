@@ -179,6 +179,7 @@ def train(args):
     )
 
     valid_images, valid_gt = next(iter(valid_loader))
+    valid_images = valid_images.to(device)
 
     for e in range(args.nepochs):
         deepcs.training.train(
