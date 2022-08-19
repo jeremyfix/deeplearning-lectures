@@ -34,7 +34,6 @@ import deepcs.metrics
 import deepcs.display
 import deepcs.fileutils
 import torch
-import torch.nn as nn
 import torch.optim
 from torch.utils.tensorboard import SummaryWriter
 import albumentations as A
@@ -44,11 +43,11 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import ImageGrid
 
 # Local modules
 import data
 import models
+import metrics
 import utils
 
 
@@ -123,7 +122,7 @@ def train(args):
 
     # Make the loss
     # We ignore the pixels which are labeled as <UNK>
-    ce_loss = wrap_dtype(nn.CrossEntropyLoss())
+    loss = wrap_dtype(metrics.build_loss(args.loss))
 
     # Make the optimizer
     optimizer = torch.optim.Adam(
@@ -133,11 +132,11 @@ def train(args):
 
     # Metrics
     train_fmetrics = {
-        "CE": deepcs.metrics.GenericBatchMetric(ce_loss),
+        args.loss: deepcs.metrics.GenericBatchMetric(loss),
         "F1": deepcs.metrics.BatchF1(),
     }
     test_fmetrics = {
-        "CE": deepcs.metrics.GenericBatchMetric(ce_loss),
+        args.loss: deepcs.metrics.GenericBatchMetric(loss),
         "F1": deepcs.metrics.BatchF1(),
     }
 
@@ -189,7 +188,7 @@ def train(args):
         deepcs.training.train(
             model,
             train_loader,
-            ce_loss,
+            loss,
             optimizer,
             device,
             train_fmetrics,
@@ -275,6 +274,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", type=int, default=4)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--model", choices=models.available_models, required=True)
+    parser.add_argument("--loss", choices=metrics.available_losses, required=True)
 
     # Training parameters
     parser.add_argument("--logname", type=str, default=None)

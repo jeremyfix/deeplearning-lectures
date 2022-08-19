@@ -23,14 +23,69 @@
 # See also
 # https://arxiv.org/pdf/1910.07655.pdf
 
+# External imports
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-class GeneralizedDiceLoss:
+available_losses = ["FocalLoss", "CrossEntropyLoss"]
+
+
+def CrossEntropyLoss():
+    return nn.CrossEntropyLoss()
+
+
+class FocalLoss(nn.Module):
     """
-    Generalized Dice Loss as proposed by Sudre et al.(2017)
+    Implementation of the Focal Loss :math:`\\frac{1}{N} \\sum_i -(1-p_{y_i} + \\epsilon)^\\gamma \\log(p_{y_i})`
 
-    C.H. Sudre, W. Li, T. Vercauteren, S. Ourselin, M.J. Cardoso (2017)
-    Generalised dice overlap as a deep learning loss function for highly unbalanced segmentations
+    Args:
+        gamma: :math:`\\gamma > 0` puts more focus on hard misclassified samples
+
+    Shape:
+        - predictions :math:`(B, C)` : the logits
+        - targets :math`(B, )` : the target ids to predict
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, gamma=2.0):
+        super().__init__()
+        self.gamma = gamma
+        self.eps = 1e-10
+
+    def forward(self, predictions, targets):
+        """
+        Arguments:
+            predictions: (B, K, d1, d2, ..) of pre-activation
+            targets : (B, d1, d2, ..) of class indices
+        """
+        num_classes = predictions.shape[1]
+        # Move the class dimension at the end
+        dim_indices = [i for i in range(len(predictions.shape)) if i != 1] + [1]
+        predictions = predictions.permute(*dim_indices)
+        predictions = predictions.reshape(-1, num_classes)  # B*d1*d2*.., K
+        probs = F.softmax(predictions, dim=1)
+
+        weight = torch.pow(1.0 - probs + self.eps, self.gamma)
+        focal = -weight * torch.log(probs)
+        loss = focal.gather(dim=1, index=targets.view(-1, 1)).mean()
+
+        return loss
+
+
+def build_loss(loss_name):
+    if loss_name not in available_losses:
+        raise RuntimeError(f"Unavailable loss {loss_name}")
+    exec(f"loss = {loss_name}()")
+    return locals()["loss"]
+
+
+if __name__ == "__main__":
+
+    B, K, H, W = 10, 11, 12, 13
+    predictions = torch.rand(B, K, H, W)
+    targets = torch.randint(low=0, high=K, size=(B, H, W))
+
+    losses = [FocalLoss(1.0)]
+    for l in losses:
+        value = l(predictions, targets)
+        print(f"For {l} : {value}")
