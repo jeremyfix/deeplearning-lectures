@@ -179,7 +179,7 @@ def train(args):
     )
 
     model_checkpoint = deepcs.training.ModelCheckpoint(
-        model, os.path.join(logdir, "best_model.pt"), min_is_best=True
+        model, os.path.join(logdir, "best_model.pt"), min_is_best=False
     )
 
     valid_images, valid_gt = next(iter(valid_loader))
