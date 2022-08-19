@@ -132,8 +132,14 @@ def train(args):
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
 
     # Metrics
-    metrics = {"CE": ce_loss}
-    val_metrics = {"CE": ce_loss}
+    train_fmetrics = {
+        "CE": deepcs.metrics.GenericBatchMetric(ce_loss),
+        "F1": deepcs.metrics.BatchF1(),
+    }
+    test_fmetrics = {
+        "CE": deepcs.metrics.GenericBatchMetric(ce_loss),
+        "F1": deepcs.metrics.BatchF1(),
+    }
 
     # Callbacks
     if args.logname is None:
@@ -186,27 +192,25 @@ def train(args):
             ce_loss,
             optimizer,
             device,
-            metrics,
+            train_fmetrics,
             num_epoch=e,
-            tensorboard_writer=tensorboard_writer,
             dynamic_display=True,
         )
 
-        test_metrics = deepcs.testing.test(model, valid_loader, device, val_metrics)
-        updated = model_checkpoint.update(test_metrics["CE"])
-        logging.info(
-            "[%d/%d] Test:   Loss : %.3f %s"
-            % (
-                e,
-                args.nepochs,
-                test_metrics["CE"],
-                "[>> BETTER <<]" if updated else "",
-            )
+        test_metrics = deepcs.testing.test(model, valid_loader, device, test_fmetrics)
+        # Metrics recording on the tensorboard
+        for bname, bm in test_fmetrics.items():
+            bm.tensorboard_write(tensorboard_writer, f"metrics/test_{bname}", e)
+        # Display the results on the console
+        macro_test_F1 = sum(test_metrics["F1"]) / len(test_metrics["F1"])
+        updated = model_checkpoint.update(macro_test_F1)
+        metrics_msg = f"[{e}/{args.nepochs}] Test : \n  "
+        metrics_msg += "\n  ".join(
+            f" {m_name}: {m_value}"
+            + ("[>> BETTER <<]" if updated and m_name == "F1" else "")
+            for (m_name, m_value) in test_metrics.items()
         )
-
-        # Metrics recording
-        for m_name, m_value in test_metrics.items():
-            tensorboard_writer.add_scalar(f"metrics/test_{m_name}", m_value, e)
+        logging.info(metrics_msg)
 
         # Get some test samples and predict the associated mask on them
         # Predict the labels
@@ -249,7 +253,7 @@ def train(args):
         tensorboard_writer.add_figure("GT and predicted mask", fig, global_step=e)
 
         # Update the learning rate with the scheduler policy
-        scheduler.step(test_metrics["CE"])
+        scheduler.step(test_metrics["F1"])
 
 
 if __name__ == "__main__":
