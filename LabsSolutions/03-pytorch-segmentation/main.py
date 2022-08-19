@@ -75,10 +75,8 @@ def train(args):
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
     # Set up the train and valid transforms
-    if args.debug:
-        img_size = (16, 16)
-    else:
-        img_size = (256, 256)
+    img_size = (256, 256)
+
     train_aug = A.Compose(
         [
             A.RandomCrop(768, 768),
@@ -210,12 +208,14 @@ def train(args):
         for m_name, m_value in test_metrics.items():
             tensorboard_writer.add_scalar(f"metrics/test_{m_name}", m_value, e)
 
-        # Get some test samples and predict the associated mask on a 4 samples
+        # Get some test samples and predict the associated mask on them
         # Predict the labels
         with torch.no_grad():
             valid_predictions = model(valid_images).argmax(dim=1).detach().cpu().numpy()
-        fig = plt.figure(figsize=(2, 4))
-        grid = ImageGrid(fig, 111, nrows_ncols=(2, 4), direction="column", axes_pad=0.1)
+        nsamples = 4
+        fig, grid = plt.subplots(nrows=2, ncols=nsamples, sharex=True, sharey=True)
+        grid = grid.T.ravel()
+        # grid = ImageGrid(fig, 111, nrows_ncols=(2, 4), direction="column", axes_pad=0.1)
         for axgt, axp, vimg, vgt, vpred in zip(
             grid[::2], grid[1::2], valid_images, valid_gt, valid_predictions
         ):
@@ -223,11 +223,32 @@ def train(args):
             gt_i = vgt.numpy().squeeze()
             pred_i = vpred.squeeze()
             axgt.imshow(utils.overlay(img_i, gt_i))
-            axgt.axis("off")
             axp.imshow(utils.overlay(img_i, pred_i))
-            axp.axis("off")
+            # Remove the x-, y- ticks over the two axis
+            axgt.tick_params(
+                labelcolor="none",
+                which="both",
+                top=False,
+                bottom=False,
+                left=False,
+                right=False,
+            )
+            axp.tick_params(
+                labelcolor="none",
+                which="both",
+                top=False,
+                bottom=False,
+                left=False,
+                right=False,
+            )
+        grid[0].set_ylabel("Ground truth")
+        grid[1].set_ylabel("Prediction")
+        for i in range(nsamples):
+            grid[2 * i].set_title(f"Sample {i}")
         plt.tight_layout()
         tensorboard_writer.add_figure("GT and predicted mask", fig, global_step=e)
+
+        # Update the learning rate with the scheduler policy
         scheduler.step(test_metrics["CE"])
 
 
