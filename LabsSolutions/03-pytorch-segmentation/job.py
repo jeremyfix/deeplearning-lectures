@@ -123,6 +123,7 @@ for model in ["UNet"]:
                 "weight_decay": 0.00,
                 "nepochs": 100,
                 "base_lr": 0.0001,
+                "loss": "FocalLoss",
             },
         )
     )
