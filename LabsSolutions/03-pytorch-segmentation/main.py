@@ -206,9 +206,10 @@ def train(args):
         updated = model_checkpoint.update(macro_test_F1)
         metrics_msg = f"[{e}/{args.nepochs}] Test : \n  "
         metrics_msg += "\n  ".join(
-            f" {m_name}: {m_value}"
-            + ("[>> BETTER <<]" if updated and m_name == "F1" else "")
-            for (m_name, m_value) in test_metrics.items()
+            f" {m_name}: {m_value}" for (m_name, m_value) in test_metrics.items()
+        )
+        metrics_msg += f"\n  macro F1 : {macro_test_F1}" + (
+            "[>> BETTER <<]" if updated else ""
         )
         logging.info(metrics_msg)
 
@@ -253,7 +254,7 @@ def train(args):
         tensorboard_writer.add_figure("GT and predicted mask", fig, global_step=e)
 
         # Update the learning rate with the scheduler policy
-        scheduler.step(test_metrics["F1"])
+        scheduler.step(macro_test_F1)
 
 
 if __name__ == "__main__":
