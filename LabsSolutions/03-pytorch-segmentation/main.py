@@ -123,7 +123,7 @@ def train(args):
 
     # Make the loss
     # We ignore the pixels which are labeled as <UNK>
-    ce_loss = wrap_dtype(nn.CrossEntropyLoss(ignore_index=unk_class_idx))
+    ce_loss = wrap_dtype(nn.CrossEntropyLoss())
 
     # Make the optimizer
     optimizer = torch.optim.Adam(
