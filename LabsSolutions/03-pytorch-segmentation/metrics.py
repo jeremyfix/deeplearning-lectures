@@ -59,15 +59,15 @@ class FocalLoss(nn.Module):
             targets : (B, d1, d2, ..) of class indices
         """
         num_classes = predictions.shape[1]
-        # Move the class dimension at the end
-        dim_indices = [i for i in range(len(predictions.shape)) if i != 1] + [1]
-        predictions = predictions.permute(*dim_indices)
-        predictions = predictions.reshape(-1, num_classes)  # B*d1*d2*.., K
-        probs = F.softmax(predictions, dim=1)
+        predictions = predictions.view(B, num_classes, -1)  # B, K, d1*d2*d3*..
+        predictions = predictions.transpose(1, -1)  # B, d1*d2*d3*...., K
+        predictions = predictions.reshape(-1, num_classes)
 
-        weight = torch.pow(1.0 - probs + self.eps, self.gamma)
-        focal = -weight * torch.log(probs)
-        loss = focal.gather(dim=1, index=targets.view(-1, 1)).mean()
+        logp = F.log_softmax(predictions, dim=1)
+        logp_t = logp.gather(dim=1, index=targets.view(-1, 1))
+
+        weight = torch.pow(1.0 - torch.exp(logp_t) + self.eps, self.gamma)
+        loss = (-weight * logp_t).mean()
 
         return loss
 
