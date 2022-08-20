@@ -58,7 +58,7 @@ class FocalLoss(nn.Module):
             predictions: (B, K, d1, d2, ..) of pre-activation
             targets : (B, d1, d2, ..) of class indices
         """
-        num_classes = predictions.shape[1]
+        B, num_classes = predictions.shape[:2]
         predictions = predictions.view(B, num_classes, -1)  # B, K, d1*d2*d3*..
         predictions = predictions.transpose(1, -1)  # B, d1*d2*d3*...., K
         predictions = predictions.reshape(-1, num_classes)
