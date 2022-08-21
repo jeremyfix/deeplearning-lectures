@@ -81,6 +81,7 @@ class UNetConvBlock(nn.Module):
                 padding=1,
             ),
             nn.ReLU(inplace=True),
+            nn.BatchNorm2d(num_channels),
         )
         self.block2 = nn.Sequential(
             nn.Conv2d(
@@ -91,6 +92,7 @@ class UNetConvBlock(nn.Module):
                 padding=1,
             ),
             nn.ReLU(inplace=True),
+            nn.BatchNorm2d(num_channels),
         )
         self.block3 = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
 
@@ -120,6 +122,7 @@ class UNetEncoder(nn.Module):
         self.last_block = nn.Sequential(
             nn.Conv2d(num_inputs, num_channels, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
+            nn.BatchNorm2d(num_channels),
         )
 
     def forward(self, inputs):
@@ -154,6 +157,7 @@ class UNetUpConvBlock(nn.Module):
                 stride=1,
                 padding=1,
             ),
+            nn.BatchNorm2d(num_channels),
         )
         self.convblock = nn.Sequential(
             nn.Conv2d(
@@ -164,6 +168,7 @@ class UNetUpConvBlock(nn.Module):
                 padding=1,
             ),
             nn.ReLU(inplace=True),
+            nn.BatchNorm2d(num_channels),
             nn.Conv2d(
                 in_channels=num_channels,
                 out_channels=num_channels,
@@ -172,6 +177,7 @@ class UNetUpConvBlock(nn.Module):
                 padding=1,
             ),
             nn.ReLU(inplace=True),
+            nn.BatchNorm2d(num_channels),
         )
 
     def forward(self, inputs, encoder_features):
@@ -190,6 +196,7 @@ class UNetDecoder(nn.Module):
         self.first_block = nn.Sequential(
             nn.Conv2d(num_inputs, num_channels, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
+            nn.BatchNorm2d(num_channels),
         )
 
         num_inputs = num_channels
