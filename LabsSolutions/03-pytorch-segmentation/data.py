@@ -222,6 +222,30 @@ def test_dataset():
     data_idx = random.randint(0, len(dataset) - 1)
     rgb, semantics = dataset[data_idx]
 
+    fig, axes = plt.subplots(1, 2)
+    ax = axes[0]
+    ax.imshow(rgb.permute(1, 2, 0).numpy())
+    ax.set_title("Input image")
+    ax.axis("off")
+
+    ax = axes[1]
+    ax.imshow(utils.colorize(semantics.numpy()))
+    ax.set_title("Semantics")
+    ax.axis("off")
+
+    plt.tight_layout()
+    plt.show()
+
+
+def test_augmented_dataset():
+    logging.info("Test dataset")
+
+    rootdir = pathlib.Path("/opt/Datasets/stanford")
+    data_transforms = transforms.Compose([transforms.ToTensor()])
+    dataset = StanfordDataset(rootdir, transform=data_transforms)
+    data_idx = random.randint(0, len(dataset) - 1)
+    rgb, semantics = dataset[data_idx]
+
     logging.info("Test augmented dataset")
 
     def data_transforms(img, mask):
@@ -251,6 +275,7 @@ def test_dataset():
     ax.set_title("Augmented image")
     ax.axis("off")
 
+    plt.tight_layout()
     plt.show()
 
 
@@ -324,4 +349,5 @@ if __name__ == "__main__":
     logging.info(license)
 
     test_dataset()
+    # test_augmented_dataset()
     # test_dataloaders()
