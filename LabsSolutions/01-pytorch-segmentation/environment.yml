@@ -1,4 +1,4 @@
-name: dl-lectures-segmentation
+name: dl-lectures-pytorch-segmentation
 channels:
   - defaults
 dependencies:

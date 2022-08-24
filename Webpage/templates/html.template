@@ -64,7 +64,7 @@ $endif$-->
     <div class="w3-bar-item w3-light-gray w3-text-black">Pytorch</div>
     <a class="w3-bar-item w3-button" href="00-pytorch-fashionMnist.html">1- First steps with Pytorch</a>
     <a class="w3-bar-item w3-button" href="01-pytorch-object-detection.html">2a- Transfer learning/Object detection</a>
-    <a class="w3-bar-item w3-button" href="02-pytorch-segmentation.html">2b- Semantic segmentation</a>
+    <a class="w3-bar-item w3-button" href="01-pytorch-segmentation.html">2b- Semantic segmentation</a>
     <a class="w3-bar-item w3-button" href="02-pytorch-asr.html">3- Automatic Speech Recognition</a>
     <a class="w3-bar-item w3-button" href="03-pytorch-gan.html">4- Generative adversial networks</a>
     <div class="w3-bar-item w3-light-gray w3-text-black">Technical aspects</div>
