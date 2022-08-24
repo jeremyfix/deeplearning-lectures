@@ -235,12 +235,21 @@ def test_dataset():
     ax.set_title("Semantics")
     ax.axis("off")
 
+    colormap = utils.colormap.copy()
+    colormap = list(colormap.items())
+    # Sort the colormap by label name so that their display order
+    # along the colorbar matches the label index of the dataset
+    sorted(colormap, key=lambda lblcol: lblcol[0])
+
+    # Preprend the unknown class which is labeled 0
+    colormap.insert(0, ("unknown", [0, 0, 0]))
+
     ax = axes[2]
     cell_width = 212
     cell_height = 22
     patch_width = 48
     patch_height = 10
-    for ilabel, (label, color) in enumerate(utils.colormap.items()):
+    for ilabel, (label, color) in enumerate(colormap):
         text_pos_x = patch_width + 7
         y = cell_height * ilabel
         ax.add_patch(
@@ -256,12 +265,12 @@ def test_dataset():
             text_pos_x,
             y,
             label,
-            fontsize=14,
+            fontsize=10,
             horizontalalignment="left",
             verticalalignment="center",
         )
     ax.set_xlim(0, cell_width)
-    ax.set_ylim(cell_height * (len(utils.colormap) - 0.5), -cell_height / 2.0)
+    ax.set_ylim(cell_height * (len(colormap) - 0.5), -cell_height / 2.0)
     ax.axis("off")
 
     plt.tight_layout()
