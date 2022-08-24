@@ -35,7 +35,6 @@ import torchvision
 import torchvision.transforms as transforms
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
 
 # Local imports
 import utils
@@ -214,6 +213,9 @@ def get_dataloaders(
 
 
 def test_dataset():
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+
     logging.info("Test dataset")
 
     rootdir = pathlib.Path("/opt/Datasets/stanford")
@@ -222,7 +224,7 @@ def test_dataset():
     data_idx = random.randint(0, len(dataset) - 1)
     rgb, semantics = dataset[data_idx]
 
-    fig, axes = plt.subplots(1, 2)
+    fig, axes = plt.subplots(1, 3, figsize=(6, 3))
     ax = axes[0]
     ax.imshow(rgb.permute(1, 2, 0).numpy())
     ax.set_title("Input image")
@@ -233,11 +235,42 @@ def test_dataset():
     ax.set_title("Semantics")
     ax.axis("off")
 
+    ax = axes[2]
+    cell_width = 212
+    cell_height = 22
+    patch_width = 48
+    patch_height = 10
+    for ilabel, (label, color) in enumerate(utils.colormap.items()):
+        text_pos_x = patch_width + 7
+        y = cell_height * ilabel
+        ax.add_patch(
+            Rectangle(
+                xy=(0, y - patch_height / 2.0),
+                width=patch_width,
+                height=patch_height,
+                facecolor=[2 * c / 255.0 for c in color],
+                edgecolor="0.7",
+            )
+        )
+        ax.text(
+            text_pos_x,
+            y,
+            label,
+            fontsize=14,
+            horizontalalignment="left",
+            verticalalignment="center",
+        )
+    ax.set_xlim(0, cell_width)
+    ax.set_ylim(cell_height * (len(utils.colormap) - 0.5), -cell_height / 2.0)
+    ax.axis("off")
+
     plt.tight_layout()
     plt.show()
 
 
 def test_augmented_dataset():
+    import matplotlib.pyplot as plt
+
     logging.info("Test dataset")
 
     rootdir = pathlib.Path("/opt/Datasets/stanford")
