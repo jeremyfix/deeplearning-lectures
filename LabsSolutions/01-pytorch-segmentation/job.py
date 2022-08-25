@@ -62,7 +62,7 @@ cd ../../
 rsync -r . $TMPDIR/lw_deeplearning_semantic/ --exclude 'logs'  --exclude 'logslurms'
 
 cd $TMPDIR/lw_deeplearning_semantic
-cd LabsSolutions/03-pytorch-segmentation
+cd LabsSolutions/01-pytorch-segmentation
 
 ls 
 
