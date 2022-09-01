@@ -83,6 +83,7 @@ The provided code implements `UNet` with a `UNetEncoder` class and a `UNetDecode
 UNetDecoder relies on repetition of blocks which are UNetConvBlock on the one hand and UNetUpConvBlock on the other
 hand.
 
+**UNetEncoder** This downsampling pathway is made of a sequence  Conv($3\times 3$)-ReLU-BatchNorm, Conv($3\times 3$)-ReLU-BatchNorm, MaxPooling($2\times 2$).
 
 **Question** In the `models.py` script, implement the U-Net architecture. 
 
