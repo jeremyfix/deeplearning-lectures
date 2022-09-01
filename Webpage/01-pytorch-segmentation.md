@@ -14,11 +14,11 @@ In this labwork, we will be working with the large [Stanford 2D-3D S dataset](ht
 | Area | Number of images|
 | ---  | --- |
 | 1    | 10,327 |
-| 2    | 5,382 |
-| 3    | 1,530 |
-| 4    | 4,644 |
-| 5    | 6,714 |
-| 6    | 3,744 |
+| 2    | 15,714 |
+| 3    | 3,704 |
+| 4    | 13,268 |
+| 5    | 17,593 |
+| 6    | 9,890 |
 | **Total** | 25,434 |
 
 Below is an example of the input RGB image and the associated labels 
@@ -62,7 +62,29 @@ TODO: ask them to load a minibatch check the input tensors, target tensors shape
 
 ## Model implementation
 
-TODO : ask them to implement UNet or some follow up ? Although 2015, UNet is probably a good starting point anyway. Other models will be given in the going further section
+The parametric model you learn takes as input a 3-channel image and outputs a probability distribution over the $14$
+classes. There has several several propositions in the litterature to adress this problem such as FCN [@Long2015], UNet [@Ronneberger2015], VNet [@Milletari2016], SegNet[@Badrinarayanan2017], DeepLab v3+ [@Chen2018]. In this labwork, I propose we code the UNet of 2015 and you might want to implemented DeepLabv3+ as a homework :)
+
+UNet is a fully convolutional network (FCN), i.e. involving only convolutional operations (Conv2D, MaxPool , ...; there is no fully connected layers). 
+
+**Question** According to you, can a fully convolutional network be applied on images of different and arbitrary sizes ?
+
+**Question** For minibatch training, what is the constraint that we have on the input image sizes ?
+
+The name U-Net comes from the very specific shape of this encoder-decoder network with a contracting pathway for the
+encoding following by an expanding pathway for the decoding. The contracting pathway is expected to learn higher and
+higher level features as we progress deeper in the network and the expanding pathway to merge these highlevel features
+with the finer grain details brought by the encoder through skip layer connections.
+
+![UNet architecture for semantic segmentation](./latex/unet.png){width=50%}
+
+
+The provided code implements `UNet` with a `UNetEncoder` class and a `UNetDecoder` class. Both the UNetEncoder and
+UNetDecoder relies on repetition of blocks which are UNetConvBlock on the one hand and UNetUpConvBlock on the other
+hand.
+
+
+**Question** In the `models.py` script, implement the U-Net architecture. 
 
 ## Loss implementation
 
