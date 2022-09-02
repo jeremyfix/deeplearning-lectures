@@ -254,6 +254,7 @@ def build_model(model_name, img_size, num_classes):
 
 
 if __name__ == "__main__":
+    # @SOL
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     license = """
     models.py  Copyright (C) 2022  Jeremy Fix
@@ -268,3 +269,4 @@ if __name__ == "__main__":
         m = build_model(n, (256, 256), 10)
         out = m(torch.zeros(2, 3, 256, 256))
         print(out.shape)
+    # SOL@
