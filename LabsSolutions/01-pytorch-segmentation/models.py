@@ -270,3 +270,5 @@ if __name__ == "__main__":
         out = m(torch.zeros(2, 3, 256, 256))
         print(out.shape)
     # SOL@
+    # TEMPL@
+    # @TEMPL
