@@ -48,12 +48,12 @@ If your enviromnent is correctly created and activated, the following should wor
 
 Your are also provided with some base code :
 
-- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-segmentation/data.py) : script responsible for dataset and dataloader building
-- [models.py](./data/01-pytorch-segmentation/models.py) : script holding the models zoo
-- [metrics.py](./data/01-pytorch-segmentation/metrics.py) : script for the definition of custom metrics
-- [main.py](./data/01-pytorch-segmentation/main.py) : the main script orchestrating the call to all your functions for training and inference
-- [utils.py](./data/01-pytorch-segmentation/utils.py) : several utilitary functions for colorize segmentation masks
-- [test_implementation.py](./data/01-pytorch-segmentation/test_implementation.py) : a script with unit tests to test your answers to the code questions
+- [data.py](./labs/01-pytorch-segmentation/data.py) : script responsible for dataset and dataloader building
+- [models.py](./labs/01-pytorch-segmentation/models.py) : script holding the models zoo
+- [metrics.py](./labs/01-pytorch-segmentation/metrics.py) : script for the definition of custom metrics
+- [main.py](./labs/01-pytorch-segmentation/main.py) : the main script orchestrating the call to all your functions for training and inference
+- [utils.py](./labs/01-pytorch-segmentation/utils.py) : several utilitary functions for colorize segmentation masks
+- [test_implementation.py](./labs/01-pytorch-segmentation/test_implementation.py) : a script with unit tests to test your answers to the code questions
 
 
 
