@@ -43,4 +43,5 @@ install-deps:
 	wget -P latex/layers https://raw.githubusercontent.com/HarisIqbal88/PlotNeuralNet/master/layers/Box.sty
 	wget -P latex/layers https://raw.githubusercontent.com/HarisIqbal88/PlotNeuralNet/master/layers/RightBandedBox.sty
 	wget -P latex/layers https://raw.githubusercontent.com/HarisIqbal88/PlotNeuralNet/master/layers/init.tex
+	pip install  git+https://github.com/jeremyfix/easylabwork.git
 
