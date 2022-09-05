@@ -1,6 +1,7 @@
 name: dl-lectures-pytorch-segmentation
 channels:
   - defaults
+  - pytorch
 dependencies:
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=5.1=1_gnu
@@ -22,6 +23,8 @@ dependencies:
   - wheel=0.37.1=pyhd3eb1b0_0
   - xz=5.2.5=h7f8727e_1
   - zlib=1.2.12=h7f8727e_2
+  - pytorch==1.10.1
+  - torchvision==0.11.2
   - pip:
     - absl-py==1.2.0
     - albumentations==1.1.0
@@ -72,12 +75,9 @@ dependencies:
     - threadpoolctl==3.1.0
     - tifffile==2022.8.8
     - timm==0.4.12
-    - torch==1.10.1+cu113
     - torchinfo==1.5.4
-    - torchvision==0.11.2+cu113
     - tqdm==4.30.0
     - typing-extensions==4.3.0
     - urllib3==1.26.11
     - werkzeug==2.2.2
     - zipp==3.8.1
-prefix: /home/fix_jer/.local/conda/envs/dl-lectures-segmentation
