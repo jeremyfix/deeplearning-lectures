@@ -68,7 +68,7 @@ classes. There has several several propositions in the litterature to adress thi
 
 UNet is a fully convolutional network (FCN), i.e. involving only convolutional operations (Conv2D, MaxPool , ...; there is no fully connected layers). 
 
-**Question** According to you, can a fully convolutional network be applied on images of different and arbitrary sizes ?
+**Question** What does it mean that UNet is a fully convolutional network ? What does it mean with respect to the input image sizes it can process ? 
 
 **Question** For minibatch training, what is the constraint that we have on the input image sizes ?
 
@@ -84,11 +84,46 @@ The provided code implements `UNet` with a `UNetEncoder` class and a `UNetDecode
 UNetDecoder relies on repetition of blocks which are UNetConvBlock on the one hand and UNetUpConvBlock on the other
 hand.
 
-**UNetEncoder** This downsampling pathway is made of a sequence  Conv($3\times 3$)-ReLU-BatchNorm, Conv($3\times 3$)-ReLU-BatchNorm, MaxPooling($2\times 2$).
+**UNetEncoder** This downsampling pathway is made of :
 
-**Question** In the `models.py` script, implement the U-Net architecture. 
+- several `UNetConvBlock` blocks where the $i$-th ($i \in [0, \#blocks-1]$) block is made of:
+	- `block1`=Conv($3\times 3$)-ReLU-BatchNorm, with $64 \times 2^i$ channels 
+	- `block2`=Conv($3\times 3$)-ReLU-BatchNorm, with $64 \times 2^i$ channels and 
+	- `block3`= MaxPooling($2\times 2$),
+- followed by a Conv($3\times 3$)-ReLU-BatchNorm, with $64 \times 2^{\#blocks}$ channels
+
+Note that the output of `block2`, just before the downsampling is transmitted to the decoder stage, therefore the `UNetConvBlock` forward function outputs two tensors : one to be propagated along the encoder and one to be transmitter to the decoder.
+
+**Question** In the `models.py` script, implement the code in the `UNetEncoder` and `UNetConvBlock` classes. Check your code running the unit tests. Be sure to understand how the propagation is performed through the encoder blocks.
+
+The output of the final layers of the encoder is a tensor of shape $(batch, 64\times 2^{\#blocks}, H/2^{\#blocks}, W/2^{\#blocks})$
+
+**UNetDecoder** This upsampling pathway is made of :
+
+- a first Conv($3\times 3$)-ReLU-BatchNorm block which keeps constant the number of channels,
+- followed by several `UNetUpConvBlock` blocks with :
+	- `upconv`=UpSample($2$)-Conv($3\times 3$)-ReLU-BatchNorm which halves the number of channels, 
+	- a concatenation of the upconv output features with the encoder features
+	- a `convblock`= Conv($3\times 3$)-ReLU-BatchNorm-Conv($3\times 3$)-ReLU-BatchNorm which halves the number of its input channels
+
+For the `UNetUpConvBlock`, when its input along the decoder pathway has $c_0$ channels, its output has $c_0/2$ channels since :
+- upconv outputs $c_0/2$ channels
+- the concatenation of $c_0/2$ channels with the $c_0/2$ channels of the encoder leads to $c_0$ channels
+- the `convblock` gets $c_0$ input channels and outputs $c_0/2$ output channels
+
+In order to output a score for each of the $14$ classes, the very last layer of the decoder is a Conv($1\times 1$) with the same number of channels than the number of classes.
+
+**Question** In the `models.py` script, implement the code in the `UNetDecoder` and `UNetUpConvBlock` classes. Check your code against the unit tests. Be sure to understand how the propagation is performed through the decoder blocks.
+
+Once both the encoder and decoder classes are implemented, you can see that the `UNet` class is a simple wrapper around them.
+
+**Question** In the `models.py` script, within the `main()` function, write a piece of code for propagating a dummy tensor within your model. Is the output tensor the shape you expect ?
+
+We are done with the model implementation, let us move on to the loss.
 
 ## Loss implementation
+
+
 
 ## Evaluation metrics
 

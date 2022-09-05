@@ -78,19 +78,19 @@ def ftest(label):
 @ftest("Testing Unet Encoder")
 def test_unet_encoder():
     # Encoder with 12 input channels and 3 block
-    batch_size, chan, height, width, num_blocks = 10, 12, 18, 22, 3
+    batch_size, chan, height, width, num_blocks = 10, 12, 32, 64, 3
     encoder = models.UNetEncoder(chan, num_blocks)
     input_tensor = torch.zeros((batch_size, chan, height, width))
-    output_tensor, _ = encoder(input_tensor)
+    output_tensor, encoder_features = encoder(input_tensor)
     output_shape = list(output_tensor.shape)
     expected_shape = [
         batch_size,
-        2**num_blocks * 32,
+        2**num_blocks * 64,
         height // 2**num_blocks,
         width // 2**num_blocks,
     ]
     if list(output_tensor.shape) == expected_shape:
-        succeed()
+        succeed(f" output shape is {expected_shape}")
     else:
         fail(f"was expecting {expected_shape} but got {output_shape}")
 
@@ -98,20 +98,31 @@ def test_unet_encoder():
 @ftest("Testing UNet Decoder")
 def test_unet_decoder():
     # Decoder
-    batch_size, chan, num_blocks, num_classes = 10, 64, 3, 14
-    height, width = 8, 10
-    decoder = models.UNetDecoder(chan, num_blocks, num_classes)
-    input_tensor = torch.zeros((batch_size, chan, height, width))
-    output_tensor, _ = decoder(input_tensor)
+    batch_size, encoder_cout, num_blocks, num_classes = 10, 512, 3, 14
+    height, width = 4, 8
+    decoder = models.UNetDecoder(encoder_cout, num_blocks, num_classes)
+    input_tensor = torch.zeros((batch_size, encoder_cout, height, width))
+    encoder_features = [
+        torch.zeros(
+            (
+                batch_size,
+                64 * (2**i),
+                height * (2 ** (num_blocks - i)),
+                width * (2 ** (num_blocks - i)),
+            )
+        )
+        for i in range(num_blocks)
+    ]
+    output_tensor = decoder(input_tensor, encoder_features)
     output_shape = list(output_tensor.shape)
     expected_shape = [
         batch_size,
-        2**num_blocks * 32,
-        height // 2**num_blocks,
-        width // 2**num_blocks,
+        num_classes,
+        height * 2**num_blocks,
+        width * 2**num_blocks,
     ]
     if list(output_tensor.shape) == expected_shape:
-        succeed()
+        succeed(f" Output shape is {expected_shape}")
     else:
         fail(f"was expecting {expected_shape} but got {output_shape}")
 
@@ -119,3 +130,4 @@ def test_unet_decoder():
 if __name__ == "__main__":
     _RERAISE = True
     test_unet_encoder()
+    test_unet_decoder()
