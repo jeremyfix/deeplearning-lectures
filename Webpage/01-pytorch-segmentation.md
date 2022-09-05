@@ -53,6 +53,7 @@ Your are also provided with some base code :
 - [metrics.py](./data/01-pytorch-segmentation/metrics.py) : script for the definition of custom metrics
 - [main.py](./data/01-pytorch-segmentation/main.py) : the main script orchestrating the call to all your functions for training and inference
 - [utils.py](./data/01-pytorch-segmentation/utils.py) : several utilitary functions for colorize segmentation masks
+- [test_implementation.py](./data/01-pytorch-segmentation/test_implementation.py) : a script with unit tests to test your answers to the code questions
 
 
 

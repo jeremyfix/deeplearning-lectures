@@ -77,11 +77,32 @@ def ftest(label):
 
 @ftest("Testing Unet Encoder")
 def test_unet_encoder():
-    # Encoder with 1 input channel and 1 block
-    batch_size, chan, height, width, num_blocks = 10, 12, 18, 22, 1
+    # Encoder with 12 input channels and 3 block
+    batch_size, chan, height, width, num_blocks = 10, 12, 18, 22, 3
     encoder = models.UNetEncoder(chan, num_blocks)
     input_tensor = torch.zeros((batch_size, chan, height, width))
     output_tensor, _ = encoder(input_tensor)
+    output_shape = list(output_tensor.shape)
+    expected_shape = [
+        batch_size,
+        2**num_blocks * 32,
+        height // 2**num_blocks,
+        width // 2**num_blocks,
+    ]
+    if list(output_tensor.shape) == expected_shape:
+        succeed()
+    else:
+        fail(f"was expecting {expected_shape} but got {output_shape}")
+
+
+@ftest("Testing UNet Decoder")
+def test_unet_decoder():
+    # Decoder
+    batch_size, chan, num_blocks, num_classes = 10, 64, 3, 14
+    height, width = 8, 10
+    decoder = models.UNetDecoder(chan, num_blocks, num_classes)
+    input_tensor = torch.zeros((batch_size, chan, height, width))
+    output_tensor, _ = decoder(input_tensor)
     output_shape = list(output_tensor.shape)
     expected_shape = [
         batch_size,
