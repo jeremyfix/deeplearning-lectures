@@ -15,10 +15,14 @@ copyextra:
 	@cp -r templates $(OUTPUT_DIR)
 	@cp -r data $(OUTPUT_DIR)
 
-all: outputdirs $(HTML) $(DST_LATEX) copyextra
+easylab:
+	rm -rf $(OUTPUT_DIR)/labs/01-pytorch-segmentation
+	easylabwork ../LabsSolutions/01-pytorch-segmentation  $(OUTPUT_DIR)/labs/01-pytorch-segmentation
+
+all: outputdirs $(HTML) $(DST_LATEX) easylab copyextra
 
 outputdirs:
-	mkdir -p $(OUTPUT_DIR)/md-sources
+	mkdir -p $(OUTPUT_DIR)/md-sources $(OUTPUT_DIR)/labs
 
 clean:
 	rm -rf $(OUTPUT_DIR)
