@@ -123,7 +123,7 @@ class UNetConvBlock(nn.Module):
 
 
 class UNetEncoder(nn.Module):
-    def __init__(self, cin, num_blocks):
+    def __init__(self, cin, num_blocks, base_chan=64):
         super().__init__()
         # Note: use ModuleList to correctly register
         #       the modules it contains rather than plain list
@@ -131,7 +131,7 @@ class UNetEncoder(nn.Module):
         #       return the internal parameters of the modules contained
         #       in the list
         self.blocks = nn.ModuleList()
-        self.cout = 64
+        self.cout = base_chan
         for i in range(num_blocks):
             self.blocks.append(UNetConvBlock(cin, self.cout))
             # Prepare the parameters for the next layer
