@@ -256,8 +256,8 @@ def build_model(model_name, img_size, num_classes):
     return locals()["m"]
 
 
+# @SOL
 if __name__ == "__main__":
-    # @SOL
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     license = """
     models.py  Copyright (C) 2022  Jeremy Fix
@@ -267,11 +267,8 @@ if __name__ == "__main__":
     """
     logging.info(license)
     mname = ["UNet"]
-
     for n in mname:
         m = build_model(n, (256, 256), 10)
         # out = m(torch.zeros(2, 3, 256, 256))
         print(deepcs.display.torch_summarize(m, (2, 3, 256, 256)))
-    # SOL@
-    # TEMPL@
-    # @TEMPL
+# SOL@
