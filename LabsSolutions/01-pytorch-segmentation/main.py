@@ -76,24 +76,37 @@ def train(args):
     # Set up the train and valid transforms
     img_size = (256, 256)
 
+    # @TEMPL
+    # # vvvvvvvvv
+    # # CODE HERE
+    # TEMPL@
     train_aug = A.Compose(
         [
+            # @SOL
             A.RandomCrop(768, 768),
             A.Resize(*img_size),
             A.HorizontalFlip(),
             A.RandomBrightnessContrast(p=0.2),
+            A.CoarseDropout(max_width=50, max_height=50),
+            # SOL@
             A.Normalize(mean=0.0, std=1.0),
             ToTensorV2(),
         ]
     )
     valid_aug = A.Compose(
         [
+            # @SOL
             A.RandomCrop(768, 768),
             A.Resize(*img_size),
+            # SOL@
             A.Normalize(mean=0.0, std=1.0),
             ToTensorV2(),
         ]
     )
+    # @TEMPL
+    # # ^^^^^^^^^
+    # # CODE HERE
+    # TEMPL@
 
     def train_transforms(img, mask):
         aug = train_aug(image=np.array(img), mask=mask.numpy())

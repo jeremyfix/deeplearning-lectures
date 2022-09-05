@@ -61,6 +61,32 @@ Your are also provided with some base code :
 
 TODO: ask them to load a minibatch check the input tensors, target tensors shape and content, plot a sample using the provided functions colorize, etc..
 
+TODO: provide ids of images which have incorrect labels, e.g.
+area_5a/data/semantic/camera_ff5f377af3b34354b054536db27565ae_hallway_7_frame_4_domain_semantic.png
+
+## Data pipeline
+
+The data are loaded and the dataloaders are built by calling `get_dataloaders` from the `data` module.
+
+The raw images have a size of $1080 \times 1080$. If we keep large images, the minibatches and their successive transformations will occupy a large space in GPU memory. At least, we can resize the images, e.g. to $256\times 256$, and still keep reasonnable segmentations.
+
+In addition to resize images to a smaller size, we can add data augmentation in our pipeline. Remember, data augmentation is a set of transforms applied to the input which have a predictable influence on the output.
+
+For semantic segmentation, several can be considered, such as [RandomCrop](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomCrop), [HorizontalFlip](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.HorizontalFlip), [MaskDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/mask_dropout/#maskdropout-augmentation-augmentationsdropoutmask_dropout), [CoarseDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/coarse_dropout/#coarsedropout-augmentation-augmentationsdropoutcoarse_dropout). You can have a look at the list of transforms provided by albumentation [here](https://albumentations.ai/docs/getting_started/transforms_and_targets/).
+
+<div class="w3-card w3-sand">
+The transforms are organized into modules with albumentations, e.g. [CoarseDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/coarse_dropout/#coarsedropout-augmentation-augmentationsdropoutcoarse_dropout) is defined in `albumentations.augmentations.dropout.coarse_dropout.CoarseDropout`. However, the code of albumentations imports all the classes of the submodules recursively on the parent `__init__.py` script. Hence, the coarse dropout (and all the others) can be simply created by calling `A.CoarseDropout()` if you `import albumentations as A`.
+</div>
+
+In the provided code, the data loading pipeline simply :
+
+- scales the image by $255$ with [albumentation.Normalize](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Normalize)
+- transforms the numpy image into a pytorch tensor with [albumentation.ToTensorV2](https://albumentations.ai/docs/api_reference/pytorch/transforms/#albumentations.pytorch.transforms.ToTensorV2) 
+ 
+**Question** In the `train` function of the main script, implement the data augmentation operations you identified as relevant. For testing visually your data augmentation pipeline, you can implement your data augmentation pipeline in the `data.py:test_augmented_dataset` function and evaluate the `data.py` script to see the results. Once satisfied, you can inject your augmentations in the `main.py` script.
+
+**Question** How would you quantify the quality of the hyperparameters of your augmentation pipeline ? 
+
 ## Model implementation
 
 The parametric model you learn takes as input a 3-channel image and outputs a probability distribution over the $14$

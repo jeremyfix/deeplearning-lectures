@@ -26,6 +26,7 @@ import pathlib
 import json
 import logging
 import random
+import argparse
 
 # External imports
 import albumentations as A
@@ -117,6 +118,18 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
     def __len__(self):
         return sum(len(filenames) for _, filenames in self.filenames.items())
 
+    def get_filename(self, idx):
+        area_path = None
+        for area_name, filenames_for_area in self.filenames.items():
+            if idx < len(filenames_for_area):
+                area_path = self.rootdir / area_name
+                break
+            # Otherwise decrement the index by the number of elements for this
+            # area
+            idx -= len(filenames_for_area)
+        rgb_filename = self.filenames[area_name][idx]
+        return rgb_filename, area_path
+
     def __getitem__(self, idx):
         """
         Args:
@@ -129,16 +142,7 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
                 area_id : int
         """
         # Looking for the area in which the sample is
-        area_path = None
-        for area_name, filenames_for_area in self.filenames.items():
-            if idx < len(filenames_for_area):
-                area_path = self.rootdir / area_name
-                break
-            # Otherwise decrement the index by the number of elements for this
-            # area
-            idx -= len(filenames_for_area)
-
-        rgb_filename = self.filenames[area_name][idx]
+        rgb_filename, area_path = self.get_filename(idx)
         rgb_filepath = area_path / "data" / "rgb" / rgb_filename
         rgb_image = Image.open(rgb_filepath)
 
@@ -212,13 +216,13 @@ def get_dataloaders(
     return train_loader, valid_loader, dataset.labels, dataset.unknown_label
 
 
-def test_dataset():
+def test_dataset(args):
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
 
     logging.info("Test dataset")
 
-    rootdir = pathlib.Path("/opt/Datasets/stanford")
+    rootdir = pathlib.Path(args.datadir)
     data_transforms = transforms.Compose([transforms.ToTensor()])
     dataset = StanfordDataset(rootdir, transform=data_transforms)
     data_idx = random.randint(0, len(dataset) - 1)
@@ -277,25 +281,34 @@ def test_dataset():
     plt.show()
 
 
-def test_augmented_dataset():
+def test_augmented_dataset(args):
     import matplotlib.pyplot as plt
-
-    logging.info("Test dataset")
-
-    rootdir = pathlib.Path("/opt/Datasets/stanford")
-    data_transforms = transforms.Compose([transforms.ToTensor()])
-    dataset = StanfordDataset(rootdir, transform=data_transforms)
-    data_idx = random.randint(0, len(dataset) - 1)
-    rgb, semantics = dataset[data_idx]
 
     logging.info("Test augmented dataset")
 
+    rootdir = pathlib.Path(args.datadir)
+    data_transforms = transforms.Compose([transforms.ToTensor()])
+    dataset = StanfordDataset(rootdir, transform=data_transforms)
+    data_idx = random.randint(0, len(dataset) - 1)
+    rgb_filename, area_path = dataset.get_filename(data_idx)
+    logging.info("Loading the image " + str(area_path / "data" / "rgb" / rgb_filename))
+    rgb, semantics = dataset[data_idx]
+
+    # You can experiment your transforms
+    # with the following code
+    # by plugging into the pipeline, the
+    # albumentations transform you think are relevant
     def data_transforms(img, mask):
         tf = A.Compose(
             [
+                # @SOL
                 A.RandomCrop(768, 768),
                 A.Resize(256, 256),
                 A.HorizontalFlip(),
+                A.RandomBrightnessContrast(p=0.2),
+                # A.CoarseDropout(max_width=50, max_height=50),
+                A.MaskDropout((10, 15), p=1),
+                # SOL@
                 A.Normalize(0, 1),
                 ToTensorV2(),
             ]
@@ -306,15 +319,21 @@ def test_augmented_dataset():
     dataset = StanfordDataset(rootdir, transforms=data_transforms)
     aug_rgb, aug_semantics = dataset[data_idx]
 
-    fig, axes = plt.subplots(1, 2)
+    fig, axes = plt.subplots(1, 3)
     ax = axes[0]
     ax.imshow(utils.overlay(rgb.permute(1, 2, 0).numpy(), semantics.numpy()))
     ax.set_title("Original image")
     ax.axis("off")
 
     ax = axes[1]
-    ax.imshow(utils.overlay(aug_rgb.permute(1, 2, 0).numpy(), aug_semantics.numpy()))
+    ax.imshow(aug_rgb.permute(1, 2, 0).numpy())
     ax.set_title("Augmented image")
+    ax.axis("off")
+
+    ax = axes[2]
+    ax.imshow(aug_rgb.permute(1, 2, 0).numpy())
+    ax.imshow(utils.overlay(aug_rgb.permute(1, 2, 0).numpy(), aug_semantics.numpy()))
+    ax.set_title("Augmented image overlayed with labels")
     ax.axis("off")
 
     plt.tight_layout()
@@ -390,6 +409,11 @@ if __name__ == "__main__":
     """
     logging.info(license)
 
-    test_dataset()
-    # test_augmented_dataset()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--datadir", type=pathlib.Path, required=True)
+    args = parser.parse_args()
+
+    test_dataset(args)
+    test_augmented_dataset(args)
     # test_dataloaders()
