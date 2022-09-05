@@ -26,6 +26,7 @@ import logging
 import torch
 import torch.nn as nn
 import torchvision.models
+import deepcs.display
 
 available_models = ["fcn_resnet50", "UNet"]
 
@@ -70,29 +71,29 @@ def fcn_resnet50(input_size, num_classes):
 
 
 class UNetConvBlock(nn.Module):
-    def __init__(self, num_inputs, num_channels):
+    def __init__(self, cin, cout):
         super().__init__()
         self.block1 = nn.Sequential(
             nn.Conv2d(
-                in_channels=num_inputs,
-                out_channels=num_channels,
+                in_channels=cin,
+                out_channels=cout,
                 kernel_size=3,
                 stride=1,
                 padding=1,
             ),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(num_channels),
+            nn.BatchNorm2d(cout),
         )
         self.block2 = nn.Sequential(
             nn.Conv2d(
-                in_channels=num_channels,
-                out_channels=num_channels,
+                in_channels=cout,
+                out_channels=cout,
                 kernel_size=3,
                 stride=1,
                 padding=1,
             ),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(num_channels),
+            nn.BatchNorm2d(cout),
         )
         self.block3 = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
 
@@ -103,7 +104,7 @@ class UNetConvBlock(nn.Module):
 
 
 class UNetEncoder(nn.Module):
-    def __init__(self, num_inputs, num_blocks):
+    def __init__(self, cin, num_blocks):
         super().__init__()
         # Note: use ModuleList to correctly register
         #       the modules it contains rather than plain list
@@ -111,18 +112,19 @@ class UNetEncoder(nn.Module):
         #       return the internal parameters of the modules contained
         #       in the list
         self.blocks = nn.ModuleList()
-        num_channels = 32
+        self.cout = 64
         for i in range(num_blocks):
-            self.blocks.append(UNetConvBlock(num_inputs, num_channels))
+            self.blocks.append(UNetConvBlock(cin, self.cout))
             # Prepare the parameters for the next layer
-            num_inputs = num_channels
-            num_channels = 2 * num_channels
+            cin = self.cout
+            self.cout *= 2
 
         # Add the last encoding layer
+        # which outputs 32 * 2*num_blocks channels
         self.last_block = nn.Sequential(
-            nn.Conv2d(num_inputs, num_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(cin, self.cout, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(num_channels),
+            nn.BatchNorm2d(self.cout),
         )
 
     def forward(self, inputs):
@@ -142,7 +144,7 @@ class UNetEncoder(nn.Module):
 
 
 class UNetUpConvBlock(nn.Module):
-    def __init__(self, num_inputs, num_channels):
+    def __init__(self, cin, cout):
         super().__init__()
         self.upconv = nn.Sequential(
             nn.Upsample(scale_factor=2),
@@ -151,72 +153,72 @@ class UNetUpConvBlock(nn.Module):
             # shapes e.g. with encoder features 32x32, we get a map 33x33
             # with kernel_size=2, stride=1, padding=0
             nn.Conv2d(
-                in_channels=num_inputs,
-                out_channels=num_channels,
+                in_channels=cin,
+                out_channels=cin // 2,
                 kernel_size=3,
                 stride=1,
                 padding=1,
             ),
-            nn.BatchNorm2d(num_channels),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(cin // 2),
         )
+
+        # Before applying this block, the features
+        # extracted from upconv will be concatenated with
+        # the features from the encoder
         self.convblock = nn.Sequential(
             nn.Conv2d(
-                in_channels=2 * num_channels,
-                out_channels=num_channels,
+                in_channels=cin,
+                out_channels=cout,
                 kernel_size=3,
                 stride=1,
                 padding=1,
             ),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(num_channels),
+            nn.BatchNorm2d(cout),
             nn.Conv2d(
-                in_channels=num_channels,
-                out_channels=num_channels,
+                in_channels=cout,
+                out_channels=cout,
                 kernel_size=3,
                 stride=1,
                 padding=1,
             ),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(num_channels),
+            nn.BatchNorm2d(cout),
         )
 
     def forward(self, inputs, encoder_features):
-        inter_features = self.upconv(inputs)  # B, C, H, W
-        concat_features = torch.cat((encoder_features, inter_features), dim=1)
+        upconv_features = self.upconv(inputs)  # B, C, H, W
+        concat_features = torch.cat((encoder_features, upconv_features), dim=1)
         # concatenate inter_features and encoder_features
         outputs = self.convblock(concat_features)
         return outputs
 
 
 class UNetDecoder(nn.Module):
-    def __init__(self, num_inputs, num_blocks, num_classes):
+    def __init__(self, cin, num_blocks, num_classes):
         super().__init__()
-        num_inputs = 32 * 2**num_blocks
-        num_channels = num_inputs
         self.first_block = nn.Sequential(
-            nn.Conv2d(num_inputs, num_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(cin, cin, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(num_channels),
+            nn.BatchNorm2d(cin),
         )
 
-        num_inputs = num_channels
-        num_channels = num_channels // 2
         # Note: use ModuleList to correctly register
         #       the modules it contains rather than plain list
         #  e.g. with plain list, the model.parameters() do not
         #       return the internal parameters of the modules contained
         #       in the list
         self.blocks = nn.ModuleList()
+        cout = cin // 2
         for i in range(num_blocks):
-            self.blocks.append(UNetUpConvBlock(num_inputs, num_channels))
+            self.blocks.append(UNetUpConvBlock(cin, cout))
             # Prepare the parameters for the next layer
-            num_inputs = num_channels
-            num_channels = num_channels // 2
+            cin = cout
+            cout = cout // 2
 
         # Add the last encoding layer
-        self.last_conv = nn.Conv2d(
-            num_inputs, num_classes, kernel_size=1, stride=1, padding=0
-        )
+        self.last_conv = nn.Conv2d(cin, num_classes, kernel_size=1, stride=1, padding=0)
 
     def forward(self, encoder_outputs, encoder_features):
         outputs = self.first_block(encoder_outputs)
@@ -230,7 +232,8 @@ class UNet(nn.Module):
     def __init__(self, img_size, num_classes, num_blocks=4, num_inputs=3):
         super().__init__()
         self.encoder = UNetEncoder(num_inputs, num_blocks)
-        self.decoder = UNetDecoder(num_classes, num_blocks, num_classes)
+        encoder_cout = self.encoder.cout
+        self.decoder = UNetDecoder(encoder_cout, num_blocks, num_classes)
 
     def forward(self, inputs):
         # inputs is B, 3, H, W
@@ -239,7 +242,7 @@ class UNet(nn.Module):
         # be taken as inputs, at different steps
         # by the decoder
         encoder_outputs, encoder_features = self.encoder(inputs)
-        # encoder outputs is B, 32*(num_blocks+1), H/2^num_blocks, W/2^num_blocks
+        # encoder outputs is B, 32*(2**num_blocks), H/2^num_blocks, W/2^num_blocks
         # encoder_features is a list of num_blocks tensors
         outputs = self.decoder(encoder_outputs, encoder_features)
         # outputs is B, num_classes, H, W
@@ -267,8 +270,8 @@ if __name__ == "__main__":
 
     for n in mname:
         m = build_model(n, (256, 256), 10)
-        out = m(torch.zeros(2, 3, 256, 256))
-        print(out.shape)
+        # out = m(torch.zeros(2, 3, 256, 256))
+        print(deepcs.display.torch_summarize(m, (2, 3, 256, 256)))
     # SOL@
     # TEMPL@
     # @TEMPL
