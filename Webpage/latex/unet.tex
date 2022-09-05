@@ -34,7 +34,7 @@
 % conv2_1,conv2_2
 \pic[shift={(0,0,0)}] at (0, 0, 0) {RightBandedBox={name=cr2,%
         xlabel={{"",""}},fill=\ConvColor,bandfill=\ConvReluColor,%
-        height=32,width={3.5,3.5},depth=32}};
+        height=32,width={1,1},depth=32}};
 %pool2
 \pic[shift={(0,0,0)}] at (cr2-east) {Box={name=p2,%
         fill=\PoolColor,opacity=0.5,height=25,width=1,depth=25}};
@@ -42,18 +42,18 @@
 % conv3_1,conv3_2
 \pic[shift={(0.75,0,0)}] at (p2-east) {RightBandedBox={name=cr3,%
         xlabel={{"",""}},fill=\ConvColor,bandfill=\ConvReluColor,%
-        height=25,width={4.5,4.5},depth=25}};
+        height=25,width={2,2},depth=25}};
 %pool3
 \pic[shift={(0,0,0)}] at (cr3-east) {Box={name=p3,%
-        fill=\PoolColor,opacity=0.5,height=16,width=1,depth=16}};
+        fill=\PoolColor,opacity=0.5,height=16,width=2,depth=16}};
 %%%%%%%%%%
 % conv4_1,conv4_2,conv4_3
 \pic[shift={(0.5,0,0)}] at (p3-east) {RightBandedBox={name=cr4,%
         xlabel={{"",""}},fill=\ConvColor,bandfill=\ConvReluColor,%
-        height=16,width={6,6},depth=16}};
+        height=16,width={4,4},depth=16}};
 %pool4
 \pic[shift={(0,0,0)}] at (cr4-east) {Box={name=p4,%
-        fill=\PoolColor,opacity=0.5,height=8,width=1,depth=8}};
+        fill=\PoolColor,opacity=0.5,height=8,width=4,depth=8}};
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Bottleneck
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% conv5_1,conv5_2,conv5_3
@@ -65,15 +65,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% unpool4, 
 \pic[shift={(1.2,0,0)}] at (cr5-east) {Box={name=up4,%
-        fill=\UnpoolColor,opacity=0.6,height=16,width=1,depth=16}};
-\pic[shift={(0,0,0)}] at (up4-east) {RightBandedBox={name=ucr4,%
-        xlabel={{"","dummy"}},fill=\ConvColor,bandfill=\ConvReluColor,%
-        height=16,width=6,depth=16}};
-\pic[shift={(0,0,0)}] at (ucr4-east) {RightBandedBox={name=cat4,%
-        xlabel={{"",""}},fill={rgb:white,1;black,3},bandfill={rgb:white,1;black,2},opacity=0.2,height=16,width=6,depth=16}};    
-\pic[shift={(0,0,0)}] at (cat4-east) {RightBandedBox={name=ucr4a,%
+        fill=\UnpoolColor,opacity=0.6,height=16,width=8,depth=16}};
+\pic[shift={(0.6,0,0)}] at (up4-east) {RightBandedBox={name=ucr4,%
+        xlabel={{"","dummy"}},fill=\ConvReluColor,bandfill=\ConvReluColor,
+        height=16,width=4,depth=16}};
+\pic[shift={(0,0,0)}] at (ucr4-east) {Box={name=cat4,%
+        fill=\ConvReluColor,opacity=0.2,height=16,width=4,depth=16}};    
+\pic[shift={(0.6,0,0)}] at (cat4-east) {RightBandedBox={name=ucr4a,%
         xlabel={{"",""}},fill=\ConvColor,bandfill=\ConvReluColor,%
-        height=16,width={6,6},depth=16}};
+        height=16,width={4,4},depth=16}};
 %%%%%%%%%%
 %% unpool3, 
 \pic[shift={(1.5,0,0)}] at (ucr4a-east) {Box={name=up3,%
@@ -123,6 +123,9 @@
 \draw [connection]  (p3-east)    -- node {\midarrow} (cr4-west);
 \draw [connection]  (p4-east)    -- node {\midarrow} (cr5-west);
 \draw [connection]  (cr5-east)   -- node {\midarrow} (up4-west);
+\draw [connection]  (up4-east)   -- node {\midarrow} (ucr4-west);
+\draw [connection]  (cat4-east)   -- node {\midarrow} (ucr4a-west);
+
 \draw [connection]  (ucr4a-east) -- node {\midarrow} (up3-west);
 \draw [connection]  (ucr3a-east) -- node {\midarrow} (up2-west);
 \draw [connection]  (ucr2a-east) -- node {\midarrow} (out-west);

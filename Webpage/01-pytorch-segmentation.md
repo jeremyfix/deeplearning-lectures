@@ -107,6 +107,7 @@ The output of the final layers of the encoder is a tensor of shape $(batch, 64\t
 	- a `convblock`= Conv($3\times 3$)-ReLU-BatchNorm-Conv($3\times 3$)-ReLU-BatchNorm which halves the number of its input channels
 
 For the `UNetUpConvBlock`, when its input along the decoder pathway has $c_0$ channels, its output has $c_0/2$ channels since :
+
 - upconv outputs $c_0/2$ channels
 - the concatenation of $c_0/2$ channels with the $c_0/2$ channels of the encoder leads to $c_0$ channels
 - the `convblock` gets $c_0$ input channels and outputs $c_0/2$ output channels
