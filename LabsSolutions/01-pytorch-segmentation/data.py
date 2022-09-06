@@ -177,11 +177,12 @@ def get_dataloaders(
     val_ratio: int,
     train_transforms,
     valid_transforms,
+    areas=None,
 ):
     # Get the raw dataset
     print(f"Transform is : {train_transforms}")
     dataset = StanfordDataset(
-        rootdir, transforms=torchvision.datasets.vision.StandardTransform()
+        rootdir, transforms=torchvision.datasets.vision.StandardTransform(), areas=areas
     )
 
     # Split it randomly in train/valid folds
@@ -293,7 +294,7 @@ def test_augmented_dataset(args):
 
     rootdir = pathlib.Path(args.datadir)
     data_transforms = transforms.Compose([transforms.ToTensor()])
-    dataset = StanfordDataset(rootdir, transform=data_transforms)
+    dataset = StanfordDataset(rootdir, transform=data_transforms, areas=args.areas)
     data_idx = random.randint(0, len(dataset) - 1)
     rgb_filename, area_path = dataset.get_filename(data_idx)
     logging.info("Loading the image " + str(area_path / "data" / "rgb" / rgb_filename))
@@ -321,7 +322,7 @@ def test_augmented_dataset(args):
         aug = tf(image=np.array(img), mask=mask.numpy())
         return (aug["image"], aug["mask"])
 
-    dataset = StanfordDataset(rootdir, transforms=data_transforms)
+    dataset = StanfordDataset(rootdir, transforms=data_transforms, areas=args.areas)
     aug_rgb, aug_semantics = dataset[data_idx]
 
     fig, axes = plt.subplots(1, 3)
