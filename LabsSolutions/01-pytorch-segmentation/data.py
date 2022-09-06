@@ -36,6 +36,7 @@ import torchvision
 import torchvision.transforms as transforms
 import torch
 import numpy as np
+import tqdm
 
 # Local imports
 import utils
@@ -220,6 +221,35 @@ def get_dataloaders(
     )
 
     return train_loader, valid_loader, dataset.labels, dataset.unknown_label
+
+
+def test_histogram(args):
+
+    logging.info("Computing the histogram over the areas")
+
+    # Build the original dataset
+    dataset = StanfordDataset(
+        args.datadir,
+        transforms=torchvision.datasets.vision.StandardTransform(),
+        areas=args.areas,
+    )
+
+    # Generate all the indices of the samples to just keep
+    # a random fraction of them
+    indices = list(range(len(dataset)))
+    np.random.shuffle(indices)
+    num_samples = -1
+    indices = indices[:num_samples]
+
+    dataset = torch.utils.data.Subset(dataset, indices)
+
+    # Iterate over the selected samples to get the statistics
+    number_of_labels = torch.zeros((dataset.dataset.num_labels,))
+    for _, mask in tqdm.tqdm(dataset):
+        unique_values, counts = torch.unique(mask, return_counts=True)
+        number_of_labels[unique_values] += counts
+    number_of_labels /= number_of_labels.sum()
+    print(number_of_labels)
 
 
 def test_dataset(args):
@@ -428,6 +458,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args.areas)
 
-    test_dataset(args)
-    test_augmented_dataset(args)
+    test_histogram(args)
+    # test_dataset(args)
+    # test_augmented_dataset(args)
     # test_dataloaders()

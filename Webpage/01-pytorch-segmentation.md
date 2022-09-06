@@ -59,6 +59,16 @@ Your are also provided with some base code :
 
 ## Data exploration
 
+You are provided with the `StanfordDataset` class which is a pytorch dataset object, i.e. an object implementing the `__len__` and `__getitem__`  methods. The constructor expects follows the [VisionDataset](https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html) interface and expects :
+
+- a root directory for the data (e.g. `/mounts/Datasets4/Stanford2D-3D-S/`)
+- either a pair of `transform` and `target_transform` function, or a combined `transforms` function for transforming the RGB input and the semantic mask
+- an optional list of `areas` to restrict to, e.g. `area = ['1', '5b']` 
+
+**Question** : Instantiate your dataset and check for the distribution of labels for some of the samples (say $100$). 
+
+Over the $71000$ images, the proportion of the labels are $0.0126, 0.0157, 0.0271, 0.0717, 0.0994, 0.0387, 0.1123, 0.0305, 0.1098, 0.0845, 0.0033, 0.0288, 0.3367, 0.0288$
+
 TODO: ask them to load a minibatch check the input tensors, target tensors shape and content, plot a sample using the provided functions colorize, etc..
 
 TODO: provide ids of images which have incorrect labels, e.g.
