@@ -64,6 +64,7 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
         transforms=None,
         transform=None,
         target_transform=None,
+        areas=None,
     ):
         super().__init__(rootdir, transforms, transform, target_transform)
 
@@ -105,6 +106,10 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
         for path in rootdir.iterdir():
             if path.is_dir():
                 if path.name.startswith("area_"):
+                    area_number = str(path.name).split("_")[-1]
+                    if areas is not None and area_number not in areas:
+                        # Excluding this area
+                        continue
                     area_name = path.name
                     rgb_path = path / "data" / "rgb"
                     img_paths = rgb_path.glob("*.png")
@@ -224,7 +229,7 @@ def test_dataset(args):
 
     rootdir = pathlib.Path(args.datadir)
     data_transforms = transforms.Compose([transforms.ToTensor()])
-    dataset = StanfordDataset(rootdir, transform=data_transforms)
+    dataset = StanfordDataset(rootdir, transform=data_transforms, areas=args.areas)
     data_idx = random.randint(0, len(dataset) - 1)
     rgb, semantics = dataset[data_idx]
 
@@ -412,7 +417,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--datadir", type=pathlib.Path, required=True)
+    parser.add_argument(
+        "--areas",
+        nargs="+",
+        help="Which areas to use, specify it with their numbers (1, 2, 3, 4, 5a, 5b, 6)",
+        type=str,
+        default=None,
+    )
     args = parser.parse_args()
+    print(args.areas)
 
     test_dataset(args)
     test_augmented_dataset(args)
