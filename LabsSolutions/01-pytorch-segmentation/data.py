@@ -63,11 +63,9 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
         self,
         rootdir: pathlib.Path,
         transforms=None,
-        transform=None,
-        target_transform=None,
         areas=None,
     ):
-        super().__init__(rootdir, transforms, transform, target_transform)
+        super().__init__(rootdir, transforms, transform=None, target_transform=None)
 
         self.rootdir = rootdir
 
@@ -144,7 +142,7 @@ class StanfordDataset(torchvision.datasets.vision.VisionDataset):
         Returns
             (rgb, semantics, area_id) where
                 rgb : (H, W, 3) PIL image
-                semantics : (H, W) nd array of labels
+                semantics : (H, W) torch tensor of labels
                 area_id : int
         """
         # Looking for the area in which the sample is
@@ -223,6 +221,7 @@ def get_dataloaders(
     return train_loader, valid_loader, dataset.labels, dataset.unknown_label
 
 
+# @SOL
 def test_histogram(args):
 
     logging.info("Computing the histogram over the areas")
@@ -252,17 +251,33 @@ def test_histogram(args):
     print(number_of_labels)
 
 
+# SOL@
+
+
 def test_dataset(args):
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
 
     logging.info("Test dataset")
 
-    rootdir = pathlib.Path(args.datadir)
-    data_transforms = transforms.Compose([transforms.ToTensor()])
-    dataset = StanfordDataset(rootdir, transform=data_transforms, areas=args.areas)
-    data_idx = random.randint(0, len(dataset) - 1)
+    to_tensor = transforms.ToTensor()
+    data_transforms = lambda inp, targ: (to_tensor(inp), targ)
+    # @SOL
+    dataset = StanfordDataset(
+        args.datadir,
+        transforms=data_transforms,
+        areas=args.areas,
+    )
+    data_idx = random.randint(0, len(dataset) - 1)  # 53899
     rgb, semantics = dataset[data_idx]
+    # SOL@
+    # @TEMPL
+    # Code Here
+    # vvvvvvvvv
+    # dataset = ...
+    # rgb, semantics = ...
+    # ^^^^^^^^^
+    # TEMPL@
 
     fig, axes = plt.subplots(1, 3, figsize=(6, 3))
     ax = axes[0]
@@ -322,13 +337,20 @@ def test_augmented_dataset(args):
 
     logging.info("Test augmented dataset")
 
-    rootdir = pathlib.Path(args.datadir)
-    data_transforms = transforms.Compose([transforms.ToTensor()])
-    dataset = StanfordDataset(rootdir, transform=data_transforms, areas=args.areas)
+    to_tensor = transforms.ToTensor()
+    data_transforms = lambda inp, targ: (to_tensor(inp), targ)
+    dataset = StanfordDataset(
+        args.datadir, transforms=data_transforms, areas=args.areas
+    )
     data_idx = random.randint(0, len(dataset) - 1)
     rgb_filename, area_path = dataset.get_filename(data_idx)
     logging.info("Loading the image " + str(area_path / "data" / "rgb" / rgb_filename))
     rgb, semantics = dataset[data_idx]
+
+    print(f"The input image has type {rgb.dtype}, and shape {rgb.shape}")
+    print(
+        f"The semantic mask as type {semantics.dtype} and shape {semantics.shape}, with values in {semantics.unique()}"
+    )
 
     # You can experiment your transforms
     # with the following code
@@ -352,7 +374,9 @@ def test_augmented_dataset(args):
         aug = tf(image=np.array(img), mask=mask.numpy())
         return (aug["image"], aug["mask"])
 
-    dataset = StanfordDataset(rootdir, transforms=data_transforms, areas=args.areas)
+    dataset = StanfordDataset(
+        args.datadir, transforms=data_transforms, areas=args.areas
+    )
     aug_rgb, aug_semantics = dataset[data_idx]
 
     fig, axes = plt.subplots(1, 3)
@@ -376,10 +400,10 @@ def test_augmented_dataset(args):
     plt.show()
 
 
-def test_dataloaders():
+# @SOL
+def test_dataloaders(args):
     logging.info("Test dataloaders")
 
-    rootdir = pathlib.Path("/opt/Datasets/stanford")
     cuda = False
     batch_size = 32
     n_workers = 4
@@ -416,7 +440,7 @@ def test_dataloaders():
         return (aug["image"], aug["mask"])
 
     train_loader, valid_loader, labels, _ = get_dataloaders(
-        rootdir,
+        args.datadir,
         cuda,
         batch_size,
         n_workers,
@@ -434,6 +458,8 @@ def test_dataloaders():
     logging.info(f"The rgb images tensor has shape {train_rgb.shape}")
     logging.info(f"The semantic images tensor has shape {train_semantics.shape}")
 
+
+# SOL@
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
@@ -456,9 +482,8 @@ if __name__ == "__main__":
         default=None,
     )
     args = parser.parse_args()
-    print(args.areas)
 
-    test_histogram(args)
-    # test_dataset(args)
-    # test_augmented_dataset(args)
-    # test_dataloaders()
+    # test_histogram(args) @SOL@
+    test_dataset(args)
+    test_augmented_dataset(args)
+    # test_dataloaders()  # @SOL@
