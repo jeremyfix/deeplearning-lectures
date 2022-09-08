@@ -155,13 +155,14 @@ Once both the encoder and decoder classes are implemented, you can see that the 
 
 **Question** In the `models.py` script, within the `main()` function, write a piece of code for propagating a dummy tensor within your model. Is the output tensor the shape you expect ?
 
-We are done with the model implementation, let us move on to the loss.
+We are done with the model implementation, let us move on to the metrics and loss.
+
+## Evaluation metrics
 
 ## Loss implementation
 
 
 
-## Evaluation metrics
 
 ## Training on a small subset
 
