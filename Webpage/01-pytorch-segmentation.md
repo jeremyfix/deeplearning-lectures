@@ -159,7 +159,50 @@ We are done with the model implementation, let us move on to the metrics and los
 
 ## Evaluation metrics
 
+Semantic segmentation is a multi-way classification task; One natural metric could be the accuracy but, if you remember, our classes are unbalanced. 
+
+**Question** What would be the accuracy of a predictor always predicting that a pixel is a wall ? Hint: some figures were given in the [data exploration](#data-exploration) section.
+
+<!--
+
+Given we have 33.67% of the pixels that are wall, only these ones will be correctly classified hence an accuracy of 33.67%
+
+-->
+
+To prevent to be mislead, a metric taking care of the class imbalance is the macro F1 score which reads
+
+$$
+F1 = \frac{1}{K}\sum_{k=0}^{K-1} \sum_{i=0}^{N-1} \frac{TP(x_i, y_i, k)}{TP(x_i, y_i, k) + \frac{1}{2}(FP(x_i, y_i, k)+FN(x_i, y_i, k))}
+$$
+
+which is an $F1$ computed for every class and then averaged over the number of classes. 
+
+**Question** What would be the macro F1 of a model always predicting a wall class ?
+
+<!-- 
+
+We need to compute the F1 for every class
+
+For the wall class, 33.67% of the pixels are TP, all the others (66.33%) are FP hence the F1 is  33.67 / (33.67 + 0.5 * (66.33 + 0)) => F1 = 0.5
+For the other classes, as the predictor predicts always wall, there are no positives for the prediction so TP = FP = 0; All the samples are either TN or FN , hence F1 = 0 / (0 + 0.5 * (0 + FN)) = 0     Actually, the FN, which are not necessary to know for the F1 estimation, are class dependent 
+
+FN_unknown = $1.26\%$, FN_beam = $1.57\%$, FN_board = $2.71\%$, ....
+
+At the end of the day, the macro F1 is      1/14 * (0.5 + 13 * 0) = 0.5 / 14. = 0.04
+
+-->
+
+In the provided code the macro F1 is computed both on the training and validation folds. 
+
+**Question** Do you see in the `main.py` script where this metric is computed and what is the use of the macro F1 on the validation fold ?
+
 ## Loss implementation
+
+We decided the macro F1 measure is the one to be optimized. Unfortunately, it does not bring in interesting information for a gradient based optimization.
+
+**Question** According to you, why it is useless to use the F1 computed above for the gradient descent optimization of the parameters of our neural network ?
+
+We need a differentiable proxy to that metric. This is still an open area of research and one direction of research is on the loss functions. 
 
 
 
