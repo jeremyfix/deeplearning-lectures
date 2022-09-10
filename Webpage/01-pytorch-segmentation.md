@@ -202,10 +202,33 @@ We decided the macro F1 measure is the one to be optimized. Unfortunately, it do
 
 **Question** According to you, why it is useless to use the F1 computed above for the gradient descent optimization of the parameters of our neural network ?
 
-We need a differentiable proxy to that metric. This is still an open area of research and one direction of research is on the loss functions. 
+We need a differentiable proxy to that metric. This is still an open area of research [@Yeung2022]. Some of the options we will consider here are to use :
+
+- a weighted cross entropy loss with a higher
+- a focus loss
+
+Other options could be to consider a Dice loss, a Tversky loss, a combination of these, or to use a batch sampler which could oversample the samples with the minority classes, etc ...
+
+Similarly to a batch sampler, a weighted cross entropy loss will put higher importance on the minority classes compard to the majority classes. The weighted cross entropy loss for a single pixel of class $y$ with predicted probabilities $\hat{y}_k, k \in [0, K-1]$ is given as:
+
+$$
+wBCE(y_k, \hat{y}) = - w_{y} \log(\hat{y}_y)
+$$
+
+where the standard cross entropy loss is obtained with $w_k = 1, \forall k \in [1, K]$.
+
+**Question** Which values of the weights would you suggest to fight against class imbalance ? From the pytorch [documentation on the cross entropy loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html), do you see how to specify these weights ? 
 
 
+**Question** Modify your code to implement the weighted cross entropy.
 
+Another option for the loss is the focal loss, adds a factor in front of the cross entropy loss term :
+
+$$
+focal(y_k, \hat{y}) = -(1-\hat{y}_y)^\gamma \log(\hat{y}_y)
+$$
+
+with $\gamma \geq 0$ a tunable parameter. Setting $\gamma=0$, we recover the cross entropy loss. With higher $\gamma$, correctly classified pixels have less and less influence. You can look at [@Lin2017] to see the influence of $\gamma$ on this term.
 
 ## Training on a small subset
 
