@@ -202,33 +202,36 @@ We decided the macro F1 measure is the one to be optimized. Unfortunately, it do
 
 **Question** According to you, why it is useless to use the F1 computed above for the gradient descent optimization of the parameters of our neural network ?
 
-We need a differentiable proxy to that metric. This is still an open area of research [@Yeung2022]. Some of the options we will consider here are to use :
+We need a differentiable proxy to that metric. This is still an open area of research (see for example [@Yeung2022]). Some of the options we will consider here are to use :
 
-- a weighted cross entropy loss with a higher
-- a focus loss
+- a class balanced loss [@Cui2019], e.g. a weighted cross entropy loss 
+- a focal loss [@Lin2017]
 
 Other options could be to consider a Dice loss, a Tversky loss, a combination of these, or to use a batch sampler which could oversample the samples with the minority classes, etc ...
 
 Similarly to a batch sampler, a weighted cross entropy loss will put higher importance on the minority classes compard to the majority classes. The weighted cross entropy loss for a single pixel of class $y$ with predicted probabilities $\hat{y}_k, k \in [0, K-1]$ is given as:
 
 $$
-wBCE(y_k, \hat{y}) = - w_{y} \log(\hat{y}_y)
+wBCE(y, \hat{y}) = - w_{y} \log(\hat{y}_y)
 $$
 
 where the standard cross entropy loss is obtained with $w_k = 1, \forall k \in [1, K]$.
 
-**Question** Which values of the weights would you suggest to fight against class imbalance ? From the pytorch [documentation on the cross entropy loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html), do you see how to specify these weights ? 
+**Question** Which values of the weights would you suggest to fight against class imbalance ? Some classical strategies are discussed in p2 of [@Cui2019] as well as their own scaling strategy. From the pytorch [documentation on the cross entropy loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html), do you see how to specify these weights ? 
 
 
-**Question** Modify your code to implement the weighted cross entropy.
+**Question** Modify your code to implement the weighted cross entropy with the weighting strategy you choose.
 
-Another option for the loss is the focal loss, adds a factor in front of the cross entropy loss term :
+Another option for the loss is the focal loss which adds a factor in front of the cross entropy loss term :
 
 $$
-focal(y_k, \hat{y}) = -(1-\hat{y}_y)^\gamma \log(\hat{y}_y)
+focal(y, \hat{y}) = -(1-\hat{y}_y)^\gamma \log(\hat{y}_y)
 $$
 
-with $\gamma \geq 0$ a tunable parameter. Setting $\gamma=0$, we recover the cross entropy loss. With higher $\gamma$, correctly classified pixels have less and less influence. You can look at [@Lin2017] to see the influence of $\gamma$ on this term.
+with $\gamma \geq 0$ a tunable parameter. Setting $\gamma=0$, we recover the cross entropy loss. With higher $\gamma$, correctly classified pixels have less and less influence, therefore if the most abundant labels are correctly predicted, they barely influence the loss despite their presence in excess. Compared to the cross entropy loss, each term in the focal is penalized by $$(1-\hat{y}_y)^\gamma$$ You can look at [@Lin2017] to see the influence of $\gamma$ on this term or check [this plot](https://www.wolframalpha.com/input?i=plot+%281-x%29%5E5+and+%281-x%29%5E2+and+%281-x%29+from+0+to+1).
+
+**Question** As it can be tricky to implement the focal loss, it is given to you. Do you see where this is implemented and which argument of the main script allows to use it ?
+
 
 ## Training on a small subset
 
@@ -244,7 +247,11 @@ TODO: provide a pretrained network on the whole dataset
 
 ### Models
 
+The U-Net architecture we consider has been release in 2015. You might be interested in implementing more recent architectures such as VNet [@Milletari2016] or DeepLab v3+ [@Chen2018].
+
 ### Losses
+
+We explored some ways to fight against class imbalance with the weighted cross entropy loss and the focal loss. You might be interested in exploring over losses, such as the Tversky loss, the DICE loss, the Lovasz loss, the Matthews Correlation Coefficient loss [@Abhishek2021]. It is interesting to implement your know loss but you might be interested in packages already implementing them such as [smp](https://smp.readthedocs.io/en/latest/losses.html)
 
 ## A possible solution
 
