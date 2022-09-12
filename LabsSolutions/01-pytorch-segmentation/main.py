@@ -125,6 +125,7 @@ def train(args):
         args.val_ratio,
         train_transforms,
         valid_transforms,
+        areas=args.areas,
     )
 
     logging.info(f"Considering {len(labels)} classes : {labels}")
@@ -171,7 +172,7 @@ def train(args):
         + "## Command \n"
         + " ".join(sys.argv)
         + "\n\n"
-        + " Arguments : {}".format(args)
+        + f" Arguments : {args}"
         + "\n\n"
         + "## Summary of the model architecture\n"
         + f"{deepcs.display.torch_summarize(model, input_size)}\n\n"
@@ -288,6 +289,13 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--model", choices=models.available_models, required=True)
     parser.add_argument("--loss", choices=metrics.available_losses, required=True)
+    parser.add_argument(
+        "--areas",
+        nargs="+",
+        help="Which areas to use, specify it with their numbers (1, 2, 3, 4, 5a, 5b, 6)",
+        type=str,
+        default=None,
+    )
 
     # Training parameters
     parser.add_argument("--logname", type=str, default=None)
