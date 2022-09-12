@@ -235,11 +235,26 @@ with $\gamma \geq 0$ a tunable parameter. Setting $\gamma=0$, we recover the cro
 
 ## Training on a small subset
 
-TODO: ask them to train and monitor the training both qualitatively and quantitatively on a small subset of the data
+It is now time to run a training of your model. The training script accepts a list of areas ot train on with the `--areas` option. It is always a good idea to test on a small experiment to ensure everything is running well. You can run a training on `area_3` by calling :
 
-TODO : give an idea of the training time over the whole data
+`
+python main.py --areas 3 --model .... --loss ... train
+`
+
+This training is not expected to lead to super performant models but should run at $1$ or $2$ minutes per epoch. 
+
+
+<div class="w3-card w3-sand">
+Training over all the areas can take up to $1$ hour per epoch. If you use the CentraleSupelec clusters, you can consider running a training over all the areas **during your "free" time** with [slurm batch job](https://dce.pages.centralesupelec.fr/05_examples/#starting-batch-trainings-of-neural-networks). For this you are provided with a [job.py](./labs/01-pytorch-segmentation/job.py) script. For now, let us move on to the next topics.
+</div>
+
+
+**Question** : While the simulation is running, several information (metrics, inference exemples, ...) are dumped into a tensorboard. Take the time to visualize and understand them. 
+
 
 ## Inference
+
+As training can take a long time, you are provided with a pretrained UNet. 
 
 TODO: provide a pretrained network on the whole dataset
 

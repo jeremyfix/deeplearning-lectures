@@ -270,6 +270,20 @@ def train(args):
         scheduler.step(macro_test_F1)
 
 
+def test(args):
+    """Test a neural network on the stanford 2D-3D S semantic segmentation dataset
+
+    Args:
+        args (dict): parameters for the inference
+
+    Examples::
+
+        python3 main.py test --model UNet --modelpath ./path/to/params.pt
+    """
+    # TODO : Load the areas for computing the metrics Macro F1
+    # TODO : be able to test on a single frame
+
+
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     license = """
