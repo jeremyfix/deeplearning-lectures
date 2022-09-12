@@ -121,6 +121,7 @@ for model in ["UNet"]:
                 "model": model,
                 "batch_size": 32,
                 "weight_decay": 0.00,
+                "areas": "3",
                 "nepochs": 100,
                 "base_lr": 0.0001,
                 "loss": "FocalLoss",
