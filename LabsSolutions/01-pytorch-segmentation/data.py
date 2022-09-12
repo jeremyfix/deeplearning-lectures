@@ -275,9 +275,49 @@ def test_histogram(args):
 # SOL@
 
 
+def plot_colormap(ax):
+    from matplotlib.patches import Rectangle
+
+    colormap = utils.colormap.copy()
+    colormap = list(colormap.items())
+    # Sort the colormap by label name so that their display order
+    # along the colorbar matches the label index of the dataset
+    sorted(colormap, key=lambda lblcol: lblcol[0])
+
+    # Preprend the unknown class which is labeled 0
+    colormap.insert(0, ("unknown", [0, 0, 0]))
+
+    cell_width = 212
+    cell_height = 22
+    patch_width = 48
+    patch_height = 10
+    for ilabel, (label, color) in enumerate(colormap):
+        text_pos_x = patch_width + 7
+        y = cell_height * ilabel
+        ax.add_patch(
+            Rectangle(
+                xy=(0, y - patch_height / 2.0),
+                width=patch_width,
+                height=patch_height,
+                facecolor=[2 * c / 255.0 for c in color],
+                edgecolor="0.7",
+            )
+        )
+        ax.text(
+            text_pos_x,
+            y,
+            label,
+            fontsize=10,
+            horizontalalignment="left",
+            verticalalignment="center",
+        )
+    ax.set_xlim(0, cell_width)
+    ax.set_ylim(cell_height * (len(colormap) - 0.5), -cell_height / 2.0)
+    ax.axis("off")
+
+
 def test_dataset(args):
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Rectangle
 
     logging.info("Test dataset")
 
@@ -311,43 +351,7 @@ def test_dataset(args):
     ax.set_title("Semantics")
     ax.axis("off")
 
-    colormap = utils.colormap.copy()
-    colormap = list(colormap.items())
-    # Sort the colormap by label name so that their display order
-    # along the colorbar matches the label index of the dataset
-    sorted(colormap, key=lambda lblcol: lblcol[0])
-
-    # Preprend the unknown class which is labeled 0
-    colormap.insert(0, ("unknown", [0, 0, 0]))
-
-    ax = axes[2]
-    cell_width = 212
-    cell_height = 22
-    patch_width = 48
-    patch_height = 10
-    for ilabel, (label, color) in enumerate(colormap):
-        text_pos_x = patch_width + 7
-        y = cell_height * ilabel
-        ax.add_patch(
-            Rectangle(
-                xy=(0, y - patch_height / 2.0),
-                width=patch_width,
-                height=patch_height,
-                facecolor=[2 * c / 255.0 for c in color],
-                edgecolor="0.7",
-            )
-        )
-        ax.text(
-            text_pos_x,
-            y,
-            label,
-            fontsize=10,
-            horizontalalignment="left",
-            verticalalignment="center",
-        )
-    ax.set_xlim(0, cell_width)
-    ax.set_ylim(cell_height * (len(colormap) - 0.5), -cell_height / 2.0)
-    ax.axis("off")
+    plot_colormap(axes[2])
 
     plt.tight_layout()
     plt.show()

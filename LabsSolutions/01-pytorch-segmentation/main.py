@@ -40,6 +40,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import numpy as np
 import matplotlib
+import PIL.Image as Image
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -280,8 +281,85 @@ def test(args):
 
         python3 main.py test --model UNet --modelpath ./path/to/params.pt
     """
-    # TODO : Load the areas for computing the metrics Macro F1
-    # TODO : be able to test on a single frame
+    logging.info("Inference")
+
+    use_cuda = torch.cuda.is_available()
+    device = torch.device("cuda") if use_cuda else torch.device("cpu")
+
+    # Create the model and load the pretrained parameters
+    num_labels = 14  # Not very generic ...
+    model = models.build_model(args.model, num_labels)
+    model.to(device)
+    model.load_state_dict(torch.load(args.modelpath, map_location=device))
+    model.eval()
+
+    # Build up the data processing pipeline
+    img_size = (256, 256)
+    faug = A.Compose(
+        [
+            A.Resize(*img_size),
+            A.Normalize(mean=0.0, std=1.0),
+            ToTensorV2(),
+        ]
+    )
+    # If we have to evaluate on a single frame
+    # we do it
+    if args.image is not None:
+        logging.info("Processing a single frame")
+
+        # Load the image
+        input_image = np.array(Image.open(args.image))
+        # Preprocess it
+        input_tensor = faug(image=input_image)["image"]
+        input_tensor = input_tensor.unsqueeze(dim=0)  # B, 3, H, W
+        # Inference on the frame
+        output = model(input_tensor)  # B, num_labels, H, W
+
+        # Convert the output to class labels
+        # No need to apply the softmax before computing the argmax
+        # because the softmax is monotonically increasing
+        pred_semantics = output.argmax(axis=1)
+        # Remove the batch index
+        pred_semantics = pred_semantics.squeeze()
+
+        # And display the result
+        fig, axes = plt.subplots(1, 3, figsize=(6, 3))
+        ax = axes[0]
+        ax.imshow(input_image)
+        ax.set_title("Input image")
+        ax.axis("off")
+
+        ax = axes[1]
+        ax.imshow(utils.colorize(pred_semantics.numpy()))
+        ax.set_title("Semantics")
+        ax.axis("off")
+
+        data.plot_colormap(axes[2])
+
+        plt.tight_layout()
+        plt.savefig("inference.png")
+        logging.info("Inference saved to inference.png")
+    elif args.areas is not None:
+        # Otherwise we evaluate the metric on the provided areas
+
+        def transforms(img, mask):
+            augmented = faug(image=np.array(img), mask=mask.numpy())
+            return (augmented["image"], augmented["mask"])
+
+        loader, _, _ = data.get_test_dataloader(
+            args.datadir,
+            use_cuda,
+            args.batch_size,
+            args.num_workers,
+            transforms,
+            args.areas,
+        )
+    else:
+        logging.error(
+            "You either must specify a single frame or a list of areas; both cannot be None."
+        )
+
+
 def check_args(args):
     if args.command == "train":
         if args.loss is None:
