@@ -286,18 +286,23 @@ def check_args(args):
     if args.command == "train":
         if args.loss is None:
             logging.error("You must specify which loss to use")
+            sys.exit(-1)
         if args.model is None:
             logging.error("You must specify which model to train")
+            sys.exit(-1)
         if args.datadir is None or args.areas is None:
             logging.error("You must specify the datadirectory and areas to train on")
+            sys.exit(-1)
     elif args.command == "test":
         if args.image is None and (args.datadir is None or args.areas is None):
             logging.error(
                 "Error : either --image or both --datadir and --areas must be defined"
             )
+            sys.exit(-1)
         if None in {args.model, args.modelpath}:
             logging.error("Both --model and --modelpath must be specified")
-        sys.exit(-1)
+            sys.exit(-1)
+    logging.info("Argument check OK")
 
 
 if __name__ == "__main__":
