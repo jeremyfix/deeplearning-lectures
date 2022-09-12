@@ -294,7 +294,7 @@ class UNetDecoder(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, img_size, num_classes, num_blocks=4, cin=3):
+    def __init__(self, num_classes, num_blocks=4, cin=3):
         super().__init__()
         self.encoder = UNetEncoder(cin, num_blocks)
         encoder_cout = self.encoder.cout
@@ -310,10 +310,10 @@ class UNet(nn.Module):
         return outputs
 
 
-def build_model(model_name, img_size, num_classes):
+def build_model(model_name, num_classes):
     if model_name not in available_models:
         raise RuntimeError(f"Unavailable model {model_name}")
-    exec(f"m = {model_name}(img_size, num_classes)")
+    exec(f"m = {model_name}(num_classes)")
     return locals()["m"]
 
 
@@ -344,7 +344,7 @@ if __name__ == "__main__":
     logging.info(license)
     mname = ["UNet"]
     for n in mname:
-        m = build_model(n, (256, 256), 10)
+        m = build_model(n, 10)
         # out = m(torch.zeros(2, 3, 256, 256))
         print(deepcs.display.torch_summarize(m, (2, 3, 256, 256)))
     # SOL@

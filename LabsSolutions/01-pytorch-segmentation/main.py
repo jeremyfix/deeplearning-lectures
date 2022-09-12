@@ -131,7 +131,7 @@ def train(args):
     logging.info(f"Considering {len(labels)} classes : {labels}")
 
     # Make the model
-    model = models.build_model(args.model, img_size, len(labels))
+    model = models.build_model(args.model, len(labels))
     model.to(device)
 
     # Make the loss
