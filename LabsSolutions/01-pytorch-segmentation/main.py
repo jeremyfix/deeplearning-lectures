@@ -282,6 +282,22 @@ def test(args):
     """
     # TODO : Load the areas for computing the metrics Macro F1
     # TODO : be able to test on a single frame
+def check_args(args):
+    if args.command == "train":
+        if args.loss is None:
+            logging.error("You must specify which loss to use")
+        if args.model is None:
+            logging.error("You must specify which model to train")
+        if args.datadir is None or args.areas is None:
+            logging.error("You must specify the datadirectory and areas to train on")
+    elif args.command == "test":
+        if args.image is None and (args.datadir is None or args.areas is None):
+            logging.error(
+                "Error : either --image or both --datadir and --areas must be defined"
+            )
+        if None in {args.model, args.modelpath}:
+            logging.error("Both --model and --modelpath must be specified")
+        sys.exit(-1)
 
 
 if __name__ == "__main__":
@@ -298,11 +314,11 @@ if __name__ == "__main__":
 
     parser.add_argument("--logdir", type=pathlib.Path, default="./logs")
     parser.add_argument("--commit_id", type=str, default=None)
-    parser.add_argument("--datadir", type=pathlib.Path, required=True)
+    parser.add_argument("--datadir", type=pathlib.Path, default=None)
     parser.add_argument("--num_workers", type=int, default=4)
     parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--model", choices=models.available_models, required=True)
-    parser.add_argument("--loss", choices=metrics.available_losses, required=True)
+    parser.add_argument("--model", choices=models.available_models, default=None)
+    parser.add_argument("--loss", choices=metrics.available_losses, default=None)
     parser.add_argument(
         "--areas",
         nargs="+",
@@ -319,5 +335,10 @@ if __name__ == "__main__":
     parser.add_argument("--weight_decay", type=float, default=1e-2)
     parser.add_argument("--debug", action="store_true")
 
+    # Inference parameters
+    parser.add_argument("--image", type=pathlib.Path, default=None)
+    parser.add_argument("--modelpath", type=pathlib.Path, default=None)
+
     args = parser.parse_args()
+    check_args(args)
     exec(f"{args.command}(args)")
