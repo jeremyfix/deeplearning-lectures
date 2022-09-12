@@ -220,6 +220,28 @@ def get_dataloaders(
     return train_loader, valid_loader, dataset.labels, dataset.unknown_label
 
 
+def get_test_dataloader(
+    rootdir: pathlib.Path,
+    cuda: bool,
+    batch_size: int,
+    n_workers: int,
+    ftransforms,
+    areas=None,
+):
+    # Get the raw dataset
+    dataset = StanfordDataset(rootdir, transforms=ftransforms, areas=areas)
+
+    # And the dataloaders
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        num_workers=n_workers,
+        pin_memory=cuda,
+    )
+
+    return loader, dataset.labels, dataset.unknown_label
+
+
 # @SOL
 def test_histogram(args):
 
