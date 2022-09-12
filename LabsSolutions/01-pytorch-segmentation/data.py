@@ -390,7 +390,11 @@ def test_augmented_dataset(args):
                 A.HorizontalFlip(),
                 A.RandomBrightnessContrast(p=0.2),
                 # A.CoarseDropout(max_width=50, max_height=50),
-                A.MaskDropout((10, 15), p=1),
+                A.MaskDropout(
+                    3,
+                    mask_fill_value=dataset.unknown_label,
+                    p=0.5,
+                ),
                 # SOL@
                 A.Normalize(0, 1),
                 ToTensorV2(),
@@ -509,6 +513,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # test_histogram(args) @SOL@
-    test_dataset(args)
+    # test_dataset(args)
     test_augmented_dataset(args)
     # test_dataloaders()  # @SOL@

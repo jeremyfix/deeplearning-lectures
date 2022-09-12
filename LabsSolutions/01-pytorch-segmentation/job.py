@@ -121,10 +121,11 @@ for model in ["UNet"]:
                 "model": model,
                 "batch_size": 32,
                 "weight_decay": 0.00,
-                "areas": "3",
+                "areas": "1 2 3 4 6",
                 "nepochs": 100,
                 "base_lr": 0.0001,
                 "loss": "FocalLoss",
+                "img_size": 512,
             },
         )
     )

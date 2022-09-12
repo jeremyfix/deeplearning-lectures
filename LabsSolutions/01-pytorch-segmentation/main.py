@@ -75,7 +75,7 @@ def train(args):
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
     # Set up the train and valid transforms
-    img_size = (256, 256)
+    img_size = (args.img_size, args.img_size)
 
     # @TEMPL
     # # vvvvvvvvv
@@ -88,7 +88,8 @@ def train(args):
             A.Resize(*img_size),
             A.HorizontalFlip(),
             A.RandomBrightnessContrast(p=0.2),
-            A.CoarseDropout(max_width=50, max_height=50),
+            # A.CoarseDropout(max_width=50, max_height=50),
+            A.MaskDropout(3, mask_fill_value=0, p=0.5),  # 0 is the unk label
             # SOL@
             A.Normalize(mean=0.0, std=1.0),
             ToTensorV2(),
@@ -294,7 +295,7 @@ def test(args):
     model.eval()
 
     # Build up the data processing pipeline
-    img_size = (256, 256)
+    img_size = (args.img_size, args.img_size)
     faug = A.Compose(
         [
             A.Resize(*img_size),
@@ -341,11 +342,15 @@ def test(args):
         logging.info("Inference saved to inference.png")
     elif args.areas is not None:
         # Otherwise we evaluate the metric on the provided areas
+        logging.info(f"Processing areas : {args.areas}")
 
         def transforms(img, mask):
             augmented = faug(image=np.array(img), mask=mask.numpy())
             return (augmented["image"], augmented["mask"])
 
+        test_fmetrics = {
+            "F1": deepcs.metrics.BatchF1(),
+        }
         loader, _, _ = data.get_test_dataloader(
             args.datadir,
             use_cuda,
@@ -354,6 +359,14 @@ def test(args):
             transforms,
             args.areas,
         )
+        test_metrics = deepcs.testing.test(model, loader, device, test_fmetrics)
+        macro_test_F1 = sum(test_metrics["F1"]) / len(test_metrics["F1"])
+        metrics_msg = f"Metrics computed on the provided data \n  "
+        metrics_msg += "\n  ".join(
+            f" {m_name}: {m_value}" for (m_name, m_value) in test_metrics.items()
+        )
+        metrics_msg += f" Macro F1 : {macro_test_F1} \n  "
+        logging.info(metrics_msg)
     else:
         logging.error(
             "You either must specify a single frame or a list of areas; both cannot be None."
@@ -417,6 +430,7 @@ if __name__ == "__main__":
     parser.add_argument("--base_lr", type=float, default=3e-4)
     parser.add_argument("--weight_decay", type=float, default=1e-2)
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--imgsize", type=int, default=256)
 
     # Inference parameters
     parser.add_argument("--image", type=pathlib.Path, default=None)
