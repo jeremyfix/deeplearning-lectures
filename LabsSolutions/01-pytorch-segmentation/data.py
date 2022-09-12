@@ -179,7 +179,6 @@ def get_dataloaders(
     areas=None,
 ):
     # Get the raw dataset
-    print(f"Transform is : {train_transforms}")
     dataset = StanfordDataset(
         rootdir, transforms=torchvision.datasets.vision.StandardTransform(), areas=areas
     )
