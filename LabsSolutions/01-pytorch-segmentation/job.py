@@ -79,7 +79,7 @@ echo ""
 echo "Training"
 date
 
-python main.py  --datadir /mounts/Datasets4/Stanford2D-3D-S/ {paramsstr} --logname {params['model']}_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} --commit_id '{commit_id}' --logdir ${{current_dir}}/logs train
+python main.py train --datadir /mounts/Datasets4/Stanford2D-3D-S/ {paramsstr} --logname {params['model']}_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} --commit_id '{commit_id}' --logdir ${{current_dir}}/logs
 
 if [[ $? != 0 ]]; then
     exit -1
