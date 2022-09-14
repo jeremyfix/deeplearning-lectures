@@ -193,8 +193,9 @@ def train(args):
         "Experiment summary", deepcs.display.htmlize(summary_text)
     )
 
+    best_model_path = os.path.join(logdir, "best_params.pt")
     model_checkpoint = deepcs.training.ModelCheckpoint(
-        model, os.path.join(logdir, "best_model.pt"), min_is_best=False
+        model, best_model_path, min_is_best=False
     )
 
     valid_images, valid_gt = next(iter(valid_loader))
@@ -272,6 +273,18 @@ def train(args):
         # Update the learning rate with the scheduler policy
         scheduler.step(macro_test_F1)
 
+    logging.info("Training done, saving the best model as a TorchScript")
+    # Reload the best model
+    model.load_state_dict(torch.load(best_model_path, map_location=device))
+    # Trace the model with dummy inputs
+    traced_model = torch.jit.trace(
+        model, torch.zeros((1, 3, img_size, img_size)).to(device)
+    )
+    # Compile the model
+    compiled_model = torch.jit.script(traced_model)
+    # And save the compiled model
+    compiled_model.save(os.path.join(logdir, "best_model.pt"))
+
 
 def test(args):
     """Test a neural network on the stanford 2D-3D S semantic segmentation dataset
@@ -290,9 +303,10 @@ def test(args):
 
     # Create the model and load the pretrained parameters
     num_labels = 14  # Not very generic ...
-    model = models.build_model(args.model, num_labels)
-    model.to(device)
-    model.load_state_dict(torch.load(args.modelpath, map_location=device))
+    # model = models.build_model(args.model, num_labels)
+    # model.to(device)
+    # model.load_state_dict(torch.load(args.modelpath, map_location=device))
+    model = torch.jit.load(args.modelpath)
     model.eval()
 
     # Build up the data processing pipeline
