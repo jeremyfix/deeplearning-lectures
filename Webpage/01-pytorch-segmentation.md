@@ -19,7 +19,7 @@ In this labwork, we will be working with the large [Stanford 2D-3D S dataset](ht
 | 4    | 13,268 |
 | 5    | 17,593 |
 | 6    | 9,890 |
-| **Total** | 25,434 |
+| **Total** | 70,496 |
 
 Below is an example of the input RGB image and the associated labels 
 
@@ -256,7 +256,7 @@ It is now time to run a training of your model. The training script accepts a li
 python main.py --areas 3 --model .... --loss ... train
 ```
 
-This training is not expected to lead to super performant models but should run at $1$ or $2$ minutes per epoch. 
+This training is not expected to lead to super performant models but should run at $1$ or $2$ minutes per epoch. Depending on the GPU you are using, you may need to reduce the footprint on the GPU's memory, e.g. lowering the input image size, reducing the number of blocks of the encoder and decoder, ...
 
 
 <div class="w3-card w3-sand">
@@ -269,7 +269,11 @@ Training over all the areas can take up to $1$ hour per epoch. If you use the Ce
 
 ## Inference
 
-As training can take a long time, you are provided with a pretrained UNet. 
+As training can take a long time, you are provided with a pretrained UNet. This model has been pretrained on areas 1, 2, 3, 4 and 6. Therefore the areas 5a and 5b were excluded from training to be considered for testing only. You can download the pretrained model from **TODO! !!!!!!**
+
+The main script allows for testing on either a single image or whole areas.
+
+**Question** ... 
 
 TODO: provide a pretrained network on the whole dataset
 
