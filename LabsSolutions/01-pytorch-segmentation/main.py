@@ -431,7 +431,7 @@ if __name__ == "__main__":
     parser.add_argument("--base_lr", type=float, default=3e-4)
     parser.add_argument("--weight_decay", type=float, default=1e-2)
     parser.add_argument("--debug", action="store_true")
-    parser.add_argument("--imgsize", type=int, default=256)
+    parser.add_argument("--img_size", type=int, default=256)
 
     # Inference parameters
     parser.add_argument("--image", type=pathlib.Path, default=None)
