@@ -202,6 +202,12 @@ We decided the macro F1 measure is the one to be optimized. Unfortunately, it do
 
 **Question** According to you, why it is useless to use the F1 computed above for the gradient descent optimization of the parameters of our neural network ?
 
+<!--
+
+The F1 metric as computed above is really flat , piecewise constant and therefore it is gradient is not informative on the direction to follow
+
+-->
+
 We need a differentiable proxy to that metric. This is still an open area of research (see for example [@Yeung2022]). Some of the options we will consider here are to use :
 
 - a class balanced loss [@Cui2019], e.g. a weighted cross entropy loss 
@@ -219,6 +225,15 @@ where the standard cross entropy loss is obtained with $w_k = 1, \forall k \in [
 
 **Question** Which values of the weights would you suggest to fight against class imbalance ? Some classical strategies are discussed in p2 of [@Cui2019] as well as their own scaling strategy. From the pytorch [documentation on the cross entropy loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html), do you see how to specify these weights ? 
 
+<!--
+
+We need to put more importance on the minority classes compared to the majority classes. 
+
+One basic option is to use w_k equals to the inverse of the frequency of the class although some suggest to take the square root of that, and then maybe to normalize the w_k in order to really have :
+
+w_k = (\sum_i n_i)/n_k  where n_k is the number of samples per class thereofre we get the inverse of the relative ratio of the class
+
+-->
 
 **Question** Modify your code to implement the weighted cross entropy with the weighting strategy you choose.
 
@@ -237,9 +252,9 @@ with $\gamma \geq 0$ a tunable parameter. Setting $\gamma=0$, we recover the cro
 
 It is now time to run a training of your model. The training script accepts a list of areas ot train on with the `--areas` option. It is always a good idea to test on a small experiment to ensure everything is running well. You can run a training on `area_3` by calling :
 
-`
+```bash
 python main.py --areas 3 --model .... --loss ... train
-`
+```
 
 This training is not expected to lead to super performant models but should run at $1$ or $2$ minutes per epoch. 
 

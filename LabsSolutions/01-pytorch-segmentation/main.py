@@ -209,6 +209,7 @@ def train(args):
             device,
             train_fmetrics,
             num_epoch=e,
+            tensorboard_writer=tensorboard_writer,
             dynamic_display=True,
         )
 
