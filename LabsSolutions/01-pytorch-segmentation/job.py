@@ -125,7 +125,7 @@ for model in ["UNet"]:
                 "nepochs": 100,
                 "base_lr": 0.0001,
                 "loss": "FocalLoss",
-                "img_size": 512,
+                "img_size": 256,
             },
         )
     )
