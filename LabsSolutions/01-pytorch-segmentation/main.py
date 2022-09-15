@@ -230,6 +230,18 @@ def train(args):
         )
         logging.info(metrics_msg)
 
+        if updated:
+            # We got a new better model, we torchscript it
+            logging.info("Better model, saving it as a TorchScript")
+            # Trace the model with dummy inputs
+            traced_model = torch.jit.trace(
+                model, torch.zeros((1, 3, img_size, img_size)).to(device)
+            )
+            # Compile the model
+            compiled_model = torch.jit.script(traced_model)
+            # And save the compiled model
+            compiled_model.save(os.path.join(logdir, "best_model.pt"))
+
         # Get some test samples and predict the associated mask on them
         # Predict the labels
         with torch.no_grad():
@@ -272,18 +284,6 @@ def train(args):
 
         # Update the learning rate with the scheduler policy
         scheduler.step(macro_test_F1)
-
-    logging.info("Training done, saving the best model as a TorchScript")
-    # Reload the best model
-    model.load_state_dict(torch.load(best_model_path, map_location=device))
-    # Trace the model with dummy inputs
-    traced_model = torch.jit.trace(
-        model, torch.zeros((1, 3, img_size, img_size)).to(device)
-    )
-    # Compile the model
-    compiled_model = torch.jit.script(traced_model)
-    # And save the compiled model
-    compiled_model.save(os.path.join(logdir, "best_model.pt"))
 
 
 def test(args):
