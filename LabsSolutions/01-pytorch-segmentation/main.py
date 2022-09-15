@@ -235,7 +235,7 @@ def train(args):
             logging.info("Better model, saving it as a TorchScript")
             # Trace the model with dummy inputs
             traced_model = torch.jit.trace(
-                model, torch.zeros((1, 3, img_size, img_size)).to(device)
+                model, torch.zeros((1, 3, *img_size)).to(device)
             )
             # Compile the model
             compiled_model = torch.jit.script(traced_model)
