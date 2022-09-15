@@ -119,7 +119,7 @@ for model in ["UNet"]:
             "48:00:00",
             params={
                 "model": model,
-                "batch_size": 32,
+                "batch_size": 16,
                 "weight_decay": 0.00,
                 "areas": "1 2 3 4 6",
                 "nepochs": 100,
