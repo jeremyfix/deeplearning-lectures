@@ -271,11 +271,34 @@ Training over all the areas can take up to $1$ hour per epoch. If you use the Ce
 
 As training can take a long time, you are provided with a pretrained UNet. This model has been pretrained on areas 1, 2, 3, 4 and 6. Therefore the areas 5a and 5b were excluded from training to be considered for testing only. You can download the pretrained model from **TODO! !!!!!!**
 
-The main script allows for testing on either a single image or whole areas.
+The main script allows for testing on either a single image or whole areas. Check the arguments of 
 
-**Question** ... 
+```bash
+python main.py test --datadir ... --model ... --modelpath ... --area ... ... 
+```
 
-TODO: provide a pretrained network on the whole dataset
+**Question** Evaluate the quality of the pretrained model on both the training areas (1, 2, 3, 4 and 6) and on the unused areas `5a` and `5b`.
+
+<!--
+For now - september 23rd, 2022 - the performances are not fantastic and the model
+is overfitting with 
+
+
+
+Processing areas : ['5a', '5b']
+Metrics computed on the provided data
+   F1: [0.04535464168484609, 0.002022040055362937, 0.7395062066911923, 0.6843404598606386, 0.837539881875414, 0.5973549298200171, 0.4615867970688931, 0.1370412006111545, 0.25906534539319537, 0.8932621203580572, 0.25991381759071547, 0.6786327391779097, 0.7864811201706797, 0.6562909154743881] Macro F1 : 0.5027423011308902
+-->
+
+**Question** Do you think you can evaluate your model on images of arbitrary size ? 
+
+<!-- 
+As our model is fully convolutional, it can be applied to images of any size. Since it does not contain any dense layers and only convolutional operations, there is no need to transform the image to a fixed image size.
+
+-->
+
+**Question** Take a picture with your phone or from the web and check the results of inference on this image. Note that the `main.py` script accepts a `--image` instead of a `--datadir ..` to process a single image.`
+
 
 ## Going further
 
