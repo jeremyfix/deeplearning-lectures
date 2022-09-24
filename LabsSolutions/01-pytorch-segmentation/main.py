@@ -397,11 +397,11 @@ def check_args(args):
         if args.model is None:
             logging.error("You must specify which model to train")
             sys.exit(-1)
-        if args.datadir is None or args.areas is None:
+        if args.datadir is None or args.areas_train is None:
             logging.error("You must specify the datadirectory and areas to train on")
             sys.exit(-1)
     elif args.command == "test":
-        if args.image is None and (args.datadir is None or args.areas is None):
+        if args.image is None and (args.datadir is None or args.areas_test is None):
             logging.error(
                 "Error : either --image or both --datadir and --areas must be defined"
             )
