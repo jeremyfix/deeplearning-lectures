@@ -176,26 +176,47 @@ def get_dataloaders(
     val_ratio: int,
     train_transforms,
     valid_transforms,
-    areas=None,
+    areas_train=None,
+    areas_valid=None,
 ):
     # Get the raw dataset
-    dataset = StanfordDataset(
-        rootdir, transforms=torchvision.datasets.vision.StandardTransform(), areas=areas
-    )
+    if areas_valid is None:
+        # We build the train and valid datasets from the same
+        # collection of areas
+        # This might lead to an overestimation of the real risk
+        # as the images will be randomly sampled for both folds from
+        # the aggregation of all the frames which are not completely independent
+        # These are frames taken while moving in the same building
+        dataset = StanfordDataset(
+            rootdir,
+            transforms=torchvision.datasets.vision.StandardTransform(),
+            areas=areas_train,
+        )
 
-    # Split it randomly in train/valid folds
-    indices = list(range(len(dataset)))
-    num_data = 128 if small_experiment else len(dataset)
-    num_valid = int(val_ratio * num_data)
-    num_train = num_data - num_valid
+        # Split it randomly in train/valid folds
+        indices = list(range(len(dataset)))
+        num_data = 128 if small_experiment else len(dataset)
+        num_valid = int(val_ratio * num_data)
+        num_train = num_data - num_valid
 
-    np.random.shuffle(indices)
-    train_indices = indices[:num_train]
-    valid_indices = indices[num_train : (num_train + num_valid)]
+        np.random.shuffle(indices)
+        train_indices = indices[:num_train]
+        valid_indices = indices[num_train : (num_train + num_valid)]
 
-    # Build the train/valid datasets with the selected indices
-    train_dataset = torch.utils.data.Subset(dataset, train_indices)
-    valid_dataset = torch.utils.data.Subset(dataset, valid_indices)
+        # Build the train/valid datasets with the selected indices
+        train_dataset = torch.utils.data.Subset(dataset, train_indices)
+        valid_dataset = torch.utils.data.Subset(dataset, valid_indices)
+    else:
+        train_dataset = StanfordDataset(
+            rootdir,
+            transforms=torchvision.datasets.vision.StandardTransform(),
+            areas=areas_valid,
+        )
+        valid_dataset = StanfordDataset(
+            rootdir,
+            transforms=torchvision.datasets.vision.StandardTransform(),
+            areas=areas_valid,
+        )
 
     train_dataset = TransformedDataset(train_dataset, train_transforms)
     valid_dataset = TransformedDataset(valid_dataset, valid_transforms)

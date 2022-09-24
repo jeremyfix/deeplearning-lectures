@@ -127,7 +127,8 @@ def train(args):
         args.val_ratio,
         train_transforms,
         valid_transforms,
-        areas=args.areas,
+        areas_train=args.areas_train,
+        areas_valid=args.areas_test,
     )
 
     logging.info(f"Considering {len(labels)} classes : {labels}")
@@ -302,7 +303,7 @@ def test(args):
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
     # Create the model and load the pretrained parameters
-    num_labels = 14  # Not very generic ...
+    # num_labels = 14  # Not very generic ...
     # model = models.build_model(args.model, num_labels)
     # model.to(device)
     # model.load_state_dict(torch.load(args.modelpath, map_location=device))
@@ -355,9 +356,9 @@ def test(args):
         plt.tight_layout()
         plt.savefig("inference.png")
         logging.info("Inference saved to inference.png")
-    elif args.areas is not None:
+    elif args.areas_test is not None:
         # Otherwise we evaluate the metric on the provided areas
-        logging.info(f"Processing areas : {args.areas}")
+        logging.info(f"Processing areas : {args.areas_test}")
 
         def transforms(img, mask):
             augmented = faug(image=np.array(img), mask=mask.numpy())
@@ -372,11 +373,11 @@ def test(args):
             args.batch_size,
             args.num_workers,
             transforms,
-            args.areas,
+            args.areas_test,
         )
         test_metrics = deepcs.testing.test(model, loader, device, test_fmetrics)
         macro_test_F1 = sum(test_metrics["F1"]) / len(test_metrics["F1"])
-        metrics_msg = f"Metrics computed on the provided data \n  "
+        metrics_msg = "Metrics computed on the provided data \n  "
         metrics_msg += "\n  ".join(
             f" {m_name}: {m_value}" for (m_name, m_value) in test_metrics.items()
         )
@@ -384,7 +385,7 @@ def test(args):
         logging.info(metrics_msg)
     else:
         logging.error(
-            "You either must specify a single frame or a list of areas; both cannot be None."
+            "You either must specify a single frame or a list of areas with areas_test; both cannot be None."
         )
 
 
@@ -431,9 +432,16 @@ if __name__ == "__main__":
     parser.add_argument("--model", choices=models.available_models, default=None)
     parser.add_argument("--loss", choices=metrics.available_losses, default=None)
     parser.add_argument(
-        "--areas",
+        "--areas_train",
         nargs="+",
-        help="Which areas to use, specify it with their numbers (1, 2, 3, 4, 5a, 5b, 6)",
+        help="Which areas to use for training, specify it with their numbers (1, 2, 3, 4, 5a, 5b, 6)",
+        type=str,
+        default=None,
+    )
+    parser.add_argument(
+        "--areas_test",
+        nargs="+",
+        help="Which areas to use for validation/testing, specify it with their numbers (1, 2, 3, 4, 5a, 5b, 6)",
         type=str,
         default=None,
     )
