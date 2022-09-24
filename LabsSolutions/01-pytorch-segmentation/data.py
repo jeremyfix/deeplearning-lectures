@@ -206,6 +206,9 @@ def get_dataloaders(
         # Build the train/valid datasets with the selected indices
         train_dataset = torch.utils.data.Subset(dataset, train_indices)
         valid_dataset = torch.utils.data.Subset(dataset, valid_indices)
+
+        labels = dataset.labels
+        unknown_label = dataset.unknown_label
     else:
         train_dataset = StanfordDataset(
             rootdir,
@@ -217,6 +220,8 @@ def get_dataloaders(
             transforms=torchvision.datasets.vision.StandardTransform(),
             areas=areas_valid,
         )
+        labels = train_dataset.labels
+        unknown_label = train_dataset.unknown_label
 
     train_dataset = TransformedDataset(train_dataset, train_transforms)
     valid_dataset = TransformedDataset(valid_dataset, valid_transforms)
@@ -238,7 +243,7 @@ def get_dataloaders(
         pin_memory=cuda,
     )
 
-    return train_loader, valid_loader, dataset.labels, dataset.unknown_label
+    return train_loader, valid_loader, labels, unknown_label
 
 
 def get_test_dataloader(
