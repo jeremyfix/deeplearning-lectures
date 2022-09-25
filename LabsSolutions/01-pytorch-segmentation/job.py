@@ -120,11 +120,11 @@ for model in ["UNet"]:
             params={
                 "model": model,
                 "batch_size": 16,
-                "weight_decay": 0.00,
+                "weight_decay": 0.0001,
                 "areas_train": "1 2 3 4 6",
                 "areas_test": "5a",
                 "nepochs": 100,
-                "base_lr": 0.0001,
+                "base_lr": 0.001,
                 "loss": "FocalLoss",
                 "img_size": 256,
             },
