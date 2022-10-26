@@ -308,7 +308,7 @@ As our model is fully convolutional, it can be applied to images of any size. Si
 
 -->
 
-**Question** Take a picture with your phone or from the web and check the results of inference on this image. Note that the `main.py` script accepts a `--image` instead of a `--datadir ..` to process a single image.`
+**Question** Take a picture with your phone, from the web, from the test area in the dataset directory and check the results of inference on this image. Note that the `main.py` script accepts a `--image` instead of a `--datadir ..` to process a single image.
 
 
 ## Going further
