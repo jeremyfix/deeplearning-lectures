@@ -25,6 +25,7 @@
 # Standard imports
 import argparse
 import pathlib
+import time
 
 # External imports
 import torch
@@ -40,9 +41,11 @@ parser.add_argument(
     required=True,
     help="The input tensor size in the order channel x height x width",
 )
+parser.add_argument("--nruns", type=int, default=1)
 parser.add_argument("--exportpath", type=str, default="model.onnx")
 args = parser.parse_args()
 
+nruns = args.nruns
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda") if use_cuda else torch.device("cpu")
 model = torch.jit.load(args.modelpath, map_location=device)
@@ -56,13 +59,19 @@ dummy_input = torch.rand(export_input_size, device=device)
 print("Forward propagation through the JIT model")
 with torch.no_grad():
     dummy_output = model(dummy_input)
+t0 = time.time()
+for i in range(nruns):
+    with torch.no_grad():
+        dummy_output = model(dummy_input)
+t1 = time.time()
+print((t1 - t0) / nruns)
 
 print(f"ONNX export to {args.exportpath}")
 torch.onnx.export(
     model,
     dummy_input,
     args.exportpath,
-    verbose=True,
+    verbose=False,
     opset_version=12,
     input_names=["input"],
     output_names=["output"],
@@ -82,7 +91,12 @@ inference_session = ort.InferenceSession(args.exportpath, providers=providers)
 model = lambda torch_X: inference_session.run(
     None, {inference_session.get_inputs()[0].name: torch_X.cpu().numpy()}
 )[0]
-onnx_output = model(dummy_input)
+
+t0 = time.time()
+for i in range(nruns):
+    onnx_output = model(dummy_input)
+t1 = time.time()
+print((t1 - t0) / nruns)
 
 print(
     f"Are forward propagation through JIT model and ONNX export allclose ? {np.allclose(onnx_output,  dummy_output.cpu().numpy())}"
