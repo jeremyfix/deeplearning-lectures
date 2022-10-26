@@ -16,3 +16,5 @@ tqdm==4.30.0
 protobuf==3.20.1
 # Fix tensorboard issue : https://github.com/pytorch/pytorch/issues/69894
 setuptools==59.5.0
+onnx==1.12.0
+onnxruntime-gpu==1.13.1
