@@ -242,8 +242,15 @@ def train(args):
             # the graph in train/test mode is not the same
             model.eval()
             torch.onnx.export(
-                model, dummy_input, logdir / "segmentation.onnx", verbose=False
-            )
+                model,
+                dummy_input,
+                logdir / "segmentation.onnx",
+                verbose=False,
+                opset_version=12,
+                input_names=["input"],
+                output_names=["output"],
+                dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}},
+            )  # At least opset 11 is required otherwise it seems nn.UpSample is not correctly handled
 
         # Get some test samples and predict the associated mask on them
         # Predict the labels

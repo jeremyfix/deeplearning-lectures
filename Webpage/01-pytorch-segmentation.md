@@ -269,7 +269,7 @@ Training over all the areas can take up to $1$ hour per epoch. If you use the Ce
 
 ## Inference
 
-As training can take a long time, you are provided with a pretrained UNet. This model has been pretrained on areas 1, 2, 3, 4 and 6. Therefore the areas 5a and 5b were excluded from training to be considered for testing only. You can download the pretrained model from **TODO! !!!!!!**
+As training can take a long time, you are provided with a pretrained UNet. This model has been pretrained on areas 1, 2, 3, 4 and 6. Therefore the areas 5a and 5b were excluded from training to be considered for testing only, although area 5a has been selected for validation (early stopping). Training has been done for $100$ epochs, took 7 hours to complete although the best model has been found after $2$ hours or so. You can download the pretrained model [unet-10610_0.onnx](http://www.metz.supelec.fr//metz/personnel/fix_jer/Deep/unet-10610_0.onnx). 
 
 The main script allows for testing on either a single image or whole areas. Check the arguments of 
 
@@ -277,20 +277,31 @@ The main script allows for testing on either a single image or whole areas. Chec
 python main.py test --datadir ... --model ... --modelpath ... --area ... ... 
 ```
 
+
+<div class="w3-card w3-sand">
+When you just want to use a model for inference, you have multiple possibilities to export your model :
+
+- use pytorch eager mode : this is what you do when you dynamically apply operations as nn.Module,
+- use [torchscript](https://pytorch.org/tutorials/recipes/torchscript_inference.html) : this is more efficient than eager mode; You loose the dynamic computational graph but you earn performance. You can also infer with Torhscript C/C++ which is even faster than Torchscript python,
+- use [Onnx runtime](https://onnxruntime.ai/) which is a framework independent (no pytorch, tensorflow, etc..) computational graph evaluator available for various languages and platforms (e.g. Python, C++ but also for mobiles, embedded in web apps, ..)
+
+In addition to even better performances (throughput and latency), the onnx format is perfect for abstracting the algorithm at its pure level of description without bells and whistles : a computational graph. 
+
+</div>
+
+**Question** Visualize the computational graph with [netron.app](https://netron.app/)
+
+**Question** Can you identify in the `main.py` script where the model is exported with onnx. Reading [the doc on torch.onnx.export](https://pytorch.org/docs/stable/onnx.html#torch.onnx.export) do you understand what is the meaning of the arguments we provided to the call ?
+
+**Question** Can you identify in the `main.py` script where and how inference is performed with the onnx model ? Can you find more info on the package that is used for inference ?
+
 **Question** Evaluate the quality of the pretrained model on both the training areas (1, 2, 3, 4 and 6) and on the unused areas `5a` and `5b`.
 
 <!--
-For now - september 23rd, 2022 - the performances are not fantastic and the model
-is overfitting with 
-
-
-
-Processing areas : ['5a', '5b']
-Metrics computed on the provided data
-   F1: [0.04535464168484609, 0.002022040055362937, 0.7395062066911923, 0.6843404598606386, 0.837539881875414, 0.5973549298200171, 0.4615867970688931, 0.1370412006111545, 0.25906534539319537, 0.8932621203580572, 0.25991381759071547, 0.6786327391779097, 0.7864811201706797, 0.6562909154743881] Macro F1 : 0.5027423011308902
+For now - october 26rd, 2022 - the performances are not fantastic and the model : around 0.8 for the macro F1 on 5a and 0.48 on 5b.
 -->
 
-**Question** Do you think you can evaluate your model on images of arbitrary size ? 
+**Question** Your model can be evaluated on images of arbitrary sizes (width, height). Why do you think this is the case ? 
 
 <!-- 
 As our model is fully convolutional, it can be applied to images of any size. Since it does not contain any dense layers and only convolutional operations, there is no need to transform the image to a fixed image size.
@@ -303,6 +314,8 @@ As our model is fully convolutional, it can be applied to images of any size. Si
 ## Going further
 
 There are several directions along which you could pursue the study of semantic segmentation. One is about the models. The U-Net architecture we consider has been release in 2015. You might be interested in implementing more recent architectures such as VNet [@Milletari2016] or DeepLab v3+ [@Chen2018]. Another direction of study is on the losses. We explored some ways to fight against class imbalance with the weighted cross entropy loss and the focal loss. You might be interested in exploring over losses, such as the Tversky loss, the DICE loss, the Lovasz loss, the Matthews Correlation Coefficient loss [@Abhishek2021]. It is interesting to implement your know loss but you might be interested in packages already implementing them such as [smp](https://smp.readthedocs.io/en/latest/losses.html)
+
+In terms of deployment, you could also push a little further the work by serving the onnx model with a webapi that could be requested with an image to label. Probably more on this soon.
 
 ## A possible solution
 
