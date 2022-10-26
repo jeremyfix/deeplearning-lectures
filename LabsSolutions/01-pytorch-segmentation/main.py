@@ -27,6 +27,7 @@ import os
 import sys
 
 # External modules
+import onnxruntime as ort
 import deepcs
 import deepcs.training
 import deepcs.testing
@@ -233,19 +234,21 @@ def train(args):
 
         if updated:
             # We got a new better model, we torchscript it
-            logging.info("Better model, saving it as a TorchScript")
-            # Trace the model with dummy inputs
-            traced_model = torch.jit.trace(
-                model, torch.zeros((1, 3, *img_size)).to(device)
+            logging.info("Better model, exporting it with onnx")
+            # Prepend batch_size and channel_size to the (H, W) tuple
+            export_input_size = (1, 3) + img_size
+            dummy_input = torch.zeros(export_input_size, device=device)
+            # Important: ensure the model is in eval mode before exporting !
+            # the graph in train/test mode is not the same
+            model.eval()
+            torch.onnx.export(
+                model, dummy_input, logdir / "segmentation.onnx", verbose=False
             )
-            # Compile the model
-            compiled_model = torch.jit.script(traced_model)
-            # And save the compiled model
-            compiled_model.save(os.path.join(logdir, "best_model.pt"))
 
         # Get some test samples and predict the associated mask on them
         # Predict the labels
         with torch.no_grad():
+            model.eval()
             valid_predictions = model(valid_images).argmax(dim=1).detach().cpu().numpy()
         nsamples = 4
         fig, grid = plt.subplots(nrows=2, ncols=nsamples, sharex=True, sharey=True)
@@ -287,6 +290,31 @@ def train(args):
         scheduler.step(macro_test_F1)
 
 
+class ONNXWrapper:
+    def __init__(self, use_cuda, modelpath):
+        self.device = torch.device("cuda") if use_cuda else torch.device("cpu")
+        providers = []
+        if use_cuda:
+            providers.append("CUDAExecutionProvider")
+        providers.append("CPUExecutionProvider")
+        self.inference_session = ort.InferenceSession(modelpath, providers=providers)
+
+    def eval(self):
+        # ONNX model cannot be switched from train to test
+        pass
+
+    def train(self):
+        # ONNX model cannot be switch from test to train
+        pass
+
+    def __call__(self, torchX):
+        output = self.inference_session.run(
+            None, {self.inference_session.get_inputs()[0].name: torchX.cpu().numpy()}
+        )[0]
+
+        return torch.from_numpy(output).to(self.device)
+
+
 def test(args):
     """Test a neural network on the stanford 2D-3D S semantic segmentation dataset
 
@@ -307,8 +335,14 @@ def test(args):
     # model = models.build_model(args.model, num_labels)
     # model.to(device)
     # model.load_state_dict(torch.load(args.modelpath, map_location=device))
-    model = torch.jit.load(args.modelpath)
-    model.eval()
+    # model.eval()
+
+    # Torch specific with torch jit
+    # model = torch.jit.load(args.modelpath)
+    # model.eval()
+
+    # Generic approach using onnx runtime
+    model = ONNXWrapper(use_cuda, str(args.modelpath))
 
     # Build up the data processing pipeline
     img_size = (args.img_size, args.img_size)
@@ -330,6 +364,7 @@ def test(args):
         input_tensor = faug(image=input_image)["image"]
         input_tensor = input_tensor.unsqueeze(dim=0)  # B, 3, H, W
         # Inference on the frame
+        # With onnx, the output is a numpy array
         output = model(input_tensor)  # B, num_labels, H, W
 
         # Convert the output to class labels
