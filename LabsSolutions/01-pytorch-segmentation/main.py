@@ -379,7 +379,7 @@ def test(args):
         # because the softmax is monotonically increasing
         pred_semantics = output.argmax(axis=1)
         # Remove the batch index
-        pred_semantics = pred_semantics.squeeze()
+        pred_semantics = pred_semantics.squeeze().cpu()
 
         # And display the result
         fig, axes = plt.subplots(1, 3, figsize=(6, 3))
