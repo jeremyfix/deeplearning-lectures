@@ -59,7 +59,14 @@ with torch.no_grad():
 
 print(f"ONNX export to {args.exportpath}")
 torch.onnx.export(
-    model, dummy_input, args.exportpath, verbose=False, opset_version=12
+    model,
+    dummy_input,
+    args.exportpath,
+    verbose=True,
+    opset_version=12,
+    input_names=["input"],
+    output_names=["output"],
+    dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}},
 )  # At least 11 is required otherwise it seems nn.UpSample is not correctly handled
 
 # Test the export
