@@ -250,10 +250,10 @@ with $\gamma \geq 0$ a tunable parameter. Setting $\gamma=0$, we recover the cro
 
 ## Training on a small subset
 
-It is now time to run a training of your model. The training script accepts a list of areas ot train on with the `--areas` option. It is always a good idea to test on a small experiment to ensure everything is running well. You can run a training on `area_3` by calling :
+It is now time to run a training of your model. The training script accepts a list of areas ot train on with the `--areas_train` option. It is always a good idea to test on a small experiment to ensure everything is running well. You can run a training on `area_3` by calling :
 
 ```bash
-python main.py --areas 3 --model .... --loss ... train
+python main.py --areas_train 3 --model .... --loss ... train
 ```
 
 This training is not expected to lead to super performant models but should run at $1$ or $2$ minutes per epoch. Depending on the GPU you are using, you may need to reduce the footprint on the GPU's memory, e.g. lowering the input image size, reducing the number of blocks of the encoder and decoder, ...
@@ -274,7 +274,7 @@ As training can take a long time, you are provided with a pretrained UNet. This 
 The main script allows for testing on either a single image or whole areas. Check the arguments of 
 
 ```bash
-python main.py test --datadir ... --model ... --modelpath ... --area ... ... 
+python main.py test --datadir ... --model ... --modelpath ... --areas_test ... ... 
 ```
 
 
