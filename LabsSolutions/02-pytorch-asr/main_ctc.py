@@ -456,14 +456,14 @@ if __name__ == "__main__":
         "--baselogdir",
         type=Path,
         default=Path("./logs"),
-        help="The base directory in which to save the logs"
+        help="The base directory in which to save the logs",
     )
 
     parser.add_argument(
         "--logname",
         type=str,
         default=None,
-        help="The name of the run used to define the logdir"
+        help="The name of the run used to define the logdir",
     )
 
     args = parser.parse_args()
