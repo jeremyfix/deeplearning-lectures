@@ -375,9 +375,9 @@ class BatchCollate(object):
         #          as computed in spectro_lengths
         #          (1 line)
         # @TEMPL@spectrograms = None
-        spectrograms = pack_padded_sequence(
-            spectrograms, lengths=spectro_lengths
-        )  # @SOL@
+        # @SOL
+        spectrograms = pack_padded_sequence(spectrograms, lengths=spectro_lengths)
+        # SOL@
 
         # Step 3 : pad the sequence of tensors transcripts. The resulting
         #          tensor must be (Ty, B)
@@ -819,7 +819,6 @@ def test_spectro():
 
 # SOL@
 if __name__ == "__main__":
-    pass
     # @TEMPL@pass
     # @SOL
     # order_by_length()
@@ -828,4 +827,5 @@ if __name__ == "__main__":
     # ex_waveform_spectro()
     # ex_spectro()
     # ex_augmented_spectro()
+    pass
     # SOL@
