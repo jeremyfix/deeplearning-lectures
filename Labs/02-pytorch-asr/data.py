@@ -9,17 +9,30 @@ import logging
 from pathlib import Path
 from typing import Union, Tuple
 import pickle
+
 # External imports
 import torch.nn as nn
-from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence, PackedSequence
+from torch.nn.utils.rnn import (
+    pad_sequence,
+    pack_padded_sequence,
+    pad_packed_sequence,
+    PackedSequence,
+)
 import torch.utils.data
 import torchaudio
 from torchaudio.datasets import COMMONVOICE
-from torchaudio.transforms import Spectrogram, AmplitudeToDB, MelScale, MelSpectrogram, FrequencyMasking, TimeMasking
+from torchaudio.transforms import (
+    Spectrogram,
+    AmplitudeToDB,
+    MelScale,
+    MelSpectrogram,
+    FrequencyMasking,
+    TimeMasking,
+)
 import matplotlib.pyplot as plt
 import tqdm
 
-_DEFAULT_COMMONVOICE_ROOT = "/mounts//Datasets4/CommonVoice/"
+_DEFAULT_COMMONVOICE_ROOT = "/mounts/Datasets4/CommonVoice/"
 _DEFAULT_COMMONVOICE_VERSION = "v1"
 _DEFAULT_RATE = 16000  # Hz
 _DEFAULT_WIN_LENGTH = 25  # ms
@@ -29,17 +42,19 @@ _DEFAULT_NUM_MELS = 80
 
 def unpack_ravel(tensor: PackedSequence):
     unpacked_tensor, lens_tensor = pad_packed_sequence(tensor)  # T, B, *
-    raveled = torch.cat([
-        tensori[:leni] for tensori, leni in zip(unpacked_tensor,
-                                                lens_tensor)
-    ], 0)
+    raveled = torch.cat(
+        [tensori[:leni] for tensori, leni in zip(unpacked_tensor, lens_tensor)], 0
+    )
     # raveled is (Tcum, num_features)
     return raveled
 
-def load_dataset(fold: str,
-                 commonvoice_root: Union[str, Path],
-                 commonvoice_version: str,
-                 lang: str = 'fr') -> torch.utils.data.Dataset:
+
+def load_dataset(
+    fold: str,
+    commonvoice_root: Union[str, Path],
+    commonvoice_version: str,
+    lang: str = "fr",
+) -> torch.utils.data.Dataset:
     """
     Load the commonvoice dataset within the path
     commonvoice_root/commonvoice_version/lang
@@ -54,8 +69,7 @@ def load_dataset(fold: str,
         torch.utils.data.Dataset: ``dataset``
     """
     datasetpath = os.path.join(commonvoice_root, commonvoice_version, lang)
-    return COMMONVOICE(root=datasetpath,
-                       tsv=fold+".tsv")
+    return COMMONVOICE(root=datasetpath, tsv=fold + ".tsv")
 
 
 class DatasetFilter(object):
@@ -64,11 +78,13 @@ class DatasetFilter(object):
     durations of its waveform
     """
 
-    def __init__(self,
-                 ds: torch.utils.data.Dataset,
-                 min_duration: float,
-                 max_duration: float,
-                 cachepath: Path) -> None:
+    def __init__(
+        self,
+        ds: torch.utils.data.Dataset,
+        min_duration: float,
+        max_duration: float,
+        cachepath: Path,
+    ) -> None:
         """
         Args:
             ds: the dataset to filter
@@ -81,10 +97,13 @@ class DatasetFilter(object):
         if os.path.exists(cachepath):
             self.valid_indices = pickle.load(open(cachepath, "rb"))
         else:
-            self.valid_indices = [i for i, (w, r, _) in enumerate(ds) if min_duration <= w.squeeze().shape[0] / r <= max_duration]
+            self.valid_indices = [
+                i
+                for i, (w, r, _) in enumerate(ds)
+                if min_duration <= w.squeeze().shape[0] / r <= max_duration
+            ]
             pickle.dump(self.valid_indices, open(cachepath, "wb"))
         self.ds = ds
-
 
     def __getitem__(self, idx):
         return self.ds[self.valid_indices[idx]]
@@ -107,7 +126,7 @@ class CharMap(object):
     def __init__(self):
         ord_chars = frozenset().union(
             range(97, 123),  # a-z
-            range(48, 58),   # 0-9
+            range(48, 58),  # 0-9
             [32, 39, 44, 46],  # <space> <,> <.> <'>
             [self._SOS],  # <sos>¶
             [self._EOS],  # <eos>¦
@@ -116,31 +135,29 @@ class CharMap(object):
 
         # The pad symbol is added first to guarantee it has idx 0
         self.idx2char = [chr(self._BLANK)] + [chr(i) for i in ord_chars]
-        self.char2idx = {
-            c: idx for (idx, c) in enumerate(self.idx2char)
-        }
+        self.char2idx = {c: idx for (idx, c) in enumerate(self.idx2char)}
 
         self.equivalent_char = {}
         for i in range(224, 229):
-            self.equivalent_char[chr(i)] = 'a'
+            self.equivalent_char[chr(i)] = "a"
         for i in range(232, 236):
-            self.equivalent_char[chr(i)] = 'e'
+            self.equivalent_char[chr(i)] = "e"
         for i in range(236, 240):
-            self.equivalent_char[chr(i)] = 'i'
+            self.equivalent_char[chr(i)] = "i"
         for i in range(242, 247):
-            self.equivalent_char[chr(i)] = 'o'
+            self.equivalent_char[chr(i)] = "o"
         for i in range(249, 253):
-            self.equivalent_char[chr(i)] = 'u'
+            self.equivalent_char[chr(i)] = "u"
         # Remove the punctuation marks
-        for c in ['!', '?', ';']:
-            self.equivalent_char[c] = '.'
-        for c in ['-', '…', ':']:
-            self.equivalent_char[c] = ' '
-        self.equivalent_char['—'] = ''
+        for c in ["!", "?", ";"]:
+            self.equivalent_char[c] = "."
+        for c in ["-", "…", ":"]:
+            self.equivalent_char[c] = " "
+        self.equivalent_char["—"] = ""
         # This 'œ' in self.equivalent_char returns False... why ?
         # self.equivalent_char['œ'] = 'oe'
         # self.equivalent_char['ç'] = 'c'
-        self.equivalent_char['’'] = '\''
+        self.equivalent_char["’"] = "'"
 
     @property
     def vocab_size(self):
@@ -165,9 +182,12 @@ class CharMap(object):
     def encode(self, utterance):
         utterance = self.soschar + utterance.lower() + self.eoschar
         # Remove the accentuated characters
-        utterance = [self.equivalent_char[c] if c in self.equivalent_char else c for c in utterance]
+        utterance = [
+            self.equivalent_char[c] if c in self.equivalent_char else c
+            for c in utterance
+        ]
         # Replace the unknown characters
-        utterance = ['❌' if c not in self.char2idx else c for c in utterance]
+        utterance = ["❌" if c not in self.char2idx else c for c in utterance]
         return [self.char2idx[c] for c in utterance]
 
     def decode(self, tokens):
@@ -175,14 +195,15 @@ class CharMap(object):
 
 
 class WaveformProcessor(object):
-
-    def __init__(self,
-                 rate: float,
-                 win_length: float,
-                 win_step: float,
-                 nmels: int,
-                 augment: bool,
-                 spectro_normalization: Tuple[float, float]):
+    def __init__(
+        self,
+        rate: float,
+        win_length: float,
+        win_step: float,
+        nmels: int,
+        augment: bool,
+        spectro_normalization: Tuple[float, float],
+    ):
         """
         Args:
             rate: the sampling rate of the waveform
@@ -204,12 +225,9 @@ class WaveformProcessor(object):
         if augment:
             time_mask_duration = 0.1  # s.
             time_mask_nsamples = int(time_mask_duration / win_step)
-            nmel_mask = nmels//4
+            nmel_mask = nmels // 4
 
-            modules = [
-                FrequencyMasking(nmel_mask),
-                TimeMasking(time_mask_nsamples)
-            ]
+            modules = [FrequencyMasking(nmel_mask), TimeMasking(time_mask_nsamples)]
             self.transform_augment = nn.Sequential(*modules)
         ##########################
         #### STOP CODING HERE ####
@@ -226,7 +244,7 @@ class WaveformProcessor(object):
         Returns:
             int: the number of time samples in the spectrogram
         """
-        return waveform_length//self.nstep+1
+        return waveform_length // self.nstep + 1
 
     def __call__(self, waveforms: torch.Tensor):
         """
@@ -244,7 +262,9 @@ class WaveformProcessor(object):
 
         # Normalize the spectrogram
         if self.spectro_normalization is not None:
-            spectro = (spectro - self.spectro_normalization[0])/self.spectro_normalization[1]
+            spectro = (
+                spectro - self.spectro_normalization[0]
+            ) / self.spectro_normalization[1]
 
         # Apply data augmentation
         if self.transform_augment is not None:
@@ -260,10 +280,12 @@ class BatchCollate(object):
     Collator for the individual data to build up the minibatches
     """
 
-    def __init__(self,
-                 nmels: int,
-                 augment: bool,
-                 spectro_normalization: Tuple[float, float] = None):
+    def __init__(
+        self,
+        nmels: int,
+        augment: bool,
+        spectro_normalization: Tuple[float, float] = None,
+    ):
         """
         Args:
             nmels (int) : the number of mel scales to consider
@@ -272,11 +294,11 @@ class BatchCollate(object):
         """
         self.waveform_processor = WaveformProcessor(
             _DEFAULT_RATE,
-            _DEFAULT_WIN_LENGTH*1e-3,
-            _DEFAULT_WIN_STEP*1e-3,
+            _DEFAULT_WIN_LENGTH * 1e-3,
+            _DEFAULT_WIN_STEP * 1e-3,
             nmels,
             augment,
-            spectro_normalization
+            spectro_normalization,
         )
         self.charmap = CharMap()
 
@@ -296,23 +318,31 @@ class BatchCollate(object):
         # dictionnary has the 'sentence' key for the transcript
         waveforms = [w.squeeze() for w, _, _ in batch]
         rates = [r for _, r, _ in batch]
-        transcripts = [torch.LongTensor(self.charmap.encode(d['sentence']))
-                       for _, _, d in batch]
+        transcripts = [
+            torch.LongTensor(self.charmap.encode(d["sentence"])) for _, _, d in batch
+        ]
 
         # We resample the signal to the _DEFAULT_RATE
-        waveforms = [torchaudio.transforms.Resample(r, _DEFAULT_RATE)(w) if r != _DEFAULT_RATE else w for w, r in zip(waveforms, rates)]
+        waveforms = [
+            torchaudio.transforms.Resample(r, _DEFAULT_RATE)(w)
+            if r != _DEFAULT_RATE
+            else w
+            for w, r in zip(waveforms, rates)
+        ]
 
         # Sort the waveforms and transcripts by decreasing waveforms length
-        wt_sorted = sorted(zip(waveforms, transcripts),
-                           key=lambda wr: wr[0].shape[0],
-                           reverse=True)
+        wt_sorted = sorted(
+            zip(waveforms, transcripts), key=lambda wr: wr[0].shape[0], reverse=True
+        )
         waveforms = [wt[0] for wt in wt_sorted]
         transcripts = [wt[1] for wt in wt_sorted]
 
         # Compute the lengths of the spectrograms from the lengths
         # of the waveforms
         waveforms_lengths = [w.shape[0] for w in waveforms]
-        spectro_lengths = [self.waveform_processor.get_spectro_length(wl) for wl in waveforms_lengths]
+        spectro_lengths = [
+            self.waveform_processor.get_spectro_length(wl) for wl in waveforms_lengths
+        ]
         transcripts_lengths = [t.shape[0] for t in transcripts]
 
         ###########################
@@ -340,7 +370,7 @@ class BatchCollate(object):
         #          (1 line)
         transcripts = None
 
-        # Step 4 : pack the tensor of transcripts given their lenght as 
+        # Step 4 : pack the tensor of transcripts given their lenght as
         #          computed in transcripts_length
         #          Note : this packed tensor must be given enforce_sorted=False
         #          to ensure the i-th transcript corresponds to the i-th
@@ -355,18 +385,20 @@ class BatchCollate(object):
         return spectrograms, transcripts
 
 
-def get_dataloaders(commonvoice_root: str,
-                    commonvoice_version: str,
-                    cuda: bool,
-                    batch_size: int = 64,
-                    n_threads: int = 4,
-                    min_duration: float = 1,
-                    max_duration: float = 5,
-                    small_experiment:bool = False,
-                    train_augment:bool = False,
-                    nmels: int = _DEFAULT_NUM_MELS,
-                    logger = None,
-                    normalize=True):
+def get_dataloaders(
+    commonvoice_root: str,
+    commonvoice_version: str,
+    cuda: bool,
+    batch_size: int = 64,
+    n_threads: int = 4,
+    min_duration: float = 1,
+    max_duration: float = 5,
+    small_experiment: bool = False,
+    train_augment: bool = False,
+    nmels: int = _DEFAULT_NUM_MELS,
+    logger=None,
+    normalize=True,
+):
     """
     Build and return the pytorch dataloaders
 
@@ -391,12 +423,14 @@ def get_dataloaders(commonvoice_root: str,
 
     def dataset_loader(fold):
         return DatasetFilter(
-            ds = load_dataset(fold,
-                              commonvoice_root=commonvoice_root,
-                              commonvoice_version=commonvoice_version),
+            ds=load_dataset(
+                fold,
+                commonvoice_root=commonvoice_root,
+                commonvoice_version=commonvoice_version,
+            ),
             min_duration=min_duration,
             max_duration=max_duration,
-            cachepath = Path(fold + '.idx')
+            cachepath=Path(fold + ".idx"),
         )
 
     valid_dataset = dataset_loader("dev")
@@ -405,12 +439,9 @@ def get_dataloaders(commonvoice_root: str,
     if small_experiment:
         indices = range(batch_size)
 
-        train_dataset = torch.utils.data.Subset(train_dataset,
-                                                indices=indices)
-        valid_dataset = torch.utils.data.Subset(valid_dataset,
-                                                indices=indices)
-        test_dataset = torch.utils.data.Subset(test_dataset,
-                                               indices=indices)
+        train_dataset = torch.utils.data.Subset(train_dataset, indices=indices)
+        valid_dataset = torch.utils.data.Subset(valid_dataset, indices=indices)
+        test_dataset = torch.utils.data.Subset(test_dataset, indices=indices)
 
     if normalize:
         # Compute the normalization on the training set
@@ -444,65 +475,73 @@ def get_dataloaders(commonvoice_root: str,
     if logger is not None:
         logger.info(f"Normalization coefficients : {mean_spectro}, {std_spectro}")
 
-    batch_collate_train_fn = BatchCollate(nmels,
-                                          augment=train_augment,
-                                          spectro_normalization=normalization)
-    batch_collate_infer_fn = BatchCollate(nmels,
-                                          augment=False,
-                                          spectro_normalization=normalization)
+    batch_collate_train_fn = BatchCollate(
+        nmels, augment=train_augment, spectro_normalization=normalization
+    )
+    batch_collate_infer_fn = BatchCollate(
+        nmels, augment=False, spectro_normalization=normalization
+    )
 
     print(f"Building a train loader with batch size = {batch_size}")
     print(f"The dataset contains {len(train_dataset)} samples")
-    train_loader = torch.utils.data.DataLoader(train_dataset,
-                                               batch_size=batch_size,
-                                               shuffle=True,
-                                               num_workers=n_threads,
-                                               collate_fn=batch_collate_train_fn,
-                                               pin_memory=cuda)
-    valid_loader = torch.utils.data.DataLoader(valid_dataset,
-                                               batch_size=batch_size,
-                                               shuffle=False,
-                                               num_workers=n_threads,
-                                               collate_fn=batch_collate_infer_fn,
-                                               pin_memory=cuda)
-    test_loader = torch.utils.data.DataLoader(test_dataset,
-                                              batch_size=batch_size,
-                                              shuffle=False,
-                                              num_workers=n_threads,
-                                              collate_fn=batch_collate_infer_fn,
-                                              pin_memory=cuda)
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=n_threads,
+        collate_fn=batch_collate_train_fn,
+        pin_memory=cuda,
+    )
+    valid_loader = torch.utils.data.DataLoader(
+        valid_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=n_threads,
+        collate_fn=batch_collate_infer_fn,
+        pin_memory=cuda,
+    )
+    test_loader = torch.utils.data.DataLoader(
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=n_threads,
+        collate_fn=batch_collate_infer_fn,
+        pin_memory=cuda,
+    )
 
     return train_loader, valid_loader, test_loader
 
 
-def plot_spectro(spectrogram: torch.Tensor,
-                 transcript: torch.Tensor,
-                 win_step: float,
-                 charmap: CharMap) -> None:
-    '''
+def plot_spectro(
+    spectrogram: torch.Tensor,
+    transcript: torch.Tensor,
+    win_step: float,
+    charmap: CharMap,
+) -> None:
+    """
     Args:
         spectrogram (time, n_mels) tensor
         trancript (target_len, ) LongTensor
         win_step is the stride of the windows, in seconds, for computing the
                  spectrogram
         charmap : object for converting between int and char for the transcripts
-    '''
+    """
     fig = plt.figure(figsize=(10, 2))
     ax = fig.add_subplot()
 
-    im = ax.imshow(spectrogram.T,
-                   extent=[0, spectrogram.shape[0]*win_step,
-                           0, spectrogram.shape[1]],
-                   aspect='auto',
-                   cmap='magma',
-                   origin='lower')
-    ax.set_ylabel('Mel scale')
-    ax.set_xlabel('TIme (s.)')
-    ax.set_title('{}'.format(charmap.decode(transcript)))
+    im = ax.imshow(
+        spectrogram.T,
+        extent=[0, spectrogram.shape[0] * win_step, 0, spectrogram.shape[1]],
+        aspect="auto",
+        cmap="magma",
+        origin="lower",
+    )
+    ax.set_ylabel("Mel scale")
+    ax.set_xlabel("TIme (s.)")
+    ax.set_title("{}".format(charmap.decode(transcript)))
     plt.colorbar(im)
     plt.tight_layout()
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass
