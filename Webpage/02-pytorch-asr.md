@@ -23,11 +23,11 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 
 **Download** the starter codes below but do not spend too much time digging into them for now (we will discuss them step by step). All these files are expected to be placed in the same directory.
 
-- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
-- [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/models.py) : code defining the neural network architectures
-- [main_ctc.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
-- [train.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/train.idx), [test.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test.idx), [dev.idx](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/dev.idx) : files with the indices of the CommonVoice v1 fr dataset filtered between 1s. and 5.
-- [test_implementation.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
+- [data.py](./labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
+- [models.py](./labs/02-pytorch-asr/models.py) : code defining the neural network architectures
+- [main_ctc.py](./labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
+- [train.idx](./labs/02-pytorch-asr/train.idx), [test.idx](./labs/02-pytorch-asr/test.idx), [dev.idx](./labs/02-pytorch-asr/dev.idx) : files with the indices of the CommonVoice v1 fr dataset filtered between 1s. and 5.
+- [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
 ### Requirements
 
