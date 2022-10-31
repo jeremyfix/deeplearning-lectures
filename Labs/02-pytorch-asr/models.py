@@ -5,10 +5,12 @@ import collections
 import math
 from typing import List, Tuple
 import tqdm
+
 # External imports
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence, PackedSequence
+
 # Local imports
 import data
 
@@ -19,13 +21,15 @@ class CTCModel(nn.Module):
     the DeepSpeech2. To be used with the CTC Loss
     """
 
-    def __init__(self,
-                 charmap: data.CharMap,
-                 n_mels: int,
-                 nhidden_rnn: int,
-                 nlayers_rnn: int,
-                 cell_type: str,
-                 dropout: float) -> None:
+    def __init__(
+        self,
+        charmap: data.CharMap,
+        n_mels: int,
+        nhidden_rnn: int,
+        nlayers_rnn: int,
+        cell_type: str,
+        dropout: float,
+    ) -> None:
         """
         Args:
             charmap (data.Charmap) : the character/int map
@@ -74,58 +78,58 @@ class CTCModel(nn.Module):
         with torch.no_grad():
             if self.cell_type == "LSTM":
                 for i in range(self.nlayers_rnn):
-                    forw_gates = getattr(self.rnn,
-                                         f'bias_ih_l{i}').chunk(4, dim=0)
+                    forw_gates = getattr(self.rnn, f"bias_ih_l{i}").chunk(4, dim=0)
                     iig, ifg, igg, iog = forw_gates
-                    iig.fill_(0.)
-                    ifg.fill_(1.)
-                    igg.fill_(0.)
-                    iog.fill_(0.)
+                    iig.fill_(0.0)
+                    ifg.fill_(1.0)
+                    igg.fill_(0.0)
+                    iog.fill_(0.0)
 
-                    forw_gates = getattr(self.rnn,
-                                         f'bias_hh_l{i}').chunk(4, dim=0)
+                    forw_gates = getattr(self.rnn, f"bias_hh_l{i}").chunk(4, dim=0)
                     hig, hfg, hgg, hog = forw_gates
-                    hig.fill_(0.)
-                    hfg.fill_(0.)
-                    hgg.fill_(0.)
-                    hog.fill_(0.)
+                    hig.fill_(0.0)
+                    hfg.fill_(0.0)
+                    hgg.fill_(0.0)
+                    hog.fill_(0.0)
 
-                    rev_gates = getattr(self.rnn,
-                                        f'bias_ih_l{i}_reverse').chunk(4, dim=0)
+                    rev_gates = getattr(self.rnn, f"bias_ih_l{i}_reverse").chunk(
+                        4, dim=0
+                    )
                     iig, ifg, igg, iog = rev_gates
-                    iig.fill_(0.)
-                    ifg.fill_(1.)
-                    igg.fill_(0.)
-                    iog.fill_(0.)
+                    iig.fill_(0.0)
+                    ifg.fill_(1.0)
+                    igg.fill_(0.0)
+                    iog.fill_(0.0)
 
-                    rev_gates = getattr(self.rnn,
-                                        f'bias_hh_l{i}_reverse').chunk(4, dim=0)
+                    rev_gates = getattr(self.rnn, f"bias_hh_l{i}_reverse").chunk(
+                        4, dim=0
+                    )
                     hig, hfg, hgg, hog = rev_gates
-                    hig.fill_(0.)
-                    hfg.fill_(0.)
-                    hgg.fill_(0.)
-                    hog.fill_(0.)
+                    hig.fill_(0.0)
+                    hfg.fill_(0.0)
+                    hgg.fill_(0.0)
+                    hog.fill_(0.0)
             else:
                 # GRU
                 for i in range(self.nlayers_rnn):
-                    for direction in ['', '_reverse']:
-                        gates = getattr(self.rnn,
-                                        f'bias_ih_l{i}{direction}').chunk(3, dim=0)
+                    for direction in ["", "_reverse"]:
+                        gates = getattr(self.rnn, f"bias_ih_l{i}{direction}").chunk(
+                            3, dim=0
+                        )
                         irg, izg, ing = gates
-                        irg.fill_(1.)
-                        izg.fill_(-1.)
-                        ing.fill_(0.)
+                        irg.fill_(1.0)
+                        izg.fill_(-1.0)
+                        ing.fill_(0.0)
 
-                        gates = getattr(self.rnn,
-                                        f'bias_hh_l{i}{direction}').chunk(3, dim=0) 
+                        gates = getattr(self.rnn, f"bias_hh_l{i}{direction}").chunk(
+                            3, dim=0
+                        )
                         hrg, hzg, hng = gates
-                        hrg.fill_(0.)
-                        hzg.fill_(0.)
-                        hng.fill_(0.)
+                        hrg.fill_(0.0)
+                        hzg.fill_(0.0)
+                        hng.fill_(0.0)
 
-
-    def forward(self,
-                inputs: PackedSequence) -> PackedSequence:
+    def forward(self, inputs: PackedSequence) -> PackedSequence:
 
         ###########################
         #### START CODING HERE ####
@@ -203,8 +207,7 @@ class CTCModel(nn.Module):
 
         return outputs
 
-    def decode(self,
-               inputs: PackedSequence) -> List[Tuple[float, str]]:
+    def decode(self, inputs: PackedSequence) -> List[Tuple[float, str]]:
         """
         Greedy decoder.
 
@@ -237,8 +240,8 @@ class CTCModel(nn.Module):
                 neg_log_prob = -top_values.sum()
                 seq = [c for c in top_indices]
             else:
-                neg_log_prob = -top_values[:(eos_pos+1)].sum()
-                seq = [c for c in top_indices[:(eos_pos+1)]]
+                neg_log_prob = -top_values[: (eos_pos + 1)].sum()
+                seq = [c for c in top_indices[: (eos_pos + 1)]]
 
             # Remove the repetitions
             if len(seq) != 0:
@@ -246,12 +249,10 @@ class CTCModel(nn.Module):
                 seq = [c1 for c1, c2 in zip(seq[:-1], seq[1:]) if c1 != c2]
                 seq.append(last_char)
 
-            # Remove the blank 
+            # Remove the blank
             seq = [c for c in seq if c != self.charmap.blankid]
 
             # Decode the list of integers
             seq = self.charmap.decode(seq)
 
             return [(neg_log_prob, seq)]
-
-
