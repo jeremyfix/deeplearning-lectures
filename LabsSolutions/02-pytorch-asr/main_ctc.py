@@ -39,7 +39,8 @@ def wrap_ctc_args(packed_predictions, packed_targets):
         packed_predictions
     )  # T, B, vocab_size
 
-    # compute the log_softmax unpacked_predictions = unpacked_predictions.log_softmax(dim=2)  # T, B, vocab_size
+    # compute the log_softmax
+    unpacked_predictions = unpacked_predictions.log_softmax(dim=2)  # T, B, vocab_size
 
     unpacked_targets, lens_targets = pad_packed_sequence(packed_targets)  # T, B
     unpacked_targets = unpacked_targets.transpose(0, 1)  # B, T
