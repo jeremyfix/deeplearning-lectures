@@ -3,7 +3,7 @@ deepcs==0.2.3
 imageio==2.13.5
 matplotlib==3.3.1
 numpy>=1.19.2
-Pillow==9.2.0
+Pillow==9.3.0
 pytest==3.3.2
 tensorboard==2.6.0
 timm==0.4.12
