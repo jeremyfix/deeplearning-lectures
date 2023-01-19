@@ -31,18 +31,24 @@ There are $14$ classes, the first being for the unlabeled pixels.
 
 For this lab work, you are provided with environment setup files, either a [environment.yml](./data/01-pytorch-segmentation/environment.yml) if you are using conda and a [requirements.txt](./data/01-pytorch-segmentation/requirements.txt) file if you are a pipenv/pip/virtualenv/etc..
 
-On the CentraleSupelec clusters, I advise you to use conda :
+On the CentraleSupelec clusters, I advise you to use virtualenv as conda requires a lot of dependencies to be installed and can sometimes be cumbersome.
 
 ``` console
-sh11:~:mylogin$ export PATH=PATH:/opt/conda/bin
-sh11:~:mylogin$ conda env create -f environment.yml
-sh11:~:mylogin$ source activate dl-lectures-pytorch-segmentation
+sh11:~:mylogin$ python3 -m pip install virtualenv --user
+sh11:~:mylogin$ virtualenv -p python3 venv
+sh11:~:mylogin$ source venv/bin/activate
+(venv) sh11:~:mylogin$  python -m pip install -r requirements.txt
 ```
+<!--
+> sh11:~:mylogin$ export PATH=PATH:/opt/conda/bin
+> sh11:~:mylogin$ conda env create -f environment.yml
+> sh11:~:mylogin$ source activate dl-lectures-pytorch-segmentation
+-->
 
 If your enviromnent is correctly created and activated, the following should work 
 
 ```console
-(dl-lectures-pytorch-segmentation) sh11:~:mylogin$ python -c "import torch; print(torch.__version__)"
+(venv) sh11:~:mylogin$ python -c "import torch; print(torch.__version__)"
 1.10.1+cu113
 ```
 
