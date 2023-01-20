@@ -359,11 +359,11 @@ def test_dataset(args):
     rgb, semantics = dataset[data_idx]
     # SOL@
     # @TEMPL
-    # Code Here
-    # vvvvvvvvv
+    ## Code Here
+    ## vvvvvvvvv
     # dataset = ...
     # rgb, semantics = ...
-    # ^^^^^^^^^
+    ## ^^^^^^^^^
     # TEMPL@
 
     fig, axes = plt.subplots(1, 3, figsize=(6, 3))
