@@ -204,5 +204,5 @@ dependencies:
   - zlib=1.2.13=h5eee18b_0
   - zstd=1.5.2=ha4553b6_0
   - pip:
-    - deepcs==0.2.5
+    - deepcs==0.2.6
     - torchinfo==1.7.1

@@ -94,6 +94,7 @@ class DatasetFilter(object):
         # At construction we build a list of indices
         # of valid samples from the original dataset
         if os.path.exists(cachepath) and not overwrite_index:
+            print("Loading the pre-generating index file")
             self.valid_indices = pickle.load(open(cachepath, "rb"))
         else:
             print(f"Generating the index files, processing {len(ds)} files")
