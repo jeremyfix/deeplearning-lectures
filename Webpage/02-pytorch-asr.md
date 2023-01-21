@@ -26,7 +26,7 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [data.py](./labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
 - [models.py](./labs/02-pytorch-asr/models.py) : code defining the neural network architectures
 - [main_ctc.py](./labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
-- [train.idx](./labs/02-pytorch-asr/train.idx), [test.idx](./labs/02-pytorch-asr/test.idx), [dev.idx](./labs/02-pytorch-asr/dev.idx) : files with the indices of the CommonVoice v1 fr dataset filtered between 1s. and 5.
+- [train-v1.idx](./labs/02-pytorch-asr/train-v1.idx), [test-v1.idx](./labs/02-pytorch-asr/test-v1.idx), [dev.idx](./labs/02-pytorch-asr/dev-v1.idx) : files with the indices of the CommonVoice **v1 fr** dataset filtered between 1s. and 5.
 - [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
 ### Requirements
@@ -199,7 +199,7 @@ Below is an example expected output :
 
 As a final note on the data loading part, you may notice that in the `get_dataloaders` function, the BatchCollate object are created with **normalization coefficients** of the spectrogram. I hard-coded the mean and variance. This is dirty, I agree, but that's speeding up your ability to experiment since otherwise it takes quite a while to compute these values. Nevertheless, keep this in mind that if you experiment with some other data, you may need to uncomment the code computing these normalization coefficients.
 
-Also, please note that the train.idx, dev.idx and test.idx files are precomputed to contain the list of the datasamples that have a duration between 1s. and 5s. In case you want to modify these timelengths in the get_dataloaders, you may need to remove these idx files so that they regenerated (see the DatasetFilter object).
+Also, please note that the train-v1.idx, dev-v1.idx and test-v1.idx files are precomputed to contain the list of the datasamples that have a duration between 1s. and 5s. In case you want to modify these timelengths in the get_dataloaders, you may need to remove these idx files so that they regenerated (see the DatasetFilter object).
 
 ## Connectionist Temporal Classification (CTC)
 
