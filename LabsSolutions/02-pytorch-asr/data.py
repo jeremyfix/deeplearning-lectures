@@ -28,8 +28,7 @@ from torchaudio.transforms import (
     TimeMasking,
 )
 import matplotlib.pyplot as plt
-
-# import tqdm
+import tqdm
 
 _DEFAULT_COMMONVOICE_ROOT = "/mounts/Datasets4/CommonVoice/"
 _DEFAULT_COMMONVOICE_VERSION = "v1"
@@ -83,6 +82,7 @@ class DatasetFilter(object):
         min_duration: float,
         max_duration: float,
         cachepath: Path,
+        overwrite_index: bool,
     ) -> None:
         """
         Args:
@@ -93,12 +93,13 @@ class DatasetFilter(object):
         """
         # At construction we build a list of indices
         # of valid samples from the original dataset
-        if os.path.exists(cachepath):
+        if os.path.exists(cachepath) and not overwrite_index:
             self.valid_indices = pickle.load(open(cachepath, "rb"))
         else:
+            print("Generating the index files")
             self.valid_indices = [
                 i
-                for i, (w, r, _) in enumerate(ds)
+                for i, (w, r, _) in tqdm.tqdm(enumerate(ds))
                 if min_duration <= w.squeeze().shape[0] / r <= max_duration
             ]
             pickle.dump(self.valid_indices, open(cachepath, "wb"))
@@ -417,6 +418,7 @@ def get_dataloaders(
     nmels: int = _DEFAULT_NUM_MELS,
     logger=None,
     normalize=True,
+    overwrite_index=False,
 ):
     """
     Build and return the pytorch dataloaders
@@ -438,9 +440,10 @@ def get_dataloaders(
         nmels (int) : the number of mel scales to consider
         logger : an optional logging logger
         normalize : wheter or not to center reduce the spectrograms
+        overwrite_index: whether or not to overwrite the cache files for the index of sequences to consider
     """
 
-    def dataset_loader(fold, version):
+    def dataset_loader(fold, version, overwrite_index):
         return DatasetFilter(
             ds=load_dataset(
                 fold,
@@ -450,11 +453,12 @@ def get_dataloaders(
             min_duration=min_duration,
             max_duration=max_duration,
             cachepath=Path(fold + version + ".idx"),
+            overwirte_index=overwrite_index,
         )
 
-    valid_dataset = dataset_loader("dev")
-    train_dataset = dataset_loader("train")
-    test_dataset = dataset_loader("test")
+    valid_dataset = dataset_loader("dev", commonvoice_version, overwrite_index)
+    train_dataset = dataset_loader("train", commonvoice_version, overwrite_index)
+    test_dataset = dataset_loader("test", commonvoice_version, overwrite_index)
     if small_experiment:
         indices = range(batch_size)
 
