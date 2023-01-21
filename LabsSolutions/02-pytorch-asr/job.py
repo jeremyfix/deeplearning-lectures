@@ -40,6 +40,9 @@ rsync -r . $TMPDIR/ --exclude 'logslurms' --exclude 'logs'
 cd $TMPDIR/
 git checkout {commit_id}
 
+# Remove the index files to really test if regenerating them will work
+rm *.idx
+
 echo ""
 echo "Virtual env"
 
@@ -94,8 +97,8 @@ submit_job(
     makejob(
         commit_id,
         1,
-        "gpu_prod_night",
-        "8:00:00",
+        "gpu_prod",
+        "24:00:00",
         augment,
         debug,
         {
