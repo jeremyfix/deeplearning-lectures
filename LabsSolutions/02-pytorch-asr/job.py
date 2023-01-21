@@ -56,7 +56,7 @@ echo ""
 echo "Training"
 date
 
-python3 main_ctc.py  --logname ctc_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} --baselogdir ${{current_dir}}/logs train
+python3 main_ctc.py  --logname ctc_${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} --baselogdir ${{current_dir}}/logs {paramsstr} train
 
 if [[ $? != 0 ]]; then
     exit -1
@@ -97,7 +97,7 @@ submit_job(
     makejob(
         commit_id,
         1,
-        "gpu_prod",
+        "gpu_prod_long",
         "24:00:00",
         augment,
         debug,
@@ -105,7 +105,6 @@ submit_job(
             "batch_size": 128,
             "num_epochs": 50,
             "base_lr": 0.001,
-            "grad_clip": None,
             "min_duration": 1.0,
             "max_duration": 6.0,
             "nlayers_rnn": 4,
