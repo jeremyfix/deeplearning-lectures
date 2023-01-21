@@ -6,7 +6,6 @@ import os
 import sys
 import logging
 import argparse
-import functools
 from pathlib import Path
 
 # External imports
@@ -14,11 +13,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
-from torch.nn.utils.rnn import pad_packed_sequence
 from torch.utils.tensorboard import SummaryWriter
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import torchaudio
-import tqdm
 import deepcs.display
 from deepcs.training import train as ftrain, ModelCheckpoint
 from deepcs.testing import test as ftest
@@ -153,7 +150,7 @@ def train(args):
     #### STOP CODING HERE ####
     ##########################
 
-    metrics = {"CTC": loss}
+    metrics = {"CTC": deepcs.metrics.GenericBatchMetric(loss)}
 
     # Callbacks
     summary_text = (

@@ -96,7 +96,7 @@ class DatasetFilter(object):
         if os.path.exists(cachepath) and not overwrite_index:
             self.valid_indices = pickle.load(open(cachepath, "rb"))
         else:
-            print("Generating the index files")
+            print(f"Generating the index files, processing {len(ds)} files")
             self.valid_indices = [
                 i
                 for i, (w, r, _) in tqdm.tqdm(enumerate(ds))
