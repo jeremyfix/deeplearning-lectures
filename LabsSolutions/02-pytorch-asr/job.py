@@ -96,14 +96,14 @@ commit_id = subprocess.check_output(
 os.system("mkdir -p logslurms")
 
 # Launch the batch jobs
-debug = True
+debug = False
 augment = True
 submit_job(
     makejob(
         commit_id,
         1,
         "gpu_prod_long",
-        "24:00:00",
+        "48:00:00",
         augment,
         debug,
         {
@@ -116,7 +116,7 @@ submit_job(
             "nhidden_rnn": 1024,
             "weight_decay": 0.0,
             "dropout": 0.0,
-            "datasetversion": "v1",
+            "datasetversion": "v6.1",
         },
     )
 )
