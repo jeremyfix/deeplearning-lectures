@@ -453,7 +453,7 @@ def get_dataloaders(
             min_duration=min_duration,
             max_duration=max_duration,
             cachepath=Path(fold + version + ".idx"),
-            overwirte_index=overwrite_index,
+            overwrite_index=overwrite_index,
         )
 
     valid_dataset = dataset_loader("dev", commonvoice_version, overwrite_index)
