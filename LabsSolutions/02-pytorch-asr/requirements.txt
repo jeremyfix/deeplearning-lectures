@@ -1,6 +1,6 @@
 torch==1.13.1
 torchaudio==0.13.1
 tensorboard==2.11.2
-deepcs==0.2.5
+deepcs==0.2.6
 tqdm==4.64.1
 matplotlib==3.6.3
