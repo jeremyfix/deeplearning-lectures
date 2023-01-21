@@ -97,7 +97,7 @@ submit_job(
     makejob(
         commit_id,
         1,
-        "gpu_prod",
+        "gpu_prod_long",
         "24:00:00",
         augment,
         debug,
