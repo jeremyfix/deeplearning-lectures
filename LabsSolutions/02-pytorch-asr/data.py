@@ -452,7 +452,7 @@ def get_dataloaders(
             ),
             min_duration=min_duration,
             max_duration=max_duration,
-            cachepath=Path(fold + version + ".idx"),
+            cachepath=Path(fold + "-" + version + ".idx"),
             overwrite_index=overwrite_index,
         )
 
