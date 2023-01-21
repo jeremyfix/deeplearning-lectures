@@ -440,7 +440,7 @@ def get_dataloaders(
         normalize : wheter or not to center reduce the spectrograms
     """
 
-    def dataset_loader(fold):
+    def dataset_loader(fold, version):
         return DatasetFilter(
             ds=load_dataset(
                 fold,
@@ -449,7 +449,7 @@ def get_dataloaders(
             ),
             min_duration=min_duration,
             max_duration=max_duration,
-            cachepath=Path(fold + ".idx"),
+            cachepath=Path(fold + version + ".idx"),
         )
 
     valid_dataset = dataset_loader("dev")
