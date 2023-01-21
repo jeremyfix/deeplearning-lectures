@@ -46,10 +46,15 @@ rm *.idx
 echo ""
 echo "Virtual env"
 
-python3 -m pip install virtualenv --user
-virtualenv -p python3 venv
-source venv/bin/activate
-python -m pip install -r requirements.txt
+# python3 -m pip install virtualenv --user
+# virtualenv -p python3 venv
+# source venv/bin/activate
+# python -m pip install -r requirements.txt
+
+source "/opt/conda/etc/profile.d/conda.sh"
+export PATH=$PATH:/opt/conda/bin
+conda create --prefix $TMPDIR/venv -f pytorch-asr-py3.9.yaml
+conda activate $TMPDIR/venv
 
 
 echo ""
