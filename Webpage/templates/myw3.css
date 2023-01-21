@@ -95,3 +95,8 @@ figcaption:before {
     font-weight: bold;
 
 }
+
+th, td {
+	border-bottom: 1px solid #ddd;
+	padding-right: 15px;
+}

@@ -1,0 +1,20 @@
+albumentations==1.1.0
+deepcs==0.2.3
+imageio==2.13.5
+matplotlib==3.3.1
+numpy==1.23.5
+Pillow==9.3.0
+pytest==3.3.2
+tensorboard==2.11.0
+timm==0.4.12
+-f https://download.pytorch.org/whl/cu113/torch_stable.html
+torch==1.10.1+cu113
+torchinfo==1.5.4
+torchvision==0.11.2+cu113
+tqdm==4.30.0
+# Fix protobuf issue https://github.com/protocolbuffers/protobuf/issues/10051
+protobuf==3.20.1
+# Fix tensorboard issue : https://github.com/pytorch/pytorch/issues/69894
+setuptools==59.5.0
+onnx==1.12.0
+onnxruntime-gpu==1.13.1

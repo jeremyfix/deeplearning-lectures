@@ -4,7 +4,6 @@
 # Standard imports
 import os
 import functools
-import operator
 import logging
 from pathlib import Path
 from typing import Union, Tuple
@@ -24,7 +23,6 @@ from torchaudio.datasets import COMMONVOICE
 from torchaudio.transforms import (
     Spectrogram,
     AmplitudeToDB,
-    MelScale,
     MelSpectrogram,
     FrequencyMasking,
     TimeMasking,
@@ -84,6 +82,7 @@ class DatasetFilter(object):
         min_duration: float,
         max_duration: float,
         cachepath: Path,
+        overwrite_index: bool,
     ) -> None:
         """
         Args:
@@ -94,12 +93,13 @@ class DatasetFilter(object):
         """
         # At construction we build a list of indices
         # of valid samples from the original dataset
-        if os.path.exists(cachepath):
+        if os.path.exists(cachepath) and not overwrite_index:
             self.valid_indices = pickle.load(open(cachepath, "rb"))
         else:
+            print("Generating the index files")
             self.valid_indices = [
                 i
-                for i, (w, r, _) in enumerate(ds)
+                for i, (w, r, _) in tqdm.tqdm(enumerate(ds))
                 if min_duration <= w.squeeze().shape[0] / r <= max_duration
             ]
             pickle.dump(self.valid_indices, open(cachepath, "wb"))
@@ -375,9 +375,9 @@ class BatchCollate(object):
         #          as computed in spectro_lengths
         #          (1 line)
         # @TEMPL@spectrograms = None
-        spectrograms = pack_padded_sequence(
-            spectrograms, lengths=spectro_lengths
-        )  # @SOL@
+        # @SOL
+        spectrograms = pack_padded_sequence(spectrograms, lengths=spectro_lengths)
+        # SOL@
 
         # Step 3 : pad the sequence of tensors transcripts. The resulting
         #          tensor must be (Ty, B)
@@ -418,6 +418,7 @@ def get_dataloaders(
     nmels: int = _DEFAULT_NUM_MELS,
     logger=None,
     normalize=True,
+    overwrite_index=False,
 ):
     """
     Build and return the pytorch dataloaders
@@ -439,9 +440,10 @@ def get_dataloaders(
         nmels (int) : the number of mel scales to consider
         logger : an optional logging logger
         normalize : wheter or not to center reduce the spectrograms
+        overwrite_index: whether or not to overwrite the cache files for the index of sequences to consider
     """
 
-    def dataset_loader(fold):
+    def dataset_loader(fold, version, overwrite_index):
         return DatasetFilter(
             ds=load_dataset(
                 fold,
@@ -450,12 +452,13 @@ def get_dataloaders(
             ),
             min_duration=min_duration,
             max_duration=max_duration,
-            cachepath=Path(fold + ".idx"),
+            cachepath=Path(fold + version + ".idx"),
+            overwirte_index=overwrite_index,
         )
 
-    valid_dataset = dataset_loader("dev")
-    train_dataset = dataset_loader("train")
-    test_dataset = dataset_loader("test")
+    valid_dataset = dataset_loader("dev", commonvoice_version, overwrite_index)
+    train_dataset = dataset_loader("train", commonvoice_version, overwrite_index)
+    test_dataset = dataset_loader("test", commonvoice_version, overwrite_index)
     if small_experiment:
         indices = range(batch_size)
 
@@ -819,7 +822,6 @@ def test_spectro():
 
 # SOL@
 if __name__ == "__main__":
-    pass
     # @TEMPL@pass
     # @SOL
     # order_by_length()
@@ -828,4 +830,5 @@ if __name__ == "__main__":
     # ex_waveform_spectro()
     # ex_spectro()
     # ex_augmented_spectro()
+    pass
     # SOL@

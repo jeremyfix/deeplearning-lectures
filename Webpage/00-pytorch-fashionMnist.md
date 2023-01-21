@@ -353,7 +353,7 @@ Let us see this in action by considering a 3-class problem. Let us take
 an input, of true class y=1, being assigned the scores
 $\hat{z} = [-100, 10, 8]$, i.e. the assigned probabilities being
 $\hat{y} = [\frac{\exp(-100)}{\sum_i \exp(y_i)}, \frac{\exp(10)}{\sum_i \exp(y_i)}, \frac{\exp(8)}{\sum_i \exp(y_i)}] = [0.0000, 0.8808, 0.1192]$
-the cross entropy loss is given by $-\sum_{i=0}^{3} \log(\hat{y}_y) = -\log(0.8808) \approx 0.1269$
+the cross entropy loss is given by $- \log(\hat{y}_y) = -\log(0.8808) \approx 0.1269$
 and is computed in Pytorch as :
 
 ``` {.sourceCode .python}
