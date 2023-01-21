@@ -4,7 +4,6 @@
 # Standard imports
 import os
 import functools
-import operator
 import logging
 from pathlib import Path
 from typing import Union, Tuple
@@ -24,13 +23,13 @@ from torchaudio.datasets import COMMONVOICE
 from torchaudio.transforms import (
     Spectrogram,
     AmplitudeToDB,
-    MelScale,
     MelSpectrogram,
     FrequencyMasking,
     TimeMasking,
 )
 import matplotlib.pyplot as plt
-import tqdm
+
+# import tqdm
 
 _DEFAULT_COMMONVOICE_ROOT = "/mounts/Datasets4/CommonVoice/"
 _DEFAULT_COMMONVOICE_VERSION = "v1"
