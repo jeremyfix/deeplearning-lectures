@@ -53,7 +53,7 @@ echo "Virtual env"
 
 source "/opt/conda/etc/profile.d/conda.sh"
 export PATH=$PATH:/opt/conda/bin
-conda create --prefix $TMPDIR/venv -f pytorch-asr-py3.9.yaml
+conda env create --prefix $TMPDIR/venv -f pytorch-asr-py3.9.yaml
 conda activate $TMPDIR/venv
 
 
