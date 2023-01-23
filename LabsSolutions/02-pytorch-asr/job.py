@@ -109,11 +109,11 @@ submit_job(
         {
             "batch_size": 256,
             "num_epochs": 100,
-            "base_lr": 0.01,
+            "base_lr": 0.001,
             "min_duration": 1.0,
             "max_duration": 6.0,
             "nlayers_rnn": 4,
-            "nhidden_rnn": 512,
+            "nhidden_rnn": 1024,
             "weight_decay": 0.0,
             "dropout": 0.0,
             "datasetversion": "v6.1",
