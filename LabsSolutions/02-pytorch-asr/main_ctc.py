@@ -362,7 +362,7 @@ if __name__ == "__main__":
     # Data parameters
     parser.add_argument(
         "--datasetversion",
-        choices=["v1", "v6.1"],
+        choices=["v1", "v6.1", "v12.0"],
         default=data._DEFAULT_COMMONVOICE_VERSION,
         help="Which CommonVoice corpus to consider",
     )
