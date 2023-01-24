@@ -116,7 +116,7 @@ submit_job(
             "nhidden_rnn": 1024,
             "weight_decay": 0.0,
             "dropout": 0.0,
-            "datasetversion": "v6.1",
+            "datasetversion": "v12.0",
         },
     )
 )
