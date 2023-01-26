@@ -27,6 +27,9 @@ from torchaudio.transforms import (
     FrequencyMasking,
     TimeMasking,
 )
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import tqdm
 
@@ -659,7 +662,8 @@ def ex_waveform_spectro():
 
     plt.tight_layout()
     plt.savefig("waveform_to_spectro.png")
-    plt.show()
+    logging.info("Image saved to waveform_to_spectro.png")
+    # plt.show()
 
 
 def ex_spectro():
@@ -714,7 +718,8 @@ def ex_spectro():
     fig.colorbar(im, ax=axes.ravel().tolist())
     plt.xlabel("Time (s.)")
     plt.savefig("spectro.png")
-    plt.show()
+    logging.info("Image saved to spectro.png")
+    # plt.show()
 
 
 def ex_augmented_spectro():
@@ -758,8 +763,9 @@ def ex_augmented_spectro():
     print(X.shape, _DEFAULT_WIN_STEP * 1e-3)
     plot_spectro(X[:, idx, :], y[: lens_y[idx], idx], _DEFAULT_WIN_STEP * 1e-3, charmap)
     plt.savefig("spectro_train.png")
+    logging.info("Image saved to spectro_train.png")
 
-    plt.show()
+    # plt.show()
 
 
 def order_by_length():
@@ -818,7 +824,9 @@ def test_spectro():
     ax.set_title("Log mel spectrogram")
     plt.colorbar(im)
     plt.tight_layout()
-    plt.show()
+    plt.savefig("test_spectro.png")
+    logging.info("Image saved to test_spectro.png")
+    # plt.show()
 
 
 # SOL@
