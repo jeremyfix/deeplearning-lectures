@@ -18,7 +18,10 @@ copyextra:
 easylab:
 	rm -rf $(OUTPUT_DIR)/labs/01-pytorch-segmentation
 	easylabwork ../LabsSolutions/01-pytorch-segmentation  $(OUTPUT_DIR)/labs/01-pytorch-segmentation
+	# For the LabWork pytorch-ASR
 	easylabwork ../LabsSolutions/02-pytorch-asr  $(OUTPUT_DIR)/labs/02-pytorch-asr
+	cp ../LabsSolutions/02-pytorch-asr/pytorch-asr-py3.9.yaml $(OUTPUT_DIR)/labs/02-pytorch-asr/
+
 
 all: outputdirs $(HTML) $(DST_LATEX) easylab copyextra
 

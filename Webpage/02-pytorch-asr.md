@@ -26,25 +26,49 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [data.py](./labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
 - [models.py](./labs/02-pytorch-asr/models.py) : code defining the neural network architectures
 - [main_ctc.py](./labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
-- [train-v1.idx](./labs/02-pytorch-asr/train-v1.idx), [test-v1.idx](./labs/02-pytorch-asr/test-v1.idx), [dev.idx](./labs/02-pytorch-asr/dev-v1.idx) : files with the indices of the CommonVoice **v1 fr** dataset filtered between 1s. and 5.
+- [train-v1.idx](./labs/02-pytorch-asr/train-v1.idx), [test-v1.idx](./labs/02-pytorch-asr/test-v1.idx), [dev-v1.idx](./labs/02-pytorch-asr/dev-v1.idx) : files with the indices of the CommonVoice **v1 fr** dataset filtered between 1s. and 5.
 - [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
-### Requirements
+### Pre-installed environments (for users on the DCE)
 
-You need an external dependency, the [deepcs](https://pypi.org/project/deepcs/) package, that you can install with :
+For the users of the DCE, we provide pre-installed conda environments which you can load by executing the following commands (as the conda environment is 5Go, it might take 5 minutes to copy). 
 
 ```{.console}
-mymachine:~:mylogin$ python3 -m pip install --user deepcs
+mymachine:~:mylogin$ source "/opt/conda/etc/profile.d/conda.sh"
+mymachine:~:mylogin$ mkdir -p $TMPDIR/my_env
+mymachine:~:mylogin$ tar -zxf asr-pytorch-py3.9.tar.gz -C $TMPDIR/my_env
+mymachine:~:mylogin$ source $TMPDIR/my_env/bin/activate 
+(my_env) mymachine:~:mylogin$ cd ~
 ```
 
-For correctly handling the print of UTF-8, you must ensure to define your locale appropriately (and feel free to add to your rc file) :
+Note that the two `source` commands must be repeated in any new shell session.
+
+As we use UTF-8 encoding, your shell must be able to interpret these symbols :
 
 ```{.console}
 mymachine:~:mylogin$ echo $LANG
 ```
 and set it if necessary (e.g. `export LANG=en_US.UTF-8`)
 
-The lab has been tested with torch 1.9.1 and torchaudio 0.9.1.
+### Installing the environment with conda (for the other users)
+
+We provide a yaml file for creating a conda environment suitable for performing the labwork. That conda environment can installed with the [pytorch-asr-py3.9.yaml](./labs/02-pytorch-asr/pytorch-asr-py3.9.yaml) environment file.
+
+With [conda](https://docs.conda.io/en/latest/miniconda.html) installed, you should run :
+
+```{.console}
+mymachine:~:mylogin$ conda env create -f pytorch-asr-py3.9.yaml
+mymachine:~:mylogin$ conda activate pytorch-asr-py3.9
+(pytorch-asr-py3.9) mymachine:~:mylogin$ 
+```
+
+As we use UTF-8 encoding, your shell must be able to interpret these symbols :
+
+```{.console}
+(pytorch-asr-py3.9) mymachine:~:mylogin$ echo $LANG
+```
+and set it if necessary (e.g. `export LANG=en_US.UTF-8`)
+
 
 ## Setting up the dataloaders
 
