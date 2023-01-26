@@ -96,8 +96,8 @@ commit_id = subprocess.check_output(
 os.system("mkdir -p logslurms")
 
 # Launch the batch jobs
-debug = False
-augment = True
+debug = True
+augment = False
 submit_job(
     makejob(
         commit_id,
@@ -116,7 +116,7 @@ submit_job(
             "nhidden_rnn": 1024,
             "weight_decay": 0.0,
             "dropout": 0.0,
-            "datasetversion": "v12.0",
+            "datasetversion": "v1",
         },
     )
 )
