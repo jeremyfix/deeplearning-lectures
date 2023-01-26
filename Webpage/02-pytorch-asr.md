@@ -331,7 +331,9 @@ The other code should be already familiar.
 It is now time to experiment. I suggest you to proceed this way :
 
 1- Try to overfit a single minibatch
+
 2- Try to overfit the training by disabling any sort of regularization and finding an appropriate architecture
+
 3- Try to improve the generalization performances by appropriately setting the regularization
 
 These three steps are described in the next subsections.
