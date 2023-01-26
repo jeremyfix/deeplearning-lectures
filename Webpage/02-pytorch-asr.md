@@ -36,7 +36,7 @@ For the users of the DCE, we provide pre-installed conda environments which you 
 ```{.console}
 mymachine:~:mylogin$ source "/opt/conda/etc/profile.d/conda.sh"
 mymachine:~:mylogin$ mkdir -p $TMPDIR/my_env
-mymachine:~:mylogin$ tar -zxf asr-pytorch-py3.9.tar.gz -C $TMPDIR/my_env
+mymachine:~:mylogin$ tar -zxf /mounts/Datasets3/SharedConda/3MD4040-asr-py3.9.tar.gz -C $TMPDIR/my_env
 mymachine:~:mylogin$ source $TMPDIR/my_env/bin/activate 
 (my_env) mymachine:~:mylogin$ cd ~
 ```
