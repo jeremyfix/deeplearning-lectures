@@ -117,7 +117,7 @@ vocab_size : 44
 
 Let us now have a look to the waveforms. Usually the models do not take the raw waveforms as input but preprocess them by computing a spectrogram using a short time fourier transform (STFT). The obtained spectrogram is then converted in logmel scale.
 
-![The pipeline from the waveform to the logmel spectrogram](./data/02-pytorch-asr/waveform_to_spectro.png){width=100%}
+![The pipeline from the waveform to the logmel spectrogram when someone is saying "Rue Wolfgang Doeblin, zéro huit, six cents Givet"](./data/02-pytorch-asr/waveform_to_spectro.png){width=100%}
 
 **Exercice** In the WaveformProcessor, fill-in the code in the constructor for initializing the `transform` attribute. It must be a `torch.nn.Sequential` with the [MelSpectrogram](https://pytorch.org/audio/stable/transforms.html#melspectrogram) followed by a [conversion to DB](https://pytorch.org/audio/stable/transforms.html#amplitudetodb). To validate your implementation, run the script `test_implementation.py`, the corresponding test should pass.
 
