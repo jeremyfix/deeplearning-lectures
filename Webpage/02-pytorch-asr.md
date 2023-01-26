@@ -348,6 +348,8 @@ mymachine:~:mylogin$ python3 main_ctc.py train --debug
 
 You should pretty quickly see a null loss on the training set with a perfect decoding.
 
+**Warning** For some reason, while it worked at some point (see the next section curve), in 2023, a single minibatch is not getting overfitted....and I do not know where is the issue. If you find it, I owe you a coffee for this ! And the worst is that although a single minibatch or training set does not get overfitted, training it on a large corpus we do get kind of speech recognition, not perfect but not that bad...
+
 ### Overfitting the training set
 
 The next step is to design a sufficiently rich architecture to overfit the training set when any sort of regularization is disabled (L2/L1, dropout, data augmentation, ...) :
