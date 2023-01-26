@@ -26,7 +26,7 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [data.py](./labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
 - [models.py](./labs/02-pytorch-asr/models.py) : code defining the neural network architectures
 - [main_ctc.py](./labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
-- [train-v1.idx](./labs/02-pytorch-asr/train-v1.idx), [test-v1.idx](./labs/02-pytorch-asr/test-v1.idx), [dev.idx](./labs/02-pytorch-asr/dev-v1.idx) : files with the indices of the CommonVoice **v1 fr** dataset filtered between 1s. and 5.
+- [train-v1.idx](./labs/02-pytorch-asr/train-v1.idx), [test-v1.idx](./labs/02-pytorch-asr/test-v1.idx), [dev-v1.idx](./labs/02-pytorch-asr/dev-v1.idx) : files with the indices of the CommonVoice **v1 fr** dataset filtered between 1s. and 5.
 - [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
 ### Pre-installed environments (for users on the DCE)
@@ -52,9 +52,9 @@ and set it if necessary (e.g. `export LANG=en_US.UTF-8`)
 
 ### Installing the environment with conda (for the other users)
 
-We provide a yaml file for creating a conda environment suitable for performing the labwork.
+We provide a yaml file for creating a conda environment suitable for performing the labwork. That conda environment can installed with the [pytorch-asr-py3.9.yaml](./labs/02-pytorch-asr/pytorch-asr-py3.9.yaml) environment file.
 
-If you have conda, you should run :
+With [conda](https://docs.conda.io/en/latest/miniconda.html) installed, you should run :
 
 ```{.console}
 mymachine:~:mylogin$ conda env create -f pytorch-asr-py3.9.yaml
