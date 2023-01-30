@@ -77,7 +77,13 @@ You are provided with the `StanfordDataset` class which is a pytorch dataset obj
 
 If you were to plot the distribution of the classes over the $71000$ masks of size $1080\times 1080$, the relative proportion of the labels are $1.26\%$, $1.57\%$, $2.71\%$, $7.17\%$, $9.94\%$, $3.87\%$, $11.23\%$, $3.05\%$, $10.98\%$, $8.45\%$, $0.33\%$, $2.88\%$, $33.67\%$, $2.88\%$ which is really unbalanced. These figures are ordered the same than the labels on the image at the top, hence $33.67\%$ of the labeled pixels are "wall", and only $0.33\%$ are "sofa". There are several ways to combat this imbalance. One could be in the data sampler when the minibatches are built. Another one is to use an adapted loss function. More on that later in the [loss](#loss-implementation) section. 
 
-**Question** : Some of the labels in the dataset are noisy. For example, check the input image and mask of the image indexed $53899$, corresponding to the filename `area_5a/data/semantic/camera_ff5f377af3b34354b054536db27565ae_hallway_7_frame_4_domain_semantic.png`. This noise in the oracle, as well as the one possibly induced by the unknow class, has to be kept in mind as this will certainly prevent a perfect generalization.
+**Question** : Some of the labels in the dataset are noisy. For example, check the input image and mask of the image indexed $2702$ (of the area 5a), corresponding to the filename `area_5a/data/semantic/camera_ff5f377af3b34354b054536db27565ae_hallway_7_frame_4_domain_semantic.png`. This noise in the oracle, as well as the one possibly induced by the unknow class, has to be kept in mind as this will certainly prevent a perfect generalization. 
+
+The noise in the orcale may also leads to divergence of the cross entropy loss. Since the cross entropy loss read $-log(p_{y_i})$, if the labels are noisy and your model is super good, the probably of the incorrectly labeled pixels will make the loss diverge.
+
+``` console
+(venv) sh11:~:mylogin$ python data.py --area 5a --datadir /mounts/Datasets4/Stanford2D-3D-S
+```
 
 ## Data pipeline
 
