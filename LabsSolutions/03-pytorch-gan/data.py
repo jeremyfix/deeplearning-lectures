@@ -58,9 +58,13 @@ def get_dataloaders(
         test_kwargs["train"] = False
     if dataset == "EMNIST":
         train_kwargs["split"] = "balanced"
+        test_kwargs["split"] = "balanced"
     elif dataset in ["SVHN", "CelebA"]:
         train_kwargs["split"] = "train"
         test_kwargs["split"] = "test"
+
+    if dataset == "SVHN":
+        dataset_root = dataset_root + "/SVHN"
 
     # Get the two datasets, make them tensors in [0, 1]
     transform = transforms.Compose(
