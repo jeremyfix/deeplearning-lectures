@@ -427,7 +427,7 @@ if __name__ == "__main__":
 
     # Training parameters
     parser.add_argument(
-        "--num_epochs", type=int, help="The number of epochs to train for", default=100
+        "--num_epochs", type=int, help="The number of epochs to train for", default=200
     )
     parser.add_argument(
         "--batch_size", type=int, help="The size of a minibatch", default=64
