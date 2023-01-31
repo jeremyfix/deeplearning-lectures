@@ -187,8 +187,8 @@ def train(args):
             # END CODING HERE ##
             ####################
 
-            real_probs = torch.nn.functional.sigmoid(real_logits)
-            fake_probs = torch.nn.functional.sigmoid(fake_logits)
+            real_probs = torch.sigmoid(real_logits)
+            fake_probs = torch.sigmoid(fake_logits)
             critic_paccuracy += (real_probs > 0.5).sum().item()
             critic_naccuracy += (fake_probs < 0.5).sum().item()
             dploss_e = Dloss.item()
