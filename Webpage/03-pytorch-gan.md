@@ -57,14 +57,6 @@ You are provided with some starter code which already implements some functional
 - [mnist_generator.pt](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/mnist_generator.pt) : a pretrained generator used for the end of the labwork pretrained on MNIST
 - [svhn_generator.pt](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/svhn_generator.pt) : a pretrained generator used for the end of the labwork pretrained on SVHN
 
-<!--
-You will also need to install an external python dependency, the [deepcs](https://pypi.org/project/deepcs/) package, that you can install with :
-
-```{.console}
-mymachine:~:mylogin$ python3 -m pip install --user deepcs
-```
-->
-
 ## Setup of the environment
 
 For this lab work, you are provided with environment setup files [requirements.txt](./labs/03-pytorch-gan/requirements.txt) file if you are a pipenv/pip/virtualenv/etc..
