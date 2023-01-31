@@ -104,7 +104,12 @@ def train(args):
 
     logger.info(summary_text)
 
-    logdir = generate_unique_logpath("./logs", "gan")
+    if args.logdir is None:
+        logdir = generate_unique_logpath("./logs", "gan")
+    else:
+        logdir = args.logdir
+        if not os.path.exists(logdir):
+            os.makedirs(logdir)
     tensorboard_writer = SummaryWriter(log_dir=logdir, flush_secs=5)
     tensorboard_writer.add_text(
         "Experiment summary", deepcs.display.htmlize(summary_text)
@@ -412,6 +417,12 @@ if __name__ == "__main__":
         type=int,
         help="The number of threads to use " "for loading the data",
         default=6,
+    )
+    parser.add_argument(
+        "--logdir",
+        type=str,
+        help="The logdir in which to save the assets of the experiments",
+        default=None,
     )
 
     # Training parameters
