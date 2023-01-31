@@ -355,7 +355,7 @@ def test_dataset(args):
         transforms=data_transforms,
         areas=args.areas,
     )
-    data_idx = random.randint(0, len(dataset) - 1)  # 53899
+    data_idx = random.randint(0, len(dataset) - 1)  # 2702
     rgb, semantics = dataset[data_idx]
     # SOL@
     # @TEMPL
@@ -395,6 +395,15 @@ def test_augmented_dataset(args):
     )
     data_idx = random.randint(0, len(dataset) - 1)
     rgb_filename, area_path = dataset.get_filename(data_idx)
+
+    # for i in tqdm.tqdm(range((len(dataset)))):
+    #     rgb_file, _ = dataset.get_filename(i)
+    #     fields = rgb_file.split("/")[-1].split("_")
+    #     prefix = "_".join(fields[:-1])
+    #     # print(prefix)
+    #     if prefix == "camera_ff5f377af3b34354b054536db27565ae_hallway_7_frame_4_domain":
+    #         print(f"Found the file as index {i}")
+
     logging.info("Loading the image " + str(area_path / "data" / "rgb" / rgb_filename))
     rgb, semantics = dataset[data_idx]
 
