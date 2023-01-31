@@ -70,6 +70,11 @@ def get_dataloaders(
         transform = transforms.Compose(
             [transforms.Resize(64), transforms.CenterCrop(64), transform]
         )
+    else:
+        transform = transforms.Compose(
+            [transforms.Resize(32), transforms.CenterCrop(32), transform]
+        )
+
     train_dataset = dataset_loader(
         root=dataset_root, **train_kwargs, download=True, transform=transform
     )

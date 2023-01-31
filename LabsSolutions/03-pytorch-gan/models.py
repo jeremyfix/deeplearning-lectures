@@ -2,6 +2,7 @@
 # coding: utf-8
 
 # Standard imports
+import math
 from typing import Optional, Tuple
 from functools import reduce
 import operator
@@ -235,15 +236,25 @@ class Generator(nn.Module):
         self.base_c = base_c
 
         H, W = img_shape[1:]
+        log2H = math.log2(H)
+        log2W = math.log2(W)
+        if int(log2H) != log2H or int(log2W) != log2W:
+            raise ValueError("We are expecting modulo 2 heights/widths")
+        if H != W:
+            raise ValueError("We are expecting square images")
+
         ######################
         # START CODING HERE ##
         ######################
         # Step 1 - Build the feedforward upscaling network
         # @TEMPL@self.upscale = nn.Sequential()
         # @SOL
+
+        self.first_c = self.base_c * (H // 4)
+
         self.upscale = nn.Sequential(
-            nn.Linear(self.latent_size, H // 4 * W // 4 * self.base_c * 4, bias=False),
-            nn.BatchNorm1d(H // 4 * W // 4 * self.base_c * 4),
+            nn.Linear(self.latent_size, 4 * 4 * self.first_c, bias=False),
+            nn.BatchNorm1d(4 * 4 * self.first_c),
             nn.ReLU(),
         )
         # SOL@
@@ -252,19 +263,25 @@ class Generator(nn.Module):
         # Hint : up_conv_bn_relu() might be useful
         # @TEMPL@self.model = nn.Sequential()
         # @SOL
-        self.model = nn.Sequential(
-            *up_conv_bn_relu(self.base_c * 4, self.base_c * 2),
-            *up_conv_bn_relu(self.base_c * 2, self.base_c),
-            nn.Conv2d(
-                self.base_c,
-                self.img_shape[0],
-                kernel_size=1,
-                stride=1,
-                padding=0,
-                bias=True,
-            ),
-            nn.Tanh(),
+        layers = []
+        in_c = self.first_c
+        for i in range(int(math.log2(H // 4))):
+            layers.extend(up_conv_bn_relu(in_c, in_c // 2))
+            in_c = in_c // 2
+        layers.extend(
+            [
+                nn.Conv2d(
+                    self.base_c,
+                    self.img_shape[0],
+                    kernel_size=1,
+                    stride=1,
+                    padding=0,
+                    bias=True,
+                ),
+                nn.Tanh(),
+            ]
         )
+        self.model = nn.Sequential(*layers)
         # SOL@
         ####################
         # END CODING HERE ##
@@ -327,9 +344,7 @@ class Generator(nn.Module):
         #  Hint : use the view method
         # @TEMPL@reshaped = None
         # @SOL
-        reshaped = upscaled.view(
-            -1, self.base_c * 4, self.img_shape[1] // 4, self.img_shape[2] // 4
-        )
+        reshaped = upscaled.view(-1, self.first_c, 4, 4)
         # SOL@
 
         # Step 3 : Forward pass through the last convolutional part
@@ -451,19 +466,19 @@ def test_tconv():
 
 
 def test_discriminator():
-    critic = Discriminator((1, 28, 28), 0.3, 32)
-    X = torch.randn(64, 1, 28, 28)
+    critic = Discriminator((1, 32, 32), 0.3, 32)
+    X = torch.randn(64, 1, 32, 32)
     out = critic(X)
     assert out.shape == torch.Size([64])
 
 
 def test_generator():
-    generator = Generator((1, 28, 28), 100, 64)
+    generator = Generator((1, 32, 32), 100, 64)
     X = torch.randn(64, 100)
     out = generator(X, None)
-    assert out.shape == torch.Size([64, 1, 28, 28])
+    assert out.shape == torch.Size([64, 1, 32, 32])
     out = generator(None, 64)
-    assert out.shape == torch.Size([64, 1, 28, 28])
+    assert out.shape == torch.Size([64, 1, 32, 32])
 
 
 if __name__ == "__main__":
