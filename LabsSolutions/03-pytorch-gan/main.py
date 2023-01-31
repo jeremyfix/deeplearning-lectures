@@ -274,12 +274,13 @@ def train(args):
         tensorboard_writer.add_image("Generated", grid, e + 1)
         torchvision.utils.save_image(grid, imgpath + f"images-{e+1:04d}.png")
 
-        real_images = X[: (sample_nrows * sample_ncols), ...]
-        real_images = X * data._IMG_STD + data._IMG_MEAN
+        real_images = next(iter(train_loader))[: (sample_nrows * sample_ncols), ...]
+        real_images = real_images * data._IMG_STD + data._IMG_MEAN
         grid = torchvision.utils.make_grid(
             real_images, nrow=sample_nrows, normalize=True
         )
         tensorboard_writer.add_image("Real", grid, e + 1)
+        # torchvision.utils.save_image(grid, imgpath + f"real-{e+1:04d}.png")
 
         # We save the generator
         logger.info(f"Generator saved at {save_path}")
