@@ -35,8 +35,8 @@ On the CentraleSupelec clusters, I advise you to use virtualenv as conda require
 
 ``` console
 sh11:~:mylogin$ python3 -m pip install virtualenv --user
-sh11:~:mylogin$ virtualenv -p python3 venv
-sh11:~:mylogin$ source venv/bin/activate
+sh11:~:mylogin$ virtualenv -p python3 $TMPDIR/venv
+sh11:~:mylogin$ source $TMPDIR/venv/bin/activate
 (venv) sh11:~:mylogin$  python -m pip install -r requirements.txt
 ```
 <!--
