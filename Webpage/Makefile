@@ -21,6 +21,8 @@ easylab:
 	# For the LabWork pytorch-ASR
 	easylabwork ../LabsSolutions/02-pytorch-asr  $(OUTPUT_DIR)/labs/02-pytorch-asr
 	cp ../LabsSolutions/02-pytorch-asr/pytorch-asr-py3.9.yaml $(OUTPUT_DIR)/labs/02-pytorch-asr/
+	# For the labwork on GANs
+	easylabwork ../LabsSolutions/03-pytorch-gan  $(OUTPUT_DIR)/labs/03-pytorch-gan
 
 
 all: outputdirs $(HTML) $(DST_LATEX) easylab copyextra

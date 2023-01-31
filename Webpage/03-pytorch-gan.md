@@ -51,9 +51,9 @@ Our aim is to generate fake data and you are free to choose between several data
 
 You are provided with some starter code which already implements some functionalities :
 
-- [data.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/data.py) : code performing the data loading 
-- [models.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/models.py) : code defining the GAN 
-- [main.py](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/main.py) : code containing the training and testing functions
+- [data.py](./labs/03-pytorch-gan/data.py) : code performing the data loading 
+- [models.py](./labs/03-pytorch-gan/models.py) : code defining the GAN 
+- [main.py](./labs/03-pytorch-gan/main.py) : code containing the training and testing functions
 - [mnist_generator.pt](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/mnist_generator.pt) : a pretrained generator used for the end of the labwork pretrained on MNIST
 - [svhn_generator.pt](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/svhn_generator.pt) : a pretrained generator used for the end of the labwork pretrained on SVHN
 
@@ -67,7 +67,7 @@ mymachine:~:mylogin$ python3 -m pip install --user deepcs
 
 ## Setup of the environment
 
-For this lab work, you are provided with environment setup files [requirements.txt](./data/03-pytorch-gan/requirements.txt) file if you are a pipenv/pip/virtualenv/etc..
+For this lab work, you are provided with environment setup files [requirements.txt](./labs/03-pytorch-gan/requirements.txt) file if you are a pipenv/pip/virtualenv/etc..
 
 On the CentraleSupelec clusters, I advise you to proceed as :
 
