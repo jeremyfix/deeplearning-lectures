@@ -250,11 +250,11 @@ class Generator(nn.Module):
         # @TEMPL@self.upscale = nn.Sequential()
         # @SOL
 
-        self.first_c = self.base_c * (H // 4)
+        self.first_c = self.base_c * (H // 8)
 
         self.upscale = nn.Sequential(
-            nn.Linear(self.latent_size, 4 * 4 * self.first_c, bias=False),
-            nn.BatchNorm1d(4 * 4 * self.first_c),
+            nn.Linear(self.latent_size, 8 * 8 * self.first_c, bias=False),
+            nn.BatchNorm1d(8 * 8 * self.first_c),
             nn.ReLU(),
         )
         # SOL@
@@ -265,9 +265,10 @@ class Generator(nn.Module):
         # @SOL
         layers = []
         in_c = self.first_c
-        for i in range(int(math.log2(H // 4))):
+        for i in range(int(math.log2(H // 8))):
             layers.extend(up_conv_bn_relu(in_c, in_c // 2))
             in_c = in_c // 2
+
         layers.extend(
             [
                 nn.Conv2d(
@@ -344,7 +345,7 @@ class Generator(nn.Module):
         #  Hint : use the view method
         # @TEMPL@reshaped = None
         # @SOL
-        reshaped = upscaled.view(-1, self.first_c, 4, 4)
+        reshaped = upscaled.view(-1, self.first_c, 8, 8)
         # SOL@
 
         # Step 3 : Forward pass through the last convolutional part
@@ -474,11 +475,11 @@ def test_discriminator():
 
 def test_generator():
     generator = Generator((1, 32, 32), 100, 64)
-    X = torch.randn(64, 100)
+    X = torch.randn(69, 100)
     out = generator(X, None)
-    assert out.shape == torch.Size([64, 1, 32, 32])
-    out = generator(None, 64)
-    assert out.shape == torch.Size([64, 1, 32, 32])
+    assert out.shape == torch.Size([69, 1, 32, 32])
+    out = generator(None, 69)
+    assert out.shape == torch.Size([69, 1, 32, 32])
 
 
 if __name__ == "__main__":

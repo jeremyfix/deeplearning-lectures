@@ -453,7 +453,7 @@ if __name__ == "__main__":
         "--generator_base_c",
         type=int,
         help="The base number of channels for the generator",
-        default=64,
+        default=128,
     )
     parser.add_argument(
         "--latent_size", type=int, help="The dimension of the latent space", default=100
@@ -464,7 +464,7 @@ if __name__ == "__main__":
         "--dropout",
         type=float,
         help="The probability of zeroing before the FC layers",
-        default=0.5,
+        default=0.3,
     )
 
     # For the generation
