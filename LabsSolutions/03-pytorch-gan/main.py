@@ -274,12 +274,14 @@ def train(args):
         tensorboard_writer.add_image("Generated", grid, e + 1)
         torchvision.utils.save_image(grid, imgpath + f"images-{e+1:04d}.png")
 
+        X, _ = next(iter(train_loader))
         real_images = X[: (sample_nrows * sample_ncols), ...]
-        real_images = X * data._IMG_STD + data._IMG_MEAN
+        real_images = real_images * data._IMG_STD + data._IMG_MEAN
         grid = torchvision.utils.make_grid(
             real_images, nrow=sample_nrows, normalize=True
         )
         tensorboard_writer.add_image("Real", grid, e + 1)
+        # torchvision.utils.save_image(grid, imgpath + f"real-{e+1:04d}.png")
 
         # We save the generator
         logger.info(f"Generator saved at {save_path}")
@@ -385,7 +387,7 @@ def generate(args):
     ####################
 
     grid = torchvision.utils.make_grid(fake_images, nrow=sample_ncols, normalize=True)
-    torchvision.utils.save_image(grid, f"generated1.png")
+    torchvision.utils.save_image(grid, "generated1.png")
 
     # @SOL
     # Interpolate in the laten space
@@ -403,7 +405,7 @@ def generate(args):
     fake_images = generator(z.reshape(N**2, -1))
     fake_images = fake_images * data._IMG_STD + data._IMG_MEAN
     grid = torchvision.utils.make_grid(fake_images, nrow=N, normalize=True)
-    torchvision.utils.save_image(grid, f"generated2.png")
+    torchvision.utils.save_image(grid, "generated2.png")
     # SOL@
 
 
@@ -442,7 +444,7 @@ if __name__ == "__main__":
 
     # Training parameters
     parser.add_argument(
-        "--num_epochs", type=int, help="The number of epochs to train for", default=100
+        "--num_epochs", type=int, help="The number of epochs to train for", default=200
     )
     parser.add_argument(
         "--batch_size", type=int, help="The size of a minibatch", default=64
