@@ -285,6 +285,21 @@ def train(args):
         logger.info(f"Generator saved at {save_path}")
         torch.save(model.generator, save_path)
 
+        # Important: ensure the model is in eval mode before exporting !
+        # the graph in train/test mode is not the same
+        model.eval()
+        dummy_input = torch.zeros((1, latent_size), device=device)
+        torch.onnx.export(
+            model.generator,
+            dummy_input,
+            logdir + "generator.onnx",
+            verbose=False,
+            opset_version=12,
+            input_names=["input"],
+            output_names=["output"],
+            dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}},
+        )  # At least opset 11 is required otherwise it seems nn.UpSample is not correctly handled
+
 
 def evaluate(
     model: torch.nn.Module,
