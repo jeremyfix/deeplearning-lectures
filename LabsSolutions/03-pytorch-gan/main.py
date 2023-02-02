@@ -134,6 +134,7 @@ def train(args):
     # Generate few samples from the initial generator
     model.eval()
     fake_images = model.generator(X=fixed_noise)
+    fake_images = (fake_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
     grid = torchvision.utils.make_grid(fake_images, nrow=sample_nrows, normalize=True)
     tensorboard_writer.add_image("Generated", grid, 0)
 
@@ -267,7 +268,7 @@ def train(args):
         model.eval()
         fake_images = model.generator(X=fixed_noise)
         # Unscale the images
-        fake_images = fake_images * data._IMG_STD + data._IMG_MEAN
+        fake_images = (fake_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
         grid = torchvision.utils.make_grid(
             fake_images, nrow=sample_nrows, normalize=True
         )
@@ -276,7 +277,7 @@ def train(args):
 
         X, _ = next(iter(train_loader))
         real_images = X[: (sample_nrows * sample_ncols), ...]
-        real_images = real_images * data._IMG_STD + data._IMG_MEAN
+        real_images = (real_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
         grid = torchvision.utils.make_grid(
             real_images, nrow=sample_nrows, normalize=True
         )
