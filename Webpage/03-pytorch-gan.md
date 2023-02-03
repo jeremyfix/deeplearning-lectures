@@ -189,6 +189,12 @@ By default, the dataset used is MNIST but you can change this to the dataset you
 mymachine:~:mylogin$ python3 main.py train --dataset SVHN 
 ```
 
+For the training parameters, you may need to slightly change them. For example, the following should be working :
+
+```{.console}
+mymachine:~:mylogin$ python3 main.py train --dataset SVHN --wdecay 0.0 --base_lr 0.0002 --batch_size 256
+```
+
 
 Below is an example of digits generated during a successful training with a noise vector defined once for all before training (i.e. we always plot the generated image associated with the same random inputs) on MNIST.
 
