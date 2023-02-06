@@ -449,13 +449,13 @@ if __name__ == "__main__":
         "--num_epochs", type=int, help="The number of epochs to train for", default=200
     )
     parser.add_argument(
-        "--batch_size", type=int, help="The size of a minibatch", default=64
+        "--batch_size", type=int, help="The size of a minibatch", default=256
     )
     parser.add_argument(
-        "--base_lr", type=float, help="The initial learning rate to use", default=0.0005
+        "--base_lr", type=float, help="The initial learning rate to use", default=0.0002
     )
     parser.add_argument(
-        "--wdecay", type=float, help="The weight decay used for the critic", default=1.0
+        "--wdecay", type=float, help="The weight decay used for the critic", default=0.0
     )
     parser.add_argument(
         "--debug", action="store_true", help="Whether to use small datasets"
