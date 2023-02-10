@@ -472,7 +472,7 @@ if __name__ == "__main__":
         "--generator_base_c",
         type=int,
         help="The base number of channels for the generator",
-        default=128,
+        default=64,
     )
     parser.add_argument(
         "--latent_size", type=int, help="The dimension of the latent space", default=100
