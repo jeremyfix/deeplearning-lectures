@@ -196,7 +196,7 @@ Optimizer
         if better:
             dummy_input = torch.zeros((1,) + img_size, device=device)
             torch.onnx.export(
-                model, dummy_input, logdir "/fashionmnist.onnx", verbose=True
+                model, dummy_input, logdir + "/fashionmnist.onnx", verbose=True
             )
         tensorboard_writer.add_scalar("metrics/train_loss", train_loss, t)
         tensorboard_writer.add_scalar("metrics/train_acc", train_acc, t)
