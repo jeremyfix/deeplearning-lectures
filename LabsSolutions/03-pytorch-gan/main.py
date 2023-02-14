@@ -75,9 +75,11 @@ def train(args):
     # @SOL
     if wdecay == 0:
         print("No weight decay")
-        optim_critic = optim.Adam(critic.parameters(), lr=base_lr)
+        optim_critic = optim.Adam(critic.parameters(), lr=base_lr, betas=(0.5, 0.999))
     else:
-        optim_critic = optim.AdamW(critic.parameters(), lr=base_lr, weight_decay=wdecay)
+        optim_critic = optim.AdamW(
+            critic.parameters(), lr=base_lr, weight_decay=wdecay, betas=(0.5, 0.999)
+        )
 
     # SOL@
     # Step 2 - Define the optimizer for the generator
@@ -449,7 +451,7 @@ if __name__ == "__main__":
         "--num_epochs", type=int, help="The number of epochs to train for", default=200
     )
     parser.add_argument(
-        "--batch_size", type=int, help="The size of a minibatch", default=256
+        "--batch_size", type=int, help="The size of a minibatch", default=128
     )
     parser.add_argument(
         "--base_lr", type=float, help="The initial learning rate to use", default=0.0002
@@ -472,7 +474,7 @@ if __name__ == "__main__":
         "--generator_base_c",
         type=int,
         help="The base number of channels for the generator",
-        default=64,
+        default=256,
     )
     parser.add_argument(
         "--latent_size", type=int, help="The dimension of the latent space", default=100
