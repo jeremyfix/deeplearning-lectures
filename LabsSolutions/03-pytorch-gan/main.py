@@ -49,6 +49,7 @@ def train(args):
     wdecay = args.wdecay
     lblsmooth = args.lblsmooth
     lblflip = args.lblflip
+    dnoise = args.dnoise
     num_epochs = args.num_epochs
     discriminator_base_c = args.discriminator_base_c
     generator_base_c = args.generator_base_c
@@ -180,7 +181,10 @@ def train(args):
             # Ganhacks #4: Use separate batchs for real and fake data
             # @TEMPL@real_logits, _ = None
             # @TEMPL@fake_logits, _ = None
-            real_logits, _ = model(X, None)  # @SOL@
+            real_logits, _ = model(
+                X + (dnoise * torch.randn(*X.shape, device=device)),
+                None,
+            )  # @SOL@
             fake_logits, _ = model(None, bi)  # @SOL@
 
             # Ganhacks #6: Occassionnally flip the labels for the discriminator
@@ -499,6 +503,13 @@ if __name__ == "__main__":
         help="Probability of label flipping for the discriminator",
         default=0.1,
     )
+    parser.add_argument(
+        "--dnoise",
+        type=float,
+        help="Variance of input discriminator random noise",
+        default=0.1,
+    )
+
     parser.add_argument(
         "--debug", action="store_true", help="Whether to use small datasets"
     )
