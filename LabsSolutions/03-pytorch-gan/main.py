@@ -166,6 +166,7 @@ def train(args):
             # START CODING HERE ##
             ######################
             # Step 1 - Forward pass for training the discriminator
+            # Ganhacks #4: Use separate batchs for real and fake data
             # @TEMPL@real_logits, _ = None
             # @TEMPL@fake_logits, _ = None
             real_logits, _ = model(X, None)  # @SOL@
