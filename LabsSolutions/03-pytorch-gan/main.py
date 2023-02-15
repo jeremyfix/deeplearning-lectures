@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+"""
+Implements GAN training inspired from :
+
+    - Radford et al(2015) Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks
+    - Saliman et al (2016) Improved techniques for training GANs
+      https://github.com/openai/improved-gan
+"""
+
 # Standard imports
 import argparse
 import logging
 import sys
 import os
 from typing import Callable, Dict
+import random
 
 # External imports
 import torch
@@ -185,12 +194,19 @@ def train(args):
             discriminator_fake_labels = torch.bernouilli(lblflip * pos_labels)  # (bi, )
 
             # Step 2 - Compute the loss of the critic
+            # Ganhacks #6: use soft labels
+            # Apply a randopm label smoothing for this minibatch
+            loss.label_smoothing = random.random() * lblsmooth
+
             # @TEMPL@Dloss = None + None
             # @SOL
             D_ploss = loss(real_logits, discriminator_real_labels)
             D_nloss = loss(fake_logits, discriminator_fake_labels)
             Dloss = 0.5 * (D_ploss + D_nloss)
             # SOL@
+
+            # Reset label smoothing to the default 0.0 value
+            loss.label_smoothing = 0.0
 
             # Step 3 - Reinitialize the gradient accumulator of the critic
             # @TEMPL@None
