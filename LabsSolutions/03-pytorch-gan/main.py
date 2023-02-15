@@ -192,10 +192,10 @@ def train(args):
             # pos_labels is full of one, if you multiply it by (1-p)
             # They will stay 1's with probability (1-p) , hence be flipped with
             # probability p
-            discriminator_real_labels = torch.bernouilli((1 - lblflip) * pos_labels)
+            discriminator_real_labels = torch.bernoulli((1 - lblflip) * pos_labels)
             # discriminator_fake_labels are expected to be 0's with probability (1-p)
             # and 1's if flipped with probability p
-            discriminator_fake_labels = torch.bernouilli(lblflip * pos_labels)  # (bi, )
+            discriminator_fake_labels = torch.bernoulli(lblflip * pos_labels)  # (bi, )
 
             # Step 2 - Compute the loss of the critic
             # Ganhacks #6: use soft labels
