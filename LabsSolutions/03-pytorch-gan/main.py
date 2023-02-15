@@ -212,6 +212,8 @@ def train(args):
 
             # Step 2 - Compute the loss of the generator
             # The generator wants his generated images to be positive
+            # We flip the labels compared to the training of the discriminator
+            # Ganhacks #2
             # @TEMPL@Gloss = None
             Gloss = loss(fake_logits, pos_labels)  # @SOL@
 
