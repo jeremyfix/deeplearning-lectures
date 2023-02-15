@@ -38,6 +38,8 @@ def train(args):
     debug = args.debug
     base_lr = args.base_lr
     wdecay = args.wdecay
+    lblsmooth = args.lblsmooth
+    lblflip = args.lblflip
     num_epochs = args.num_epochs
     discriminator_base_c = args.discriminator_base_c
     generator_base_c = args.generator_base_c
@@ -172,11 +174,21 @@ def train(args):
             real_logits, _ = model(X, None)  # @SOL@
             fake_logits, _ = model(None, bi)  # @SOL@
 
+            # Ganhacks #6: Occassionnally flip the labels for the discriminator
+            # We want to flip the labels with probability p
+            # pos_labels is full of one, if you multiply it by (1-p)
+            # They will stay 1's with probability (1-p) , hence be flipped with
+            # probability p
+            discriminator_real_labels = torch.bernouilli((1 - lblflip) * pos_labels)
+            # discriminator_fake_labels are expected to be 0's with probability (1-p)
+            # and 1's if flipped with probability p
+            discriminator_fake_labels = torch.bernouilli(lblflip * pos_labels)  # (bi, )
+
             # Step 2 - Compute the loss of the critic
             # @TEMPL@Dloss = None + None
             # @SOL
-            D_ploss = loss(real_logits, pos_labels)
-            D_nloss = loss(fake_logits, neg_labels)
+            D_ploss = loss(real_logits, discriminator_real_labels)
+            D_nloss = loss(fake_logits, discriminator_fake_labels)
             Dloss = 0.5 * (D_ploss + D_nloss)
             # SOL@
 
@@ -461,6 +473,15 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--wdecay", type=float, help="The weight decay used for the critic", default=0.0
+    )
+    parser.add_argument(
+        "--lblsmooth", type=float, help="The amplitude of label smoothing", default=0.3
+    )
+    parser.add_argument(
+        "--lblflip",
+        type=float,
+        help="Probability of label flipping for the discriminator",
+        default=0.1,
     )
     parser.add_argument(
         "--debug", action="store_true", help="Whether to use small datasets"
