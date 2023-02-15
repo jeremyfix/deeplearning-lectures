@@ -30,11 +30,10 @@ def conv_leakyrelu(in_channels, out_channels):
     ]
 
 
-def conv_leakyrelu_bn(in_channels, out_channels):
+def conv_leakyrelu_bn(in_channels, out_channels, ks=3):
     """
     Conv(3x3, same) - BN - LeakyRelu(0.2)
     """
-    ks = 3
     return [
         nn.Conv2d(
             in_channels,
@@ -118,17 +117,18 @@ class Discriminator(nn.Module):
         # Note: the output receptive field size is 36 x 36
         #       the output representation size is 3 x 3
         self.cnn = nn.Sequential(
-            *conv_leakyrelu(in_C, base_c),
-            nn.Dropout2d(dropout),
+            *conv_leakyrelu_bn(in_C, base_c),
             *conv_leakyrelu_bn(base_c, base_c),
-            *conv_downsampling(base_c, 2 * base_c),
+            *conv_downsampling(base_c, base_c),
+            nn.Dropout2d(dropout),
+            *conv_leakyrelu_bn(base_c, 2 * base_c),
+            *conv_leakyrelu_bn(2 * base_c, 2 * base_c),
+            *conv_downsampling(2 * base_c, 2 * base_c),
             nn.Dropout2d(dropout),
             *conv_leakyrelu_bn(2 * base_c, 2 * base_c),
-            *conv_downsampling(2 * base_c, 3 * base_c),
-            nn.Dropout2d(dropout),
-            *conv_leakyrelu_bn(3 * base_c, 3 * base_c),
-            *conv_downsampling(3 * base_c, 4 * base_c),
-            nn.Dropout2d(dropout),
+            *conv_leakyrelu_bn(2 * base_c, 2 * base_c, 1),
+            *conv_leakyrelu_bn(2 * base_c, 2 * base_c, 1),
+            nn.AdaptiveAvgPool2d(output_size=1),
         )
         # SOL@
         ####################
@@ -240,6 +240,16 @@ def up_conv_relu_bn(in_channels, out_channels):
         ),
         nn.ReLU(),
         nn.BatchNorm2d(out_channels),
+        nn.Conv2d(
+            out_channels,
+            out_channels,
+            kernel_size=ks,
+            stride=1,
+            padding=int((ks - 1) / 2),
+            bias=False,
+        ),
+        nn.ReLU(),
+        nn.BatchNorm2d(out_channels),
     ]
 
 
@@ -296,13 +306,13 @@ class Generator(nn.Module):
         # @TEMPL@self.upscale = nn.Sequential()
         # @SOL
 
-        self.first_c = self.base_c * (H // 8)
+        self.first_c = self.base_c * (H // 16)
         print(f"[GENERATOR] The first convolutional block has {self.first_c} channels")
 
         self.upscale = nn.Sequential(
-            nn.Linear(self.latent_size, 8 * 8 * self.first_c, bias=False),
+            nn.Linear(self.latent_size, 4 * 4 * self.first_c, bias=False),
             nn.ReLU(),
-            nn.BatchNorm1d(8 * 8 * self.first_c),
+            nn.BatchNorm1d(4 * 4 * self.first_c),
         )
         # SOL@
 
@@ -312,7 +322,7 @@ class Generator(nn.Module):
         # @SOL
         layers = []
         in_c = self.first_c
-        for i in range(int(math.log2(H // 8))):
+        for i in range(int(math.log2(H // 4))):
             layers.extend(up_conv_relu_bn(in_c, in_c // 2))
             in_c = in_c // 2
 
@@ -396,7 +406,7 @@ class Generator(nn.Module):
         #  Hint : use the view method
         # @TEMPL@reshaped = None
         # @SOL
-        reshaped = upscaled.view(-1, self.first_c, 8, 8)
+        reshaped = upscaled.view(-1, self.first_c, 4, 4)
         # SOL@
 
         # Step 3 : Forward pass through the last convolutional part
@@ -518,14 +528,14 @@ def test_tconv():
 
 
 def test_discriminator():
-    critic = Discriminator((1, 32, 32), 0.3, 32)
+    critic = Discriminator((1, 32, 32), 0.3, 96)
     X = torch.randn(64, 1, 32, 32)
     out = critic(X)
     assert out.shape == torch.Size([64])
 
 
 def test_generator():
-    generator = Generator((1, 32, 32), 100, 64)
+    generator = Generator((1, 32, 32), 100, 512)
     X = torch.randn(69, 100)
     out = generator(X, None)
     assert out.shape == torch.Size([69, 1, 32, 32])

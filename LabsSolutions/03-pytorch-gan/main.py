@@ -495,7 +495,7 @@ if __name__ == "__main__":
         "--wdecay", type=float, help="The weight decay used for the critic", default=0.0
     )
     parser.add_argument(
-        "--lblsmooth", type=float, help="The amplitude of label smoothing", default=0.3
+        "--lblsmooth", type=float, help="The amplitude of label smoothing", default=0.2
     )
     parser.add_argument(
         "--lblflip",
@@ -507,7 +507,7 @@ if __name__ == "__main__":
         "--dnoise",
         type=float,
         help="Variance of input discriminator random noise",
-        default=0.1,
+        default=0.2,
     )
 
     parser.add_argument(
@@ -519,13 +519,13 @@ if __name__ == "__main__":
         "--discriminator_base_c",
         type=int,
         help="The base number of channels for the discriminator",
-        default=32,
+        default=96,
     )
     parser.add_argument(
         "--generator_base_c",
         type=int,
         help="The base number of channels for the generator",
-        default=256,
+        default=512,
     )
     parser.add_argument(
         "--latent_size", type=int, help="The dimension of the latent space", default=100
