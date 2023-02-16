@@ -209,10 +209,12 @@ def train(args):
             # Ganhacks #4: Use separate batchs for real and fake data
             # @TEMPL@real_logits, _ = None
             # @TEMPL@fake_logits, _ = None
+            # @SOL
             real_logits, _ = model(
                 X,
                 None,
-            )  # @SOL@
+            )
+            # SOL@
             fake_logits, _ = model(None, bi)  # @SOL@
 
             # Ganhacks #6: Occassionnally flip the labels for the discriminator
@@ -266,8 +268,8 @@ def train(args):
             fake_probs = torch.softmax(fake_logits, dim=1)[:, 0]
             critic_paccuracy += (real_probs > 0.5).sum().item()
             critic_naccuracy += (fake_probs > 0.5).sum().item()
-            dploss_e = Dloss.item()
-            dnloss_e = Dloss.item()
+            dploss_e = D_nloss.item()
+            dnloss_e = D_ploss.item()
 
             ######################
             # START CODING HERE ##
