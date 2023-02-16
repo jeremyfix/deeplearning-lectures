@@ -342,18 +342,14 @@ def train(args):
         fake_images = model.generator(X=fixed_noise)
         # Unscale the images
         fake_images = (fake_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
-        grid = torchvision.utils.make_grid(
-            fake_images, nrow=sample_nrows, normalize=True
-        )
+        grid = torchvision.utils.make_grid(fake_images, nrow=sample_nrows)
         tensorboard_writer.add_image("Generated", grid, e + 1)
         torchvision.utils.save_image(grid, imgpath + f"images-{e+1:04d}.png")
 
         X, _ = next(iter(train_loader))
         real_images = X[: (sample_nrows * sample_ncols), ...]
         real_images = (real_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
-        grid = torchvision.utils.make_grid(
-            real_images, nrow=sample_nrows, normalize=True
-        )
+        grid = torchvision.utils.make_grid(real_images, nrow=sample_nrows)
         tensorboard_writer.add_image("Real", grid, e + 1)
         # torchvision.utils.save_image(grid, imgpath + f"real-{e+1:04d}.png")
 
