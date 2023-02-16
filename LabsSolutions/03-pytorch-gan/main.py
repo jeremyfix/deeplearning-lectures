@@ -31,6 +31,27 @@ import data
 import models
 
 
+def label_smooth(labels, amplitude, num_target_classes):
+    """
+    Apply label smoothing to labels
+    Consider labels is (B, )
+    classes
+    """
+    # Fill everywhere  rand(0, 1) * amplitude / (num_target_classes - 1)
+    smoothed_labels = (
+        amplitude
+        * torch.rand((labels.shape[0], num_target_classes), device=labels.device)
+        / (num_target_classes - 1.0)
+    )
+
+    # For the correct class, we set its value to (1 - amplitude*rand(0, 1))
+    # The probabilities do not sum to 1 but, almost
+    smoothed_labels[:, labels] = 1 - amplitude * torch.rand(
+        (labels.shape[0],), device=labels.device
+    )
+    return smoothed_labels
+
+
 def train(args):
     """
     Training of the algorithm
@@ -54,6 +75,7 @@ def train(args):
     discriminator_base_c = args.discriminator_base_c
     generator_base_c = args.generator_base_c
     latent_size = args.latent_size
+    num_classes = 2
     sample_nrows = 8
     sample_ncols = 8
 
@@ -72,7 +94,13 @@ def train(args):
 
     # Model definition
     model = models.GAN(
-        img_shape, dropout, discriminator_base_c, dnoise, latent_size, generator_base_c
+        img_shape,
+        dropout,
+        discriminator_base_c,
+        dnoise,
+        num_classes,
+        latent_size,
+        generator_base_c,
     )
     model.to(device)
 
@@ -171,8 +199,8 @@ def train(args):
             X = X.to(device)
             bi = X.shape[0]
 
-            pos_labels = torch.ones((bi,)).to(device)
-            neg_labels = torch.zeros((bi,)).to(device)
+            pos_labels = torch.ones((bi,)).long().to(device)
+            neg_labels = torch.zeros((bi,)).long().to(device)
 
             ######################
             # START CODING HERE ##
@@ -192,25 +220,31 @@ def train(args):
             # pos_labels is full of one, if you multiply it by (1-p)
             # They will stay 1's with probability (1-p) , hence be flipped with
             # probability p
-            discriminator_real_labels = torch.bernoulli((1 - lblflip) * pos_labels)
+            discriminator_real_labels = torch.bernoulli(
+                (1 - lblflip) * pos_labels
+            ).long()
             # discriminator_fake_labels are expected to be 0's with probability (1-p)
             # and 1's if flipped with probability p
-            discriminator_fake_labels = torch.bernoulli(lblflip * pos_labels)  # (bi, )
+            discriminator_fake_labels = torch.bernoulli(
+                lblflip * pos_labels
+            ).long()  # (bi, )
 
             # Step 2 - Compute the loss of the critic
             # Ganhacks #6: use soft labels
-            # Apply a randopm label smoothing for this minibatch
-            loss.label_smoothing = random.random() * lblsmooth
+            # Apply a random label smoothing for this minibatch
 
             # @TEMPL@Dloss = None + None
             # @SOL
-            D_ploss = loss(real_logits, discriminator_real_labels)
-            D_nloss = loss(fake_logits, discriminator_fake_labels)
+            D_ploss = loss(
+                real_logits,
+                label_smooth(discriminator_real_labels, lblsmooth, num_classes),
+            )
+            D_nloss = loss(
+                fake_logits,
+                label_smooth(discriminator_fake_labels, lblsmooth, num_classes),
+            )
             Dloss = 0.5 * (D_ploss + D_nloss)
             # SOL@
-
-            # Reset label smoothing to the default 0.0 value
-            loss.label_smoothing = 0.0
 
             # Step 3 - Reinitialize the gradient accumulator of the critic
             # @TEMPL@None
@@ -228,10 +262,10 @@ def train(args):
             # END CODING HERE ##
             ####################
 
-            real_probs = torch.sigmoid(real_logits)
-            fake_probs = torch.sigmoid(fake_logits)
+            real_probs = torch.softmax(real_logits, dim=1)[:, 1]
+            fake_probs = torch.softmax(fake_logits, dim=1)[:, 0]
             critic_paccuracy += (real_probs > 0.5).sum().item()
-            critic_naccuracy += (fake_probs < 0.5).sum().item()
+            critic_naccuracy += (fake_probs > 0.5).sum().item()
             dploss_e = Dloss.item()
             dnloss_e = Dloss.item()
 
@@ -247,7 +281,9 @@ def train(args):
             # We flip the labels compared to the training of the discriminator
             # Ganhacks #2
             # @TEMPL@Gloss = None
-            Gloss = loss(fake_logits, pos_labels)  # @SOL@
+            Gloss = loss(
+                fake_logits, label_smooth(pos_labels, 0.0, num_classes)
+            )  # @SOL@
 
             # Step 3 - Reinitialize the gradient accumulator of the critic
             # @TEMPL@None
@@ -501,13 +537,13 @@ if __name__ == "__main__":
         "--lblflip",
         type=float,
         help="Probability of label flipping for the discriminator",
-        default=0.1,
+        default=0.01,
     )
     parser.add_argument(
         "--dnoise",
         type=float,
         help="Variance of input discriminator random noise",
-        default=0.2,
+        default=0.1,
     )
 
     parser.add_argument(
