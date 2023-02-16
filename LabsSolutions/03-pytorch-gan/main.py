@@ -72,7 +72,7 @@ def train(args):
 
     # Model definition
     model = models.GAN(
-        img_shape, dropout, discriminator_base_c, latent_size, generator_base_c
+        img_shape, dropout, discriminator_base_c, dnoise, latent_size, generator_base_c
     )
     model.to(device)
 
@@ -182,7 +182,7 @@ def train(args):
             # @TEMPL@real_logits, _ = None
             # @TEMPL@fake_logits, _ = None
             real_logits, _ = model(
-                X + (dnoise * torch.randn(*X.shape, device=device)),
+                X,
                 None,
             )  # @SOL@
             fake_logits, _ = model(None, bi)  # @SOL@

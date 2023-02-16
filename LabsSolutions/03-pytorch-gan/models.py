@@ -94,16 +94,22 @@ class Discriminator(nn.Module):
     """
 
     def __init__(
-        self, img_shape: Tuple[int, int, int], dropout: float, base_c: int
+        self,
+        img_shape: Tuple[int, int, int],
+        dropout: float,
+        base_c: int,
+        dnoise: float,
     ) -> None:
         """
         Args:
             img_shape : (C, H, W) image shapes
             dropout (float) the probability of zeroing before the FC layer
             base_c (int): The base number of channels for the discriminator
+            dnoise (float): The amplitude of noise applied to the input of the discriminator
         """
         super(Discriminator, self).__init__()
         self.img_shape = img_shape
+        self.dnoise = dnoise
 
         in_C = img_shape[0]
         ######################
@@ -181,7 +187,7 @@ class Discriminator(nn.Module):
         Returns:
             Logits (torch.Tensor (B, )) : The logits
         """
-
+        X = X + (self.dnoise * torch.randn(*X.shape, device=X.device))
         ######################
         # START CODING HERE ##
         ######################
@@ -426,6 +432,7 @@ class GAN(nn.Module):
         img_shape: Tuple[int, int, int],
         dropout: float,
         discriminator_base_c: int,
+        dnoise: float,
         latent_size: int,
         generator_base_c: int,
     ) -> None:
@@ -435,13 +442,17 @@ class GAN(nn.Module):
             dropout (float): The probability of zeroing before the FC layers
             discriminator_base_c (int) : The base number of channels for
                                          the discriminator
+            dnoise (float): The amplitude of the normal noise applied as input
+                            to the discriminator
             latent_size (int) : The size of the latent space for the generator
             generator_base_c (int) : The base number of channels for the
                                      generator
         """
         super(GAN, self).__init__()
         self.img_shape = img_shape
-        self.discriminator = Discriminator(img_shape, dropout, discriminator_base_c)
+        self.discriminator = Discriminator(
+            img_shape, dropout, discriminator_base_c, dnoise
+        )
         self.generator = Generator(img_shape, latent_size, generator_base_c)
 
     def forward(self, X: Optional[torch.Tensor], batch_size: Optional[float]):
