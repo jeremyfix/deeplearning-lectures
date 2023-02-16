@@ -99,6 +99,7 @@ class Discriminator(nn.Module):
         dropout: float,
         base_c: int,
         dnoise: float,
+        num_classes: int,
     ) -> None:
         """
         Args:
@@ -106,6 +107,7 @@ class Discriminator(nn.Module):
             dropout (float) the probability of zeroing before the FC layer
             base_c (int): The base number of channels for the discriminator
             dnoise (float): The amplitude of noise applied to the input of the discriminator
+            num_classes (int): The number of output classes (usually 1, 2 or K)
         """
         super(Discriminator, self).__init__()
         self.img_shape = img_shape
@@ -158,7 +160,7 @@ class Discriminator(nn.Module):
         # The fully connected part of the classifier
         # @TEMPL@self.classif = None
         # @SOL
-        self.classif = nn.Sequential(nn.Linear(num_features, 1))
+        self.classif = nn.Sequential(nn.Linear(num_features, num_classes))
         # SOL@
         ####################
         # END CODING HERE ##
@@ -433,6 +435,7 @@ class GAN(nn.Module):
         dropout: float,
         discriminator_base_c: int,
         dnoise: float,
+        num_classes: int,
         latent_size: int,
         generator_base_c: int,
     ) -> None:
@@ -444,6 +447,7 @@ class GAN(nn.Module):
                                          the discriminator
             dnoise (float): The amplitude of the normal noise applied as input
                             to the discriminator
+            num_classes (int) : The number of class scores outputed by the discriminator
             latent_size (int) : The size of the latent space for the generator
             generator_base_c (int) : The base number of channels for the
                                      generator
@@ -451,7 +455,7 @@ class GAN(nn.Module):
         super(GAN, self).__init__()
         self.img_shape = img_shape
         self.discriminator = Discriminator(
-            img_shape, dropout, discriminator_base_c, dnoise
+            img_shape, dropout, discriminator_base_c, dnoise, num_classes
         )
         self.generator = Generator(img_shape, latent_size, generator_base_c)
 
@@ -539,10 +543,10 @@ def test_tconv():
 
 
 def test_discriminator():
-    critic = Discriminator((1, 32, 32), 0.3, 96)
+    critic = Discriminator((1, 32, 32), 0.3, 96, dnoise=0.1, num_classes=2)
     X = torch.randn(64, 1, 32, 32)
     out = critic(X)
-    assert out.shape == torch.Size([64])
+    assert out.shape == torch.Size([64, 2])
 
 
 def test_generator():
