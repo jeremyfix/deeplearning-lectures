@@ -284,7 +284,7 @@ def train(args):
             # Ganhacks #2
             # @TEMPL@Gloss = None
             Gloss = loss(
-                fake_logits, label_smooth(pos_labels, 0.0, num_classes)
+                fake_logits, pos_labels  # label_smooth(pos_labels, 0.0, num_classes)
             )  # @SOL@
 
             # Step 3 - Reinitialize the gradient accumulator of the critic
@@ -541,7 +541,7 @@ if __name__ == "__main__":
         "--dnoise",
         type=float,
         help="Variance of input discriminator random noise",
-        default=0.1,
+        default=0.2,
     )
 
     parser.add_argument(
@@ -569,8 +569,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dropout",
         type=float,
-        help="The probability of zeroing before the FC layers",
-        default=0.3,
+        help="The probability of zeroing in the discriminator",
+        default=0.5,
     )
 
     # For the generation
