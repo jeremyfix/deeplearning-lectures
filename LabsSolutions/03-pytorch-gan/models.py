@@ -24,7 +24,6 @@ def conv_leakyrelu(in_channels, out_channels):
             kernel_size=ks,
             stride=1,
             padding=int((ks - 1) / 2),
-            bias=False,
         ),
         nn.LeakyReLU(negative_slope=0.2),
     ]
@@ -41,7 +40,6 @@ def conv_leakyrelu_bn(in_channels, out_channels, ks=3):
             kernel_size=ks,
             stride=1,
             padding=int((ks - 1) / 2),
-            bias=False,
         ),
         nn.LeakyReLU(negative_slope=0.2),
         nn.BatchNorm2d(out_channels),
@@ -79,7 +77,6 @@ def conv_downsampling(in_channels, out_channels):
             kernel_size=ks,
             stride=2,
             padding=int((ks - 1) / 2),
-            bias=True,
         ),
         nn.LeakyReLU(negative_slope=0.2),
         nn.BatchNorm2d(out_channels),
@@ -223,7 +220,6 @@ def conv_relu_bn(in_channels, out_channels):
             kernel_size=ks,
             stride=1,
             padding=int((ks - 1) / 2),
-            bias=False,
         ),
         nn.ReLU(),
         nn.BatchNorm2d(out_channels),
@@ -244,7 +240,6 @@ def up_conv_relu_bn(in_channels, out_channels):
             kernel_size=ks,
             stride=1,
             padding=int((ks - 1) / 2),
-            bias=False,
         ),
         nn.ReLU(),
         nn.BatchNorm2d(out_channels),
@@ -254,7 +249,6 @@ def up_conv_relu_bn(in_channels, out_channels):
             kernel_size=ks,
             stride=1,
             padding=int((ks - 1) / 2),
-            bias=False,
         ),
         nn.ReLU(),
         nn.BatchNorm2d(out_channels),
@@ -317,7 +311,7 @@ class Generator(nn.Module):
         print(f"[GENERATOR] The first convolutional block has {self.base_c} channels")
 
         self.upscale = nn.Sequential(
-            nn.Linear(self.latent_size, 4 * 4 * self.base_c, bias=False),
+            nn.Linear(self.latent_size, 4 * 4 * self.base_c),
             nn.ReLU(),
             nn.BatchNorm1d(4 * 4 * self.base_c),
         )
