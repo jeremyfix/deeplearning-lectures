@@ -284,7 +284,7 @@ def train(args):
             # Ganhacks #2
             # @TEMPL@Gloss = None
             Gloss = loss(
-                fake_logits, pos_labels  # label_smooth(pos_labels, 0.0, num_classes)
+                fake_logits, label_smooth(pos_labels, 0.0, num_classes)
             )  # @SOL@
 
             # Step 3 - Reinitialize the gradient accumulator of the critic
