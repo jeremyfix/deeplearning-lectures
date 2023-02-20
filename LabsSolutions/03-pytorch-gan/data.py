@@ -3,18 +3,15 @@
 # Standard imports
 from typing import Union
 from pathlib import Path
-import functools
 
 # External imports
-import tqdm
+# import tqdm
 import numpy as np
 import torch
-import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
 _DEFAULT_DATASET_ROOT = "/mounts/Datasets4/"
-_DEFAULT_MNIST_DIGIT = 6
 
 _IMG_MEAN = 0.5
 _IMG_STD = 0.5
