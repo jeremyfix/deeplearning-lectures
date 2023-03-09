@@ -33,6 +33,7 @@ def conv_leakyrelu_bn(in_channels, out_channels, ks=3):
     """
     Conv(3x3, same) - BN - LeakyRelu(0.2)
     """
+    print(f"conv leaky relu with out = {out_channels}")
     return [
         nn.Conv2d(
             in_channels,
@@ -122,18 +123,18 @@ class Discriminator(nn.Module):
         # Note: the output receptive field size is 36 x 36
         #       the output representation size is 3 x 3
         self.cnn = nn.Sequential(
-            *conv_leakyrelu_bn(in_C, base_c),
-            *conv_leakyrelu_bn(base_c, base_c),
+            *conv_bn_leakyrelu(in_C, base_c),
+            *conv_bn_leakyrelu(base_c, base_c),
             *conv_downsampling(base_c, base_c),
             nn.Dropout2d(dropout),
-            *conv_leakyrelu_bn(base_c, 2 * base_c),
-            *conv_leakyrelu_bn(2 * base_c, 2 * base_c),
+            *conv_bn_leakyrelu(base_c, 2 * base_c),
+            *conv_bn_leakyrelu(2 * base_c, 2 * base_c),
             *conv_downsampling(2 * base_c, 2 * base_c),
             nn.Dropout2d(dropout),
-            *conv_leakyrelu_bn(2 * base_c, 2 * base_c),
-            *conv_leakyrelu_bn(2 * base_c, 2 * base_c, 1),
-            *conv_leakyrelu_bn(2 * base_c, 2 * base_c, 1),
-            nn.AdaptiveAvgPool2d(output_size=1),
+            *conv_bn_leakyrelu(2 * base_c, 3 * base_c),
+            *conv_bn_leakyrelu(3 * base_c, 3 * base_c),
+            *conv_downsampling(3 * base_c, 3 * base_c),
+            nn.Dropout2d(dropout),
         )
         # SOL@
         ####################
@@ -173,7 +174,7 @@ class Discriminator(nn.Module):
 
         with torch.no_grad():
             if isinstance(m, nn.Conv2d):
-                torch.nn.init.normal_(m.weight, 0.0, 0.05)
+                torch.nn.init.normal_(m.weight, 0.0, 0.02)
                 if m.bias is not None:
                     m.bias.fill_(0.0)
 
@@ -311,9 +312,9 @@ class Generator(nn.Module):
         print(f"[GENERATOR] The first convolutional block has {self.base_c} channels")
 
         self.upscale = nn.Sequential(
-            nn.Linear(self.latent_size, 4 * 4 * self.base_c),
+            nn.Linear(self.latent_size, 8 * 8 * self.base_c),
+            # nn.BatchNorm1d(8 * 8 * self.base_c),
             nn.ReLU(),
-            nn.BatchNorm1d(4 * 4 * self.base_c),
         )
         # SOL@
 
@@ -323,7 +324,7 @@ class Generator(nn.Module):
         # @SOL
         layers = []
         in_c = self.base_c
-        for i in range(int(math.log2(H // 4))):
+        for i in range(int(math.log2(H // 8))):
             layers.extend(up_conv_relu_bn(in_c, in_c // 2))
             in_c = in_c // 2
 
@@ -368,7 +369,7 @@ class Generator(nn.Module):
     def init_weights(self, m):
         with torch.no_grad():
             if isinstance(m, nn.Conv2d):
-                torch.nn.init.normal_(m.weight, 0.0, 0.05)
+                torch.nn.init.normal_(m.weight, 0.0, 0.02)
                 if m.bias is not None:
                     m.bias.fill_(0.0)
 
@@ -407,7 +408,7 @@ class Generator(nn.Module):
         #  Hint : use the view method
         # @TEMPL@reshaped = None
         # @SOL
-        reshaped = upscaled.view(-1, self.base_c, 4, 4)
+        reshaped = upscaled.view(-1, self.base_c, 8, 8)
         # SOL@
 
         # Step 3 : Forward pass through the last convolutional part

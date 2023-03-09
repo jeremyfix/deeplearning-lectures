@@ -125,7 +125,7 @@ def train(args):
     # Step 2 - Define the optimizer for the generator
     # @TEMPL@optim_generator = None
     # @SOL
-    optim_generator = optim.Adam(generator.parameters(), lr=base_lr)
+    optim_generator = optim.Adam(generator.parameters(), lr=base_lr, betas=(0.5, 0.999))
     # SOL@
 
     # Step 3 - Define the loss (it must embed the sigmoid)
@@ -520,7 +520,7 @@ if __name__ == "__main__":
         "--num_epochs", type=int, help="The number of epochs to train for", default=200
     )
     parser.add_argument(
-        "--batch_size", type=int, help="The size of a minibatch", default=128
+        "--batch_size", type=int, help="The size of a minibatch", default=256
     )
     parser.add_argument(
         "--base_lr", type=float, help="The initial learning rate to use", default=0.0002
@@ -535,13 +535,13 @@ if __name__ == "__main__":
         "--lblflip",
         type=float,
         help="Probability of label flipping for the discriminator",
-        default=0.01,
+        default=0.0,
     )
     parser.add_argument(
         "--dnoise",
         type=float,
         help="Variance of input discriminator random noise",
-        default=0.2,
+        default=0.1,
     )
 
     parser.add_argument(
@@ -553,13 +553,13 @@ if __name__ == "__main__":
         "--discriminator_base_c",
         type=int,
         help="The base number of channels for the discriminator",
-        default=96,
+        default=32,
     )
     parser.add_argument(
         "--generator_base_c",
         type=int,
         help="The base number of channels for the generator",
-        default=512,
+        default=256,
     )
     parser.add_argument(
         "--latent_size", type=int, help="The dimension of the latent space", default=100
