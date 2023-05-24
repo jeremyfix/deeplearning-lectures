@@ -202,6 +202,7 @@ def train(args):
 
         tot_dploss = tot_dnloss = tot_gloss = 0
         critic_paccuracy = critic_naccuracy = 0
+        generator_accuracy = 0
         Ns = 0
 
         model.train()
@@ -277,10 +278,10 @@ def train(args):
             ####################
 
             # Computing of metrics for the discriminator
-            real_probs = torch.softmax(real_logits, dim=1)[:, 1]
-            fake_probs = torch.softmax(fake_logits, dim=1)[:, 0]
-            critic_paccuracy += (real_probs > 0.5).sum().item()
-            critic_naccuracy += (fake_probs > 0.5).sum().item()
+            # real_probs = torch.softmax(real_logits, dim=1)[:, 1]
+            # fake_probs = torch.softmax(fake_logits, dim=1)[:, 0]
+            critic_paccuracy += (real_logits[:, 1] > real_logits[:, 0]).sum().item()
+            critic_naccuracy += (fake_logits[:, 0] > fake_logits[:, 1]).sum().item()
             tot_dploss += bi * D_ploss.item()
             tot_dnloss += bi * D_nloss.item()
 
@@ -329,6 +330,7 @@ def train(args):
 
             # Update the metrics for the generator
             tot_gloss += bi * Gloss.item()
+            generator_accuracy += (fake_logits[:, 1] > fake_logits[:, 0]).sum().item()
 
             # Accumulate the number of samples we saw
             Ns += bi
@@ -338,31 +340,62 @@ def train(args):
         critic_naccuracy /= Ns
         tot_dploss /= Ns
         tot_dnloss /= Ns
+        generator_accuracy /= Ns
         tot_gloss /= Ns
 
         # Evaluate the metrics on the validation set
         val_metrics = evaluate(model, device, valid_loader, val_fmetrics)
 
         logger.info(
-            f"[Epoch {e+1}] "
-            f"D ploss : {tot_dploss:.4f} ; "
-            f"D paccuracy : {critic_paccuracy:.2f}, "
-            f"D nloss : {tot_dnloss:.4f} ; "
-            f"D naccuracy : {critic_naccuracy:.2f}, "
-            f"D vloss :  {val_metrics['loss']:.4f}; "
-            f"D vaccuracy : {val_metrics['accuracy']:.2f}, "
-            f"G loss : {tot_gloss:.4f}"
+            f"[Epoch {e+1}] \n"
+            f"  - Critic BCELoss averaged on the real samples : {tot_dploss:.4f} , \n"
+            f"  - Critic p-accuracy : Fraction of real samples considered as real by the discriminator : {critic_paccuracy:.2f}, \n"
+            f"  - Critic BCELoss averaged on the fake samples : {tot_dnloss:.4f} , \n"
+            f"  - Critic n-accuracy : Fraction of fake samples considered as fake by the discriminator :{critic_naccuracy:.2f},\n"
+            f"  - Critic v-loss : CE Loss on real samples from the test fold :  {val_metrics['loss']:.4f}; \n"
+            f"  - Critic accuracy on real samples from the validation fold : {val_metrics['accuracy']:.2f}, \n"
+            f"  - Generator BCELoss averaged on the fake samples : {tot_gloss:.4f} \n"
+            f"  - Generator accurarcy : fraction of generated samples considered as real by the discriminator {generator_accuracy:.2f}\n"
         )
 
-        tensorboard_writer.add_scalar("Critic p-loss", tot_dploss, e + 1)
-        tensorboard_writer.add_scalar("Critic n-loss", tot_dnloss, e + 1)
-        tensorboard_writer.add_scalar("Critic v-loss", val_metrics["loss"], e + 1)
-        tensorboard_writer.add_scalar("Critic p-accuracy", critic_paccuracy, e + 1)
-        tensorboard_writer.add_scalar("Critic n-accuracy", critic_naccuracy, e + 1)
         tensorboard_writer.add_scalar(
-            "Critic v-accuracy", val_metrics["accuracy"], e + 1
+            "Critic p-loss : Critic BCELoss averaged on the real samples",
+            tot_dploss,
+            e + 1,
         )
-        tensorboard_writer.add_scalar("Generator loss", tot_gloss, e + 1)
+        tensorboard_writer.add_scalar(
+            "Critic p-accuracy : Fraction of real samples considered as real by the discriminator",
+            critic_paccuracy,
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Critic n-loss : Critic BCELoss averaged on the fake samples",
+            tot_dnloss,
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Critic n-accuracy : Fraction of fake samples considered as fake by the discriminator",
+            critic_naccuracy,
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Critic v-loss : BCE Loss on real samples from the validation fold",
+            val_metrics["loss"],
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Critic v-accuracy : Fraction of real samples from the validation fold considered as real by the discriminator",
+            val_metrics["accuracy"],
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Generator BCELoss averaged on the fake samples", tot_gloss, e + 1
+        )
+        tensorboard_writer.add_scalar(
+            "Generator accurarcy : fraction of generated samples considered as real by the discriminator",
+            generator_accuracy,
+            e + 1,
+        )
 
         # Generate few samples from the generator
         model.eval()
@@ -492,7 +525,7 @@ def generate(args):
     generator.eval()
 
     # Generate some samples
-    sample_nrows = 8
+    sample_nrows = 1
     sample_ncols = 8
 
     # Step 2 - Generate a noise vector, normaly distributed
