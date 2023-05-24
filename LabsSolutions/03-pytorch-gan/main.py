@@ -281,8 +281,8 @@ def train(args):
             fake_probs = torch.softmax(fake_logits, dim=1)[:, 0]
             critic_paccuracy += (real_probs > 0.5).sum().item()
             critic_naccuracy += (fake_probs > 0.5).sum().item()
-            dploss_e = D_nloss.item()
-            dnloss_e = D_ploss.item()
+            tot_dploss += bi * D_ploss.item()
+            tot_dnloss += bi * D_nloss.item()
 
             ######################
             # START CODING HERE ##
@@ -328,13 +328,12 @@ def train(args):
             ####################
 
             # Update the metrics for the generator
-            gloss_e = Gloss.item()
+            tot_gloss += bi * Gloss.item()
 
-            tot_dploss += bi * dploss_e
-            tot_dnloss += bi * dnloss_e
-            tot_gloss += bi * gloss_e
+            # Accumulate the number of samples we saw
             Ns += bi
 
+        # Normalize the metrics by the total number of samples
         critic_paccuracy /= Ns
         critic_naccuracy /= Ns
         tot_dploss /= Ns
