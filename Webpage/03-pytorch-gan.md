@@ -14,12 +14,13 @@ A GAN network is built from actually two networks that play a two player game :
 - a generator which tries to generate images as real as possible, hopefully fooling the second player,
 - a critic which tries to distinguish the real images from the fake images
 
+Depending on the approach (e.g. GAN or WGAN), the second player is either called the discriminator or the critic. In the GAN framework we consider, this is a discriminator which tries to classify its inputs as being either real or generated.
 
 ![A generative adversial network architecture with its generator and its discriminator/critic](./data/03-pytorch-gan/gan.svg){width=50%}
 
 
 
-The loss used for training these two neural networks reflect the objective of the generator to fool the critic and of the critic to correctly separate the real from the fake.
+The loss used for training these two neural networks reflects the objective of the generator to fool the critic and of the critic to correctly separate the real from the fake.
 
 The generator generates an image from a random seed, $z$, say drawn from a normal distribution $\mathcal{N}(0, 1)$. Let us denote $\mathcal{G}(z)$ the output image (for now, we slightly postpone the discussion about the architecture used to generate an image). Let us denote by $\mathcal{D}(x) \in [0, 1]$ the score assigned by the critic to an image where $\mathcal{D}(x) \approx 1$ if $x$ is real and $\mathcal{D}(x) \approx 0$ if $x$ is a fake. The critic solves a binary classification problem with a binary cross entropy loss and seeks to minimize :
 
@@ -29,7 +30,7 @@ $$
 
 You may recognize the usual binary cross entropy loss where the labels of the $m$ real data is set to $y^x_i=1$ and the labels of the $m$ fake data is set to $y^z_i=0$. This loss is to be minimized with respect to the parameters of the critic $\theta_c$.
 
-The generator on his side wants to fool the critic and therefore wants its samples to be considered as real data. Therefore, it seeks to minimize:
+The generator on his side wants to fool the critic and therefore wants its samples to be considered as real data by the critic. Therefore, it seeks to minimize:
 
 $$
 \mathcal{L}_g = \frac{1}{m} \sum_{i=1}^m -\log(D(G(z_i)))
@@ -46,6 +47,8 @@ Our aim is to generate fake data and you are free to choose between several data
 ![Fake Fashion MNIST. Nobody has ever photographed these objects.](data/03-pytorch-gan/generated-fashion.png){width=40%}
 
 ![Fake EMNIST symbols. Nobody has ever written these symbols (these are expected to be letters, digits, etc..).](data/03-pytorch-gan/generated-emnist.png){width=40%}
+
+![Fake Celebrity faces. These celebrities do not exist.](data/03-pytorch-gan/generated-celeba.png){width=40%}
 
 ## Lab work materials
 
