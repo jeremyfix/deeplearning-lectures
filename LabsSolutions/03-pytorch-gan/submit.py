@@ -63,8 +63,6 @@ if len(sys.argv) == 1:
 else:
     nruns = int(sys.argv[1])
 
-# Copy the config in a temporary config file
-
 # Launch the batch jobs
-for dataset in ["MNIST", "EMNIST", "SVHN", "CelebA"]:
+for dataset in ["MNIST", "EMNIST", "FashionMNIST", "SVHN", "CelebA"]:
     submit_job(makejob(dataset, nruns))
