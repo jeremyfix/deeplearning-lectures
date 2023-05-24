@@ -35,7 +35,13 @@ def label_smooth(labels, amplitude, num_target_classes):
     """
     Apply label smoothing to labels
     Consider labels is (B, )
-    classes
+
+    Args:
+        labels: a (B, ) tensor with the the hard labels
+        amplitude [0, 1]: the maximum amount of the probability mass to assign to the non class labels
+        num_target_classes: the number of hard labels
+    Returns:
+        a tensor (B, num_target_classes) with the smoothed labels
     """
     # Fill everywhere  rand(0, 1) * amplitude / (num_target_classes - 1)
     smoothed_labels = (
@@ -48,7 +54,12 @@ def label_smooth(labels, amplitude, num_target_classes):
     # The probabilities do not sum to 1 but, almost
     smoothed_labels[:, labels] = 1 - amplitude * torch.rand(
         (labels.shape[0],), device=labels.device
-    )
+    )  # (B, num_target_classes)
+
+    # Normalize the soft labels so that they sum to 1, as a discrete distribution over the num_target_classes
+    # labels
+    norm_factor = smoothed_labels.sum(axis=1)  # (B, )
+    smoothed_labels /= norm_factor[:, None]
     return smoothed_labels
 
 
@@ -75,7 +86,9 @@ def train(args):
     discriminator_base_c = args.discriminator_base_c
     generator_base_c = args.generator_base_c
     latent_size = args.latent_size
-    num_classes = 2
+    num_classes = (
+        2  # TODO: we could be using the true labels for training the discriminator
+    )
     sample_nrows = 8
     sample_ncols = 8
 
@@ -205,6 +218,9 @@ def train(args):
             ######################
             # START CODING HERE ##
             ######################
+
+            # -- Discriminator training --
+
             # Step 1 - Forward pass for training the discriminator
             # Ganhacks #4: Use separate batchs for real and fake data
             # @TEMPL@real_logits, _ = None
@@ -217,34 +233,38 @@ def train(args):
             # SOL@
             fake_logits, _ = model(None, bi)  # @SOL@
 
-            # Ganhacks #6: Occassionnally flip the labels for the discriminator
-            # We want to flip the labels with probability p
-            # pos_labels is full of one, if you multiply it by (1-p)
-            # They will stay 1's with probability (1-p) , hence be flipped with
-            # probability p
-            discriminator_real_labels = torch.bernoulli(
-                (1 - lblflip) * pos_labels
-            ).long()
-            # discriminator_fake_labels are expected to be 0's with probability (1-p)
-            # and 1's if flipped with probability p
-            discriminator_fake_labels = torch.bernoulli(
-                lblflip * pos_labels
-            ).long()  # (bi, )
+            if lblflip != 0:
+                # Ganhacks #6: Occassionnally flip the labels for the discriminator
+                # We want to flip the labels with probability p
+                # pos_labels is full of one, if you multiply it by (1-p)
+                # They will stay 1's with probability (1-p) , hence be flipped with
+                # probability p
+                discriminator_real_labels = torch.bernoulli(
+                    (1 - lblflip) * pos_labels
+                ).long()  # (bi, )
+                # discriminator_fake_labels are expected to be 0's with probability (1-p)
+                # and 1's if flipped with probability p
+                discriminator_fake_labels = torch.bernoulli(
+                    lblflip * pos_labels
+                ).long()  # (bi, )
+            else:
+                discriminator_real_labels = pos_labels
+                discriminator_fake_labels = neg_labels
 
             # Step 2 - Compute the loss of the critic
             # Ganhacks #6: use soft labels
             # Apply a random label smoothing for this minibatch
+            discriminator_smoothed_real_labels = label_smooth(
+                discriminator_real_labels, lblsmooth, num_classes
+            )  # (B, num_target_classes)
+            discriminator_smoothed_fake_labels = label_smooth(
+                discriminator_fake_labels, lblsmooth, num_classes
+            )  # (B, num_target_classes)
 
             # @TEMPL@Dloss = None + None
             # @SOL
-            D_ploss = loss(
-                real_logits,
-                label_smooth(discriminator_real_labels, lblsmooth, num_classes),
-            )
-            D_nloss = loss(
-                fake_logits,
-                label_smooth(discriminator_fake_labels, lblsmooth, num_classes),
-            )
+            D_ploss = loss(real_logits, discriminator_smoothed_real_labels)
+            D_nloss = loss(fake_logits, discriminator_smoothed_fake_labels)
             Dloss = 0.5 * (D_ploss + D_nloss)
             # SOL@
 
@@ -274,6 +294,9 @@ def train(args):
             ######################
             # START CODING HERE ##
             ######################
+
+            # -- Generator training --
+
             # Step 1 - Forward pass for training the generator
             # @TEMPL@fake_logits, _ = None
             fake_logits, _ = model(None, bi)  # @SOL@
