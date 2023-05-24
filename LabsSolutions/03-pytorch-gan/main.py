@@ -80,7 +80,6 @@ def train(args):
     base_lr = args.base_lr
     wdecay = args.wdecay
     lblsmooth = args.lblsmooth
-    lblflip = args.lblflip
     dnoise = args.dnoise
     num_epochs = args.num_epochs
     discriminator_base_c = args.discriminator_base_c
@@ -233,25 +232,15 @@ def train(args):
             # SOL@
             fake_logits, _ = model(None, bi)  # @SOL@
 
-            if lblflip != 0:
-                # Ganhacks #6: Occassionnally flip the labels for the discriminator
-                # We want to flip the labels with probability p
-                # pos_labels is full of one, if you multiply it by (1-p)
-                # They will stay 1's with probability (1-p) , hence be flipped with
-                # probability p
-                discriminator_real_labels = torch.bernoulli(
-                    (1 - lblflip) * pos_labels
-                ).long()  # (bi, )
-                # discriminator_fake_labels are expected to be 0's with probability (1-p)
-                # and 1's if flipped with probability p
-                discriminator_fake_labels = torch.bernoulli(
-                    lblflip * pos_labels
-                ).long()  # (bi, )
-            else:
-                discriminator_real_labels = pos_labels
-                discriminator_fake_labels = neg_labels
+            # Step 1 - Compute the real and fake labels for the discriminator
+            # @TEMPL@discriminator_real_labels = None # (bi,)
+            # @TEMPL@discriminator_fake_labels = None # (bi,)
 
-            # Step 2 - Compute the loss of the critic
+            # @SOL
+            discriminator_real_labels = pos_labels
+            discriminator_fake_labels = neg_labels
+            # SOL@
+
             # Ganhacks #6: use soft labels
             # Apply a random label smoothing for this minibatch
             discriminator_smoothed_real_labels = label_smooth(
@@ -261,6 +250,9 @@ def train(args):
                 discriminator_fake_labels, lblsmooth, num_classes
             )  # (B, num_target_classes)
 
+            # Step 2 - Compute the loss of the critic
+            # @TEMPL@D_ploss = None
+            # @TEMPL@D_nloss = None
             # @TEMPL@Dloss = None + None
             # @SOL
             D_ploss = loss(real_logits, discriminator_smoothed_real_labels)
@@ -284,6 +276,7 @@ def train(args):
             # END CODING HERE ##
             ####################
 
+            # Computing of metrics for the discriminator
             real_probs = torch.softmax(real_logits, dim=1)[:, 1]
             fake_probs = torch.softmax(fake_logits, dim=1)[:, 0]
             critic_paccuracy += (real_probs > 0.5).sum().item()
@@ -296,21 +289,30 @@ def train(args):
             ######################
 
             # -- Generator training --
+            # The principle is to generator samples
+            # and update the parameters of the generator only so that the frozen discriminator
+            # considers the generated samples as real
 
             # Step 1 - Forward pass for training the generator
             # @TEMPL@fake_logits, _ = None
             fake_logits, _ = model(None, bi)  # @SOL@
 
-            # Step 2 - Compute the loss of the generator
+            # Step 1 - Compute the fake labels for the generator
             # The generator wants his generated images to be positive
-            # We flip the labels compared to the training of the discriminator
-            # Ganhacks #2
-            # @TEMPL@Gloss = None
-            Gloss = loss(
-                fake_logits, label_smooth(pos_labels, 0.0, num_classes)
-            )  # @SOL@
+            # @TEMPL@generator_fake_labels = None # (bi,)
+            generator_fake_labels = pos_labels  # @SOL@
 
-            # Step 3 - Reinitialize the gradient accumulator of the critic
+            # Ganhacks #6: use soft labels
+            # Apply a random label smoothing for this minibatch
+            generator_fake_labels = label_smooth(
+                generator_fake_labels, 0.0, num_classes
+            )
+
+            # Step 2 - Compute the loss of the generator
+            # @TEMPL@Gloss = None
+            Gloss = loss(fake_logits, generator_fake_labels)  # @SOL@
+
+            # Step 3 - Reinitialize the gradient accumulator of the generator
             # @TEMPL@None
             optim_generator.zero_grad()  # @SOL@
 
@@ -325,6 +327,7 @@ def train(args):
             # END CODING HERE ##
             ####################
 
+            # Update the metrics for the generator
             gloss_e = Gloss.item()
 
             tot_dploss += bi * dploss_e
@@ -553,12 +556,6 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--lblsmooth", type=float, help="The amplitude of label smoothing", default=0.2
-    )
-    parser.add_argument(
-        "--lblflip",
-        type=float,
-        help="Probability of label flipping for the discriminator",
-        default=0.0,
     )
     parser.add_argument(
         "--dnoise",
