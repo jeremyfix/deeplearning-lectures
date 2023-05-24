@@ -1,20 +1,15 @@
 #!/usr/bin/env python3
 
 # Standard imports
-import sys
 import inspect
 
 # External imports
 import torch
-from torch.nn.utils.rnn import PackedSequence
 
 # Local imports
-import data
 import models
 
 _RERAISE = False
-_DEFAULT_T = 124
-_DEFAULT_B = 10
 
 
 class colors:
@@ -75,5 +70,22 @@ def test_discriminator():
         fail(f" was expecting {expected_shape}")
 
 
+def test_generator():
+    head("Testing the discriminator")
+    generator = models.Generator((1, 32, 32), 100, 512)
+    X = torch.randn(69, 100)
+    out = generator(X, None)
+    expected_shape = [69, 1, 32, 32]
+    succeed() if test_equal(list(out.shape), expected_shape, 0) else fail(
+        f" Got {out.shape}, was expecting {expected_shape}"
+    )
+    out = generator(None, 69)
+    expected_shape = [69, 1, 32, 32]
+    succeed() if test_equal(list(out.shape), expected_shape, 0) else fail(
+        f" Got {out.shape}, was expecting {expected_shape}"
+    )
+
+
 if __name__ == "__main__":
     test_discriminator()
+    test_generator()
