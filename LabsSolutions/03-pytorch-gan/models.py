@@ -351,18 +351,6 @@ class Generator(nn.Module):
         # END CODING HERE ##
         ####################
 
-        # @SOL
-        # Note : size, stride, pad, opad
-        # self.model = nn.Sequential(
-        #     *tconv_bn_relu2(base_c*4, base_c*2, 5, 1, 2, 0),
-        #     # nn.Dropout2d(0.3),
-        #     *tconv_bn_relu2(base_c*2, base_c, 5, 2, 2, 1),
-        #     # nn.Dropout2d(0.3),
-        #     nn.ConvTranspose2d(base_c, 1, 5, 2, 2, 1),
-        #     nn.Tanh()  # as suggested by [Radford, 2016]
-        # )
-        # SOL@
-
         # Initialize the convolutional layers
         self.apply(self.init_weights)
 
@@ -533,26 +521,8 @@ def test_tconv():
     print(X.shape)
 
 
-# SOL@
-
-
-def test_discriminator():
-    critic = Discriminator((1, 32, 32), 0.3, 96, dnoise=0.1, num_classes=2)
-    X = torch.randn(64, 1, 32, 32)
-    out = critic(X)
-    assert out.shape == torch.Size([64, 2])
-
-
-def test_generator():
-    generator = Generator((1, 32, 32), 100, 512)
-    X = torch.randn(69, 100)
-    out = generator(X, None)
-    assert out.shape == torch.Size([69, 1, 32, 32])
-    out = generator(None, 69)
-    assert out.shape == torch.Size([69, 1, 32, 32])
-
-
 if __name__ == "__main__":
-    test_tconv()  # @SOL@
-    test_discriminator()
-    test_generator()
+    test_tconv()
+
+
+# SOL@
