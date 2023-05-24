@@ -25,6 +25,7 @@ import torchvision
 import deepcs.display
 from deepcs.fileutils import generate_unique_logpath
 import tqdm
+import onnxruntime as ort
 
 # Local imports
 import data
@@ -126,7 +127,7 @@ def train(args):
     # @TEMPL@optim_critic = None
     # @SOL
     if wdecay == 0:
-        print("No weight decay")
+        logger.info("No weight decay")
         optim_critic = optim.Adam(critic.parameters(), lr=base_lr, betas=(0.5, 0.999))
     else:
         optim_critic = optim.AdamW(
@@ -439,6 +440,35 @@ def evaluate(
     return tot_metrics
 
 
+class ONNXWrapper:
+    def __init__(self, use_cuda, modelpath):
+        self.device = torch.device("cuda") if use_cuda else torch.device("cpu")
+        providers = []
+        if use_cuda:
+            providers.append("CUDAExecutionProvider")
+        providers.append("CPUExecutionProvider")
+        self.inference_session = ort.InferenceSession(modelpath, providers=providers)
+        input_shapes = self.inference_session.get_inputs()[
+            0
+        ].shape  # ['batch', latent_size]
+        self.latent_size = input_shapes[1]
+
+    def eval(self):
+        # ONNX model cannot be switched from train to test
+        pass
+
+    def train(self):
+        # ONNX model cannot be switch from test to train
+        pass
+
+    def __call__(self, torchX):
+        output = self.inference_session.run(
+            None, {self.inference_session.get_inputs()[0].name: torchX.cpu().numpy()}
+        )[0]
+
+        return torch.from_numpy(output).to(self.device)
+
+
 def generate(args):
     """
     Function to generate new samples from the generator
@@ -455,15 +485,15 @@ def generate(args):
     ######################
     # START CODING HERE ##
     ######################
-    # Step 1 - Reload the generator
+    # Step 1 - Reload the generator using the ONNXWrapper class
     # @TEMPL@generator = None
-    generator = torch.load(modelpath).to(device)  # @SOL@
+    generator = ONNXWrapper(use_cuda, modelpath)  # @SOL@
 
     # Put the model in evaluation mode (due to BN and Dropout)
     generator.eval()
 
     # Generate some samples
-    sample_nrows = 1
+    sample_nrows = 8
     sample_ncols = 8
 
     # Step 2 - Generate a noise vector, normaly distributed
@@ -475,6 +505,8 @@ def generate(args):
 
     # Step 3 - Forward pass through the generator
     #          The output is (B, 1, 28, 28)
+    # The ONNXWrapper.__call__ implementation allows to forward propagate through ONNXWrapper
+    # as you would do with normal nn.Module
     # @TEMPL@fake_images = None
     fake_images = generator(z)  # @SOL@
 
@@ -486,6 +518,7 @@ def generate(args):
 
     grid = torchvision.utils.make_grid(fake_images, nrow=sample_ncols, normalize=True)
     torchvision.utils.save_image(grid, "generated1.png")
+    logger.info("Image generated1.png generated")
 
     # @SOL
     # Interpolate in the laten space
@@ -504,6 +537,7 @@ def generate(args):
     fake_images = fake_images * data._IMG_STD + data._IMG_MEAN
     grid = torchvision.utils.make_grid(fake_images, nrow=N, normalize=True)
     torchvision.utils.save_image(grid, "generated2.png")
+    logger.info("Interpolation image generated2.png generated")
     # SOL@
 
 
