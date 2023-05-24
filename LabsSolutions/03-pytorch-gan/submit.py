@@ -37,7 +37,7 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 
 echo "Training"
-python main.py --dataset {dataset} --dataset_root /mounts/Datasets4 --logdir {baselog}/${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} train
+python main.py --dataset {dataset} --dataset_root /mounts/Datasets4 --logdir {baselog}/${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}} --num_epochs 400 train
 
 if [[ $? != 0 ]]; then
     exit -1
