@@ -57,11 +57,11 @@ You are provided with some starter code which already implements some functional
 - [data.py](./labs/03-pytorch-gan/data.py) : code performing the data loading 
 - [models.py](./labs/03-pytorch-gan/models.py) : code defining the GAN 
 - [main.py](./labs/03-pytorch-gan/main.py) : code containing the training and testing functions
-- [mnist_generator.onnx](./labs/03-pytorch-gan/mnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on MNIST in ONNX format
-- [emnist_generator.onnx](./labs/03-pytorch-gan/emnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on eMNIST in ONNX format
-- [fashiomnist_generator.onnx](./labs/03-pytorch-gan/fashionmnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on Fashion MNIST in ONNX format
-- [celeba_generator.onnx](./labs/03-pytorch-gan/celeba_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on CelebA in ONNX format
-- [svhn_generator.onnx](./labs/03-pytorch-gan/svhn_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on SVHN in ONNX format
+- [mnist_generator.onnx](./data/03-pytorch-gan/mnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on MNIST in ONNX format
+- [emnist_generator.onnx](./data/03-pytorch-gan/emnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on eMNIST in ONNX format
+- [fashiomnist_generator.onnx](./data/03-pytorch-gan/fashionmnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on Fashion MNIST in ONNX format
+- [celeba_generator.onnx](./data/03-pytorch-gan/celeba_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on CelebA in ONNX format
+- [svhn_generator.onnx](./data/03-pytorch-gan/svhn_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on SVHN in ONNX format
 
 ## Setup of the environment
 
