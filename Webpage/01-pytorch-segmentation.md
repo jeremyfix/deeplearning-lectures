@@ -29,7 +29,7 @@ There are $14$ classes, the first being for the unlabeled pixels.
 
 ## Setup and predefined scripts
 
-For this lab work, you are provided with environment setup files, either a [environment.yml](./data/01-pytorch-segmentation/environment.yml) if you are using conda and a [requirements.txt](./data/01-pytorch-segmentation/requirements.txt) file if you are a pipenv/pip/virtualenv/etc..
+For this lab work, you are provided with environment setup files, either a [environment.yml](./labs/01-pytorch-segmentation/environment.yml) if you are using conda and a [requirements.txt](./labs/01-pytorch-segmentation/requirements.txt) file if you are a pipenv/pip/virtualenv/etc..
 
 On the CentraleSupelec clusters, I advise you to use virtualenv as conda requires a lot of dependencies to be installed and can sometimes be cumbersome.
 
