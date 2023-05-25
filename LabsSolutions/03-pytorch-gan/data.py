@@ -3,18 +3,15 @@
 # Standard imports
 from typing import Union
 from pathlib import Path
-import functools
 
 # External imports
-import tqdm
+# import tqdm
 import numpy as np
 import torch
-import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
 _DEFAULT_DATASET_ROOT = "/mounts/Datasets4/"
-_DEFAULT_MNIST_DIGIT = 6
 
 _IMG_MEAN = 0.5
 _IMG_STD = 0.5
@@ -58,9 +55,13 @@ def get_dataloaders(
         test_kwargs["train"] = False
     if dataset == "EMNIST":
         train_kwargs["split"] = "balanced"
+        test_kwargs["split"] = "balanced"
     elif dataset in ["SVHN", "CelebA"]:
         train_kwargs["split"] = "train"
         test_kwargs["split"] = "test"
+
+    if dataset == "SVHN":
+        dataset_root = dataset_root + "/SVHN"
 
     # Get the two datasets, make them tensors in [0, 1]
     transform = transforms.Compose(
@@ -70,6 +71,11 @@ def get_dataloaders(
         transform = transforms.Compose(
             [transforms.Resize(64), transforms.CenterCrop(64), transform]
         )
+    else:
+        transform = transforms.Compose(
+            [transforms.Resize(32), transforms.CenterCrop(32), transform]
+        )
+
     train_dataset = dataset_loader(
         root=dataset_root, **train_kwargs, download=True, transform=transform
     )

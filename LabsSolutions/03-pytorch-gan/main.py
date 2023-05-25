@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+"""
+Implements GAN training inspired from :
+
+    - Radford et al(2015) Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks
+    - Saliman et al (2016) Improved techniques for training GANs
+      https://github.com/openai/improved-gan
+"""
+
 # Standard imports
 import argparse
 import logging
@@ -16,10 +24,43 @@ import torchvision
 import deepcs.display
 from deepcs.fileutils import generate_unique_logpath
 import tqdm
+import onnxruntime as ort
 
 # Local imports
 import data
 import models
+
+
+def label_smooth(labels, amplitude, num_target_classes):
+    """
+    Apply label smoothing to labels
+    Consider labels is (B, )
+
+    Args:
+        labels: a (B, ) tensor with the the hard labels
+        amplitude [0, 1]: the maximum amount of the probability mass to assign to the non class labels
+        num_target_classes: the number of hard labels
+    Returns:
+        a tensor (B, num_target_classes) with the smoothed labels
+    """
+    # Fill everywhere  rand(0, 1) * amplitude / (num_target_classes - 1)
+    smoothed_labels = (
+        amplitude
+        * torch.rand((labels.shape[0], num_target_classes), device=labels.device)
+        / (num_target_classes - 1.0)
+    )
+
+    # For the correct class, we set its value to (1 - amplitude*rand(0, 1))
+    # The probabilities do not sum to 1 but, almost
+    smoothed_labels[:, labels] = 1 - amplitude * torch.rand(
+        (labels.shape[0],), device=labels.device
+    )  # (B, num_target_classes)
+
+    # Normalize the soft labels so that they sum to 1, as a discrete distribution over the num_target_classes
+    # labels
+    norm_factor = smoothed_labels.sum(axis=1)  # (B, )
+    smoothed_labels /= norm_factor[:, None]
+    return smoothed_labels
 
 
 def train(args):
@@ -38,10 +79,15 @@ def train(args):
     debug = args.debug
     base_lr = args.base_lr
     wdecay = args.wdecay
+    lblsmooth = args.lblsmooth
+    dnoise = args.dnoise
     num_epochs = args.num_epochs
     discriminator_base_c = args.discriminator_base_c
     generator_base_c = args.generator_base_c
     latent_size = args.latent_size
+    num_classes = (
+        2  # TODO: we could be using the true labels for training the discriminator
+    )
     sample_nrows = 8
     sample_ncols = 8
 
@@ -60,7 +106,13 @@ def train(args):
 
     # Model definition
     model = models.GAN(
-        img_shape, dropout, discriminator_base_c, latent_size, generator_base_c
+        img_shape,
+        dropout,
+        discriminator_base_c,
+        dnoise,
+        num_classes,
+        latent_size,
+        generator_base_c,
     )
     model.to(device)
 
@@ -74,16 +126,18 @@ def train(args):
     # @TEMPL@optim_critic = None
     # @SOL
     if wdecay == 0:
-        print("No weight decay")
-        optim_critic = optim.Adam(critic.parameters(), lr=base_lr)
+        logger.info("No weight decay")
+        optim_critic = optim.Adam(critic.parameters(), lr=base_lr, betas=(0.5, 0.999))
     else:
-        optim_critic = optim.AdamW(critic.parameters(), lr=base_lr, weight_decay=wdecay)
+        optim_critic = optim.AdamW(
+            critic.parameters(), lr=base_lr, weight_decay=wdecay, betas=(0.5, 0.999)
+        )
 
     # SOL@
     # Step 2 - Define the optimizer for the generator
     # @TEMPL@optim_generator = None
     # @SOL
-    optim_generator = optim.Adam(generator.parameters(), lr=base_lr)
+    optim_generator = optim.Adam(generator.parameters(), lr=base_lr, betas=(0.5, 0.999))
     # SOL@
 
     # Step 3 - Define the loss (it must embed the sigmoid)
@@ -104,7 +158,12 @@ def train(args):
 
     logger.info(summary_text)
 
-    logdir = generate_unique_logpath("./logs", "gan")
+    if args.logdir is None:
+        logdir = generate_unique_logpath("./logs", "gan")
+    else:
+        logdir = args.logdir
+        if not os.path.exists(logdir):
+            os.makedirs(logdir)
     tensorboard_writer = SummaryWriter(log_dir=logdir, flush_secs=5)
     tensorboard_writer.add_text(
         "Experiment summary", deepcs.display.htmlize(summary_text)
@@ -129,15 +188,21 @@ def train(args):
     # Generate few samples from the initial generator
     model.eval()
     fake_images = model.generator(X=fixed_noise)
+    fake_images = (fake_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
     grid = torchvision.utils.make_grid(fake_images, nrow=sample_nrows, normalize=True)
     tensorboard_writer.add_image("Generated", grid, 0)
-    torchvision.utils.save_image(grid, "images/images-0000.png")
+
+    imgpath = logdir + "/images/"
+    if not os.path.exists(imgpath):
+        os.makedirs(imgpath)
+    torchvision.utils.save_image(grid, imgpath + "images-0000.png")
 
     # Training loop
     for e in range(num_epochs):
 
         tot_dploss = tot_dnloss = tot_gloss = 0
         critic_paccuracy = critic_naccuracy = 0
+        generator_accuracy = 0
         Ns = 0
 
         model.train()
@@ -147,23 +212,52 @@ def train(args):
             X = X.to(device)
             bi = X.shape[0]
 
-            pos_labels = torch.ones((bi,)).to(device)
-            neg_labels = torch.zeros((bi,)).to(device)
+            pos_labels = torch.ones((bi,)).long().to(device)
+            neg_labels = torch.zeros((bi,)).long().to(device)
 
             ######################
             # START CODING HERE ##
             ######################
+
+            # -- Discriminator training --
+
             # Step 1 - Forward pass for training the discriminator
+            # Ganhacks #4: Use separate batchs for real and fake data
             # @TEMPL@real_logits, _ = None
             # @TEMPL@fake_logits, _ = None
-            real_logits, _ = model(X, None)  # @SOL@
+            # @SOL
+            real_logits, _ = model(
+                X,
+                None,
+            )
+            # SOL@
             fake_logits, _ = model(None, bi)  # @SOL@
 
+            # Step 1 - Compute the real and fake labels for the discriminator
+            # @TEMPL@discriminator_real_labels = None # (bi,)
+            # @TEMPL@discriminator_fake_labels = None # (bi,)
+
+            # @SOL
+            discriminator_real_labels = pos_labels
+            discriminator_fake_labels = neg_labels
+            # SOL@
+
+            # Ganhacks #6: use soft labels
+            # Apply a random label smoothing for this minibatch
+            discriminator_smoothed_real_labels = label_smooth(
+                discriminator_real_labels, lblsmooth, num_classes
+            )  # (B, num_target_classes)
+            discriminator_smoothed_fake_labels = label_smooth(
+                discriminator_fake_labels, lblsmooth, num_classes
+            )  # (B, num_target_classes)
+
             # Step 2 - Compute the loss of the critic
+            # @TEMPL@D_ploss = None
+            # @TEMPL@D_nloss = None
             # @TEMPL@Dloss = None + None
             # @SOL
-            D_ploss = loss(real_logits, pos_labels)
-            D_nloss = loss(fake_logits, neg_labels)
+            D_ploss = loss(real_logits, discriminator_smoothed_real_labels)
+            D_nloss = loss(fake_logits, discriminator_smoothed_fake_labels)
             Dloss = 0.5 * (D_ploss + D_nloss)
             # SOL@
 
@@ -183,26 +277,43 @@ def train(args):
             # END CODING HERE ##
             ####################
 
-            real_probs = torch.nn.functional.sigmoid(real_logits)
-            fake_probs = torch.nn.functional.sigmoid(fake_logits)
-            critic_paccuracy += (real_probs > 0.5).sum().item()
-            critic_naccuracy += (fake_probs < 0.5).sum().item()
-            dploss_e = Dloss.item()
-            dnloss_e = Dloss.item()
+            # Computing of metrics for the discriminator
+            # real_probs = torch.softmax(real_logits, dim=1)[:, 1]
+            # fake_probs = torch.softmax(fake_logits, dim=1)[:, 0]
+            critic_paccuracy += (real_logits[:, 1] > real_logits[:, 0]).sum().item()
+            critic_naccuracy += (fake_logits[:, 0] > fake_logits[:, 1]).sum().item()
+            tot_dploss += bi * D_ploss.item()
+            tot_dnloss += bi * D_nloss.item()
 
             ######################
             # START CODING HERE ##
             ######################
+
+            # -- Generator training --
+            # The principle is to generator samples
+            # and update the parameters of the generator only so that the frozen discriminator
+            # considers the generated samples as real
+
             # Step 1 - Forward pass for training the generator
             # @TEMPL@fake_logits, _ = None
             fake_logits, _ = model(None, bi)  # @SOL@
 
-            # Step 2 - Compute the loss of the generator
+            # Step 1 - Compute the fake labels for the generator
             # The generator wants his generated images to be positive
-            # @TEMPL@Gloss = None
-            Gloss = loss(fake_logits, pos_labels)  # @SOL@
+            # @TEMPL@generator_fake_labels = None # (bi,)
+            generator_fake_labels = pos_labels  # @SOL@
 
-            # Step 3 - Reinitialize the gradient accumulator of the critic
+            # Ganhacks #6: use soft labels
+            # Apply a random label smoothing for this minibatch
+            generator_fake_labels = label_smooth(
+                generator_fake_labels, 0.0, num_classes
+            )
+
+            # Step 2 - Compute the loss of the generator
+            # @TEMPL@Gloss = None
+            Gloss = loss(fake_logits, generator_fake_labels)  # @SOL@
+
+            # Step 3 - Reinitialize the gradient accumulator of the generator
             # @TEMPL@None
             optim_generator.zero_grad()  # @SOL@
 
@@ -217,64 +328,110 @@ def train(args):
             # END CODING HERE ##
             ####################
 
-            gloss_e = Gloss.item()
+            # Update the metrics for the generator
+            tot_gloss += bi * Gloss.item()
+            generator_accuracy += (fake_logits[:, 1] > fake_logits[:, 0]).sum().item()
 
-            tot_dploss += bi * dploss_e
-            tot_dnloss += bi * dnloss_e
-            tot_gloss += bi * gloss_e
+            # Accumulate the number of samples we saw
             Ns += bi
 
+        # Normalize the metrics by the total number of samples
         critic_paccuracy /= Ns
         critic_naccuracy /= Ns
         tot_dploss /= Ns
         tot_dnloss /= Ns
+        generator_accuracy /= Ns
         tot_gloss /= Ns
 
         # Evaluate the metrics on the validation set
         val_metrics = evaluate(model, device, valid_loader, val_fmetrics)
 
         logger.info(
-            f"[Epoch {e+1}] "
-            f"D ploss : {tot_dploss:.4f} ; "
-            f"D paccuracy : {critic_paccuracy:.2f}, "
-            f"D nloss : {tot_dnloss:.4f} ; "
-            f"D naccuracy : {critic_naccuracy:.2f}, "
-            f"D vloss :  {val_metrics['loss']:.4f}; "
-            f"D vaccuracy : {val_metrics['accuracy']:.2f}, "
-            f"G loss : {tot_gloss:.4f}"
+            f"[Epoch {e+1}] \n"
+            f"  - Critic BCELoss averaged on the real samples : {tot_dploss:.4f} , \n"
+            f"  - Critic p-accuracy : Fraction of real samples considered as real by the discriminator : {critic_paccuracy:.2f}, \n"
+            f"  - Critic BCELoss averaged on the fake samples : {tot_dnloss:.4f} , \n"
+            f"  - Critic n-accuracy : Fraction of fake samples considered as fake by the discriminator :{critic_naccuracy:.2f},\n"
+            f"  - Critic v-loss : CE Loss on real samples from the test fold :  {val_metrics['loss']:.4f}; \n"
+            f"  - Critic accuracy on real samples from the validation fold : {val_metrics['accuracy']:.2f}, \n"
+            f"  - Generator BCELoss averaged on the fake samples : {tot_gloss:.4f} \n"
+            f"  - Generator accurarcy : fraction of generated samples considered as real by the discriminator {generator_accuracy:.2f}\n"
         )
 
-        tensorboard_writer.add_scalar("Critic p-loss", tot_dploss, e + 1)
-        tensorboard_writer.add_scalar("Critic n-loss", tot_dnloss, e + 1)
-        tensorboard_writer.add_scalar("Critic v-loss", val_metrics["loss"], e + 1)
-        tensorboard_writer.add_scalar("Critic p-accuracy", critic_paccuracy, e + 1)
-        tensorboard_writer.add_scalar("Critic n-accuracy", critic_naccuracy, e + 1)
         tensorboard_writer.add_scalar(
-            "Critic v-accuracy", val_metrics["accuracy"], e + 1
+            "Critic p-loss : Critic BCELoss averaged on the real samples",
+            tot_dploss,
+            e + 1,
         )
-        tensorboard_writer.add_scalar("Generator loss", tot_gloss, e + 1)
+        tensorboard_writer.add_scalar(
+            "Critic p-accuracy : Fraction of real samples considered as real by the discriminator",
+            critic_paccuracy,
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Critic n-loss : Critic BCELoss averaged on the fake samples",
+            tot_dnloss,
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Critic n-accuracy : Fraction of fake samples considered as fake by the discriminator",
+            critic_naccuracy,
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Critic v-loss : BCE Loss on real samples from the validation fold",
+            val_metrics["loss"],
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Critic v-accuracy : Fraction of real samples from the validation fold considered as real by the discriminator",
+            val_metrics["accuracy"],
+            e + 1,
+        )
+        tensorboard_writer.add_scalar(
+            "Generator BCELoss averaged on the fake samples", tot_gloss, e + 1
+        )
+        tensorboard_writer.add_scalar(
+            "Generator accurarcy : fraction of generated samples considered as real by the discriminator",
+            generator_accuracy,
+            e + 1,
+        )
 
         # Generate few samples from the generator
         model.eval()
         fake_images = model.generator(X=fixed_noise)
         # Unscale the images
-        fake_images = fake_images * data._IMG_STD + data._IMG_MEAN
-        grid = torchvision.utils.make_grid(
-            fake_images, nrow=sample_nrows, normalize=True
-        )
+        fake_images = (fake_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
+        grid = torchvision.utils.make_grid(fake_images, nrow=sample_nrows)
         tensorboard_writer.add_image("Generated", grid, e + 1)
-        torchvision.utils.save_image(grid, f"images/images-{e+1:04d}.png")
+        torchvision.utils.save_image(grid, imgpath + f"images-{e+1:04d}.png")
 
-        real_images = X[: sample_nrows * sample_ncols, ...]
-        X = X * data._IMG_STD + data._IMG_MEAN
-        grid = torchvision.utils.make_grid(
-            real_images, nrow=sample_nrows, normalize=True
-        )
+        X, _ = next(iter(train_loader))
+        real_images = X[: (sample_nrows * sample_ncols), ...]
+        real_images = (real_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
+        grid = torchvision.utils.make_grid(real_images, nrow=sample_nrows)
         tensorboard_writer.add_image("Real", grid, e + 1)
+        # torchvision.utils.save_image(grid, imgpath + f"real-{e+1:04d}.png")
 
         # We save the generator
         logger.info(f"Generator saved at {save_path}")
         torch.save(model.generator, save_path)
+
+        # Important: ensure the model is in eval mode before exporting !
+        # the graph in train/test mode is not the same
+        model.eval()
+        dummy_input = torch.zeros((1, latent_size), device=device)
+        torch.onnx.export(
+            model.generator,
+            dummy_input,
+            logdir + "/generator.onnx",
+            verbose=False,
+            opset_version=12,
+            input_names=["input"],
+            output_names=["output"],
+            dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}},
+        )  # At least opset 11 is required otherwise it seems nn.UpSample is not correctly handled
+        logger.info(f"Generator onnx saved at {logdir}/generator.onnx")
 
 
 def evaluate(
@@ -315,6 +472,35 @@ def evaluate(
     return tot_metrics
 
 
+class ONNXWrapper:
+    def __init__(self, use_cuda, modelpath):
+        self.device = torch.device("cuda") if use_cuda else torch.device("cpu")
+        providers = []
+        if use_cuda:
+            providers.append("CUDAExecutionProvider")
+        providers.append("CPUExecutionProvider")
+        self.inference_session = ort.InferenceSession(modelpath, providers=providers)
+        input_shapes = self.inference_session.get_inputs()[
+            0
+        ].shape  # ['batch', latent_size]
+        self.latent_size = input_shapes[1]
+
+    def eval(self):
+        # ONNX model cannot be switched from train to test
+        pass
+
+    def train(self):
+        # ONNX model cannot be switch from test to train
+        pass
+
+    def __call__(self, torchX):
+        output = self.inference_session.run(
+            None, {self.inference_session.get_inputs()[0].name: torchX.cpu().numpy()}
+        )[0]
+
+        return torch.from_numpy(output).to(self.device)
+
+
 def generate(args):
     """
     Function to generate new samples from the generator
@@ -331,9 +517,9 @@ def generate(args):
     ######################
     # START CODING HERE ##
     ######################
-    # Step 1 - Reload the generator
+    # Step 1 - Reload the generator using the ONNXWrapper class
     # @TEMPL@generator = None
-    generator = torch.load(modelpath).to(device)  # @SOL@
+    generator = ONNXWrapper(use_cuda, modelpath)  # @SOL@
 
     # Put the model in evaluation mode (due to BN and Dropout)
     generator.eval()
@@ -351,6 +537,8 @@ def generate(args):
 
     # Step 3 - Forward pass through the generator
     #          The output is (B, 1, 28, 28)
+    # The ONNXWrapper.__call__ implementation allows to forward propagate through ONNXWrapper
+    # as you would do with normal nn.Module
     # @TEMPL@fake_images = None
     fake_images = generator(z)  # @SOL@
 
@@ -361,7 +549,8 @@ def generate(args):
     ####################
 
     grid = torchvision.utils.make_grid(fake_images, nrow=sample_ncols, normalize=True)
-    torchvision.utils.save_image(grid, f"generated1.png")
+    torchvision.utils.save_image(grid, "generated1.png")
+    logger.info("Image generated1.png generated")
 
     # @SOL
     # Interpolate in the laten space
@@ -379,7 +568,8 @@ def generate(args):
     fake_images = generator(z.reshape(N**2, -1))
     fake_images = fake_images * data._IMG_STD + data._IMG_MEAN
     grid = torchvision.utils.make_grid(fake_images, nrow=N, normalize=True)
-    torchvision.utils.save_image(grid, f"generated2.png")
+    torchvision.utils.save_image(grid, "generated2.png")
+    logger.info("Interpolation image generated2.png generated")
     # SOL@
 
 
@@ -409,20 +599,36 @@ if __name__ == "__main__":
         help="The number of threads to use " "for loading the data",
         default=6,
     )
+    parser.add_argument(
+        "--logdir",
+        type=str,
+        help="The logdir in which to save the assets of the experiments",
+        default=None,
+    )
 
     # Training parameters
     parser.add_argument(
-        "--num_epochs", type=int, help="The number of epochs to train for", default=100
+        "--num_epochs", type=int, help="The number of epochs to train for", default=200
     )
     parser.add_argument(
-        "--batch_size", type=int, help="The size of a minibatch", default=64
+        "--batch_size", type=int, help="The size of a minibatch", default=256
     )
     parser.add_argument(
-        "--base_lr", type=float, help="The initial learning rate to use", default=0.0005
+        "--base_lr", type=float, help="The initial learning rate to use", default=0.0002
     )
     parser.add_argument(
-        "--wdecay", type=float, help="The weight decay used for the critic", default=1.0
+        "--wdecay", type=float, help="The weight decay used for the critic", default=0.0
     )
+    parser.add_argument(
+        "--lblsmooth", type=float, help="The amplitude of label smoothing", default=0.2
+    )
+    parser.add_argument(
+        "--dnoise",
+        type=float,
+        help="Variance of input discriminator random noise",
+        default=0.1,
+    )
+
     parser.add_argument(
         "--debug", action="store_true", help="Whether to use small datasets"
     )
@@ -438,7 +644,7 @@ if __name__ == "__main__":
         "--generator_base_c",
         type=int,
         help="The base number of channels for the generator",
-        default=64,
+        default=256,
     )
     parser.add_argument(
         "--latent_size", type=int, help="The dimension of the latent space", default=100
@@ -448,7 +654,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dropout",
         type=float,
-        help="The probability of zeroing before the FC layers",
+        help="The probability of zeroing in the discriminator",
         default=0.5,
     )
 

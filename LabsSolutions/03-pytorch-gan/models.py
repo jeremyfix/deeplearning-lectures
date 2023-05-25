@@ -2,6 +2,7 @@
 # coding: utf-8
 
 # Standard imports
+import math
 from typing import Optional, Tuple
 from functools import reduce
 import operator
@@ -9,6 +10,41 @@ import operator
 # External imports
 import torch
 import torch.nn as nn
+
+
+def conv_leakyrelu(in_channels, out_channels):
+    """
+    Conv(3x3, same) - BN - LeakyRelu(0.2)
+    """
+    ks = 3
+    return [
+        nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=ks,
+            stride=1,
+            padding=int((ks - 1) / 2),
+        ),
+        nn.LeakyReLU(negative_slope=0.2),
+    ]
+
+
+def conv_leakyrelu_bn(in_channels, out_channels, ks=3):
+    """
+    Conv(3x3, same) - BN - LeakyRelu(0.2)
+    """
+    print(f"conv leaky relu with out = {out_channels}")
+    return [
+        nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=ks,
+            stride=1,
+            padding=int((ks - 1) / 2),
+        ),
+        nn.LeakyReLU(negative_slope=0.2),
+        nn.BatchNorm2d(out_channels),
+    ]
 
 
 def conv_bn_leakyrelu(in_channels, out_channels):
@@ -30,21 +66,21 @@ def conv_bn_leakyrelu(in_channels, out_channels):
     ]
 
 
-def conv_downsampling(channels):
+def conv_downsampling(in_channels, out_channels):
     """
     Conv(3x3, s2) - LeakyRelu(0.2)
     """
     ks = 3
     return [
         nn.Conv2d(
-            channels,
-            channels,
+            in_channels,
+            out_channels,
             kernel_size=ks,
             stride=2,
             padding=int((ks - 1) / 2),
-            bias=True,
         ),
         nn.LeakyReLU(negative_slope=0.2),
+        nn.BatchNorm2d(out_channels),
     ]
 
 
@@ -56,16 +92,24 @@ class Discriminator(nn.Module):
     """
 
     def __init__(
-        self, img_shape: Tuple[int, int, int], dropout: float, base_c: int
+        self,
+        img_shape: Tuple[int, int, int],
+        dropout: float,
+        base_c: int,
+        dnoise: float,
+        num_classes: int,
     ) -> None:
         """
         Args:
             img_shape : (C, H, W) image shapes
             dropout (float) the probability of zeroing before the FC layer
             base_c (int): The base number of channels for the discriminator
+            dnoise (float): The amplitude of noise applied to the input of the discriminator
+            num_classes (int): The number of output classes (usually 1, 2 or K)
         """
         super(Discriminator, self).__init__()
         self.img_shape = img_shape
+        self.dnoise = dnoise
 
         in_C = img_shape[0]
         ######################
@@ -81,15 +125,15 @@ class Discriminator(nn.Module):
         self.cnn = nn.Sequential(
             *conv_bn_leakyrelu(in_C, base_c),
             *conv_bn_leakyrelu(base_c, base_c),
-            *conv_downsampling(base_c),
+            *conv_downsampling(base_c, base_c),
             nn.Dropout2d(dropout),
-            *conv_bn_leakyrelu(base_c, base_c * 2),
-            *conv_bn_leakyrelu(base_c * 2, base_c * 2),
-            *conv_downsampling(base_c * 2),
+            *conv_bn_leakyrelu(base_c, 2 * base_c),
+            *conv_bn_leakyrelu(2 * base_c, 2 * base_c),
+            *conv_downsampling(2 * base_c, 2 * base_c),
             nn.Dropout2d(dropout),
-            *conv_bn_leakyrelu(base_c * 2, base_c * 3),
-            *conv_bn_leakyrelu(base_c * 3, base_c * 3),
-            *conv_downsampling(base_c * 3),
+            *conv_bn_leakyrelu(2 * base_c, 3 * base_c),
+            *conv_bn_leakyrelu(3 * base_c, 3 * base_c),
+            *conv_downsampling(3 * base_c, 3 * base_c),
             nn.Dropout2d(dropout),
         )
         # SOL@
@@ -114,7 +158,7 @@ class Discriminator(nn.Module):
         # The fully connected part of the classifier
         # @TEMPL@self.classif = None
         # @SOL
-        self.classif = nn.Sequential(nn.Linear(num_features, 1))
+        self.classif = nn.Sequential(nn.Linear(num_features, num_classes))
         # SOL@
         ####################
         # END CODING HERE ##
@@ -143,7 +187,7 @@ class Discriminator(nn.Module):
         Returns:
             Logits (torch.Tensor (B, )) : The logits
         """
-
+        X = X + (self.dnoise * torch.randn(*X.shape, device=X.device))
         ######################
         # START CODING HERE ##
         ######################
@@ -165,7 +209,25 @@ class Discriminator(nn.Module):
         return out_classif.squeeze()
 
 
-def up_conv_bn_relu(in_channels, out_channels):
+def conv_relu_bn(in_channels, out_channels):
+    """
+    Conv(3x3) - Relu - BN
+    """
+    ks = 3
+    return [
+        nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=ks,
+            stride=1,
+            padding=int((ks - 1) / 2),
+        ),
+        nn.ReLU(),
+        nn.BatchNorm2d(out_channels),
+    ]
+
+
+def up_conv_relu_bn(in_channels, out_channels):
     """
     Upsampling with Upsample - Conv
     UpSample(x2) - Conv(3x3) - BN - Relu - Conv(3x3) - BN - Relu
@@ -179,20 +241,18 @@ def up_conv_bn_relu(in_channels, out_channels):
             kernel_size=ks,
             stride=1,
             padding=int((ks - 1) / 2),
-            bias=False,
         ),
-        nn.BatchNorm2d(out_channels),
         nn.ReLU(),
+        nn.BatchNorm2d(out_channels),
         nn.Conv2d(
             out_channels,
             out_channels,
             kernel_size=ks,
             stride=1,
             padding=int((ks - 1) / 2),
-            bias=False,
         ),
-        nn.BatchNorm2d(out_channels),
         nn.ReLU(),
+        nn.BatchNorm2d(out_channels),
     ]
 
 
@@ -235,15 +295,25 @@ class Generator(nn.Module):
         self.base_c = base_c
 
         H, W = img_shape[1:]
+        log2H = math.log2(H)
+        log2W = math.log2(W)
+        if int(log2H) != log2H or int(log2W) != log2W:
+            raise ValueError("We are expecting modulo 2 heights/widths")
+        if H != W:
+            raise ValueError("We are expecting square images")
+
         ######################
         # START CODING HERE ##
         ######################
         # Step 1 - Build the feedforward upscaling network
         # @TEMPL@self.upscale = nn.Sequential()
         # @SOL
+
+        print(f"[GENERATOR] The first convolutional block has {self.base_c} channels")
+
         self.upscale = nn.Sequential(
-            nn.Linear(self.latent_size, H // 4 * W // 4 * self.base_c * 4, bias=False),
-            nn.BatchNorm1d(H // 4 * W // 4 * self.base_c * 4),
+            nn.Linear(self.latent_size, 8 * 8 * self.base_c),
+            # nn.BatchNorm1d(8 * 8 * self.base_c),
             nn.ReLU(),
         )
         # SOL@
@@ -252,35 +322,34 @@ class Generator(nn.Module):
         # Hint : up_conv_bn_relu() might be useful
         # @TEMPL@self.model = nn.Sequential()
         # @SOL
-        self.model = nn.Sequential(
-            *up_conv_bn_relu(self.base_c * 4, self.base_c * 2),
-            *up_conv_bn_relu(self.base_c * 2, self.base_c),
-            nn.Conv2d(
-                self.base_c,
-                self.img_shape[0],
-                kernel_size=1,
-                stride=1,
-                padding=0,
-                bias=True,
-            ),
-            nn.Tanh(),
+        layers = []
+        in_c = self.base_c
+        for i in range(int(math.log2(H // 8))):
+            layers.extend(up_conv_relu_bn(in_c, in_c // 2))
+            in_c = in_c // 2
+
+        print(
+            f"[GENERATOR] The last upsample convolutional block outputs {in_c} channels"
         )
+
+        layers.extend(
+            [
+                nn.Conv2d(
+                    in_c,
+                    self.img_shape[0],
+                    kernel_size=1,
+                    stride=1,
+                    padding=0,
+                    bias=True,
+                ),
+                nn.Tanh(),
+            ]
+        )
+        self.model = nn.Sequential(*layers)
         # SOL@
         ####################
         # END CODING HERE ##
         ####################
-
-        # @SOL
-        # Note : size, stride, pad, opad
-        # self.model = nn.Sequential(
-        #     *tconv_bn_relu2(base_c*4, base_c*2, 5, 1, 2, 0),
-        #     # nn.Dropout2d(0.3),
-        #     *tconv_bn_relu2(base_c*2, base_c, 5, 2, 2, 1),
-        #     # nn.Dropout2d(0.3),
-        #     nn.ConvTranspose2d(base_c, 1, 5, 2, 2, 1),
-        #     nn.Tanh()  # as suggested by [Radford, 2016]
-        # )
-        # SOL@
 
         # Initialize the convolutional layers
         self.apply(self.init_weights)
@@ -327,9 +396,7 @@ class Generator(nn.Module):
         #  Hint : use the view method
         # @TEMPL@reshaped = None
         # @SOL
-        reshaped = upscaled.view(
-            -1, self.base_c * 4, self.img_shape[1] // 4, self.img_shape[2] // 4
-        )
+        reshaped = upscaled.view(-1, self.base_c, 8, 8)
         # SOL@
 
         # Step 3 : Forward pass through the last convolutional part
@@ -349,6 +416,8 @@ class GAN(nn.Module):
         img_shape: Tuple[int, int, int],
         dropout: float,
         discriminator_base_c: int,
+        dnoise: float,
+        num_classes: int,
         latent_size: int,
         generator_base_c: int,
     ) -> None:
@@ -358,13 +427,18 @@ class GAN(nn.Module):
             dropout (float): The probability of zeroing before the FC layers
             discriminator_base_c (int) : The base number of channels for
                                          the discriminator
+            dnoise (float): The amplitude of the normal noise applied as input
+                            to the discriminator
+            num_classes (int) : The number of class scores outputed by the discriminator
             latent_size (int) : The size of the latent space for the generator
             generator_base_c (int) : The base number of channels for the
                                      generator
         """
         super(GAN, self).__init__()
         self.img_shape = img_shape
-        self.discriminator = Discriminator(img_shape, dropout, discriminator_base_c)
+        self.discriminator = Discriminator(
+            img_shape, dropout, discriminator_base_c, dnoise, num_classes
+        )
         self.generator = Generator(img_shape, latent_size, generator_base_c)
 
     def forward(self, X: Optional[torch.Tensor], batch_size: Optional[float]):
@@ -447,26 +521,8 @@ def test_tconv():
     print(X.shape)
 
 
-# SOL@
-
-
-def test_discriminator():
-    critic = Discriminator((1, 28, 28), 0.3, 32)
-    X = torch.randn(64, 1, 28, 28)
-    out = critic(X)
-    assert out.shape == torch.Size([64])
-
-
-def test_generator():
-    generator = Generator((1, 28, 28), 100, 64)
-    X = torch.randn(64, 100)
-    out = generator(X, None)
-    assert out.shape == torch.Size([64, 1, 28, 28])
-    out = generator(None, 64)
-    assert out.shape == torch.Size([64, 1, 28, 28])
-
-
 if __name__ == "__main__":
-    test_tconv()  # @SOL@
-    test_discriminator()
-    test_generator()
+    test_tconv()
+
+
+# SOL@

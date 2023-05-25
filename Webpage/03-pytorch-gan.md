@@ -14,12 +14,13 @@ A GAN network is built from actually two networks that play a two player game :
 - a generator which tries to generate images as real as possible, hopefully fooling the second player,
 - a critic which tries to distinguish the real images from the fake images
 
+Depending on the approach (e.g. GAN or WGAN), the second player is either called the discriminator or the critic. In the GAN framework we consider, this is a discriminator which tries to classify its inputs as being either real or generated.
 
 ![A generative adversial network architecture with its generator and its discriminator/critic](./data/03-pytorch-gan/gan.svg){width=50%}
 
 
 
-The loss used for training these two neural networks reflect the objective of the generator to fool the critic and of the critic to correctly separate the real from the fake.
+The loss used for training these two neural networks reflects the objective of the generator to fool the critic and of the critic to correctly separate the real from the fake.
 
 The generator generates an image from a random seed, $z$, say drawn from a normal distribution $\mathcal{N}(0, 1)$. Let us denote $\mathcal{G}(z)$ the output image (for now, we slightly postpone the discussion about the architecture used to generate an image). Let us denote by $\mathcal{D}(x) \in [0, 1]$ the score assigned by the critic to an image where $\mathcal{D}(x) \approx 1$ if $x$ is real and $\mathcal{D}(x) \approx 0$ if $x$ is a fake. The critic solves a binary classification problem with a binary cross entropy loss and seeks to minimize :
 
@@ -29,7 +30,7 @@ $$
 
 You may recognize the usual binary cross entropy loss where the labels of the $m$ real data is set to $y^x_i=1$ and the labels of the $m$ fake data is set to $y^z_i=0$. This loss is to be minimized with respect to the parameters of the critic $\theta_c$.
 
-The generator on his side wants to fool the critic and therefore wants its samples to be considered as real data. Therefore, it seeks to minimize:
+The generator on his side wants to fool the critic and therefore wants its samples to be considered as real data by the critic. Therefore, it seeks to minimize:
 
 $$
 \mathcal{L}_g = \frac{1}{m} \sum_{i=1}^m -\log(D(G(z_i)))
@@ -47,6 +48,8 @@ Our aim is to generate fake data and you are free to choose between several data
 
 ![Fake EMNIST symbols. Nobody has ever written these symbols (these are expected to be letters, digits, etc..).](data/03-pytorch-gan/generated-emnist.png){width=40%}
 
+![Fake Celebrity faces. These celebrities do not exist.](data/03-pytorch-gan/generated-celeba.png){width=40%}
+
 ## Lab work materials
 
 You are provided with some starter code which already implements some functionalities :
@@ -54,8 +57,11 @@ You are provided with some starter code which already implements some functional
 - [data.py](./labs/03-pytorch-gan/data.py) : code performing the data loading 
 - [models.py](./labs/03-pytorch-gan/models.py) : code defining the GAN 
 - [main.py](./labs/03-pytorch-gan/main.py) : code containing the training and testing functions
-- [mnist_generator.pt](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/mnist_generator.pt) : a pretrained generator used for the end of the labwork pretrained on MNIST
-- [svhn_generator.pt](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/svhn_generator.pt) : a pretrained generator used for the end of the labwork pretrained on SVHN
+- [mnist_generator.onnx](./labs/03-pytorch-gan/mnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on MNIST in ONNX format
+- [emnist_generator.onnx](./labs/03-pytorch-gan/emnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on eMNIST in ONNX format
+- [fashiomnist_generator.onnx](./labs/03-pytorch-gan/fashionmnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on Fashion MNIST in ONNX format
+- [celeba_generator.onnx](./labs/03-pytorch-gan/celeba_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on CelebA in ONNX format
+- [svhn_generator.onnx](./labs/03-pytorch-gan/svhn_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on SVHN in ONNX format
 
 ## Setup of the environment
 
@@ -78,14 +84,16 @@ sh11:~:mylogin$ source $TMPDIR/venv/bin/activate
 The critic is a simple convolutional neural network which has to stay if the input image is a real or a fake. You are free to experiment with any architecture but I can suggest you one. Denote by `CBlock(k)` the following sequence of layers :
 
 - $2 \times [$Conv($k$ channels, 3x3, stride=1, padding=same) - BatchNorm - LeakyRelu(0.2)$]$
-- Conv($k$ channels, 3x3, stride=2, padding=same) - LeakyRelu(0.2)
+- Conv($k$ channels, 3x3, stride=2, padding=same) - LeakyRelu(0.2) : this is a convolution downsampling. Do you see why ?
 - Dropout(0.3)
 
 The architecture for the discriminator I propose you is :
 
 - CBlock(32) - CBlock(64) - CBlock(96) - Linear(1)
 
-Every block is downsampling the representation so that with a $(B, 1, 28, 28)$ input, we end the convolutional part with a $(B, 96, 4, 4)$ and the linear layer has therefore $1536$ weights and $1$ bias. The output of the network is the logit, i.e. before the application of the sigmoid which is actually embedded in the [BCEWithLogitsLoss](https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html) we will be using.
+Every block is downsampling the representation so that with a $(B, 1, 28, 28)$ input, we end the convolutional part with a $(B, 96, 4, 4)$ and the linear layer has therefore $1536$ weights and $1$ bias for one output. The output of the network is the logit, i.e. before the application of the sigmoid which is actually embedded in the [BCEWithLogitsLoss](https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html) we will be using.
+
+We will inject a ganhack in the code. Indeed, we will smooth the target labels and hence we need to produce $2$ outputs and not only one.
 
 **Exercice** Implement the critic in the `models.py` script. You have to define the neural network in the constructor Discriminator class and implement the forward method. Note that since every convolutional layer is followed by a batch-normalization, you can remove the bias from the convolutional layer that would anyway be canceled by the normalization (see the constructor of Conv2d). 
 
@@ -94,7 +102,7 @@ Every block is downsampling the representation so that with a $(B, 1, 28, 28)$ i
 ```{.python}
 
 def test_discriminator():
-    critic = Discriminator((1, 28, 28), 0.3, 32)
+    critic = Discriminator((1, 28, 28), dropout=0.5, base_c=32, dnoise=0.1, num_classes=2)
     X = torch.randn(64, 1, 28, 28)
     out = critic(X)
     assert(out.shape == torch.Size([64]))
@@ -113,14 +121,14 @@ Let us denote by `GBlock(k)` the following sequence of layers:
 
 The proposed architecture of the generator is:
 
-- Linear($7\times7\times256$) - BatchNorm - ReLU
+- Linear($8\times8\times256$) - ReLU
 - GBlock(128)
 - GBlock(64)
 - Conv(1 channel, 1x1) - Tanh
 
-If you use SVHN, you should start with a Linear($8\times8\times256$) since SVHN images are $32\times32$ while the MNIST like data are $28\times28$.
+If you use CelebA, you should be adding one more upsampling block because these images are $64 \times 64$.
 
-In between the linear layer and the first convolution, note you will have to "reshape" the tensor (using the [Tensor.view](https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view)) method. The tanh activation for the last layer is suggested in [@Radford2016] to be a good idea.
+In between the linear layer and the first convolution, note you will have to "reshape" the tensor (using the [Tensor.view](https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view)) method. The tanh activation for the last layer is suggested in [@Radford2016] to be a good idea. 
 
 **Exercice** Implement the generator in the `models.py` script. You have to create the network in the constructor of the Generator class and to implement the forward function. Note you can use the `up_conv_bn_relu` builder function provided in this script. The forward(X, batch_size) either takes as input a random vector $X$ or the number of samples you want. As for the critic, the bias is useless in the convolutional layers that are followed by a batch-normalization.
 
@@ -131,16 +139,17 @@ In between the linear layer and the first convolution, note you will have to "re
 def test_generator():
 	# Testing the generator for producing MNIST like data
 	# Note: if you use SVHN, change these to (3, 32, 32)
+	# Note: if you use CelebA, change these to (3, 64, 64)
 	# and adapt below
-    generator = Generator((1, 28, 28), 100, 64)
+    generator = Generator((1, 32, 32), latent_size=100, base_c=256)
     X = torch.randn(64, 100)
     out = generator(X, None)
-    assert(out.shape == torch.Size([64, 1, 28, 28]))
+    assert(out.shape == torch.Size([64, 1, 32, 32]))
     out = generator(None, 64)
-    assert(out.shape == torch.Size([64, 1, 28, 28]))
+    assert(out.shape == torch.Size([64, 1, 32, 32]))
 ```
 
-Note that the generator is outputting values in $[-1, 1]$. You may also notice in the dataloaders that the real images are rescaled in $[-1, 1]$ to guarantee that both the real and fake images lie in the same range of values.
+Note that the generator is outputting values in $[-1, 1]$. You may also notice in the dataloaders that the real images are rescaled in $[-1, 1]$ to guarantee that both the real and fake images lie in the same range of values (do you see where in the code the pixel values of the images are projected into $[-1, -1]$ ?).
 
 ### Implementing the GAN
 
@@ -181,12 +190,12 @@ $$
 
 ### Training
 
-You can now start training your networks by running the main script. The default arguments given to argparse should be reasonably good. Do not forget to start the tensorboard and to look at it, at every epochs, some generated samples are written on it. During the first 5 epochs, you should already observe some kind of written digits. Your model should have almost 2M parameters and it takes 30s. per epoch.
+You can now start training your networks by running the main script. The default arguments given to argparse should be reasonably good. Do not forget to start the tensorboard and to look at it, at every epochs, some generated samples are written on it. During the first 5 epochs, you should already observe some kind of written digits. Your model should have almost 2.5M parameters and it takes 40s. per epoch on a Geforce 1080.
 
 By default, the dataset used is MNIST but you can change this to the dataset you want (check the --dataset option of the main.py script). For example, for training on SVHN : 
 
 ```{.console}
-mymachine:~:mylogin$ python3 main.py train --dataset SVHN 
+(venv) mymachine:~:mylogin$ python main.py train --dataset SVHN
 ```
 
 For the training parameters, you may need to slightly change them. For example, the following should be working :
@@ -199,6 +208,9 @@ mymachine:~:mylogin$ python3 main.py train --dataset SVHN --wdecay 0.0 --base_lr
 Below is an example of digits generated during a successful training with a noise vector defined once for all before training (i.e. we always plot the generated image associated with the same random inputs) on MNIST.
 
 ![Fake digits generated during trainig](data/03-pytorch-gan/mnist.gif){width=25%}
+![Fake Fashion generated during trainig](data/03-pytorch-gan/fashionmnist.gif){width=25%}
+![Fake street house numbers generated during trainig](data/03-pytorch-gan/svhn.gif){width=25%}
+![Fake celebrities generated during trainig](data/03-pytorch-gan/celeba.gif){width=25%}
 
 While training, you can move on the next section where you will load a **pretrained network**.
 
@@ -206,10 +218,10 @@ While training, you can move on the next section where you will load a **pretrai
 
 To generate new samples, we just need to evaluate the generator of normally distributed inputs. For every random input vector, you get a fake image that looks hopefully realistic.
 
-**Exercice** Download the pretrained generator [generator.pt](https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/03-pytorch-gan/generator.pt) that has been pretrained for 400 epochs (which is by far more than necessary). Fill in the code in the generate function of the `main.py` script and run some generation of fake images by issuing : 
+**Exercice** Download one of the pretrained generators provided at the top of this page, that has been pretrained for $400$ epochs (which is by far more than necessary for most of the tasks). Fill in the code in the generate function of the `main.py` script and run some generation of fake images by issuing : 
 
 ```{.console}
-mymachine:~:mylogin$ python3 main.py generate --modelpath generator.pt 
+mymachine:~:mylogin$ python3 main.py generate --modelpath generator.onnx
 ```
 
 Note that the generated images have been already denormalized in the code you are provided.
