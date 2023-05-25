@@ -202,6 +202,9 @@ By default, the dataset used is MNIST but you can change this to the dataset you
 Below is an example of digits generated during a successful training with a noise vector defined once for all before training (i.e. we always plot the generated image associated with the same random inputs) on MNIST.
 
 ![Fake digits generated during trainig](data/03-pytorch-gan/mnist.gif){width=25%}
+![Fake Fashion generated during trainig](data/03-pytorch-gan/fashionmnist.gif){width=25%}
+![Fake street house numbers generated during trainig](data/03-pytorch-gan/svhn.gif){width=25%}
+![Fake celebrities generated during trainig](data/03-pytorch-gan/celeba.gif){width=25%}
 
 While training, you can move on the next section where you will load a **pretrained network**.
 
