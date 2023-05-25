@@ -9,7 +9,6 @@ Website: https://teaching.pages.centralesupelec.fr/deeplearning-lectures-build/
 
 ## Workflow status 
 
-
-https://github.com/jeremyfix/deeplearning-lectures/actions/workflows/01-pytorch-segmentation.yml/badge.svg
-https://github.com/jeremyfix/deeplearning-lectures/actions/workflows/02-pytorch-asr.yml/badge.svg
-https://github.com/jeremyfix/deeplearning-lectures/actions/workflows/03-pytorch-gan.yml/badge.svg
+![Pytorch 01 segmentation lab](https://github.com/jeremyfix/deeplearning-lectures/actions/workflows/01-pytorch-segmentation.yml/badge.svg)
+![Pytorch 02 ASR lab](https://github.com/jeremyfix/deeplearning-lectures/actions/workflows/02-pytorch-asr.yml/badge.svg)
+![Pytorch 03 GAN lab](https://github.com/jeremyfix/deeplearning-lectures/actions/workflows/03-pytorch-gan.yml/badge.svg)
