@@ -1,7 +1,7 @@
 name: Pytorch semantic segmentation lab test
 on: [push]
 jobs:
-  test:
+  test-01-segmentation:
     runs-on: ubuntu-20.04
     timeout-minutes: 15
     steps:
