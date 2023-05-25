@@ -85,7 +85,7 @@ os.system("mkdir -p logslurms")
 # Launch the batch jobs
 for model in ['linear', 'fc', 'vanilla', 'fancyCNN']:
     submit_job(makejob(commit_id, 2, 'gpu_prod_night', "1:00:00",
-                       True, False,
+                       True, True,
                        {'model': model,
                         'weight_decay': 0.00,
                        }))
