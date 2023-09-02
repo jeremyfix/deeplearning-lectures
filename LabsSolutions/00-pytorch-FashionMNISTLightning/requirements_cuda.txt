@@ -1,9 +1,10 @@
 -f https://download.pytorch.org/whl/cu113/torch_stable.html
-torch==1.10.1+cu113
-torchvision==0.11.2+cu113 
-matplotlib==3.1.2
+torch>=2.0.1+cpu
+torchvision>=0.15.2+cpu
+matplotlib>=3.7.2
+tensorboard>=2.14.0
 # For the high level pytorch
-pytorch_lightning==1.5.9
+pytorch_lightning>=2.0.8
 # For the online logging
-neptune-client==0.14.2
+neptune-client>=1.6.1
 
