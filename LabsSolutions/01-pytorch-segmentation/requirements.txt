@@ -50,7 +50,7 @@ onnx==1.14.0
 onnxruntime-gpu==1.15.0
 opencv-python-headless==4.7.0.72
 packaging==23.1
-Pillow==9.5.0
+Pillow==10.0.1
 pluggy==1.0.0
 protobuf==4.23.1
 pyasn1==0.5.0
