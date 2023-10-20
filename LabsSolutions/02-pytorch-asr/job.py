@@ -85,8 +85,8 @@ commit_id = subprocess.check_output(
 os.system("mkdir -p logslurms")
 
 # Launch the batch jobs
-debug = True
-augment = False
+debug = False
+augment = True
 submit_job(
     makejob(
         commit_id,
