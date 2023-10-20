@@ -33,9 +33,9 @@ import tqdm
 _DEFAULT_COMMONVOICE_ROOT = "/mounts/Datasets4/CommonVoice/"
 _DEFAULT_COMMONVOICE_VERSION = "v15.0"
 _DEFAULT_RATE = 16000  # Hz
-_DEFAULT_WIN_LENGTH = 25  # ms  40
-_DEFAULT_WIN_STEP = 15  # ms  10
-_DEFAULT_NUM_MELS = 80  #  20
+_DEFAULT_WIN_LENGTH = 40  # ms
+_DEFAULT_WIN_STEP = 10  # ms
+_DEFAULT_NUM_MELS = 20  #
 
 
 def unpack_ravel(tensor: PackedSequence):
