@@ -1,0 +1,3 @@
+tensorflow[and-cuda]
+keras
+pillow
