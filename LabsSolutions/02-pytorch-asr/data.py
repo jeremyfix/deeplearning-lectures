@@ -5,6 +5,7 @@
 import os
 import functools
 import logging
+import operator
 from pathlib import Path
 from typing import Union, Tuple
 import pickle
@@ -445,6 +446,10 @@ def get_dataloaders(
         overwrite_index: whether or not to overwrite the cache files for the index of sequences to consider
     """
 
+    if small_experiment:
+        min_duration = None
+        max_duration = None
+
     def dataset_loader(fold, version, overwrite_index):
         ds = load_dataset(
             fold,
@@ -475,12 +480,14 @@ def get_dataloaders(
     if normalize:
         # Compute the normalization on the training set
         # batch_collate_norm = BatchCollate(nmels, augment=False)
-        # norm_loader = torch.utils.data.DataLoader(train_dataset,
-        #                                           batch_size=batch_size,
-        #                                           shuffle=True,
-        #                                           num_workers=n_threads,
-        #                                           collate_fn=batch_collate_norm,
-        #                                           pin_memory=cuda)
+        # norm_loader = torch.utils.data.DataLoader(
+        #     train_dataset,
+        #     batch_size=batch_size,
+        #     shuffle=False,
+        #     num_workers=n_threads,
+        #     collate_fn=batch_collate_norm,
+        #     pin_memory=cuda,
+        # )
         # mean_spectro, std_spectro = 0, 0
         # N_elem = 0
         # for spectros, _ in tqdm.tqdm(norm_loader):
@@ -491,8 +498,8 @@ def get_dataloaders(
 
         # for spectros, _ in tqdm.tqdm(norm_loader):
         #     unpacked_raveled = unpack_ravel(spectros)
-        #     std_spectro += ((unpacked_raveled - mean_spectro)**2).sum()
-        # std_spectro = (torch.sqrt(std_spectro/N_elem)).item()
+        #     std_spectro += ((unpacked_raveled - mean_spectro) ** 2).sum()
+        # std_spectro = (torch.sqrt(std_spectro / N_elem)).item()
 
         # Fix for speeding up debuggin
         mean_spectro = -31
