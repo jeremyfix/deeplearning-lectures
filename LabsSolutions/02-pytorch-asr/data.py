@@ -605,6 +605,10 @@ def ex_waveform_spectro():
     # Take one of the waveforms
     idx = 10
     waveform, rate, dictionary = dataset[idx]
+    walker = dataset._walker
+    path_to_audio = os.path.join(dataset._path, dataset._folder_audio, walker[idx][1])
+    print(f"I will be loading {path_to_audio}, with the transcript {walker[idx][2]}")
+
     n_begin = rate  # 1 s.
     n_end = 3 * rate  # 2 s.
     waveform = waveform[:, n_begin:n_end]  # B, T
@@ -679,8 +683,8 @@ def ex_spectro():
         _DEFAULT_COMMONVOICE_VERSION,
         cuda=False,
         n_threads=4,
-        min_duration=1,
-        max_duration=5,
+        min_duration=None,
+        max_duration=None,
         batch_size=batch_size,
         train_augment=True,
         normalize=False,
@@ -734,7 +738,7 @@ def ex_augmented_spectro():
         _DEFAULT_COMMONVOICE_VERSION,
         cuda=False,
         n_threads=4,
-        min_duration=1,
+        min_duration=None,
         max_duration=None,
         batch_size=batch_size,
         train_augment=True,
@@ -752,6 +756,7 @@ def ex_augmented_spectro():
     y, lens_y = pad_packed_sequence(y)
     idx = 1
     plot_spectro(X[:, idx, :], y[: lens_y[idx], idx], _DEFAULT_WIN_STEP * 1e-3, charmap)
+    print("spectro valid")
     plt.savefig("spectro_valid.png")
 
     # From the validation set
@@ -764,6 +769,7 @@ def ex_augmented_spectro():
     idx = 0
     print(X.shape, _DEFAULT_WIN_STEP * 1e-3)
     plot_spectro(X[:, idx, :], y[: lens_y[idx], idx], _DEFAULT_WIN_STEP * 1e-3, charmap)
+    print("spectro train")
     plt.savefig("spectro_train.png")
     logging.info("Image saved to spectro_train.png")
 
@@ -836,10 +842,9 @@ if __name__ == "__main__":
     # @TEMPL@pass
     # @SOL
     # order_by_length()
-    # ex_charmap()
-    # test_spectro()
-    # ex_waveform_spectro()
-    # ex_spectro()
+    ex_charmap()
+    test_spectro()
+    ex_waveform_spectro()
+    ex_spectro()
     ex_augmented_spectro()
-    pass
     # SOL@
