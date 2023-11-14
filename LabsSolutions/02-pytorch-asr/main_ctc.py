@@ -62,7 +62,8 @@ def decode_samples(fdecode, loader, n, device, charmap):
     unpacked_transcripts, lens_transcripts = pad_packed_sequence(transcripts)
 
     # valid_batch is (T, B, n_mels)
-    for idxv in range(n):
+    B = unpacked_spectro.shape[1]
+    for idxv in range(min(n, B)):
         spectrogram = unpacked_spectro[:, idxv, :].unsqueeze(dim=1)
         spectrogram = pack_padded_sequence(spectrogram, lengths=[lens_spectro[idxv]])
         likely_sequences = fdecode(spectrogram)
