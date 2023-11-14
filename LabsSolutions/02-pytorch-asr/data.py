@@ -122,9 +122,9 @@ class CharMap(object):
     the conversions in the two directions
     """
 
-    _BLANK = 172
-    _SOS = 182
-    _EOS = 166
+    _BLANK = 172  # Corresponds to '¬'
+    _SOS = 182  # Corresponds to '¶'
+    _EOS = 166  # Corresponds to '¦'
 
     def __init__(self):
         ord_chars = frozenset().union(
@@ -270,7 +270,8 @@ class WaveformProcessor(object):
             spectrograms(torch.Tensor): (Tx//nstep + 1, B, n_mels)
         """
         # Compute the spectorgram
-        spectro = self.transform_tospectro(waveforms.transpose(0, 1))  # (B, n_mels, T)
+        waveforms = waveforms.transpose(0, 1)  # from (T, B) to (B, T)
+        spectro = self.transform_tospectro(waveforms)  # (B, n_mels, T)
 
         # Normalize the spectrogram
         if self.spectro_normalization is not None:
@@ -362,8 +363,9 @@ class BatchCollate(object):
         ###########################
 
         ##
-        # Step 1 : pad the sequence of tensors waveforms. The resulting
-        #          tensor must be (T, B)
+        # Step 1 : pad the sequence of tensors waveforms so that they all have the same
+        #          length. The resulting tensor must be (T, B) where T is the maximal
+        #          duration of the elements in waveforms.
         #          (1 line)
         # @TEMPL@waveforms = None
         waveforms = pad_sequence(waveforms)  # @SOL@
@@ -382,17 +384,20 @@ class BatchCollate(object):
         spectrograms = pack_padded_sequence(spectrograms, lengths=spectro_lengths)
         # SOL@
 
-        # Step 3 : pad the sequence of tensors transcripts. The resulting
-        #          tensor must be (Ty, B)
+        # Step 3 : pad the sequence of tensors transcripts, so that all the rows
+        #          of the resulting padded tensor have the same legnth. The resulting
+        #          tensor is (Ty, B)
         #          (1 line)
         # @TEMPL@transcripts = None
         transcripts = pad_sequence(transcripts)  # @SOL@
 
-        # Step 4 : pack the tensor of transcripts given their lenght as
+        # Step 4 : pack the tensor of transcripts given their length as
         #          computed in transcripts_length
         #          Note : this packed tensor must be given enforce_sorted=False
-        #          to ensure the i-th transcript corresponds to the i-th
-        #          spectrogram
+        #          to ensure the i-th transcript stay aligned with the i-th
+        #          spectrogram. Otherwise, torch would sort the transcripts
+        #          independently from the spectrograms and the alignement between the
+        #          spectrograms and the transcripts would be messed up
         #          (1 line)
 
         # @TEMPL@transcripts = None
