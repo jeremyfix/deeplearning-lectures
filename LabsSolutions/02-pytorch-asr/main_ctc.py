@@ -139,7 +139,7 @@ def train(args):
     model.to(device)
 
     # Loss, optimizer
-    baseloss = nn.CTCLoss(blank=blank_id, reduction="mean", zero_infinity=True)
+    baseloss = nn.CTCLoss(blank=blank_id, reduction="mean")
     loss = lambda *params: baseloss(*wrap_ctc_args(*params))
 
     ###########################
