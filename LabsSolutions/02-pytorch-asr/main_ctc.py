@@ -21,6 +21,7 @@ from deepcs.training import train as ftrain, ModelCheckpoint
 from deepcs.testing import test as ftest
 from deepcs.fileutils import generate_unique_logpath
 import deepcs.metrics
+import wandb
 
 # Local imports
 import data
@@ -41,10 +42,10 @@ def wrap_ctc_args(packed_predictions, packed_targets):
 
     unpacked_targets, lens_targets = pad_packed_sequence(packed_targets)  # T, B
     unpacked_targets = unpacked_targets.transpose(0, 1)  # B, T
-    # Stack the subslices of the tensors
-    unpacked_targets = torch.cat(
-        [batchi[:ti] for batchi, ti in zip(unpacked_targets, lens_targets)]
-    )
+    # # Stack the subslices of the tensors
+    # unpacked_targets = torch.cat(
+    #     [batchi[:ti] for batchi, ti in zip(unpacked_targets, lens_targets)]
+    # )
 
     return unpacked_predictions, unpacked_targets, lens_predictions, lens_targets
 
@@ -87,6 +88,17 @@ def train(args):
     logger = logging.getLogger(__name__)
     logger.info("Training")
 
+    if args.wandb_project is not None and args.wandb_entity is not None:
+        wandb.init(
+            project=args.wandb_project, entity=args.wandb_entity, config=vars(args)
+        )
+        wandb_log = wandb.log
+        print(vars(args))
+        # wandb_log(vars(args))
+        logging.info("Will be recording in wandb run name : {wandb.run.name}")
+    else:
+        wandb_log = None
+
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
@@ -126,20 +138,25 @@ def train(args):
     ###########################
     # @TEMPL@model = None
     # @SOL
+    # model = models.LinearModel(charmap, n_mels)
     model = models.CTCModel(
         charmap, n_mels, nhidden_rnn, nlayers_rnn, cell_type, dropout
     )
+
     # SOL@
     ##########################
     #### STOP CODING HERE ####
     ##########################
 
     decode = model.decode
+    # decode = lambda spectro: model.beam_decode(
+    #     spectro, beam_size=args.beamwidth, blank_id=blank_id
+    # )
 
     model.to(device)
 
     # Loss, optimizer
-    baseloss = nn.CTCLoss(blank=blank_id, reduction="mean")
+    baseloss = nn.CTCLoss(blank=blank_id, reduction="mean", zero_infinity=True)
     loss = lambda *params: baseloss(*wrap_ctc_args(*params))
 
     ###########################
@@ -147,6 +164,7 @@ def train(args):
     ###########################
     # @TEMPL@optimizer = None
     optimizer = optim.Adam(model.parameters(), lr=base_lr)  # @SOL@
+
     ##########################
     #### STOP CODING HERE ####
     ##########################
@@ -157,6 +175,7 @@ def train(args):
     summary_text = (
         "## Summary of the model architecture\n"
         + f"{deepcs.display.torch_summarize(model)}\n"
+        + (f" Wandb run name : {wandb.run.name}\n\n" if wandb_log is not None else "")
     )
     summary_text += "\n\n## Executed command :\n" + "{}".format(" ".join(sys.argv))
     summary_text += "\n\n## Args : \n {}".format(args)
@@ -171,6 +190,8 @@ def train(args):
     tensorboard_writer.add_text(
         "Experiment summary", deepcs.display.htmlize(summary_text)
     )
+    if wandb_log is not None:
+        wandb.log({"summary": summary_text})
 
     with open(os.path.join(logdir, "summary.txt"), "w") as f:
         f.write(summary_text)
@@ -180,9 +201,25 @@ def train(args):
     model_checkpoint = ModelCheckpoint(model, os.path.join(logdir, "best_model.pt"))
     scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
 
+    logger.info(">>>>> Decodings before training")
+    train_decodings = decode_samples(
+        decode, train_loader, n=2, device=device, charmap=charmap
+    )
+    valid_decodings = decode_samples(
+        decode, valid_loader, n=2, device=device, charmap=charmap
+    )
+
+    decoding_results = "## Decoding results on the training set\n"
+    decoding_results += train_decodings
+    decoding_results += "## Decoding results on the validation set\n"
+    decoding_results += valid_decodings
+    logger.info("\n" + decoding_results + "\n\n")
+
     # Training loop
     for e in range(num_epochs):
-        ftrain(
+        logger.info("\n" + (">" * 20) + f" Epoch {e:05d}" + ("<" * 20) + "\n\n")
+
+        train_metrics = ftrain(
             model,
             train_loader,
             loss,
@@ -194,6 +231,8 @@ def train(args):
             num_epoch=e,
             tensorboard_writer=tensorboard_writer,
         )
+        for m_name, m_value in train_metrics.items():
+            tensorboard_writer.add_scalar(f"metrics/train_{m_name}", m_value, e + 1)
 
         # Compute and record the metrics on the validation set
         valid_metrics = ftest(model, valid_loader, device, metrics, num_model_args=1)
@@ -221,11 +260,11 @@ def train(args):
             tensorboard_writer.add_scalar(f"metrics/test_{m_name}", m_value, e + 1)
         # Try to decode some of the validation samples
         model.eval()
-        valid_decodings = decode_samples(
-            decode, valid_loader, n=2, device=device, charmap=charmap
-        )
         train_decodings = decode_samples(
             decode, train_loader, n=2, device=device, charmap=charmap
+        )
+        valid_decodings = decode_samples(
+            decode, valid_loader, n=2, device=device, charmap=charmap
         )
 
         decoding_results = "## Decoding results on the training set\n"
@@ -236,6 +275,22 @@ def train(args):
             "Decodings", deepcs.display.htmlize(decoding_results), global_step=e + 1
         )
         logger.info("\n" + decoding_results)
+
+        # Log in wandb if available
+        if wandb_log is not None:
+            wandb_log.log(
+                {"train_decodings": train_decodings, "valid_decodings": valid_decodings}
+            )
+
+            all_metrics = {}
+            for m_name, m_value in train_metrics.items():
+                all_metrics[f"train_{m_name}"] = m_value
+            for m_name, m_value in valid_metrics.items():
+                all_metrics[f"valid_{m_name}"] = m_value
+            for m_name, m_value in test_metrics.items():
+                all_metrics[f"test_{m_name}"] = m_value
+
+            wandb_log(all_metrics)
 
 
 def test(args):
@@ -452,8 +507,8 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--baselogdir",
-        type=Path,
-        default=Path("./logs"),
+        type=str,
+        default="./logs",
         help="The base directory in which to save the logs",
     )
 
@@ -464,6 +519,18 @@ if __name__ == "__main__":
         help="The name of the run used to define the logdir",
     )
 
+    parser.add_argument(
+        "--wandb_project",
+        type=str,
+        default=None,
+        help="The wandb project on which to record logs",
+    )
+    parser.add_argument(
+        "--wandb_entity",
+        type=str,
+        default=None,
+        help="The wandb entity on which to record logs",
+    )
     args = parser.parse_args()
 
     eval(f"{args.command}(args)")
