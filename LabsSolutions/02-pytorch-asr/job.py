@@ -96,8 +96,8 @@ submit_job(
         augment,
         debug,
         {
-            "batch_size": 256,
-            "num_epochs": 100,
+            "batch_size": 128,
+            "num_epochs": 500,
             "base_lr": 0.001,
             "min_duration": 1.0,
             "max_duration": 5.0,
@@ -105,7 +105,10 @@ submit_job(
             "nhidden_rnn": 1024,
             "weight_decay": 0.0,
             "dropout": 0.0,
+            "grad_clip": 20,
             "datasetversion": "v15.0",
+            # "wandb_entity": "jeremy-fix",
+            # "wandb_project": "LabASR",
         },
     )
 )
