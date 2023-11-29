@@ -9,6 +9,8 @@ import operator
 from pathlib import Path
 from typing import Union, Tuple
 import pickle
+import time
+
 
 # External imports
 import torch.nn as nn
@@ -29,7 +31,8 @@ from torchaudio.transforms import (
     TimeMasking,
 )
 import matplotlib.pyplot as plt
-import tqdm
+import multiprocess
+
 
 _DEFAULT_COMMONVOICE_ROOT = "/mounts/Datasets4/CommonVoice/"
 _DEFAULT_COMMONVOICE_VERSION = "v15.0"
@@ -71,6 +74,13 @@ def load_dataset(
     return COMMONVOICE(root=datasetpath, tsv=fold + ".tsv")
 
 
+def is_sample_in_timerange(i, ds, min_duration, max_duration):
+    (w, r, _) = ds[i]
+    return i, (not min_duration or min_duration <= (w.squeeze().shape[0] / r)) and (
+        not max_duration or (w.squeeze().shape[0] / r) <= max_duration
+    )
+
+
 class DatasetFilter(object):
     """
     Dataset object filtering an original dataset based on the
@@ -82,29 +92,54 @@ class DatasetFilter(object):
         ds: torch.utils.data.Dataset,
         min_duration: float,
         max_duration: float,
-        cachepath: Path,
+        cacheprefix: str,
         overwrite_index: bool,
+        logger=None,
     ) -> None:
         """
         Args:
             ds: the dataset to filter
             min_duration : the minimal duration in seconds
             max_duration : the maximal duration in seconds
-            cachename : the filename in which to save the selected indices
+            cacheprefix : the prefix of the cache file to which save the index files
         """
+
+        def log(txt):
+            if logger is not None:
+                logger.info(txt)
+
         # At construction we build a list of indices
         # of valid samples from the original dataset
+        cachepath = cacheprefix + f"-{min_duration}-{max_duration}.idx"
         if os.path.exists(cachepath) and not overwrite_index:
-            print("Loading the pre-generating index file")
+            log("Loading the pre-generated index file {cachepath}")
             self.valid_indices = pickle.load(open(cachepath, "rb"))
         else:
-            print(f"Generating the index files, processing {len(ds)} files")
-            self.valid_indices = [
-                i
-                for i, (w, r, _) in tqdm.tqdm(enumerate(ds))
-                if (not min_duration or min_duration <= (w.squeeze().shape[0] / r))
-                and (not max_duration or (w.squeeze().shape[0] / r) <= max_duration)
-            ]
+            log(
+                f"Generating the index files, processing {len(ds)} files, saved in {cachepath}"
+            )
+            # self.valid_indices = [
+            #     i
+            #     for i, (w, r, _) in tqdm.tqdm(enumerate(ds))
+            #     if (not min_duration or min_duration <= (w.squeeze().shape[0] / r))
+            #     and (not max_duration or (w.squeeze().shape[0] / r) <= max_duration)
+            # ]
+
+            indices = list(range(len(ds)))
+            t0 = time.time()
+            with multiprocess.Pool(processes=None) as pool:
+                results = list(
+                    pool.map(
+                        lambda idx, ds=ds, min_duration=min_duration, max_duration=max_duration: is_sample_in_timerange(
+                            idx, ds, min_duration, max_duration
+                        ),
+                        indices,
+                    ),
+                )
+            t1 = time.time()
+            log(f"Elapsed : {t1-t0} seconds")
+            self.valid_indices = [i for i, vi in results if vi]
+
             pickle.dump(self.valid_indices, open(cachepath, "wb"))
         self.ds = ds
 
@@ -184,6 +219,7 @@ class CharMap(object):
 
     def encode(self, utterance):
         utterance = self.soschar + utterance.lower() + self.eoschar
+
         # Remove the accentuated characters
         utterance = [
             self.equivalent_char[c] if c in self.equivalent_char else c
@@ -345,7 +381,7 @@ class BatchCollate(object):
 
         # Sort the waveforms and transcripts by decreasing waveforms length
         wt_sorted = sorted(
-            zip(waveforms, transcripts), key=lambda wr: wr[0].shape[0], reverse=True
+            zip(waveforms, transcripts), key=lambda wt: wt[0].shape[0], reverse=True
         )
         waveforms = [wt[0] for wt in wt_sorted]
         transcripts = [wt[1] for wt in wt_sorted]
@@ -468,8 +504,9 @@ def get_dataloaders(
                 ds=ds,
                 min_duration=min_duration,
                 max_duration=max_duration,
-                cachepath=Path(fold + "-" + version + ".idx"),
+                cacheprefix=fold + "-" + version,
                 overwrite_index=overwrite_index,
+                logger=logger,
             )
 
     valid_dataset = dataset_loader("dev", commonvoice_version, overwrite_index)
