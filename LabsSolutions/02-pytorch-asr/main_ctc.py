@@ -163,7 +163,14 @@ def train(args):
     #### START CODING HERE ####
     ###########################
     # @TEMPL@optimizer = None
-    optimizer = optim.Adam(model.parameters(), lr=base_lr)  # @SOL@
+    # @SOL
+    if args.weight_decay is not None and args.weight_decay != 0.0:
+        optimizer = optim.AdamW(
+            model.parameters(), lr=base_lr, weight_decay=args.weight_decay
+        )
+    else:
+        optimizer = optim.Adam(model.parameters(), lr=base_lr)
+    # SOL@
 
     ##########################
     #### STOP CODING HERE ####
