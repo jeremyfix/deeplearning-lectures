@@ -97,7 +97,7 @@ submit_job(
         debug,
         {
             "batch_size": 128,
-            "num_epochs": 500,
+            "num_epochs": 100,
             "base_lr": 0.001,
             "min_duration": 1.0,
             "max_duration": 5.0,
