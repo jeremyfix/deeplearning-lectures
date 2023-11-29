@@ -219,8 +219,7 @@ class LinearModel(nn.Module):
             outputs = self.forward(inputs)
         return beam_decode(outputs, beam_size, blank_id, self.charmap)
 
-
-# @SOL
+    # SOL@
 
 
 class CTCModel(nn.Module):
@@ -472,6 +471,8 @@ class CTCModel(nn.Module):
         with torch.no_grad():
             outputs = self.forward(inputs)
         return beam_decode(outputs, beam_size, blank_id, self.charmap)
+
+    # SOL@
 
 
 # @SOL
