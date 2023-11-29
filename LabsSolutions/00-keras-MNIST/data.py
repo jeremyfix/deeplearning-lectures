@@ -2,7 +2,7 @@
 
 # External imports
 import numpy as np
-from tensorflow.keras.datasets import mnist, fashion_mnist
+from tensorflow.keras.datasets import fashion_mnist
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.utils import to_categorical
 
@@ -13,8 +13,8 @@ def split(X, y, test_size):
     nb_test = int(test_size * X.shape[0])
     return X[nb_test:, :, :], y[nb_test:], X[:nb_test, :, :], y[:nb_test]
 
-def get_data(normalize: bool,
-             augment: bool):
+
+def get_data(normalize: bool, augment: bool):
     """
     Loads the dataset and compute the normalization data and possibly
     prepare data augmentation
@@ -47,19 +47,25 @@ def get_data(normalize: bool,
     if normalize:
         mean = X_train.mean(axis=0)
         std = X_train.std(axis=0)
-        std[std == 0] = 1.0 # Do not modify points where variance is null
+        std[std == 0] = 1.0  # Do not modify points where variance is null
         normalization = (mean, std)
 
     traindata = (X_train, y_train)
     if augment:
-        datagen = ImageDataGenerator(shear_range=0.3,
-                                     zoom_range=0.1,
-                                     rotation_range=10.)
+        datagen = ImageDataGenerator(
+            shear_range=0.3, zoom_range=0.1, rotation_range=10.0
+        )
 
-        traindata = datagen.flow(*traindata,
-                                 batch_size=128)
+        traindata = datagen.flow(*traindata, batch_size=128)
 
-    return traindata, (X_val, y_val), (X_test, y_test), normalization, input_shape, num_classes
+    return (
+        traindata,
+        (X_val, y_val),
+        (X_test, y_test),
+        normalization,
+        input_shape,
+        num_classes,
+    )
 
 
 def get_test_data():
@@ -82,5 +88,5 @@ def get_test_data():
     return (X_test, y_test)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

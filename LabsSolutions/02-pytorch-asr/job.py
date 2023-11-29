@@ -22,22 +22,17 @@ def makejob(commit_id, nruns, partition, walltime, augment, debug, params):
 
 current_dir=`pwd`
 
-# Fix env variables as bashrc and profile are not loaded
-export LOCAL=$HOME/.local
-export PATH=$PATH:$LOCAL/bin
-
 echo "Session " ${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}}
 date
 
 echo "Running on $(hostname)"
-# env
 
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/asr
-rsync -r . $TMPDIR/ --exclude 'logslurms' --exclude 'logs'
+rsync -r . $TMPDIR/asr/ --exclude 'logslurms' --exclude 'logs'
 
-cd $TMPDIR/
+cd $TMPDIR/asr
 git checkout {commit_id}
 
 # Remove the index files to really test if regenerating them will work
@@ -45,17 +40,11 @@ rm *.idx
 
 echo ""
 echo "Virtual env"
+date
 
-# python3 -m pip install virtualenv --user
-# virtualenv -p python3 venv
-# source venv/bin/activate
-# python -m pip install -r requirements.txt
-
-source "/opt/conda/etc/profile.d/conda.sh"
-export PATH=$PATH:/opt/conda/bin
-conda env create --prefix $TMPDIR/venv -f pytorch-asr-py3.9.yaml
-conda activate $TMPDIR/venv
-
+python3 -m venv $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
+python -m pip install -r requirements.txt
 
 echo ""
 echo "Training"
@@ -96,8 +85,8 @@ commit_id = subprocess.check_output(
 os.system("mkdir -p logslurms")
 
 # Launch the batch jobs
-debug = True
-augment = False
+debug = False
+augment = True
 submit_job(
     makejob(
         commit_id,
@@ -107,16 +96,19 @@ submit_job(
         augment,
         debug,
         {
-            "batch_size": 256,
+            "batch_size": 128,
             "num_epochs": 100,
             "base_lr": 0.001,
             "min_duration": 1.0,
-            "max_duration": 6.0,
+            "max_duration": 5.0,
             "nlayers_rnn": 4,
             "nhidden_rnn": 1024,
             "weight_decay": 0.0,
             "dropout": 0.0,
-            "datasetversion": "v1",
+            "grad_clip": 20,
+            "datasetversion": "v15.0",
+            # "wandb_entity": "jeremy-fix",
+            # "wandb_project": "LabASR",
         },
     )
 )

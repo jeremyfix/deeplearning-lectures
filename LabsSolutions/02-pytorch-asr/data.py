@@ -5,9 +5,12 @@
 import os
 import functools
 import logging
+import operator
 from pathlib import Path
 from typing import Union, Tuple
 import pickle
+import time
+
 
 # External imports
 import torch.nn as nn
@@ -28,14 +31,15 @@ from torchaudio.transforms import (
     TimeMasking,
 )
 import matplotlib.pyplot as plt
-import tqdm
+import multiprocess
+
 
 _DEFAULT_COMMONVOICE_ROOT = "/mounts/Datasets4/CommonVoice/"
-_DEFAULT_COMMONVOICE_VERSION = "v1"
+_DEFAULT_COMMONVOICE_VERSION = "v15.0"
 _DEFAULT_RATE = 16000  # Hz
-_DEFAULT_WIN_LENGTH = 25  # ms  40
-_DEFAULT_WIN_STEP = 15  # ms  10
-_DEFAULT_NUM_MELS = 80  #  20
+_DEFAULT_WIN_LENGTH = 40  # ms
+_DEFAULT_WIN_STEP = 10  # ms
+_DEFAULT_NUM_MELS = 20  #
 
 
 def unpack_ravel(tensor: PackedSequence):
@@ -70,6 +74,13 @@ def load_dataset(
     return COMMONVOICE(root=datasetpath, tsv=fold + ".tsv")
 
 
+def is_sample_in_timerange(i, ds, min_duration, max_duration):
+    (w, r, _) = ds[i]
+    return i, (not min_duration or min_duration <= (w.squeeze().shape[0] / r)) and (
+        not max_duration or (w.squeeze().shape[0] / r) <= max_duration
+    )
+
+
 class DatasetFilter(object):
     """
     Dataset object filtering an original dataset based on the
@@ -81,28 +92,54 @@ class DatasetFilter(object):
         ds: torch.utils.data.Dataset,
         min_duration: float,
         max_duration: float,
-        cachepath: Path,
+        cacheprefix: str,
         overwrite_index: bool,
+        logger=None,
     ) -> None:
         """
         Args:
             ds: the dataset to filter
             min_duration : the minimal duration in seconds
             max_duration : the maximal duration in seconds
-            cachename : the filename in which to save the selected indices
+            cacheprefix : the prefix of the cache file to which save the index files
         """
+
+        def log(txt):
+            if logger is not None:
+                logger.info(txt)
+
         # At construction we build a list of indices
         # of valid samples from the original dataset
+        cachepath = cacheprefix + f"-{min_duration}-{max_duration}.idx"
         if os.path.exists(cachepath) and not overwrite_index:
-            print("Loading the pre-generating index file")
+            log("Loading the pre-generated index file {cachepath}")
             self.valid_indices = pickle.load(open(cachepath, "rb"))
         else:
-            print(f"Generating the index files, processing {len(ds)} files")
-            self.valid_indices = [
-                i
-                for i, (w, r, _) in tqdm.tqdm(enumerate(ds))
-                if min_duration <= w.squeeze().shape[0] / r <= max_duration
-            ]
+            log(
+                f"Generating the index files, processing {len(ds)} files, saved in {cachepath}"
+            )
+            # self.valid_indices = [
+            #     i
+            #     for i, (w, r, _) in tqdm.tqdm(enumerate(ds))
+            #     if (not min_duration or min_duration <= (w.squeeze().shape[0] / r))
+            #     and (not max_duration or (w.squeeze().shape[0] / r) <= max_duration)
+            # ]
+
+            indices = list(range(len(ds)))
+            t0 = time.time()
+            with multiprocess.Pool(processes=None) as pool:
+                results = list(
+                    pool.map(
+                        lambda idx, ds=ds, min_duration=min_duration, max_duration=max_duration: is_sample_in_timerange(
+                            idx, ds, min_duration, max_duration
+                        ),
+                        indices,
+                    ),
+                )
+            t1 = time.time()
+            log(f"Elapsed : {t1-t0} seconds")
+            self.valid_indices = [i for i, vi in results if vi]
+
             pickle.dump(self.valid_indices, open(cachepath, "wb"))
         self.ds = ds
 
@@ -120,9 +157,9 @@ class CharMap(object):
     the conversions in the two directions
     """
 
-    _BLANK = 172
-    _SOS = 182
-    _EOS = 166
+    _BLANK = 172  # Corresponds to '¬'
+    _SOS = 182  # Corresponds to '¶'
+    _EOS = 166  # Corresponds to '¦'
 
     def __init__(self):
         ord_chars = frozenset().union(
@@ -182,6 +219,7 @@ class CharMap(object):
 
     def encode(self, utterance):
         utterance = self.soschar + utterance.lower() + self.eoschar
+
         # Remove the accentuated characters
         utterance = [
             self.equivalent_char[c] if c in self.equivalent_char else c
@@ -268,7 +306,8 @@ class WaveformProcessor(object):
             spectrograms(torch.Tensor): (Tx//nstep + 1, B, n_mels)
         """
         # Compute the spectorgram
-        spectro = self.transform_tospectro(waveforms.transpose(0, 1))  # (B, n_mels, T)
+        waveforms = waveforms.transpose(0, 1)  # from (T, B) to (B, T)
+        spectro = self.transform_tospectro(waveforms)  # (B, n_mels, T)
 
         # Normalize the spectrogram
         if self.spectro_normalization is not None:
@@ -342,7 +381,7 @@ class BatchCollate(object):
 
         # Sort the waveforms and transcripts by decreasing waveforms length
         wt_sorted = sorted(
-            zip(waveforms, transcripts), key=lambda wr: wr[0].shape[0], reverse=True
+            zip(waveforms, transcripts), key=lambda wt: wt[0].shape[0], reverse=True
         )
         waveforms = [wt[0] for wt in wt_sorted]
         transcripts = [wt[1] for wt in wt_sorted]
@@ -360,8 +399,9 @@ class BatchCollate(object):
         ###########################
 
         ##
-        # Step 1 : pad the sequence of tensors waveforms. The resulting
-        #          tensor must be (T, B)
+        # Step 1 : pad the sequence of tensors waveforms so that they all have the same
+        #          length. The resulting tensor must be (T, B) where T is the maximal
+        #          duration of the elements in waveforms.
         #          (1 line)
         # @TEMPL@waveforms = None
         waveforms = pad_sequence(waveforms)  # @SOL@
@@ -380,17 +420,20 @@ class BatchCollate(object):
         spectrograms = pack_padded_sequence(spectrograms, lengths=spectro_lengths)
         # SOL@
 
-        # Step 3 : pad the sequence of tensors transcripts. The resulting
-        #          tensor must be (Ty, B)
+        # Step 3 : pad the sequence of tensors transcripts, so that all the rows
+        #          of the resulting padded tensor have the same legnth. The resulting
+        #          tensor is (Ty, B)
         #          (1 line)
         # @TEMPL@transcripts = None
         transcripts = pad_sequence(transcripts)  # @SOL@
 
-        # Step 4 : pack the tensor of transcripts given their lenght as
+        # Step 4 : pack the tensor of transcripts given their length as
         #          computed in transcripts_length
         #          Note : this packed tensor must be given enforce_sorted=False
-        #          to ensure the i-th transcript corresponds to the i-th
-        #          spectrogram
+        #          to ensure the i-th transcript stay aligned with the i-th
+        #          spectrogram. Otherwise, torch would sort the transcripts
+        #          independently from the spectrograms and the alignement between the
+        #          spectrograms and the transcripts would be messed up
         #          (1 line)
 
         # @TEMPL@transcripts = None
@@ -444,18 +487,27 @@ def get_dataloaders(
         overwrite_index: whether or not to overwrite the cache files for the index of sequences to consider
     """
 
+    if small_experiment:
+        min_duration = None
+        max_duration = None
+
     def dataset_loader(fold, version, overwrite_index):
-        return DatasetFilter(
-            ds=load_dataset(
-                fold,
-                commonvoice_root=commonvoice_root,
-                commonvoice_version=commonvoice_version,
-            ),
-            min_duration=min_duration,
-            max_duration=max_duration,
-            cachepath=Path(fold + "-" + version + ".idx"),
-            overwrite_index=overwrite_index,
+        ds = load_dataset(
+            fold,
+            commonvoice_root=commonvoice_root,
+            commonvoice_version=commonvoice_version,
         )
+        if not min_duration and not max_duration:
+            return ds
+        else:
+            return DatasetFilter(
+                ds=ds,
+                min_duration=min_duration,
+                max_duration=max_duration,
+                cacheprefix=fold + "-" + version,
+                overwrite_index=overwrite_index,
+                logger=logger,
+            )
 
     valid_dataset = dataset_loader("dev", commonvoice_version, overwrite_index)
     train_dataset = dataset_loader("train", commonvoice_version, overwrite_index)
@@ -470,12 +522,14 @@ def get_dataloaders(
     if normalize:
         # Compute the normalization on the training set
         # batch_collate_norm = BatchCollate(nmels, augment=False)
-        # norm_loader = torch.utils.data.DataLoader(train_dataset,
-        #                                           batch_size=batch_size,
-        #                                           shuffle=True,
-        #                                           num_workers=n_threads,
-        #                                           collate_fn=batch_collate_norm,
-        #                                           pin_memory=cuda)
+        # norm_loader = torch.utils.data.DataLoader(
+        #     train_dataset,
+        #     batch_size=batch_size,
+        #     shuffle=False,
+        #     num_workers=n_threads,
+        #     collate_fn=batch_collate_norm,
+        #     pin_memory=cuda,
+        # )
         # mean_spectro, std_spectro = 0, 0
         # N_elem = 0
         # for spectros, _ in tqdm.tqdm(norm_loader):
@@ -486,8 +540,8 @@ def get_dataloaders(
 
         # for spectros, _ in tqdm.tqdm(norm_loader):
         #     unpacked_raveled = unpack_ravel(spectros)
-        #     std_spectro += ((unpacked_raveled - mean_spectro)**2).sum()
-        # std_spectro = (torch.sqrt(std_spectro/N_elem)).item()
+        #     std_spectro += ((unpacked_raveled - mean_spectro) ** 2).sum()
+        # std_spectro = (torch.sqrt(std_spectro / N_elem)).item()
 
         # Fix for speeding up debuggin
         mean_spectro = -31
@@ -600,6 +654,10 @@ def ex_waveform_spectro():
     # Take one of the waveforms
     idx = 10
     waveform, rate, dictionary = dataset[idx]
+    walker = dataset._walker
+    path_to_audio = os.path.join(dataset._path, dataset._folder_audio, walker[idx][1])
+    print(f"I will be loading {path_to_audio}, with the transcript {walker[idx][2]}")
+
     n_begin = rate  # 1 s.
     n_end = 3 * rate  # 2 s.
     waveform = waveform[:, n_begin:n_end]  # B, T
@@ -674,8 +732,8 @@ def ex_spectro():
         _DEFAULT_COMMONVOICE_VERSION,
         cuda=False,
         n_threads=4,
-        min_duration=1,
-        max_duration=5,
+        min_duration=None,
+        max_duration=None,
         batch_size=batch_size,
         train_augment=True,
         normalize=False,
@@ -729,8 +787,8 @@ def ex_augmented_spectro():
         _DEFAULT_COMMONVOICE_VERSION,
         cuda=False,
         n_threads=4,
-        min_duration=1,
-        max_duration=3,
+        min_duration=None,
+        max_duration=None,
         batch_size=batch_size,
         train_augment=True,
         normalize=False,
@@ -747,6 +805,7 @@ def ex_augmented_spectro():
     y, lens_y = pad_packed_sequence(y)
     idx = 1
     plot_spectro(X[:, idx, :], y[: lens_y[idx], idx], _DEFAULT_WIN_STEP * 1e-3, charmap)
+    print("spectro valid")
     plt.savefig("spectro_valid.png")
 
     # From the validation set
@@ -759,6 +818,7 @@ def ex_augmented_spectro():
     idx = 0
     print(X.shape, _DEFAULT_WIN_STEP * 1e-3)
     plot_spectro(X[:, idx, :], y[: lens_y[idx], idx], _DEFAULT_WIN_STEP * 1e-3, charmap)
+    print("spectro train")
     plt.savefig("spectro_train.png")
     logging.info("Image saved to spectro_train.png")
 
@@ -831,10 +891,9 @@ if __name__ == "__main__":
     # @TEMPL@pass
     # @SOL
     # order_by_length()
-    # ex_charmap()
-    # test_spectro()
-    # ex_waveform_spectro()
-    # ex_spectro()
-    # ex_augmented_spectro()
-    pass
+    ex_charmap()
+    test_spectro()
+    ex_waveform_spectro()
+    ex_spectro()
+    ex_augmented_spectro()
     # SOL@
