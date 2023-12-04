@@ -93,8 +93,6 @@ def train(args):
             project=args.wandb_project, entity=args.wandb_entity, config=vars(args)
         )
         wandb_log = wandb.log
-        print(vars(args))
-        # wandb_log(vars(args))
         logging.info("Will be recording in wandb run name : {wandb.run.name}")
     else:
         wandb_log = None
@@ -198,7 +196,7 @@ def train(args):
         "Experiment summary", deepcs.display.htmlize(summary_text)
     )
     if wandb_log is not None:
-        wandb.log({"summary": summary_text})
+        wandb_log({"summary": summary_text})
 
     with open(os.path.join(logdir, "summary.txt"), "w") as f:
         f.write(summary_text)
@@ -285,7 +283,7 @@ def train(args):
 
         # Log in wandb if available
         if wandb_log is not None:
-            wandb_log.log(
+            wandb_log(
                 {"train_decodings": train_decodings, "valid_decodings": valid_decodings}
             )
 
