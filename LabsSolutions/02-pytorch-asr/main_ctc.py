@@ -190,7 +190,7 @@ def train(args):
     logger.info(summary_text)
 
     if args.logname is not None:
-        logdir = args.baselogdir / args.logname
+        logdir = os.path.join(args.baselogdir, args.logname)
     else:
         logdir = generate_unique_logpath(args.baselogdir, "ctc")
     tensorboard_writer = SummaryWriter(log_dir=logdir, flush_secs=5)
