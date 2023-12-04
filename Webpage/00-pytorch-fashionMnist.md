@@ -378,7 +378,7 @@ package](https://pytorch.org/docs/stable/optim.html). We will use the
 optimizer](https://pytorch.org/docs/stable/optim.html#torch.optim.Adam);
 To know more about optimizers, there is a [compendium of optimizers
 provided by Sebastian
-Ruder](http://ruder.io/optimizing-gradient-descent/index.html). In
+Ruder](https://www.ruder.io/optimizing-gradient-descent/). In
 Pytorch, the optimizer needs a reference to the parameters that it needs
 to modifies.
 
