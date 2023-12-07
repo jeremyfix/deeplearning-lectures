@@ -204,7 +204,10 @@ def train(args):
     logger.info(f">>>>> Results saved in {logdir}")
 
     model_checkpoint = ModelCheckpoint(model, os.path.join(logdir, "best_model.pt"))
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+    if args.scheduler:
+        scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+    else:
+        scheduler = None
 
     logger.info(">>>>> Decodings before training")
     train_decodings = decode_samples(
@@ -242,7 +245,8 @@ def train(args):
         # Compute and record the metrics on the validation set
         valid_metrics = ftest(model, valid_loader, device, metrics, num_model_args=1)
         better_model = model_checkpoint.update(valid_metrics["CTC"])
-        scheduler.step()
+        if scheduler is not None:
+            scheduler.step()
 
         logger.info(
             "[%d/%d] Validation:   CTCLoss : %.3f %s"
@@ -418,6 +422,11 @@ if __name__ == "__main__":
         type=float,
         help="The maxnorm of the gradient to clip to",
         default=None,
+    )
+    parser.add_argument(
+        "--scheduler",
+        action="store_true",
+        help="Whether or not to use a learning rate scheduler.",
     )
 
     # Data parameters
