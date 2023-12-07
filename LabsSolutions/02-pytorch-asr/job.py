@@ -4,12 +4,16 @@ import os
 import subprocess
 
 
-def makejob(commit_id, nruns, partition, walltime, augment, debug, params):
+def makejob(
+    commit_id, nruns, partition, walltime, augment, debug, use_scheduler, params
+):
     paramsstr = " ".join([f"--{name} {value}" for name, value in params.items()])
     if augment:
         paramsstr += " --train_augment "
     if debug:
         paramsstr += " --debug "
+    if use_scheduler:
+        paramsstr += " --scheduler "
     return f"""#!/bin/bash
 
 #SBATCH --job-name=asr-ctc
@@ -87,6 +91,7 @@ os.system("mkdir -p logslurms")
 # Launch the batch jobs
 debug = False
 augment = True
+use_scheduler = True
 submit_job(
     makejob(
         commit_id,
@@ -95,6 +100,7 @@ submit_job(
         "48:00:00",
         augment,
         debug,
+        use_scheduler,
         {
             "batch_size": 128,
             "num_epochs": 100,
