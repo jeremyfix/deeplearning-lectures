@@ -205,7 +205,10 @@ def train(args):
 
     model_checkpoint = ModelCheckpoint(model, os.path.join(logdir, "best_model.pt"))
     if args.scheduler:
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+        # scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+        scheduler = lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer, T_0=10, T_mult=2, eta_min=0.01, last_epoch=-1
+        )
     else:
         scheduler = None
 
