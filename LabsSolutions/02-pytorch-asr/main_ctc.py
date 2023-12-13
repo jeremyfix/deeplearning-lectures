@@ -439,7 +439,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--resume_from",
-        type=pathlib.Path,
+        type=Path,
         help="The path to a tensor to use as initial conditions. Your model's parameters must be compatible with that tensor, otherwise, loading will fail.",
         default=None,
     )
