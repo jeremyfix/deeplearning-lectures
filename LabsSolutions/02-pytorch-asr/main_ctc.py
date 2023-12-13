@@ -153,6 +153,11 @@ def train(args):
 
     model.to(device)
 
+    # @SOL
+    if args.resume_from is not None:
+        model._load_from_state_dict(torch.load(args.resume_from))
+    # SOL@
+
     # Loss, optimizer
     baseloss = nn.CTCLoss(blank=blank_id, reduction="mean", zero_infinity=True)
     loss = lambda *params: baseloss(*wrap_ctc_args(*params))
@@ -430,6 +435,12 @@ if __name__ == "__main__":
         "--scheduler",
         action="store_true",
         help="Whether or not to use a learning rate scheduler.",
+    )
+    parser.add_argument(
+        "--resume_from",
+        type=pathlib.Path,
+        help="The path to a tensor to use as initial conditions. Your model's parameters must be compatible with that tensor, otherwise, loading will fail.",
+        default=None,
     )
 
     # Data parameters
