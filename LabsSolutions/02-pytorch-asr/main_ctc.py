@@ -569,6 +569,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.seed is not None:
-        deepcs.rng.seed(args.seed)
+        deepcs.rng.seed_torch(args.seed)
 
     eval(f"{args.command}(args)")
