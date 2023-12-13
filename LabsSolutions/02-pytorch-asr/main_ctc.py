@@ -21,6 +21,7 @@ from deepcs.training import train as ftrain, ModelCheckpoint
 from deepcs.testing import test as ftest
 from deepcs.fileutils import generate_unique_logpath
 import deepcs.metrics
+import deepcs.rng
 import wandb
 
 # Local imports
@@ -442,6 +443,12 @@ if __name__ == "__main__":
         help="The path to a tensor to use as initial conditions. Your model's parameters must be compatible with that tensor, otherwise, loading will fail.",
         default=None,
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help="Seed used for the random number generators. To be used for reproducibitliy",
+        default=None,
+    )
 
     # Data parameters
     parser.add_argument(
@@ -560,5 +567,8 @@ if __name__ == "__main__":
         help="The wandb entity on which to record logs",
     )
     args = parser.parse_args()
+
+    if args.seed is not None:
+        deepcs.rng.seed(args.seed)
 
     eval(f"{args.command}(args)")
