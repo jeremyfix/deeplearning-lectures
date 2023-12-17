@@ -51,26 +51,26 @@ def wrap_ctc_args(packed_predictions, packed_targets):
     return unpacked_predictions, unpacked_targets, lens_predictions, lens_targets
 
 
-def export_onnx(model, n_mels, device, filepath):
-    # The input shape is (T, B, mels)
-    # with T and B dynamic axes
-    export_input_size = (5, 1, n_mels)
-    dummy_input = torch.zeros(export_input_size, device=device)
-    # Important: ensure the model is in eval mode before exporting !
-    # the graph in train/test mode is not the same
-    # Although onnx.export handles export in inference mode now
-    model.eval()
-    torch.onnx.export(
-        model,
-        dummy_input,
-        filepath,
-        input_names=["input"],
-        output_names=["output"],
-        dynamic_axes={
-            "input": {0: "time", 1: "batch"},
-            "output": {0: "time", 1: "batch"},
-        },
-    )
+# def export_onnx(model, n_mels, device, filepath):
+#     # The input shape is (T, B, mels)
+#     # with T and B dynamic axes
+#     export_input_size = (5, 1, n_mels)
+#     dummy_input = torch.zeros(export_input_size, device=device)
+#     # Important: ensure the model is in eval mode before exporting !
+#     # the graph in train/test mode is not the same
+#     # Although onnx.export handles export in inference mode now
+#     model.eval()
+#     torch.onnx.export(
+#         model,
+#         dummy_input,
+#         filepath,
+#         input_names=["input"],
+#         output_names=["output"],
+#         dynamic_axes={
+#             "input": {0: "time", 1: "batch"},
+#             "output": {0: "time", 1: "batch"},
+#         },
+#     )
 
 
 def decode_samples(fdecode, loader, n, device, charmap):
@@ -241,7 +241,7 @@ def train(args):
         scheduler = None
 
     # The location where to save the best model in ONNX
-    onnx_filepath = os.path.join(logdir, "best_model.onnx")
+    # onnx_filepath = os.path.join(logdir, "best_model.onnx")
 
     logger.info(">>>>> Decodings before training")
     train_decodings = decode_samples(
@@ -336,9 +336,9 @@ def train(args):
 
             wandb_log(all_metrics)
 
-        if better_model:
-            # Export the model in ONNX
-            export_onnx(model, n_mels, device, onnx_filepath)
+        # if better_model:
+        #     # Export the model in ONNX
+        #     export_onnx(model, n_mels, device, onnx_filepath)
 
 
 def test(args):
