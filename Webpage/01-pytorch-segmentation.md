@@ -31,11 +31,10 @@ There are $14$ classes, the first being for the unlabeled pixels.
 
 For this lab work, you are provided with environment setup files, either a [environment.yml](./labs/01-pytorch-segmentation/environment.yml) if you are using conda and a [requirements.txt](./labs/01-pytorch-segmentation/requirements.txt) file if you are a pipenv/pip/virtualenv/etc..
 
-On the CentraleSupelec clusters, I advise you to use virtualenv as conda requires a lot of dependencies to be installed and can sometimes be cumbersome.
+On the CentraleSupelec clusters, I advise you to use a virtual environment, created with venv for example, as conda requires a lot of dependencies to be installed and can sometimes be cumbersome.
 
 ``` console
-sh11:~:mylogin$ python3 -m pip install virtualenv --user
-sh11:~:mylogin$ virtualenv -p python3 $TMPDIR/venv
+sh11:~:mylogin$ python3 -m venv $TMPDIR/venv
 sh11:~:mylogin$ source $TMPDIR/venv/bin/activate
 (venv) sh11:~:mylogin$  python -m pip install -r requirements.txt
 ```
