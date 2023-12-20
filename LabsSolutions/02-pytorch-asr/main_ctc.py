@@ -178,7 +178,7 @@ def train(args):
 
     # @SOL
     if args.resume_from is not None:
-        model._load_from_state_dict(torch.load(args.resume_from))
+        model.load_state_dict(torch.load(args.resume_from))
     # SOL@
 
     # Loss, optimizer
