@@ -348,6 +348,8 @@ mymachine:~:mylogin$ python3 main_ctc.py train --debug --batch_size 16
 
 You should pretty "quickly" see a null loss on the training set with a perfect decoding. Note that it still takes 2s. per minibatch and a hundred epochs for overfitting.
 
+![CTC loss on the test/train/valid sets with an overfitting architecture, considering only one minibatch of size 16.](./data/02-pytorch-asr/overfit_minibatch.png){.bordered}
+
 ### Overfitting the training set
 
 The next step is to design a sufficiently rich architecture to overfit the training set when any sort of regularization is disabled (L2/L1, dropout, data augmentation, ...) :
