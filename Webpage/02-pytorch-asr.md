@@ -408,39 +408,40 @@ Log prob    Sequence
 
 The summary file of this run is given below. This model has been trained with SpecAugment, Dropout(0.5), L2 regularization (0.0001), gradient norm clipping with all the available audio clips. The training was performed for almost 4 days.
 
-	## Summary of the model architecture
-	=================================================================
-	Layer (type:depth-idx)                   Param #
-	=================================================================
-	CTCModel                                 --
-	├─Sequential: 1-1                        --
-	│    └─Conv2d: 2-1                       14,464
-	│    └─BatchNorm2d: 2-2                  64
-	│    └─Hardtanh: 2-3                     --
-	│    └─Dropout2d: 2-4                    --
-	│    └─Conv2d: 2-5                       236,576
-	│    └─BatchNorm2d: 2-6                  64
-	│    └─Hardtanh: 2-7                     --
-	│    └─Dropout2d: 2-8                    --
-	├─GRU: 1-2                               64,929,792
-	├─Sequential: 1-3                        --
-	│    └─Linear: 2-9                       90,156
-	=================================================================
-	Total params: 65,271,116
-	Trainable params: 65,271,116
-	Non-trainable params: 0
-	=================================================================
-	 Wandb run name : amber-galaxy-55
+```markdown
+## Summary of the model architecture
+=================================================================
+Layer (type:depth-idx)                   Param #
+=================================================================
+CTCModel                                 --
+├─Sequential: 1-1                        --
+│    └─Conv2d: 2-1                       14,464
+│    └─BatchNorm2d: 2-2                  64
+│    └─Hardtanh: 2-3                     --
+│    └─Dropout2d: 2-4                    --
+│    └─Conv2d: 2-5                       236,576
+│    └─BatchNorm2d: 2-6                  64
+│    └─Hardtanh: 2-7                     --
+│    └─Dropout2d: 2-8                    --
+├─GRU: 1-2                               64,929,792
+├─Sequential: 1-3                        --
+│    └─Linear: 2-9                       90,156
+=================================================================
+Total params: 65,271,116
+Trainable params: 65,271,116
+Non-trainable params: 0
+=================================================================
+ Wandb run name : amber-galaxy-55
 
 
 
-	## Executed command :
-	main_ctc.py --logname ctc_42077_0 --batch_size 128 --num_epochs 100 --base_lr 0.0001 --min_duration 0.0 --max_duration 60.0 --nlayers_rnn 4 --nhidden_rnn 1024 --weight_decay 0.0001 --dropout 0.5 --grad_clip 20 --datasetversion v15.0 --seed 12345 --train_augment --scheduler train
+## Executed command :
+main_ctc.py --logname ctc_42077_0 --batch_size 128 --num_epochs 100 --base_lr 0.0001 --min_duration 0.0 --max_duration 60.0 --nlayers_rnn 4 --nhidden_rnn 1024 --weight_decay 0.0001 --dropout 0.5 --grad_clip 20 --datasetversion v15.0 --seed 12345 --train_augment --scheduler train
 
-	## Args : 
-	 Namespace(audiofile=None, base_lr=0.0001, batch_size=128, beamsearch=False, beamwidth=10, cell_type='GRU', command='train', datasetroot='/mounts/Datasets4/CommonVoice/', datasetversion='v15.0', debug=False, dropout=0.5, grad_clip=20.0
-	, logname='ctc_42077_0', max_duration=60.0, min_duration=0.0, modelpath=None, nhidden_rnn=1024, nlayers_rnn=4, nmels=20, nthreads=6, num_epochs=100, scheduler=True, seed=12345, train_augment=True, weight_decay=0.0001)
-
+## Args : 
+ Namespace(audiofile=None, base_lr=0.0001, batch_size=128, beamsearch=False, beamwidth=10, cell_type='GRU', command='train', datasetroot='/mounts/Datasets4/CommonVoice/', datasetversion='v15.0', debug=False, dropout=0.5, grad_clip=20.0
+, logname='ctc_42077_0', max_duration=60.0, min_duration=0.0, modelpath=None, nhidden_rnn=1024, nlayers_rnn=4, nmels=20, nthreads=6, num_epochs=100, scheduler=True, seed=12345, train_augment=True, weight_decay=0.0001)
+```
 
 ## Extras
 
