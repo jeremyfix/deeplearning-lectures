@@ -343,22 +343,20 @@ These three steps are described in the next subsections.
 In order to ensure you do not have bugs in your implementation, a sanity check is to check you can overfit a single minibatch of your training set. If you are unable to fit a single minibatch, you are guaranteed to have an issue in your code. To just load one single minibatch, you can pass in the `--debug` argument when calling `main_ctc.py` :
 
 ```console
-mymachine:~:mylogin$ python3 main_ctc.py train --debug
+mymachine:~:mylogin$ python3 main_ctc.py train --debug --batch_size 16
 ```
 
-You should pretty quickly see a null loss on the training set with a perfect decoding.
-
-**Warning** For some reason, while it worked at some point (see the next section curve), in 2023, a single minibatch is not getting overfitted....and I do not know where is the issue. If you find it, I owe you a coffee for this ! And the worst is that although a single minibatch or training set does not get overfitted, training it on a large corpus we do get kind of speech recognition, not perfect but not that bad...
+You should pretty "quickly" see a null loss on the training set with a perfect decoding. Note that it still takes 2s. per minibatch and a hundred epochs for overfitting.
 
 ### Overfitting the training set
 
 The next step is to design a sufficiently rich architecture to overfit the training set when any sort of regularization is disabled (L2/L1, dropout, data augmentation, ...) :
 
 ```console
-mymachine:~:mylogin$ python3 main_ctc.py train
+mymachine:~:mylogin$ python3 main_ctc.py train --scheduler
 ```
 
-It takes approximately 800ms per minibatch of size 128.
+It takes approximately 11 minutes per epoch. 
 
 You should be able to get a null loss on the training set. Have a look on the tensorboard to observe overfitting. See below an example run.
 
@@ -396,7 +394,53 @@ To test of an audio clip, you can record yourself as a mp3 and call main_ctc :
 mymachine:~:mylogin$ python3 main_ctc.py test --modelpath a/path/to/a/best_model.pt --audiofile myclip.mp3
 ```
 
-If you used non default values for the other arguments (the ones for the model), you must provide them again. We need them in the test function for recreating the exact same model than the one used during training.
+Beam search decoding can be activated adding the `--beamsearch` flag. By default, it will consider $10$ alternative decoding simultaneously.
+
+If you used non default values for the other arguments (the ones for the model), you must provide them again. We need them in the test function for recreating the exact same model than the one used during training. Audio clips are provided in the test fold. You can check the list of the test audio clips with their transcripts in the `/mounts/Datasets4/CommonVoice/v15.0/fr/test.tsv` file.
+
+If you do not have yet a trained model, you can download [the best_ctc_42077.pt](https://centralesupelec-my.sharepoint.com/:u:/g/personal/jeremy_fix_centralesupelec_fr/EScVCV_zdYZDpWXBlynPmMYBjCbXVDc0SkTuS6JRn43CSg?e=u7eUWF) checkpoint. This model can be tested with the command line below :
+
+```console
+mymachine:~:mylogin$ python main_ctc.py test --modelpath best_ctc_42077.pt --audiofile /mounts/Datasets4/CommonVoice/v15.0/fr/clips/common_voice_fr_37118026.mp3
+Log prob    Sequence
+7.82      ¶une contrefa❌on fut publiee en belgique.¦
+```
+
+The summary file of this run is given below. This model has been trained with SpecAugment, Dropout(0.5), L2 regularization (0.0001), gradient norm clipping with all the available audio clips. The training was performed for almost 4 days.
+
+	## Summary of the model architecture
+	=================================================================
+	Layer (type:depth-idx)                   Param #
+	=================================================================
+	CTCModel                                 --
+	├─Sequential: 1-1                        --
+	│    └─Conv2d: 2-1                       14,464
+	│    └─BatchNorm2d: 2-2                  64
+	│    └─Hardtanh: 2-3                     --
+	│    └─Dropout2d: 2-4                    --
+	│    └─Conv2d: 2-5                       236,576
+	│    └─BatchNorm2d: 2-6                  64
+	│    └─Hardtanh: 2-7                     --
+	│    └─Dropout2d: 2-8                    --
+	├─GRU: 1-2                               64,929,792
+	├─Sequential: 1-3                        --
+	│    └─Linear: 2-9                       90,156
+	=================================================================
+	Total params: 65,271,116
+	Trainable params: 65,271,116
+	Non-trainable params: 0
+	=================================================================
+	 Wandb run name : amber-galaxy-55
+
+
+
+	## Executed command :
+	main_ctc.py --logname ctc_42077_0 --batch_size 128 --num_epochs 100 --base_lr 0.0001 --min_duration 0.0 --max_duration 60.0 --nlayers_rnn 4 --nhidden_rnn 1024 --weight_decay 0.0001 --dropout 0.5 --grad_clip 20 --datasetversion v15.0 --seed 12345 --train_augment --scheduler train
+
+	## Args : 
+	 Namespace(audiofile=None, base_lr=0.0001, batch_size=128, beamsearch=False, beamwidth=10, cell_type='GRU', command='train', datasetroot='/mounts/Datasets4/CommonVoice/', datasetversion='v15.0', debug=False, dropout=0.5, grad_clip=20.0
+	, logname='ctc_42077_0', max_duration=60.0, min_duration=0.0, modelpath=None, nhidden_rnn=1024, nlayers_rnn=4, nmels=20, nthreads=6, num_epochs=100, scheduler=True, seed=12345, train_augment=True, weight_decay=0.0001)
+
 
 ## Extras
 

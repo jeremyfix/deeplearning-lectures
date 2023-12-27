@@ -21,6 +21,7 @@ from deepcs.training import train as ftrain, ModelCheckpoint
 from deepcs.testing import test as ftest
 from deepcs.fileutils import generate_unique_logpath
 import deepcs.metrics
+import deepcs.rng
 import wandb
 
 # Local imports
@@ -48,6 +49,28 @@ def wrap_ctc_args(packed_predictions, packed_targets):
     # )
 
     return unpacked_predictions, unpacked_targets, lens_predictions, lens_targets
+
+
+# def export_onnx(model, n_mels, device, filepath):
+#     # The input shape is (T, B, mels)
+#     # with T and B dynamic axes
+#     export_input_size = (5, 1, n_mels)
+#     dummy_input = torch.zeros(export_input_size, device=device)
+#     # Important: ensure the model is in eval mode before exporting !
+#     # the graph in train/test mode is not the same
+#     # Although onnx.export handles export in inference mode now
+#     model.eval()
+#     torch.onnx.export(
+#         model,
+#         dummy_input,
+#         filepath,
+#         input_names=["input"],
+#         output_names=["output"],
+#         dynamic_axes={
+#             "input": {0: "time", 1: "batch"},
+#             "output": {0: "time", 1: "batch"},
+#         },
+#     )
 
 
 def decode_samples(fdecode, loader, n, device, charmap):
@@ -93,8 +116,6 @@ def train(args):
             project=args.wandb_project, entity=args.wandb_entity, config=vars(args)
         )
         wandb_log = wandb.log
-        print(vars(args))
-        # wandb_log(vars(args))
         logging.info("Will be recording in wandb run name : {wandb.run.name}")
     else:
         wandb_log = None
@@ -155,6 +176,11 @@ def train(args):
 
     model.to(device)
 
+    # @SOL
+    if args.resume_from is not None:
+        model.load_state_dict(torch.load(args.resume_from))
+    # SOL@
+
     # Loss, optimizer
     baseloss = nn.CTCLoss(blank=blank_id, reduction="mean", zero_infinity=True)
     loss = lambda *params: baseloss(*wrap_ctc_args(*params))
@@ -190,7 +216,7 @@ def train(args):
     logger.info(summary_text)
 
     if args.logname is not None:
-        logdir = args.baselogdir / args.logname
+        logdir = os.path.join(args.baselogdir, args.logname)
     else:
         logdir = generate_unique_logpath(args.baselogdir, "ctc")
     tensorboard_writer = SummaryWriter(log_dir=logdir, flush_secs=5)
@@ -198,7 +224,7 @@ def train(args):
         "Experiment summary", deepcs.display.htmlize(summary_text)
     )
     if wandb_log is not None:
-        wandb.log({"summary": summary_text})
+        wandb_log({"summary": summary_text})
 
     with open(os.path.join(logdir, "summary.txt"), "w") as f:
         f.write(summary_text)
@@ -206,7 +232,16 @@ def train(args):
     logger.info(f">>>>> Results saved in {logdir}")
 
     model_checkpoint = ModelCheckpoint(model, os.path.join(logdir, "best_model.pt"))
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+    if args.scheduler:
+        scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+        # scheduler = lr_scheduler.CosineAnnealingWarmRestarts(
+        #     optimizer, T_0=10, T_mult=2, eta_min=0.01, last_epoch=-1
+        # )
+    else:
+        scheduler = None
+
+    # The location where to save the best model in ONNX
+    # onnx_filepath = os.path.join(logdir, "best_model.onnx")
 
     logger.info(">>>>> Decodings before training")
     train_decodings = decode_samples(
@@ -244,7 +279,9 @@ def train(args):
         # Compute and record the metrics on the validation set
         valid_metrics = ftest(model, valid_loader, device, metrics, num_model_args=1)
         better_model = model_checkpoint.update(valid_metrics["CTC"])
-        scheduler.step()
+
+        if scheduler is not None:
+            scheduler.step()
 
         logger.info(
             "[%d/%d] Validation:   CTCLoss : %.3f %s"
@@ -285,7 +322,7 @@ def train(args):
 
         # Log in wandb if available
         if wandb_log is not None:
-            wandb_log.log(
+            wandb_log(
                 {"train_decodings": train_decodings, "valid_decodings": valid_decodings}
             )
 
@@ -298,6 +335,10 @@ def train(args):
                 all_metrics[f"test_{m_name}"] = m_value
 
             wandb_log(all_metrics)
+
+        # if better_model:
+        #     # Export the model in ONNX
+        #     export_onnx(model, n_mels, device, onnx_filepath)
 
 
 def test(args):
@@ -421,6 +462,23 @@ if __name__ == "__main__":
         help="The maxnorm of the gradient to clip to",
         default=None,
     )
+    parser.add_argument(
+        "--scheduler",
+        action="store_true",
+        help="Whether or not to use a learning rate scheduler.",
+    )
+    parser.add_argument(
+        "--resume_from",
+        type=Path,
+        help="The path to a tensor to use as initial conditions. Your model's parameters must be compatible with that tensor, otherwise, loading will fail.",
+        default=None,
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        help="Seed used for the random number generators. To be used for reproducibitliy",
+        default=None,
+    )
 
     # Data parameters
     parser.add_argument(
@@ -539,5 +597,8 @@ if __name__ == "__main__":
         help="The wandb entity on which to record logs",
     )
     args = parser.parse_args()
+
+    if args.seed is not None:
+        deepcs.rng.seed_torch(args.seed)
 
     eval(f"{args.command}(args)")
