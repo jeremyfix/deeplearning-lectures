@@ -356,7 +356,7 @@ The next step is to design a sufficiently rich architecture to overfit the train
 mymachine:~:mylogin$ python3 main_ctc.py train --scheduler
 ```
 
-It takes approximately 11 minutes per epoch. 
+It takes approximately 11 minutes per epoch. The `--scheduler` activates the learning rate scheduling policy. It was disabled for the previous experiment, when overfitting a single minibatch, as it was decreasing the learning rate too quickly. The learning rate scheduler is applied every epoch, hance for every minibatch in the experiment of the previous section. Here, for overfitting the training set, it turns out it is necessary to activate the learning rate policy.
 
 You should be able to get a null loss on the training set. Have a look on the tensorboard to observe overfitting. See below an example run.
 
