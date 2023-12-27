@@ -343,22 +343,20 @@ These three steps are described in the next subsections.
 In order to ensure you do not have bugs in your implementation, a sanity check is to check you can overfit a single minibatch of your training set. If you are unable to fit a single minibatch, you are guaranteed to have an issue in your code. To just load one single minibatch, you can pass in the `--debug` argument when calling `main_ctc.py` :
 
 ```console
-mymachine:~:mylogin$ python3 main_ctc.py train --debug
+mymachine:~:mylogin$ python3 main_ctc.py train --debug --batch_size 16
 ```
 
-You should pretty quickly see a null loss on the training set with a perfect decoding.
-
-**Warning** For some reason, while it worked at some point (see the next section curve), in 2023, a single minibatch is not getting overfitted....and I do not know where is the issue. If you find it, I owe you a coffee for this ! And the worst is that although a single minibatch or training set does not get overfitted, training it on a large corpus we do get kind of speech recognition, not perfect but not that bad...
+You should pretty "quickly" see a null loss on the training set with a perfect decoding. Note that it still takes 2s. per minibatch and a hundred epochs for overfitting.
 
 ### Overfitting the training set
 
 The next step is to design a sufficiently rich architecture to overfit the training set when any sort of regularization is disabled (L2/L1, dropout, data augmentation, ...) :
 
 ```console
-mymachine:~:mylogin$ python3 main_ctc.py train
+mymachine:~:mylogin$ python3 main_ctc.py train --scheduler
 ```
 
-It takes approximately 800ms per minibatch of size 128.
+It takes approximately 11 minutes per epoch. 
 
 You should be able to get a null loss on the training set. Have a look on the tensorboard to observe overfitting. See below an example run.
 
@@ -395,6 +393,8 @@ To test of an audio clip, you can record yourself as a mp3 and call main_ctc :
 ```console
 mymachine:~:mylogin$ python3 main_ctc.py test --modelpath a/path/to/a/best_model.pt --audiofile myclip.mp3
 ```
+
+Beam search decoding can be activated adding the `--beamsearch` flag. By default, it will consider $10$ alternative decoding simultaneously.
 
 If you used non default values for the other arguments (the ones for the model), you must provide them again. We need them in the test function for recreating the exact same model than the one used during training. Audio clips are provided in the test fold. You can check the list of the test audio clips with their transcripts in the `/mounts/Datasets4/CommonVoice/v15.0/fr/test.tsv` file.
 
