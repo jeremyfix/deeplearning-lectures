@@ -29,6 +29,11 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [train-v15.0-1-5.idx](./data/02-pytorch-asr/train-v15.0-1-5.idx), [test-v15.0-1-5.idx](./data/02-pytorch-asr/test-v15.0-1-5.idx), [dev-v15.0-1-5.idx](./data/02-pytorch-asr/dev-v15.0-1-5.idx) : files with the indices of the CommonVoice **v5 fr** dataset filtered between 1s. and 5.
 - [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
+### Installing a virtual environment
+
+You can use the [requirements.txt](./data/02-pytorch-asr/requirements.txt) file to install your virtual environment.
+
+
 ### Pre-installed environments (for users on the DCE)
 
 For the users of the DCE, we provide pre-installed conda environments which you can load by executing the following commands (as the conda environment is 5Go, it might take 5 minutes to copy). 
