@@ -26,7 +26,7 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [data.py](./labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
 - [models.py](./labs/02-pytorch-asr/models.py) : code defining the neural network architectures
 - [main_ctc.py](./labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
-- [train-v15.0-1-5.idx](./labs/02-pytorch-asr/train-v15.0-1-5.idx), [test-v15.0-1-5.idx](./labs/02-pytorch-asr/test-v15.0-1-5.idx), [dev-v15.0-1-5.idx](./labs/02-pytorch-asr/dev-v15.0-1-5.idx) : files with the indices of the CommonVoice **v1 fr** dataset filtered between 1s. and 5.
+- [train-v15.0-1-5.idx](./data/02-pytorch-asr/train-v15.0-1-5.idx), [test-v15.0-1-5.idx](./data/02-pytorch-asr/test-v15.0-1-5.idx), [dev-v15.0-1-5.idx](./data/02-pytorch-asr/dev-v15.0-1-5.idx) : files with the indices of the CommonVoice **v5 fr** dataset filtered between 1s. and 5.
 - [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
 ### Pre-installed environments (for users on the DCE)
