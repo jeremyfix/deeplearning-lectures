@@ -33,10 +33,15 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 
 You can use the [requirements.txt](./data/02-pytorch-asr/requirements.txt) file to install your virtual environment.
 
+```{.console}
+mymachine:~:mylogin$ python3 -m venv $TMPDIR/venv
+mymachine:~:mylogin$ source $TMPDIR/venv/bin/activate
+(venv) mymachine:~:mylogin$ python -m pip install -r requirements.txt
+```
 
 ### Pre-installed environments (for users on the DCE)
 
-For the users of the DCE, we provide pre-installed conda environments which you can load by executing the following commands (as the conda environment is 5Go, it might take 5 minutes to copy). 
+For the users of the DCE, we provide pre-installed conda environments which you can load by executing the following commands (as the conda environment is 5Go, it might take 5 minutes to copy). At the time of writting (january 2024), it does not seem to work due to some permission denied to be debugged.
 
 ```{.console}
 mymachine:~:mylogin$ source "/opt/conda/etc/profile.d/conda.sh"
