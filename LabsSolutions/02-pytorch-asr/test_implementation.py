@@ -59,7 +59,7 @@ def test_equal(l1, l2, eps):
     return all([abs(l1i - l2i) <= eps for l1i, l2i in zip(l1, l2)])
 
 
-def build_ctc_model(T, B):
+def build_ctc_model():
     charmap = data.CharMap()
 
     return models.CTCModel(
@@ -177,7 +177,7 @@ def test_model_cnn():
 
     try:
         T, B = 124, 10
-        model = build_ctc_model(T, B)
+        model = build_ctc_model()
 
         cnn_inputs = torch.randn((T, B, model.n_mels)).transpose(0, 1).unsqueeze(dim=1)
         out_cnn = model.cnn(cnn_inputs)
@@ -199,7 +199,7 @@ def test_model_rnn():
 
     try:
         T, B = 124, 10
-        model = build_ctc_model(T, B)
+        model = build_ctc_model()
 
         rnn_inputs = torch.randn((T, B, 1280))
         out_rnn, _ = model.rnn(rnn_inputs)
@@ -221,7 +221,7 @@ def test_model_out():
 
     try:
         T, B = 124, 10
-        model = build_ctc_model(T, B)
+        model = build_ctc_model()
 
         out_inputs = torch.randn((T, B, 370))
         out_out = model.charlin(out_inputs)
