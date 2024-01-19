@@ -31,9 +31,8 @@ rsync -r --exclude "logs" --exclude "logslurms" --exclude venv . $TMPDIR/tpGAN
 cd $TMPDIR/tpGAN
 
 echo "Setting up the virtual environment"
-python3 -m pip install virtualenv --user
-virtualenv -p python3 venv
-source venv/bin/activate
+python3 -m venv $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
 python -m pip install -r requirements.txt
 
 echo "Training"
