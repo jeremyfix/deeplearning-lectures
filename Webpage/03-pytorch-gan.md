@@ -70,10 +70,9 @@ For this lab work, you are provided with environment setup files [requirements.t
 On the CentraleSupelec clusters, I advise you to proceed as :
 
 ``` console
-sh11:~:mylogin$ python3 -m pip install virtualenv --user
-sh11:~:mylogin$ virtualenv -p python3 $TMPDIR/venv
+sh11:~:mylogin$ python3 -m venv $TMPDIR/venv
 sh11:~:mylogin$ source $TMPDIR/venv/bin/activate
-(venv) sh11:~:mylogin$  python -m pip install -r requirements.txt
+(venv) sh11:~:mylogin$ python -m pip install -r requirements.txt
 ```
 
 
