@@ -1,0 +1,24 @@
+[project]
+name = "semseg"
+version = "0.0.1"
+
+dependencies = [
+    "PyYAML>=6.0",
+    "torch>=2.0",
+    "torchvision",
+    "torchinfo",
+    "timm",
+    "deepcs",
+    "albumentations",
+    "wandb>=0.13.11",
+    "scipy>=1.10.1",
+    "tqdm>=4.65.0",
+    "matplotlib>=3.7.1",
+    "onnxruntime-gpu>=1.19.2",
+    "onnx>=1.17",
+	"segmentation_models_pytorch",
+    "tensorboard"
+]
+
+[options]
+package_dir = "semseg"

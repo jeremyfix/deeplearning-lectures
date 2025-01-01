@@ -1,0 +1,32 @@
+data:
+  root_dir: '/mounts/Datasets4/Pascal-VOC2012'
+  # root_dir: '/opt/Datasets/Pascal-VOC2012'
+  batch_size: 16
+  normalize: True
+  crop_size: 256
+  valid_ratio: 0.2
+  num_workers: 10
+
+optim:
+  algo: Adam
+  params:
+    lr: 0.001
+
+nepochs: 20
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+
+model:
+  class: "UNet"
+  encoder:
+      model_name: "resnet18"
+
+# model:
+#   class: "DeepLabV3Plus"
+#   parameters:
+#     encoder_name: "resnet18"
+#     encoder_weights: "imagenet"
