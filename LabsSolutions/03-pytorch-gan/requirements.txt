@@ -6,6 +6,6 @@ deepcs==0.2.6
 tensorboard==2.13.0
 PySide2
 matplotlib
-onnx==1.14.0
+onnx==1.17.0
 onnxruntime-gpu==1.15.0
 scipy
