@@ -48,7 +48,7 @@ nvidia-nvtx-cu11==11.7.91
 oauthlib==3.2.2
 onnx==1.17.0
 onnxruntime-gpu==1.15.0
-opencv-python-headless==4.7.0.72
+opencv-python-headless==4.8.1.78
 packaging==23.1
 Pillow==10.3.0
 pluggy==1.0.0
