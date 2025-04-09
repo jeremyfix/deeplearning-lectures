@@ -1,7 +1,7 @@
 torchvision==0.16.0
 torchaudio==2.1.0
 torch==2.6.0
-tqdm==4.66.3
+tqdm==4.67.1
 numpy==1.24.4
 deepcs==0.2.8
 tensorboard==2.14.0
