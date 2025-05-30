@@ -1,4 +1,4 @@
-torch==2.6.0
+torch==2.7.0
 torchvision
 torchaudio
 tqdm>=4.66.3
