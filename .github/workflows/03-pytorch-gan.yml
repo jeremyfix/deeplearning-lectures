@@ -2,7 +2,7 @@ name: Pytorch GAN lab test
 on: [push]
 jobs:
   test-03-GAN:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Check out repository code
