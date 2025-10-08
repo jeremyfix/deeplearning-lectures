@@ -2,7 +2,7 @@ name: Pytorch ASR lab test
 on: [push]
 jobs:
   test-02-asr:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Check out repository code
