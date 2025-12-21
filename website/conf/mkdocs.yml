@@ -43,3 +43,6 @@ copyright: >
 
 nav:
   - Index: index.md
+  - Keras lab: 
+    - keras/00-keras-mnist.md
+
