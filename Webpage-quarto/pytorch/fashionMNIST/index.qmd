@@ -61,7 +61,7 @@ To connect to the GPUs, use one of the procedures described in [Using the Centra
 You should now have at your disposal a python interpreter with the installed package, i.e. the
 following should work successfully :
 
-``` console
+``` bash
 sh11:~:mylogin$ python3 -c "import torch" 
 ```
 
@@ -195,7 +195,7 @@ print("The test set contains {} images, in {} batches".format(len(test_loader.da
 
 This should print out :
 
-``` console
+``` bash
 The train set contains 48000 images, in 375 batches
 The validation set contains 12000 images, in 94 batches
 The test set contains 10000 images, in 79 batches
@@ -203,7 +203,7 @@ The test set contains 10000 images, in 79 batches
 
 We display below an excerpt of the dataset with the associated labels.
 
-![Samples of the fahsion MNIST dataset](data/00-pytorch-fashionMnist/fashionMNIST_samples.png){.bordered width="100%"}
+![Samples of the fahsion MNIST dataset](fashionMNIST_samples.png){.bordered width="100%"}
 
 As a matter of interest, the image above has been generated with the
 following code :
@@ -529,7 +529,7 @@ training.
 
 You are now ready for **executing your first training**. Being logged on the GPU node,
 
-``` console
+``` bash
 python3 train_fashion_mnist_linear.py
 ```
 
@@ -729,7 +729,7 @@ Now, each time you are running your training, you will see some
 Once this is done, you have to
 start tensorboard on the GPU and open the provided URL [http://localhost:6006](http://localhost:6006) with your browser.
 
-```console
+```bash
 [In one terminal on the GPU]
 sh11:~:mylogin$ tensorboard --logdir ./logs
 Starting TensorBoard b'47' at http://0.0.0.0:6006
@@ -742,14 +742,14 @@ You can now run several experiments, monitor them and get a copy of the
 best models. A handy bash command to run several experiments is given
 below :
 
-``` console
+``` bash
 sh11:~:mylogin$ for iter in $(seq 1 10); do echo ">>>> Run $iter" && python3 train_mnist_linear.py ; done;
 ```
 
 
-![Training accuracy for logistic regression without normalization of the input](./data/00-pytorch-fashionMnist/linear_train_acc.png){width=30%}
+![Training accuracy for logistic regression without normalization of the input](./linear_train_acc.png){width=40%}
 
-![Validation accuracy for logistic regression without normalization of the input](./data/00-pytorch-fashionMnist/linear_val_acc.png){width=30%}
+![Validation accuracy for logistic regression without normalization of the input](./linear_val_acc.png){width=40%}
 
 You should reach a validation and test accuracy around 85% and this is
 rather consistent, but, remember, we have a convex optimization problem,
@@ -945,9 +945,9 @@ If you also look at the losses, you should be observing that the model
 is overfitting. Below are some examples you might get :
 
 
-![Metrics on the training set for the fully connected model](./data/00-pytorch-fashionMnist/fc_train_metrics.png){width="75%"}
+![Metrics on the training set for the fully connected model](./fc_train_metrics.png){width="75%"}
 
-![Metrics on the validation set for the fully connected model](./data/00-pytorch-fashionMnist/fc_val_metrics.png){width="75%"}
+![Metrics on the validation set for the fully connected model](./fc_val_metrics.png){width="75%"}
 
 We can try to improve the generalization performance by introducing some
 regularization, which is addressed in the next paragraph.
@@ -1020,9 +1020,9 @@ def train(model, loader, loss_function, optimizer, device):
 ```
 
 
-![Metrics on the training set when adding L2 regularization](./data/00-pytorch-fashionMnist/fc_l2reg10m3_train_metrics.png){width="75%"}
+![Metrics on the training set when adding L2 regularization](./fc_l2reg10m3_train_metrics.png){width="75%"}
 
-![Metrics on the validation set when adding L2 regularization](./data/00-pytorch-fashionMnist/fc_l2reg10m3_val_metrics.png){width="75%"}
+![Metrics on the validation set when adding L2 regularization](./fc_l2reg10m3_val_metrics.png){width="75%"}
 
 Another more recently introduced regularization technique is called
 Dropout [@Srivastava2014]. It consists in setting to 0 the
@@ -1054,9 +1054,9 @@ classifier = nn.Sequential(
 
 I let you modify your code to test this approach.
 
-![Metrics on the training set when adding dropout 0.2](./data/00-pytorch-fashionMnist/fc_dropout0_2_train_metrics.png){width="75%"}
+![Metrics on the training set when adding dropout 0.2](./fc_dropout0_2_train_metrics.png){width="75%"}
 
-![Metrics on the validation set when adding dropout of 0.2](./data/00-pytorch-fashionMnist/fc_dropout0_2_val_metrics.png){width="75%"}
+![Metrics on the validation set when adding dropout of 0.2](./fc_dropout0_2_val_metrics.png){width="75%"}
 
 ## A vanilla convolutional neural network
 
@@ -1205,11 +1205,11 @@ must keep invariant your label. For example, slightly rotating,
 translating an image of, say, a pullover is still an image of a pullover
 as shown below :
 
-![Some variations of the pullover do not change the class of the image](./data/00-pytorch-fashionMnist/fashionMNIST_sample_augment.png){width="100%"}
+![Some variations of the pullover do not change the class of the image](./fashionMNIST_sample_augment.png){width="100%"}
 
 And the same applies for other classes as well :
 
-![The same transformations as before applied to several classes](./data/00-pytorch-fashionMnist/fashionMNIST_samples_augment.png){width="100%"}
+![The same transformations as before applied to several classes](./fashionMNIST_samples_augment.png){width="100%"}
 
 Now, the idea is to produce a stream (actually infinite if you allow
 continuous perturbations) of training samples generated from your finite
@@ -1238,11 +1238,11 @@ for i in range(3):
     t_im.show()
 ```
 
-![This is not hulk, R. Magritte](./data/00-pytorch-fashionMnist/hulk-0.png){width="15%"}
+![This is not hulk, R. Magritte](./hulk-0.png){width="15%"}
 
-![This is still not hulk, R. Magritte](./data/00-pytorch-fashionMnist/hulk-1.png){width="15%"}
+![This is still not hulk, R. Magritte](./hulk-1.png){width="15%"}
 
-![This is still not hulk again, R. Magritte](./data/00-pytorch-fashionMnist/hulk-2.png){width="15%"}
+![This is still not hulk again, R. Magritte](./hulk-2.png){width="15%"}
 
 Now, to introduce this into our training script, remember when we
 created our datasets :
@@ -1281,7 +1281,7 @@ found (weight decay of $10^{-6}$, data augmentation) and then build a
 model which is outputing the average probability assigned by each model.
 This led me to a test loss of 0.1510 and a test accuracy of 94.59%
 
-```{.sourceCode .matlab}
+``` bash
 Individual performances : 
 [./logs/fancyCNN_38]    Test : Loss : 0.1895, Acc : 0.9352
 [./logs/fancyCNN_39]    Test : Loss : 0.1878, Acc : 0.9373

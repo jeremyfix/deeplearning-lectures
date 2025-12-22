@@ -11,21 +11,21 @@ website:
       - text: "Pytorch"
         menu:
           - text: "PyTorch FashionMNIST"
-            file: 00-pytorch-fashionMnist.qmd
+            file: pytorch/fashionMNIST/index.qmd
           - text: "PyTorch Object Detection"
-            file: 01-pytorch-object-detection.qmd
-          - text: "PyTorch Segmentation"
-            file: 01-pytorch-segmentation.qmd
-          - text: "PyTorch ASR"
-            file: 02-pytorch-asr.qmd
-          - text: "PyTorch GAN"
-            file: 03-pytorch-gan.qmd
+            file: pytorch/object-detection/index.qmd
+          - text: "Semantic segmenation on Stanford-2D-3D S"
+            file: pytorch/segmentation/index.qmd
+          - text: "Automatic Speech Recognition on Mozilla Common Voice"
+            file: pytorch/asr/index.qmd
+          - text: "Deep Convolutional Generative Adversarial Networks"
+            file: pytorch/gan/index.qmd
       - text: "Keras"
         menu:
-          - text: "Keras MNIST"
-            file: 00-keras-mnist.qmd
+          - text: "First steps in Keras: classifying handwritten digits(MNIST)"
+            file: keras/mnist.qmd
           - text: "Keras CIFAR"
-            file: 01-keras-cifar.qmd
+            file: keras/cifar.qmd
       - text: "Resources"
         menu:
           - text: "Argparse"
@@ -39,15 +39,15 @@ website:
           - index.qmd
       - section: "Pytorch"
         contents:
-          - 00-pytorch-fashionMnist.qmd
-          - 01-pytorch-object-detection.qmd
-          - 01-pytorch-segmentation.qmd
-          - 02-pytorch-asr.qmd
-          - 03-pytorch-gan.qmd
+          - pytorch/fashionMNIST/index.qmd
+          - pytorch/object-detection/index.qmd
+          - pytorch/segmentation/index.qmd
+          - pytorch/asr/index.qmd
+          - pytorch/gan/index.qmd
       - section: "Keras"
         contents:
-          - 00-keras-mnist.qmd
-          - 01-keras-cifar.qmd
+          - keras/mnist.qmd
+          - keras/cifar.qmd
       - section: "Resources"
         contents:
           - argparse.qmd

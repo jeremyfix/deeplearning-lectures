@@ -1,5 +1,5 @@
 ---
-title:  'Semantic segmentation'
+title:  "Semantic segmenation on Stanford-2D-3D S"
 author:
 - Jeremy Fix
 keywords: [PyTorch tutorial, semantic segmentation, Stanford 2D-3D S]
@@ -23,7 +23,7 @@ In this labwork, we will be working with the large [Stanford 2D-3D S dataset](ht
 
 Below is an example of the input RGB image and the associated labels 
 
-![Semantic segmentation : pixelwise classifcation](./data/01-pytorch-segmentation/sample.png){width=50%}
+![Semantic segmentation : pixelwise classifcation](sample.png){width=80%}
 
 There are $14$ classes, the first being for the unlabeled pixels.
 
@@ -33,7 +33,7 @@ For this lab work, you are provided with environment setup files, either a [envi
 
 On the CentraleSupelec clusters, I advise you to use a virtual environment, created with venv for example, as conda requires a lot of dependencies to be installed and can sometimes be cumbersome.
 
-``` console
+``` bash
 sh11:~:mylogin$ python3 -m venv $TMPDIR/venv
 sh11:~:mylogin$ source $TMPDIR/venv/bin/activate
 (venv) sh11:~:mylogin$  python -m pip install -r requirements.txt
@@ -46,7 +46,7 @@ sh11:~:mylogin$ source $TMPDIR/venv/bin/activate
 
 If your enviromnent is correctly created and activated, the following should work 
 
-```console
+``` bash
 (venv) sh11:~:mylogin$ python -c "import torch; print(torch.__version__)"
 1.10.1+cu113
 ```
@@ -80,7 +80,7 @@ If you were to plot the distribution of the classes over the $71000$ masks of si
 
 The noise in the orcale may also leads to divergence of the cross entropy loss. Since the cross entropy loss read $-log(p_{y_i})$, if the labels are noisy and your model is super good, the probably of the incorrectly labeled pixels will make the loss diverge.
 
-``` console
+``` bash
 (venv) sh11:~:mylogin$ python data.py --area 5a --datadir /mounts/Datasets4/Stanford2D-3D-S
 ```
 

@@ -12,7 +12,7 @@ In the previous practical, you trained feedforward neural networks for classifyi
 
 Below is an example of what we want to do :
 
-![Object detection : bounding box regression and classification](./data/01-pytorch-object-detection/example_bbox.png){width=100%}
+![Object detection : bounding box regression and classification](./example_bbox.png){width=100%}
 
 
 In this practical, we will work with the [Pascal VOC 2012 dataset](http://host.robots.ox.ac.uk/pascal/VOC/). Pascal VOC used to be a popular contest on the topic of object recognition in computer vision. It ended in 2012. The dataset consists in 11.530 images, annotated with 27.450 bounding boxes belonging to one of 20 classes. Segmentations, which we are not going to use for now, are also provided. 
@@ -42,11 +42,9 @@ The python code below shows you how to load your dataset. The function `data.mak
 
 
 
-``` {.sourceCode .python .numberLines}
-
+``` {python}
 import data
 import torchvision.transforms as transforms
-
 
 # The dataset is already downloaded on the cluster
 dataset_dir = "/mounts/Datasets4/Pascal-VOC2012/"
@@ -126,7 +124,7 @@ To discover the dataset and how to manipulate our dataset objects, I suggest bel
 
 Example output :
 
-![Pascal VOC-2012 size distribution. The bins are (111., 149.9, 188.8, 227.7, 266.6, 305.5, 344.4, 383.3, 422.2, 461.1, 500.)](./data/01-pytorch-object-detection/histo_sizes.png){width=30%}
+![Pascal VOC-2012 size distribution. The bins are (111., 149.9, 188.8, 227.7, 266.6, 305.5, 344.4, 383.3, 422.2, 461.1, 500.)](./histo_sizes.png){width=30%}
 
 **Exercise** Can you identify the total number of objects of each class in the training set  ? Please note the "preprocessed" targets are a dictionary with a key "annotation" and subkey "object". The list of classes is given in `data.classes`. Expected output :
 ```{.sourceCode .python}
@@ -188,7 +186,7 @@ Before addressing the full problem of detecting multiple objects in an image, we
 
 This first step is depicted below. 
 
-![Single Object detection: classifying and localizing the largest object. [Draw.io](http://draw.io) [source](./data/01-pytorch-object-detection/object_detection.xml)](./data/01-pytorch-object-detection/single_object_detection.png){width=100%}
+![Single Object detection: classifying and localizing the largest object. [Draw.io](http://draw.io) [source](./object_detection.xml)](./single_object_detection.png){width=100%}
 
 
 
@@ -196,7 +194,7 @@ This first step is depicted below.
 
 As we have observed in the beginning of the practical, the images in the dataset are of varying sizes. In order to feed minibatches into our neural networks, we need to resize our images to fixed sizes. The code for resizing the images is already provided to you with two modes *shrinking* or *cropping*. The two are illustrated below. For the following we will work exclusively with images shrunk to $224 \times 224$. Using the code you are provided, **create a script** in which you instantiate the datasets with the different image transforms, take some samples of these datasets, and save them to disk. Hint: if the *transform* argument of make\_trainval\_dataset is set to None, the dataset returns PIL images. 
 
-![Images are resized to fixed size by either shrinking or cropping to 224 x 224 (ImageNet standard)](./data/01-pytorch-object-detection/preprocess_images.png){width=50%}
+![Images are resized to fixed size by either shrinking or cropping to 224 x 224 (ImageNet standard)](./preprocess_images.png){width=50%}
 
 Shrinking is usually what is done because changing the aspect ratio of objects does not appear experimentally to be dramatic while keeping the whole content of the image.
 ::: {.callout-note}
@@ -209,7 +207,7 @@ As you have seen before, the targets provided by the dataset objects are so far 
 
 The pipeline for transforming the raw targets into the tensors of the largest object is already coded in `data.py` but **you still have to write some functions**. The pipeline that is provided extracts and keeps only the classes and bounding boxes of all the objects (filtering out various information we do not need). It further encodes the bounding boxes by its center and width/height and scales these dimensions into [0, 1] independently along the horizontal and vertical axis as shown below. 
 
-![The bounding boxes are encoded as center/size and these dimensions are normalized in \[0, 1\] ](./data/01-pytorch-object-detection/bbox_encoding.png){width=50%}
+![The bounding boxes are encoded as center/size and these dimensions are normalized in \[0, 1\] ](./bbox_encoding.png){width=50%}
 
 
 
@@ -271,10 +269,10 @@ imagenet_preprocessing = transforms.Normalize(mean=[0.485, 0.456, 0.406],
 image_transform = transforms.Compose([transforms.ToTensor(), imagenet_preprocessing]) 
 
 train_dataset, valid_dataset = data.make_trainval_dataset(
-        dataset_dir             = ...,
-        image_transform_params  = ...,
-        transform               = image_transform,
-        target_transform_params = ...,
+        dataset_dir             = ..., 
+        image_transform_params  = ..., 
+        transform               = image_transform, 
+        target_transform_params = ..., 
         download                = ...)
 ``` 
 
@@ -360,9 +358,9 @@ For testing our best model with respect to the validation loss, you can use the 
 
 Below is an example with a resnet-152 as feature extractor, with a raisonnable validation bounding box loss of 0.0098 and validation classification accuracy of 81.57%. 
 
-![Testing a single object detector with a resnet-152 feature extractor, when two birds are visible. Source image from [Aurélien Audevard](https://www.lpo.fr/actualites/victoire-le-conseil-d-etat-suspend-la-chasse-aux-oies-sauvages)](./data/01-pytorch-object-detection/birds2-predict-one-object.png){width=20%}
+![Testing a single object detector with a resnet-152 feature extractor, when two birds are visible. Source image from [Aurélien Audevard](https://www.lpo.fr/actualites/victoire-le-conseil-d-etat-suspend-la-chasse-aux-oies-sauvages)](./birds2-predict-one-object.png){width=20%}
 
-![Testing a single object detector with a resnet-152 feature extractor, when one of the two birds is occluded. Source image from [Aurélien Audevard](https://www.lpo.fr/actualites/victoire-le-conseil-d-etat-suspend-la-chasse-aux-oies-sauvages)](./data/01-pytorch-object-detection/birds2-occlusion-predict-one-object.png){width=20%}
+![Testing a single object detector with a resnet-152 feature extractor, when one of the two birds is occluded. Source image from [Aurélien Audevard](https://www.lpo.fr/actualites/victoire-le-conseil-d-etat-suspend-la-chasse-aux-oies-sauvages)](./birds2-occlusion-predict-one-object.png){width=20%}
 
 
 
@@ -372,7 +370,7 @@ Below is an example with a resnet-152 as feature extractor, with a raisonnable v
 
 We now move on to detect multiple objects. In order to do so, we will follow the approach of Yolo and SSD. The pipeline is illustrated below.
 
-![Multiple Object detection : YoLo like approach](./data/01-pytorch-object-detection/multiple_object_detection.png){width=100%}
+![Multiple Object detection : YoLo like approach](./multiple_object_detection.png){width=100%}
 
 The only difference with multiple object detection is the preprocessing of the targets and the classification/regression head. We first divide the image into a $7 \times 7$ so-called grid cells. Every grid cell is responsible for predicting **at most one object**. It is the responsibility of the **grid cell hosting the center** point of the object to predict it. On the image, the bird is requested to be predicted by the central grid cell. 
 
@@ -390,7 +388,7 @@ def targets_to_grid_cell_tensor(objects: list, num_cells: int):
 
 This function is partly coded, you have to finish it. The encoding of the bounding boxes in every cell will be encoded by its center **relative to the current grid cell** and width/height relative to the dimensions of the images. So, the only difference for the encoding is that the center is relative to a grid cell. The encoding of the center of the box is illustrated below. This illustrates the example given in the python code below.
 
-![Encoding of the center of the bounding box is relative to the grid cell hosting the object](./data/01-pytorch-object-detection/multi_bbox_encoding.png){width=40%}
+![Encoding of the center of the bounding box is relative to the grid cell hosting the object](./multi_bbox_encoding.png){width=40%}
 
 In order to help you to write this code, we provide you test codes and their expected output below.
 
@@ -495,7 +493,7 @@ You can stick all the components (architecture, loss, checkpoint, monitor callba
 Below is shown an example output of one model where we show the detected objects which have a confidence higher than 0.2. 
 
 
-![Object detection : Multiple object prediction with a confidence higher than 0.2](./data/01-pytorch-object-detection/multi_object_prediction.png){width=25%}
+![Object detection : Multiple object prediction with a confidence higher than 0.2](./multi_object_prediction.png){width=25%}
 
 As you see, there are several overlapping predictions. This can be eliminated by performing non maximum suppression, as explained in the next sections.
 

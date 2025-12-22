@@ -1,5 +1,5 @@
 ---
-title:  'Automatic Speech Recognition'
+title:  'Automatic Speech Recognition on Mozilla Common Voice'
 author:
 - Jeremy Fix
 keywords: [PyTorch tutorial, Automatic Speech recognition, speech to text]
@@ -26,14 +26,14 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [data.py](./labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
 - [models.py](./labs/02-pytorch-asr/models.py) : code defining the neural network architectures
 - [main_ctc.py](./labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
-- [train-v15.0-1-5.idx](./data/02-pytorch-asr/train-v15.0-1-5.idx), [test-v15.0-1-5.idx](./data/02-pytorch-asr/test-v15.0-1-5.idx), [dev-v15.0-1-5.idx](./data/02-pytorch-asr/dev-v15.0-1-5.idx) : files with the indices of the CommonVoice **v5 fr** dataset filtered between 1s. and 5.
+- [train-v15.0-1-5.idx](train-v15.0-1-5.idx), [test-v15.0-1-5.idx](test-v15.0-1-5.idx), [dev-v15.0-1-5.idx](dev-v15.0-1-5.idx) : files with the indices of the CommonVoice **v5 fr** dataset filtered between 1s. and 5.
 - [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
 ### Installing a virtual environment
 
-You can use the [requirements.txt](./data/02-pytorch-asr/requirements.txt) file to install your virtual environment.
+You can use the [requirements.txt](requirements.txt) file to install your virtual environment.
 
-```{.console}
+``` bash
 mymachine:~:mylogin$ python3 -m venv $TMPDIR/venv
 mymachine:~:mylogin$ source $TMPDIR/venv/bin/activate
 (venv) mymachine:~:mylogin$ python -m pip install -r requirements.txt
@@ -43,7 +43,7 @@ mymachine:~:mylogin$ source $TMPDIR/venv/bin/activate
 
 For the users of the DCE, we provide pre-installed conda environments which you can load by executing the following commands (as the conda environment is 5Go, it might take 5 minutes to copy). At the time of writting (january 2024), it does not seem to work due to some permission denied to be debugged.
 
-```{.console}
+``` bash
 mymachine:~:mylogin$ source "/opt/conda/etc/profile.d/conda.sh"
 mymachine:~:mylogin$ mkdir -p $TMPDIR/my_env
 mymachine:~:mylogin$ tar -zxf /mounts/Datasets3/SharedConda/3MD4040-asr-py3.9.tar.gz -C $TMPDIR/my_env
@@ -55,7 +55,7 @@ Note that the two `source` commands must be repeated in any new shell session.
 
 As we use UTF-8 encoding, your shell must be able to interpret these symbols :
 
-```{.console}
+``` bash
 mymachine:~:mylogin$ echo $LANG
 ```
 and set it if necessary (e.g. `export LANG=en_US.UTF-8`)
@@ -66,7 +66,7 @@ We provide a yaml file for creating a conda environment suitable for performing 
 
 With [conda](https://docs.conda.io/en/latest/miniconda.html) installed, you should run :
 
-```{.console}
+``` bash
 mymachine:~:mylogin$ conda env create -f pytorch-asr-py3.9.yaml
 mymachine:~:mylogin$ conda activate pytorch-asr-py3.9
 (pytorch-asr-py3.9) mymachine:~:mylogin$ 
@@ -74,7 +74,7 @@ mymachine:~:mylogin$ conda activate pytorch-asr-py3.9
 
 As we use UTF-8 encoding, your shell must be able to interpret these symbols :
 
-```{.console}
+``` bash
 (pytorch-asr-py3.9) mymachine:~:mylogin$ echo $LANG
 ```
 and set it if necessary (e.g. `export LANG=en_US.UTF-8`)
@@ -127,7 +127,7 @@ vocab_size : 44
 
 Let us now have a look to the waveforms. Usually the models do not take the raw waveforms as input but preprocess them by computing a spectrogram using a short time fourier transform (STFT). The obtained spectrogram is then converted in logmel scale.
 
-![The pipeline from the waveform to the logmel spectrogram when someone is saying "Rue Wolfgang Doeblin, zéro huit, six cents Givet"](./data/02-pytorch-asr/waveform_to_spectro.png){width=100%}
+![The pipeline from the waveform to the logmel spectrogram when someone is saying "Rue Wolfgang Doeblin, zéro huit, six cents Givet"](waveform_to_spectro.png){width=100%}
 
 **Exercice** In the WaveformProcessor, fill-in the code in the constructor for initializing the `transform` attribute. It must be a `torch.nn.Sequential` with the [MelSpectrogram](https://pytorch.org/audio/stable/transforms.html#melspectrogram) followed by a [conversion to DB](https://pytorch.org/audio/stable/transforms.html#amplitudetodb). To validate your implementation, run the script `test_implementation.py`, the corresponding test should pass.
 
@@ -227,7 +227,7 @@ After completion, write a little piece for testing which should : 1) access a mi
 
 Below is an example expected output :
 
-![An example spectrogram in log-Mel scale of the validation set with its transcript](./data/02-pytorch-asr/spectro_valid.png){width=75%}
+![An example spectrogram in log-Mel scale of the validation set with its transcript](spectro_valid.png){width=75%}
 
 ### Final remarks about dataloading
 
@@ -239,7 +239,7 @@ Also, please note that the train-v1.idx, dev-v1.idx and test-v1.idx files are pr
 
 Now that our data are ready, it is time to setup our first model. The Connectionist Temporal Classification approach is based on a multi-layer recurrent neural network taking as input the successive frames of the spectrogram and outputting, at every time step, a probability distribution over the vocabulary to which we add a $\epsilon$ blank character. The CTC model is outputting one character at every iteration, therefore, it produces an output sequence of the same length of the input sequence, possibly with some $\epsilon$ blank characters and also some duplicated characters. The labeling, though, is constrained to be of length smaller than the input (the RNN transducer overcomes that possible constraint).
 
-![Illustration of the CTC model](./data/02-pytorch-asr/ctc.png){width=80%}
+![Illustration of the CTC model](ctc.png){width=80%}
 
 It also uses a specific loss which estimates the likelihood of the transcript, conditioned on the spectrogram, by summing over the probabilities of all the possible alignments with the blank character. Given a spectrogram $x$ and a transcript $y$ (e.g. ['t','u','_', 'e', 's']), its probability is computed as :
 
@@ -313,7 +313,7 @@ You also need to properly specify the input_size of the linear layer. Remember t
 
 Now that the different parts of the model are defined, we need to handle the forward propagation which is almost straightforward except that we have to deal with the PackedSequences. The tensors should be unpacked before feeding in the feedforward components (convolutional, fully connected classification) and packed otherwise. Below is a depiction of the Tensor shapes through the pipeline.
 
-![The packing/unpacking in the forward pass](./data/02-pytorch-asr/forward.svg.png){.bordered width=100%}
+![The packing/unpacking in the forward pass](forward.svg.png){.bordered width=100%}
 
 
 **Exercice** Fill in the forward method of the `models.py` script. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
@@ -352,19 +352,19 @@ These three steps are described in the next subsections.
 
 In order to ensure you do not have bugs in your implementation, a sanity check is to check you can overfit a single minibatch of your training set. If you are unable to fit a single minibatch, you are guaranteed to have an issue in your code. To just load one single minibatch, you can pass in the `--debug` argument when calling `main_ctc.py` :
 
-```console
+```bash
 mymachine:~:mylogin$ python3 main_ctc.py train --debug --batch_size 16
 ```
 
 You should pretty "quickly" see a null loss on the training set with a perfect decoding. Note that it still takes 2s. per minibatch and a hundred epochs for overfitting.
 
-![CTC loss on the test/train/valid sets with an overfitting architecture, considering only one minibatch of size 16.](./data/02-pytorch-asr/overfit_minibatch.png){.bordered}
+![CTC loss on the test/train/valid sets with an overfitting architecture, considering only one minibatch of size 16.](overfit_minibatch.png){.bordered}
 
 ### Overfitting the training set
 
 The next step is to design a sufficiently rich architecture to overfit the training set when any sort of regularization is disabled (L2/L1, dropout, data augmentation, ...) :
 
-```console
+```bash
 mymachine:~:mylogin$ python3 main_ctc.py train --scheduler
 ```
 
@@ -372,7 +372,7 @@ It takes approximately 11 minutes per epoch. The `--scheduler` activates the lea
 
 You should be able to get a null loss on the training set. Have a look on the tensorboard to observe overfitting. See below an example run.
 
-![CTC loss on the test/train/valid sets with an overfitting architecture.](./data/02-pytorch-asr/overfit_losses.png){.bordered}
+![CTC loss on the test/train/valid sets with an overfitting architecture.](overfit_losses.png){.bordered}
 
 ### Improving the generalization
 
@@ -386,7 +386,7 @@ These transforms can be implemented within the data.WaveformProcessor object. Ju
 
 Below is an example of the resulting spectrogram, masked in time for up to $0.5$ s. and the mel scale for up to $27$ scales.
 
-![An example log-Mel spectrogram with SpecAugment](./data/02-pytorch-asr/spectro_train.png){width=75%}
+![An example log-Mel spectrogram with SpecAugment](spectro_train.png){width=75%}
 
 SpecAugment is already implemented in the `data.py` script. Have a look to the transform_augment attribute of WaveformProcessor. To use it, simply add the `--train_augment` argument when you call the main_ctc script.
 
@@ -402,7 +402,7 @@ To add L1 or L2 regularization, you can add a `penalty()` method to your CTCMode
 
 To test of an audio clip, you can record yourself as a mp3 and call main_ctc :
 
-```console
+```bash
 mymachine:~:mylogin$ python3 main_ctc.py test --modelpath a/path/to/a/best_model.pt --audiofile myclip.mp3
 ```
 
@@ -412,7 +412,7 @@ If you used non default values for the other arguments (the ones for the model),
 
 If you do not have yet a trained model, you can download [the best_ctc_42077.pt](https://centralesupelec-my.sharepoint.com/:u:/g/personal/jeremy_fix_centralesupelec_fr/EScVCV_zdYZDpWXBlynPmMYBjCbXVDc0SkTuS6JRn43CSg?e=u7eUWF) checkpoint. This model can be tested with the command line below :
 
-```console
+```bash
 mymachine:~:mylogin$ python main_ctc.py test --modelpath best_ctc_42077.pt --audiofile /mounts/Datasets4/CommonVoice/v15.0/fr/clips/common_voice_fr_37118026.mp3
 Log prob    Sequence
 7.82      ¶une contrefa❌on fut publiee en belgique.¦
@@ -444,8 +444,6 @@ Trainable params: 65,271,116
 Non-trainable params: 0
 =================================================================
  Wandb run name : amber-galaxy-55
-
-
 
 ## Executed command :
 main_ctc.py --logname ctc_42077_0 --batch_size 128 --num_epochs 100 --base_lr 0.0001 --min_duration 0.0 --max_duration 60.0 --nlayers_rnn 4 --nhidden_rnn 1024 --weight_decay 0.0001 --dropout 0.5 --grad_clip 20 --datasetversion v15.0 --seed 12345 --train_augment --scheduler train
