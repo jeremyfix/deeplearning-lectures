@@ -8,29 +8,10 @@ keywords: [Deep learning, practicals]
 
 
 **Forewords** These pages are written in markdown format and
-generated with the [pandoc](http://www.pandoc.org). The stylesheet has been generated from [w3schools](https://www.w3schools.com/) and the codes are highlighted thanks to [pygment](http://pygments.org/). The transformation from pandoc markdown to html is done with a [Makefile](Makefile) and is using these [template files](templates).
+generated with [quarto](https://quarto.org). The generation is performed using the github workflows. Thank you all for these very helpful tools.
 
-## Installation
 
-Below are some elements on how to install the required libraries to work on your own machine.
-
-For the pytorch tutorials, you need [pytorch](https://pytorch.org/get-started/locally/), [tensorboardX](https://github.com/lanpa/tensorboardX), [matplotlib](https://matplotlib.org/), [tensorflow](https://tensorflow.org/install)
-
-For the keras tutorial, you need [tensorflow](https://tensorflow.org/install), [keras](http://www.keras.io/#installation) and [matplotlib](https://matplotlib.org)
-
-### CPU-Only, Ubuntu 18.04
-
-On ubuntu 18.04, for the pytorch tutorials, it is as simple as :
-
-``` console
-mymachine:~:mylogin$ python3 -m pip install --user -U matplotplib tensorflow torch==1.3.1+cpu torchvision==0.4.2+cpu -f https://download.pytorch.org/whl/torch_stable.html
-```
-
-On ubuntu 18.04, for the Keras tutorial, it is as simple as :
-
-``` console
-mymachine:~:mylogin$ python3 -m pip install --user -U tensorflow-cpu matplotplib
-```
+These pages contain the subjects and codes for the labs in the deep learning lectures 3MD4040 taking place at CentraleSupélec. Most the work is done in pytorch although you will find one lab using Keras.
 
 ## Additional ressources
 

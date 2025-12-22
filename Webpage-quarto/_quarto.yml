@@ -5,6 +5,13 @@ project:
 website:
   title: "Deep Learning Lectures"
   navbar:
+    tools:
+      - icon: github
+        menu:
+          - text: Source Code
+            href: https://www.github.com/jeremyfix/deeplearning-lectures
+          - text: Report a bug
+            href: https://github.com/jeremyfix/deeplearning-lectures/issues/new/choose
     left:
       - text: "Home"
         file: index.qmd
