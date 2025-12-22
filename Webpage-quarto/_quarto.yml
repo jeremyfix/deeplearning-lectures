@@ -1,6 +1,7 @@
 project:
   type: website
   output-dir: _site
+  pre-render: bash build-latex.sh
 
 website:
   title: "Deep Learning Lectures"
@@ -69,7 +70,6 @@ format:
     toc-depth: 3
     code-copy: true
     code-line-numbers: false
-    css: styles.css
     link-citations: true
 
 bibliography: biblio.bib

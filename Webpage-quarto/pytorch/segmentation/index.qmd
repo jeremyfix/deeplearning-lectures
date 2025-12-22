@@ -125,8 +125,7 @@ encoding following by an expanding pathway for the decoding. The contracting pat
 higher level features as we progress deeper in the network and the expanding pathway to merge these highlevel features
 with the finer grain details brought by the encoder through skip layer connections.
 
-![UNet architecture for semantic segmentation](./latex/unet.png){width=50%}
-
+![UNet architecture for semantic segmentation](unet.png){width=100%}
 
 The provided code implements `UNet` with a `UNetEncoder` class and a `UNetDecoder` class. Both the UNetEncoder and
 UNetDecoder relies on repetition of blocks which are UNetConvBlock on the one hand and UNetUpConvBlock on the other
