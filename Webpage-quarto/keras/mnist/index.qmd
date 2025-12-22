@@ -72,12 +72,12 @@ While reading the following lines, edit a file named
 The first step is to load the dataset as numpy arrays. Functions are
 already provided by Keras to [import some
 datasets](https://www.tensorflow.org/api_docs/python/tf/keras/datasets/). The MNIST dataset is made of gray
-scale images, of size 28 \\times 28, with values in the range
+scale images, of size 28 \times 28, with values in the range
 \[0; 255\]. The training set consists in 60000 images and the test set
 consists in 10000 images. Every image represents an handwritten digit in
 \[0, 9\]. Below, we show the 10 first samples of the training set.
 
-![Few samples of the MNIST dataset](data/00-keras-mnist/mnist_samples.png){.bordered}
+![Few samples of the MNIST dataset](mnist_samples.png){.bordered}
 
 To import the MNIST dataset in Keras, you can do the following:
 
@@ -356,8 +356,8 @@ echo ">>>> Run $iter" && python3 train_mnist_linear.py ; done;
 > Two metrics are displayed for several runs; on the left the training
 > accuracy and on the right the validation accuracy
 >
-> ![Logistic regression without normalization](./data/00-keras-mnist/linear_None_acc.png){width="45%"}
-> ![Logistic regression without Normalization](./data/00-keras-mnist/linear_None_val_acc.png){width="45%"}
+> ![Logistic regression without normalization](./linear_None_acc.png){width="45%"}
+> ![Logistic regression without Normalization](./linear_None_val_acc.png){width="45%"}
 
 You should reach a validation and test accuracy between $55\%$ and $85\%$.
 The curves above seem to suggest that there might be several local
@@ -449,8 +449,8 @@ The advantage of embedding a standardizing layer is that it makes it easier to u
 > Two metrics are displayed for several runs; on the left the training
 > accuracy and on the right the validation accuracy
 >
->![image](./data/00-keras-mnist/linear_std_acc.png){width=45%}
->![image](./data/00-keras-mnist/linear_std_val_acc.png){width=45%}
+>![image](./linear_std_acc.png){width=45%}
+>![image](./linear_std_val_acc.png){width=45%}
 
 You should reach a validation accuracy of around $93.6\%$ and a test
 accuracy of around $92.4\%$.
@@ -719,9 +719,9 @@ must keep invariant your label. For example, slightly rotating, zooming
 or shearing an image of, say, a 5 is still an image of a 5 as shown
 below :
 
-![image](./data/00-keras-mnist/mnist_5_orig.png){width="15%"}
+![image](./mnist_5_orig.png){width="15%"}
 
-![image](./data/00-keras-mnist/mnist_5_augm.png){width="45%"}
+![image](./mnist_5_augm.png){width="45%"}
 
 Now, the idea is to produce a stream (actually infinite if you allow
 continuous perturbations) of training samples generated from your finite

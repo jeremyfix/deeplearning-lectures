@@ -30,7 +30,7 @@ website:
       - text: "Keras"
         menu:
           - text: "First steps in Keras: classifying handwritten digits(MNIST)"
-            file: keras/mnist.qmd
+            file: keras/mnist/index.qmd
           - text: "Keras CIFAR"
             file: keras/cifar.qmd
       - text: "Resources"
@@ -53,7 +53,7 @@ website:
           - pytorch/gan/index.qmd
       - section: "Keras"
         contents:
-          - keras/mnist.qmd
+          - keras/mnist/index.qmd
           - keras/cifar.qmd
       - section: "Resources"
         contents:
