@@ -50,7 +50,7 @@ To connect to the GPUs, use one of the procedures described in [Using the Centra
 You should now have at your disposal a python interpreter with the installed package, i.e. the
 following should work successfully :
 
-``` console
+``` bash
 sh11:~:mylogin$ python3 -c "from tensorflow import keras" 
 ```
 
@@ -248,7 +248,7 @@ You are now ready for executing your first training. You need first to
 log on a GPU node as described in section
 [Using the GPU cluster of CentraleSupelec](cluster.html).
 
-``` console
+``` bash
 # First you log to the cluster
 ---
 # And then :
@@ -312,7 +312,7 @@ model.fit(X_train, y_train,
 
 Once this is done, you have to start tensorboard on the GPU.
 
-``` console
+``` bash
 [In one terminal on the GPU]
 sh11:~:mylogin$ tensorboard --logdir ./logs_linear
 Starting TensorBoard b'47' at http://0.0.0.0:6006
@@ -346,7 +346,7 @@ You can now run several experiments, monitor them and get a copy of the
 best models. A handy bash command to run several experiments is given
 below :
 
-``` console
+``` bash
 for iter in $(seq 1 10); do \
 echo ">>>> Run $iter" && python3 train_mnist_linear.py ; done;
 ```

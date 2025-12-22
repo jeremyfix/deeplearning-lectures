@@ -67,7 +67,7 @@ print(args)
 
 And now some usage examples:
 
-```console
+``` bash
 
 mymachine:~:mylogin$ python3 argpase_ex.py -h
 usage: argpase_ex.py [-h] [--normalize {None,minmax,std}] [--logdir LOGDIR]
