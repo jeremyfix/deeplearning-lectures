@@ -2,38 +2,38 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/asr/index.html</loc>
-    <lastmod>2025-12-22T13:59:03.502Z</lastmod>
+    <lastmod>2025-12-22T14:17:36.780Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/object-detection/index.html</loc>
-    <lastmod>2025-12-22T13:59:03.866Z</lastmod>
+    <lastmod>2025-12-22T14:17:37.143Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/segmentation/index.html</loc>
-    <lastmod>2025-12-22T13:59:03.875Z</lastmod>
+    <lastmod>2025-12-22T14:17:37.152Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/index.html</loc>
-    <lastmod>2025-12-22T13:59:03.498Z</lastmod>
+    <lastmod>2025-12-22T14:17:36.776Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/keras/mnist/index.html</loc>
-    <lastmod>2025-12-22T13:59:03.499Z</lastmod>
+    <lastmod>2025-12-22T14:17:36.777Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/keras/cifar.html</loc>
-    <lastmod>2025-12-22T13:59:03.499Z</lastmod>
+    <lastmod>2025-12-22T14:17:36.776Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/argparse.html</loc>
-    <lastmod>2025-12-22T13:59:03.095Z</lastmod>
+    <lastmod>2025-12-22T14:17:36.372Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/fashionMNIST/index.html</loc>
-    <lastmod>2025-12-22T13:59:03.511Z</lastmod>
+    <lastmod>2025-12-22T14:17:36.789Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/gan/index.html</loc>
-    <lastmod>2025-12-22T13:59:03.725Z</lastmod>
+    <lastmod>2025-12-22T14:17:37.002Z</lastmod>
   </url>
 </urlset>
