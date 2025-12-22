@@ -5,6 +5,7 @@ import operator
 import functools
 import random
 import logging
+import sys
 
 # External imports
 import torch
@@ -17,7 +18,7 @@ import tqdm
 import PIL
 import matplotlib
 
-matplotlib.use("Agg")
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import albumentations as A
@@ -51,7 +52,7 @@ def compute_mean_std(dataset, crop_size, batch_size=128, num_workers=4):
         [
             A.SmallestMaxSize(max_size=crop_size),
             A.RandomCrop(height=crop_size, width=crop_size),
-            A.Normalize(mean=0, std=1),  # divise par 255.
+            A.Normalize(mean=0, std=1),  # divides by 255.
             ToTensorV2(),
         ]
     )
@@ -89,7 +90,7 @@ def get_dataloaders(config: dict, use_cuda):
     valid_ratio = config["valid_ratio"]
     num_workers = config["num_workers"]
 
-    # On charge l'ensemble des données qui vont servir à l'entrainement
+    # We load the dataset used for training
     train_valid_dataset = torchvision.datasets.VOCSegmentation(
         root=root_dir,
         image_set="train",
@@ -97,7 +98,7 @@ def get_dataloaders(config: dict, use_cuda):
         download=False,
     )
 
-    # On découpe les données en un pli d'entrainement et un pli de validation
+    # Split the data into a train and valid fold
     nb_train = int((1.0 - valid_ratio) * len(train_valid_dataset))
     # nb_valid = int(valid_ratio * len(train_valid_dataset))
     indices = list(range(len(train_valid_dataset)))
@@ -108,20 +109,25 @@ def get_dataloaders(config: dict, use_cuda):
     train_dataset = torch.utils.data.Subset(train_valid_dataset, train_indices)
     valid_dataset = torch.utils.data.Subset(train_valid_dataset, valid_indices)
 
-    # Si on normalise les données, on calcule les statistiques de normalisation
-    # sur les données d'entrainement uniquement
+    # If we are asked to normalize the data, we compute the statistics on the
+    # train fold only
     mean, std = 0.0, 1.0
     if normalize:
         mean, std = compute_mean_std(train_dataset, crop_size)
 
-    # On construit nos fonctions de transformation/augmentation
+    # Build our transform/augmentation functions
+    # @SOL
     augmentation_transforms = [
-        # A.CoarseDropout(p=0.5, max_width=16, max_height=16),
-        # A.PixelDropout(p=0.5),
-        # A.MaskDropout(p=0.5),
+        A.CoarseDropout(p=0.5, max_width=16, max_height=16),
+        A.PixelDropout(p=0.5),
+        A.MaskDropout(p=0.5),
         A.HorizontalFlip(p=0.5),
         A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5),
     ]
+    # SOL@
+    # @TEMPL
+    # augmentation_transforms = []
+    # TEMPL@
     resize_transforms = [
         A.SmallestMaxSize(max_size=crop_size),
         A.RandomCrop(height=crop_size, width=crop_size),
@@ -131,8 +137,8 @@ def get_dataloaders(config: dict, use_cuda):
         A.Normalize(mean=mean, std=std),
         ToTensorV2(),
     ]
-
-    # On combine ces transformées pour construire nos datasets finaux
+    
+    # Combine the transforms to build our final datasets
     train_transforms = A.Compose(
         augmentation_transforms + resize_transforms + normalize_transforms
     )
@@ -239,6 +245,7 @@ def plot_samples(root_dir):
 
     crop_size = 256
 
+    # Some augmentations applied to our samples
     # @SOL
     augmentation_transforms = [
         A.CoarseDropout(p=0.5, max_width=16, max_height=16),
@@ -249,7 +256,6 @@ def plot_samples(root_dir):
     ]
     # SOL@
     # @TEMPL
-    # # On ajoutera des augmentations ici
     # augmentation_transforms = []
     # TEMPL@
     resize_transforms = [
@@ -274,27 +280,25 @@ def plot_samples(root_dir):
 
     dataset = WrappedDataset(dataset, data_transforms)
 
-    # Les images ne sont pas toutes de même résolution, vous pouvez le voir avec le code ci-dessous
+    # The images do not all have the same size, you can check this with the code below
     # for i in range(len(dataset)):
     #    X, y = dataset[i]
     #    print(X.shape)
 
+    # vvvvvvvvv
+    # CODE HERE
+    # Get an annotated sample from the dataset
+    # What are the types and dimensions of the input/output tensors ?
     # @SOL
     X, y = dataset[0]
     print(X.shape, y.shape)
     # SOL@
-    # @TEMPL
-    # # vvvvvvvvv
-    # # CODE HERE
-    # # Récuperez un échantillon annoté du dataset
-    # # Quels sont les types et dimensions des tenseurs d'entrée et de sortie ?
     # # ^^^^^^^^^
-    # TEMPL@
 
     fig, axes = plt.subplots(figsize=(10, 10), facecolor="w", nrows=nrows, ncols=ncols)
 
-    # Attention, PascalVOC comprends une classe particulière, la 255
-    # qui correspond à la délimitation des objets, elle sera représentée en blanc
+    # Important : PascalVOC has a particular label, 255, which corresponds to the border
+    # of the objects, which we represent in white
     cmap = color_map()
 
     for i, axi in enumerate(axes.ravel()):
@@ -316,8 +320,6 @@ def plot_samples(root_dir):
 
 
 # @SOL
-
-
 def look_for_unlabeled(root_dir):
     resize_transforms = []
     conversion_transforms = [
@@ -340,7 +342,7 @@ def look_for_unlabeled(root_dir):
         imgi, maski = dataset[i]
         num_unlabeled = (maski == 255).sum()
         if num_unlabeled >= 30000:
-            print(num_unlabeled)
+            print(f"For sample {i}, {num_unlabeled} pixels")
 
             imgi = imgi.squeeze().permute(1, 2, 0)  # (1, C, H, W) -> (H, W, C)
             maski = maski.squeeze()  # 1, 1, H, W -> H, W
@@ -359,13 +361,54 @@ def look_for_unlabeled(root_dir):
             plt.tight_layout()
             plt.show()
 
+def class_stats(root_dir):
+    dataset = torchvision.datasets.VOCSegmentation(
+        root=root_dir,
+        image_set="train",
+        transforms=None,
+        download=False,
+    )
+    cls_counts = {}
+    for i in range(len(dataset)):
+        _, yi = dataset[i]
+        yi = np.array(yi)
+        unique, counts = np.unique(yi, return_counts=True)
+        for ui, ci in zip(unique, counts):
+            ui = int(ui)
+            if ui not in cls_counts:
+                cls_counts[ui] = 0.0
+            cls_counts[ui] += ci
+    N = sum((vi for _, vi in cls_counts.items()))
+    
+    cls_counts = sorted(cls_counts.items(), key=lambda x: x[0])
+    cls_freqs = ((ui, vi/N) for ui, vi in cls_counts)
+    cls_freqs_msg = "\n".join((f"{ui}: {vi}" for ui, vi in cls_freqs))
+    logging.info(f"Total number of labeled pixels : {N}\n")
+    logging.info("Class frequencies: \n"+cls_freqs_msg)
 
 # SOL@
 
+def test_dataloaders(root_dir):
+    config = {
+            "root_dir": root_dir,
+            "batch_size": 16,
+            "normalize": True,
+            "crop_size": 256,
+            "valid_ratio": 0.2,
+            "num_workers": 4
+    }
+    get_dataloaders(config, use_cuda=False)
+
 if __name__ == "__main__":
-    # get_trainvalid_dataloaders("/mounts/datasets/datasets/Pascal-VOC2012", 64, True, 0.2, 7)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     # @TEMPL
     # plot_samples("/mounts/datasets/datasets/Pascal-VOC2012")
+    # test_dataloaders("/opt/datasets/Pascal-VOC2012")
     # TEMPL@
-    # plot_samples("/opt/Datasets/Pascal-VOC2012")  # @SOL@
-    look_for_unlabeled("/opt/Datasets/Pascal-VOC2012")  # @SOL@
+    # @SOL
+    root_dir = "/opt/datasets/Pascal-VOC2012"
+    # plot_samples(root_dir)
+    # test_dataloaders(root_dir)
+    # look_for_unlabeled(root_dir)
+    class_stats(root_dir)
+    # SOL@
