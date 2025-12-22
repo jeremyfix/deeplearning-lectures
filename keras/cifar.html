@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeremy Fix">
-<meta name="keywords" content="Deep learning, practicals">
+<meta name="keywords" content="Keras tutorial, CIFAR-100">
 
-<title>Home – Deep Learning Lectures</title>
+<title>A more ambitious image classification dataset : CIFAR-100 – Deep Learning Lectures</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -22,27 +22,47 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-0b802d246790ecd80511443f8ae76f95.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-0b802d246790ecd80511443f8ae76f95.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -72,7 +92,7 @@ ul.task-list li input[type="checkbox"] {
 }</script>
 
 
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../styles.css">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -82,7 +102,7 @@ ul.task-list li input[type="checkbox"] {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">Deep Learning Lectures</span>
     </a>
   </div>
@@ -93,7 +113,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item dropdown ">
@@ -102,23 +122,23 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-pytorch">    
         <li>
-    <a class="dropdown-item" href="./pytorch/fashionMNIST/index.html">
+    <a class="dropdown-item" href="../pytorch/fashionMNIST/index.html">
  <span class="dropdown-text">PyTorch FashionMNIST</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./pytorch/object-detection/index.html">
+    <a class="dropdown-item" href="../pytorch/object-detection/index.html">
  <span class="dropdown-text">PyTorch Object Detection</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./pytorch/segmentation/index.html">
+    <a class="dropdown-item" href="../pytorch/segmentation/index.html">
  <span class="dropdown-text">Semantic segmenation on Stanford-2D-3D S</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./pytorch/asr/index.html">
+    <a class="dropdown-item" href="../pytorch/asr/index.html">
  <span class="dropdown-text">Automatic Speech Recognition on Mozilla Common Voice</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./pytorch/gan/index.html">
+    <a class="dropdown-item" href="../pytorch/gan/index.html">
  <span class="dropdown-text">Deep Convolutional Generative Adversarial Networks</span></a>
   </li>  
     </ul>
@@ -129,11 +149,11 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-keras">    
         <li>
-    <a class="dropdown-item" href="./keras/mnist.html">
+    <a class="dropdown-item" href="../keras/mnist.html">
  <span class="dropdown-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./keras/cifar.html">
+    <a class="dropdown-item" href="../keras/cifar.html">
  <span class="dropdown-text">Keras CIFAR</span></a>
   </li>  
     </ul>
@@ -144,7 +164,7 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-resources">    
         <li>
-    <a class="dropdown-item" href="./argparse.html">
+    <a class="dropdown-item" href="../argparse.html">
  <span class="dropdown-text">Argparse</span></a>
   </li>  
     </ul>
@@ -175,7 +195,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Getting Started</a></li><li class="breadcrumb-item"><a href="./index.html">Home</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../keras/mnist.html">Keras</a></li><li class="breadcrumb-item"><a href="../keras/cifar.html">A more ambitious image classification dataset : CIFAR-100</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -198,7 +218,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Home</span></a>
   </div>
 </li>
@@ -215,31 +235,31 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pytorch/fashionMNIST/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../pytorch/fashionMNIST/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">First steps in PyTorch : classifying fashion objects (FashionMNIST)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pytorch/object-detection/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../pytorch/object-detection/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Transfer learning and Object detection</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pytorch/segmentation/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../pytorch/segmentation/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Semantic segmenation on Stanford-2D-3D S</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pytorch/asr/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../pytorch/asr/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Automatic Speech Recognition on Mozilla Common Voice</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./pytorch/gan/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../pytorch/gan/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Deep Convolutional Generative Adversarial Networks (DCGAN)</span></a>
   </div>
 </li>
@@ -256,13 +276,13 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./keras/mnist.html" class="sidebar-item-text sidebar-link">
+  <a href="../keras/mnist.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./keras/cifar.html" class="sidebar-item-text sidebar-link">
+  <a href="../keras/cifar.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">A more ambitious image classification dataset : CIFAR-100</span></a>
   </div>
 </li>
@@ -279,7 +299,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./argparse.html" class="sidebar-item-text sidebar-link">
+  <a href="../argparse.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Parametrizing a script with argparse</span></a>
   </div>
 </li>
@@ -295,40 +315,30 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#additional-ressources" id="toc-additional-ressources" class="nav-link active" data-scroll-target="#additional-ressources">Additional ressources</a>
-  <ul class="collapse">
-  <li><a href="#practicalslectures" id="toc-practicalslectures" class="nav-link" data-scroll-target="#practicalslectures">Practicals/Lectures</a></li>
-  <li><a href="#blog-posts" id="toc-blog-posts" class="nav-link" data-scroll-target="#blog-posts">Blog posts</a></li>
-  </ul></li>
+  <li><a href="#objectives" id="toc-objectives" class="nav-link active" data-scroll-target="#objectives">Objectives</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Getting Started</a></li><li class="breadcrumb-item"><a href="./index.html">Home</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../keras/mnist.html">Keras</a></li><li class="breadcrumb-item"><a href="../keras/cifar.html">A more ambitious image classification dataset : CIFAR-100</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">Home</h1>
+<h1 class="title">A more ambitious image classification dataset : CIFAR-100</h1>
 </div>
 
 
-<div class="quarto-title-meta-author">
-  <div class="quarto-title-meta-heading">Author</div>
-  <div class="quarto-title-meta-heading">Affiliation</div>
-  
-    <div class="quarto-title-meta-contents">
-    <p class="author">Jeremy Fix </p>
-  </div>
-  <div class="quarto-title-meta-contents">
-        <p class="affiliation">
-            CentraleSupelec
-          </p>
-      </div>
-  </div>
 
 <div class="quarto-title-meta">
 
-      
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jeremy Fix </p>
+          </div>
+  </div>
+    
   
     
   </div>
@@ -337,41 +347,76 @@ ul.task-list li input[type="checkbox"] {
 <div>
   <div class="keywords">
     <div class="block-title">Keywords</div>
-    <p>Deep learning, practicals</p>
+    <p>Keras tutorial, CIFAR-100</p>
   </div>
 </div>
 
 </header>
 
 
-<p><strong>Forewords</strong> These pages are written in markdown format and generated with <a href="https://quarto.org">quarto</a>. The generation is performed using the github workflows. Thank you all for these very helpful tools.</p>
-<p>These pages contain the subjects and codes for the labs in the deep learning lectures 3MD4040 taking place at CentraleSupélec. Most the work is done in pytorch although you will find one lab using Keras.</p>
-<section id="additional-ressources" class="level2">
-<h2 class="anchored" data-anchor-id="additional-ressources">Additional ressources</h2>
-<section id="practicalslectures" class="level3">
-<h3 class="anchored" data-anchor-id="practicalslectures">Practicals/Lectures</h3>
+<section id="objectives" class="level2">
+<h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
+<p>We now turn to a more difficult problem of classifying RBG images belonging to one of 100 classes with the <a href="https://www.cs.toronto.edu/~kriz/cifar.html">CIFAR-100 dataset</a>. The CIFAR-100 dataset consists of 60000 32x32 colour images in 100 classes, with 600 images per class. There are 50000 training images and 10000 test images. The 100 classes in the CIFAR-100 are grouped into 20 superclasses. Each image comes with a “fine” label (the class to which it belongs) and a “coarse” label (the superclass to which it belongs). To give you an idea of the coarse labels, you find fruits, fish, aquatic mammals, vehicles, … and the fine labels are for example seal, whale, orchids, bicycle, bus, … Keras provides <a href="https://keras.io/datasets/">functions to automatically get the CIFAR-100 dataset</a>.</p>
+<p>Classical dataset augmentation in CIFAR-100 include :</p>
 <ul>
-<li><a href="http://www.robots.ox.ac.uk/~vgg/practicals/cnn/">Oxford’s CNN practicals</a></li>
-<li><a href="https://www.cs.ox.ac.uk/people/nando.defreitas/machinelearning/">Nando de Freitas lectures and practicals</a></li>
-<li><a href="http://cs231n.github.io/%3E">Stanford A. Karpathy practicals</a></li>
-<li><a href="https://github.com/m2dsupsdlclass/lectures-labs%3E">Master Data Science Paris Saclay</a></li>
-<li><a href="https://www.fast.ai/">Fast.ai, J. Howard</a></li>
+<li>feature wise standardization</li>
+<li>horizontal flip</li>
+<li>zero padding of 4 pixels on each side, with random crops of 32x32.</li>
 </ul>
-</section>
-<section id="blog-posts" class="level3">
-<h3 class="anchored" data-anchor-id="blog-posts">Blog posts</h3>
+<p>For the last augmentation, you can make use of width_shift_range, height_shift_range, fill_mode=“constant” and cval=0.</p>
+<p>I now propose you a list of recent papers published on arxiv and I propose you to try reimplementing their architecture and training setup :</p>
 <ul>
-<li><a href="http://ruder.io/optimizing-gradient-descent/">An overview of gradient descent algorithms</a></li>
-<li><a href="http://suriyadeepan.github.io/2016-12-31-practical-seq2seq/">Revisiting sequence to sequence learning, with focus on implementation details</a></li>
-<li><a href="http://karpathy.github.io/2015/05/21/rnn-effectiveness/">The unreasonnable effectivness of recurrent neural networks</a></li>
-<li><a href="https://stats385.github.io/">Theories of Deep learning</a></li>
+<li>MobileNet <span class="citation" data-cites="Howard2017">(<a href="#ref-Howard2017" role="doc-biblioref">Howard et al., 2017</a>)</span> <a href="https://arxiv.org/pdf/1704.04861.pdf">MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Application</a></li>
+<li>SqueezeNet <span class="citation" data-cites="Iandola2016">(<a href="#ref-Iandola2016" role="doc-biblioref">Iandola et al., 2016</a>)</span> <a href="https://arxiv.org/pdf/1602.07360.pdf">SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and 0.5M model size</a></li>
+<li>DenseNet <span class="citation" data-cites="Huang2017">(<a href="#ref-Huang2017" role="doc-biblioref">G. Huang, Liu, &amp; Weinberger, 2016</a>)</span> <a href="https://arxiv.org/pdf/1608.06993.pdf">Densely Connected Convolutional Networks</a></li>
+<li>WideResNet <span class="citation" data-cites="Zagoruyko2016">(<a href="#ref-Zagoruyko2016" role="doc-biblioref">Zagoruyko &amp; Komodakis, 2016</a>)</span> <a href="https://arxiv.org/pdf/1605.07146.pdf">Wide Residual Networks</a></li>
+<li>Xception <span class="citation" data-cites="Chollet2016">(<a href="#ref-Chollet2016" role="doc-biblioref">Chollet, 2016</a>)</span> <a href="https://arxiv.org/pdf/1610.02357v3.pdf">Xception: Deep Learning with Depthwise Separable Convolutions</a></li>
+<li>NASNet : <span class="citation" data-cites="Zoph2017">(<a href="#ref-Zoph2017" role="doc-biblioref">Zoph, Vasudevan, Shlens, &amp; Le, 2017</a>)</span> <a href="https://arxiv.org/pdf/1707.07012.pdf">Learning Transferable Architectures for Scalable Image Recognition</a></li>
 </ul>
+<p>The following papers are trickier to implement :</p>
+<ul>
+<li>ShuffleNet <span class="citation" data-cites="Zhang2017">(<a href="#ref-Zhang2017" role="doc-biblioref">Zhang, Zhou, Lin, &amp; Sun, 2017</a>)</span> <a href="https://arxiv.org/pdf/1707.01083.pdf">ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices</a></li>
+<li>ResNet with Stochastic Depth <span class="citation" data-cites="Huang2016">(<a href="#ref-Huang2016" role="doc-biblioref">J. Huang et al., 2016</a>)</span> <a href="https://arxiv.org/pdf/1603.09382.pdf">Deep networks with stochastic depth</a></li>
+<li>Shake-Shake <span class="citation" data-cites="Gastaldi2017">(<a href="#ref-Gastaldi2017" role="doc-biblioref">Gastaldi, 2017</a>)</span> <a href="https://arxiv.org/pdf/1705.07485.pdf">Shake-Shake regularization</a></li>
+</ul>
+<p>If you wish to get an idea of the state of the art in 2015 on CIFAR-100, I invite you to visite the <a href="http://rodrigob.github.io/are_we_there_yet/build/classification_datasets_results.html">classification scores website</a>.</p>
+</section>
+<section id="references" class="level2">
+
+
 
 
 </section>
-</section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Chollet2016" class="csl-entry" role="listitem">
+Chollet, F. (2016). Xception: Deep learning with depthwise separable convolutions. <em>CoRR</em>, <em>abs/1610.02357</em>. Retrieved from <a href="http://arxiv.org/abs/1610.02357">http://arxiv.org/abs/1610.02357</a>
+</div>
+<div id="ref-Gastaldi2017" class="csl-entry" role="listitem">
+Gastaldi, X. (2017). Shake-shake regularization. <em>CoRR</em>, <em>abs/1705.07485</em>. Retrieved from <a href="http://arxiv.org/abs/1705.07485">http://arxiv.org/abs/1705.07485</a>
+</div>
+<div id="ref-Howard2017" class="csl-entry" role="listitem">
+Howard, A. G., Zhu, M., Chen, B., Kalenichenko, D., Wang, W., Weyand, T., … Adam, H. (2017). MobileNets: Efficient convolutional neural networks for mobile vision applications. <em>CoRR</em>, <em>abs/1704.04861</em>. Retrieved from <a href="http://arxiv.org/abs/1704.04861">http://arxiv.org/abs/1704.04861</a>
+</div>
+<div id="ref-Huang2017" class="csl-entry" role="listitem">
+Huang, G., Liu, Z., &amp; Weinberger, K. Q. (2016). Densely connected convolutional networks. <em>CoRR</em>, <em>abs/1608.06993</em>. Retrieved from <a href="http://arxiv.org/abs/1608.06993">http://arxiv.org/abs/1608.06993</a>
+</div>
+<div id="ref-Huang2016" class="csl-entry" role="listitem">
+Huang, J., Rathod, V., Sun, C., Zhu, M., Korattikara, A., Fathi, A., … Murphy, K. (2016). Speed/accuracy trade-offs for modern convolutional object detectors. <em>CoRR</em>, <em>abs/1611.10012</em>. Retrieved from <a href="http://arxiv.org/abs/1611.10012">http://arxiv.org/abs/1611.10012</a>
+</div>
+<div id="ref-Iandola2016" class="csl-entry" role="listitem">
+Iandola, F. N., Moskewicz, M. W., Ashraf, K., Han, S., Dally, W. J., &amp; Keutzer, K. (2016). SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <span>&lt;</span>1MB model size. <em>CoRR</em>, <em>abs/1602.07360</em>. Retrieved from <a href="http://arxiv.org/abs/1602.07360">http://arxiv.org/abs/1602.07360</a>
+</div>
+<div id="ref-Zagoruyko2016" class="csl-entry" role="listitem">
+Zagoruyko, S., &amp; Komodakis, N. (2016). Wide residual networks. <em>CoRR</em>, <em>abs/1605.07146</em>. Retrieved from <a href="http://arxiv.org/abs/1605.07146">http://arxiv.org/abs/1605.07146</a>
+</div>
+<div id="ref-Zhang2017" class="csl-entry" role="listitem">
+Zhang, X., Zhou, X., Lin, M., &amp; Sun, J. (2017). ShuffleNet: An extremely efficient convolutional neural network for mobile devices. <em>CoRR</em>, <em>abs/1707.01083</em>. Retrieved from <a href="http://arxiv.org/abs/1707.01083">http://arxiv.org/abs/1707.01083</a>
+</div>
+<div id="ref-Zoph2017" class="csl-entry" role="listitem">
+Zoph, B., Vasudevan, V., Shlens, J., &amp; Le, Q. V. (2017). Learning transferable architectures for scalable image recognition. <em>CoRR</em>, <em>abs/1707.07012</em>. Retrieved from <a href="http://arxiv.org/abs/1707.07012">http://arxiv.org/abs/1707.07012</a>
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";

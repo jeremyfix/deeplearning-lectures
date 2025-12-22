@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jeremy Fix">
+<meta name="keywords" content="PyTorch tutorial, Transfer learning, Object detection">
+
+<title>Transfer learning and Object detection – Deep Learning Lectures</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-0b802d246790ecd80511443f8ae76f95.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Deep Learning Lectures</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../../index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pytorch" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pytorch</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pytorch">    
+        <li>
+    <a class="dropdown-item" href="../../pytorch/fashionMNIST/index.html">
+ <span class="dropdown-text">PyTorch FashionMNIST</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../pytorch/object-detection/index.html">
+ <span class="dropdown-text">PyTorch Object Detection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../pytorch/segmentation/index.html">
+ <span class="dropdown-text">Semantic segmenation on Stanford-2D-3D S</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../pytorch/asr/index.html">
+ <span class="dropdown-text">Automatic Speech Recognition on Mozilla Common Voice</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../pytorch/gan/index.html">
+ <span class="dropdown-text">Deep Convolutional Generative Adversarial Networks</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-keras" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Keras</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-keras">    
+        <li>
+    <a class="dropdown-item" href="../../keras/mnist.html">
+ <span class="dropdown-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../keras/cifar.html">
+ <span class="dropdown-text">Keras CIFAR</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-resources" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Resources</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-resources">    
+        <li>
+    <a class="dropdown-item" href="../../argparse.html">
+ <span class="dropdown-text">Argparse</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://www.github.com/jeremyfix/deeplearning-lectures">
+            Source Code
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/jeremyfix/deeplearning-lectures/issues/new/choose">
+            Report a bug
+            </a>
+          </li>
+      </ul>
+    </div>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../pytorch/fashionMNIST/index.html">Pytorch</a></li><li class="breadcrumb-item"><a href="../../pytorch/object-detection/index.html">Transfer learning and Object detection</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Getting Started</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Pytorch</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/fashionMNIST/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">First steps in PyTorch : classifying fashion objects (FashionMNIST)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/object-detection/index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Transfer learning and Object detection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/segmentation/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semantic segmenation on Stanford-2D-3D S</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/asr/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Automatic Speech Recognition on Mozilla Common Voice</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/gan/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Deep Convolutional Generative Adversarial Networks (DCGAN)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Keras</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../keras/mnist.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../keras/cifar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A more ambitious image classification dataset : CIFAR-100</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Resources</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../argparse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parametrizing a script with argparse</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#objectives" id="toc-objectives" class="nav-link active" data-scroll-target="#objectives">Objectives</a></li>
+  <li><a href="#exploring-the-dataset" id="toc-exploring-the-dataset" class="nav-link" data-scroll-target="#exploring-the-dataset">Exploring the dataset</a></li>
+  <li><a href="#largest-object-detection" id="toc-largest-object-detection" class="nav-link" data-scroll-target="#largest-object-detection">Largest object detection</a>
+  <ul class="collapse">
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#preprocessing-the-images" id="toc-preprocessing-the-images" class="nav-link" data-scroll-target="#preprocessing-the-images">Preprocessing the images</a></li>
+  <li><a href="#preprocessing-the-targets" id="toc-preprocessing-the-targets" class="nav-link" data-scroll-target="#preprocessing-the-targets">Preprocessing the targets</a></li>
+  <li><a href="#extracting-the-features-with-a-pretrained-model" id="toc-extracting-the-features-with-a-pretrained-model" class="nav-link" data-scroll-target="#extracting-the-features-with-a-pretrained-model">Extracting the features with a pretrained model</a></li>
+  <li><a href="#learning-a-classification-and-regression-head-from-pretrained-features" id="toc-learning-a-classification-and-regression-head-from-pretrained-features" class="nav-link" data-scroll-target="#learning-a-classification-and-regression-head-from-pretrained-features">Learning a classification and regression head from pretrained features</a></li>
+  <li><a href="#testing" id="toc-testing" class="nav-link" data-scroll-target="#testing">Testing</a></li>
+  </ul></li>
+  <li><a href="#multiple-objects-detection" id="toc-multiple-objects-detection" class="nav-link" data-scroll-target="#multiple-objects-detection">Multiple objects detection</a>
+  <ul class="collapse">
+  <li><a href="#introduction-1" id="toc-introduction-1" class="nav-link" data-scroll-target="#introduction-1">Introduction</a></li>
+  <li><a href="#preprocessing-the-targets-and-extracting-the-features" id="toc-preprocessing-the-targets-and-extracting-the-features" class="nav-link" data-scroll-target="#preprocessing-the-targets-and-extracting-the-features">Preprocessing the targets and extracting the features</a></li>
+  <li><a href="#extracting-the-features-with-a-pretrained-model-1" id="toc-extracting-the-features-with-a-pretrained-model-1" class="nav-link" data-scroll-target="#extracting-the-features-with-a-pretrained-model-1">Extracting the features with a pretrained model</a></li>
+  <li><a href="#learning-a-classification-and-regression-head-from-pretained-features" id="toc-learning-a-classification-and-regression-head-from-pretained-features" class="nav-link" data-scroll-target="#learning-a-classification-and-regression-head-from-pretained-features">Learning a classification and regression head from pretained features</a></li>
+  <li><a href="#training-and-testing" id="toc-training-and-testing" class="nav-link" data-scroll-target="#training-and-testing">Training and Testing</a></li>
+  </ul></li>
+  <li><a href="#a-possible-solution" id="toc-a-possible-solution" class="nav-link" data-scroll-target="#a-possible-solution">A possible solution</a></li>
+  <li><a href="#going-further" id="toc-going-further" class="nav-link" data-scroll-target="#going-further">Going further</a>
+  <ul class="collapse">
+  <li><a href="#non-maximum-suppression" id="toc-non-maximum-suppression" class="nav-link" data-scroll-target="#non-maximum-suppression">Non maximum suppression</a></li>
+  <li><a href="#intersection-over-union" id="toc-intersection-over-union" class="nav-link" data-scroll-target="#intersection-over-union">Intersection over union</a></li>
+  <li><a href="#anchor-boxes" id="toc-anchor-boxes" class="nav-link" data-scroll-target="#anchor-boxes">Anchor boxes</a></li>
+  <li><a href="#extracting-features-at-multiple-scales" id="toc-extracting-features-at-multiple-scales" class="nav-link" data-scroll-target="#extracting-features-at-multiple-scales">Extracting features at multiple scales</a></li>
+  <li><a href="#focal-loss" id="toc-focal-loss" class="nav-link" data-scroll-target="#focal-loss">Focal loss</a></li>
+  <li><a href="#larger-dataset-ms-coco" id="toc-larger-dataset-ms-coco" class="nav-link" data-scroll-target="#larger-dataset-ms-coco">Larger dataset : MS COCO</a></li>
+  </ul></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../pytorch/fashionMNIST/index.html">Pytorch</a></li><li class="breadcrumb-item"><a href="../../pytorch/object-detection/index.html">Transfer learning and Object detection</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Transfer learning and Object detection</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jeremy Fix </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Keywords</div>
+    <p>PyTorch tutorial, Transfer learning, Object detection</p>
+  </div>
+</div>
+
+</header>
+
+
+<section id="objectives" class="level2">
+<h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
+<p>In the previous practical, you trained feedforward neural networks for classifying images, i.e.&nbsp;assigning a <strong>single</strong> label to each image hopefully reaching a good accuracy on the test set. We now consider a second problem in computer vision : object detection. The task is here to find every occurrence of a set of classes of objects. Given an image, we want to output a set of bounding boxes for every object classes of interest.</p>
+<p>Below is an example of what we want to do :</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./example_bbox.png" class="img-fluid figure-img" style="width:100.0%"></p>
+<figcaption>Object detection : bounding box regression and classification</figcaption>
+</figure>
+</div>
+<p>In this practical, we will work with the <a href="http://host.robots.ox.ac.uk/pascal/VOC/">Pascal VOC 2012 dataset</a>. Pascal VOC used to be a popular contest on the topic of object recognition in computer vision. It ended in 2012. The dataset consists in 11.530 images, annotated with 27.450 bounding boxes belonging to one of 20 classes. Segmentations, which we are not going to use for now, are also provided.</p>
+<p>We will progress step by step starting by regressing and classifying the largest object’s bounding box and then move on detecting multiple objects (an interesting pedagogical approach I borrow from J. Howard of <a href="http://www.fast.ai">fast.ai</a>). Also we will follow a particular track to perform object detection but a lot of variations are actually possible. I invite you to read <span class="citation" data-cites="Huang2016 Hui2018">(<a href="#ref-Huang2016" role="doc-biblioref">Huang et al., 2016</a>; <a href="#ref-Hui2018" role="doc-biblioref">Hui, 2018</a>)</span> which present some variations.</p>
+<p>One of the interests of this practical also lies in the way we will compute the features from which to detect objects. We will use <strong>pretrained</strong> models, and more specifically, models like resnet, densenet, etc. trained for classification on ImageNet. From these models, we will cut-off the classification head and keep the model up to the last convolutional feature maps. The head of the model will be defined depending on the problem of interest.</p>
+</section>
+<section id="exploring-the-dataset" class="level2">
+<h2 class="anchored" data-anchor-id="exploring-the-dataset">Exploring the dataset</h2>
+<p>You are provided with some basic codes that allow you to explore the dataset. In the next sections, you will progressively extend this code. To explore the dataset you need to download :</p>
+<ul>
+<li><a href="https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/data.py">data.py</a> : provides some useful functions to create your pascal VOC datasets.</li>
+</ul>
+<p>The python code below shows you how to load your dataset. The function <code>data.make_trainval_dataset</code> is the one loading your data and gets few parameters. In this practical, we will play around with three important parameters <strong>image_transform_params</strong>, <strong>target_transform_params</strong> and <strong>transform</strong> :</p>
+<ul>
+<li><strong>transform</strong> : the operations to be applied on the images before feeding in the models. We will use this parameter when defining our first model in <a href="#largest_object_detection">Largest object detection</a>,</li>
+<li><strong>image_transform_params</strong> : this defines how the images are resized, this is a dictionary which can be one of :
+<ul>
+<li><code>{'image_mode': 'none'}</code> : keeps the original image size</li>
+<li><code>{'image_mode':'shrink', 'output_image_size' :{'width':.., 'height': ..}}</code> : squeezes the image to fit in the provided dimensions</li>
+<li><code>{'image_mode':'crop', 'output_image_size' :{'width':.., 'height': ..}}</code> : center crops the image to fit in the provided dimensions</li>
+</ul></li>
+<li><strong>target_transform_params</strong> :
+<ul>
+<li><code>{'target_mode':'preprocessed'}</code> : the original labels slightly preprocessed</li>
+<li><code>{'target_mode':'largest_bbox', 'image_transform_params': dict}</code> : a mode you will implement in <a href="#preprocessing-the-targets">Largest object detection/Preprocessing the targets</a></li>
+<li><code>{'target_mode':'all_bbox', 'image_transform_params': dict, 'num_cells': int}</code> : a mode you will implement in <a href="#preprocessing-the-targets-1">Multiple object detection/Preprocessing the targets</a></li>
+</ul></li>
+</ul>
+<div id="d128feea" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> data</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torchvision.transforms <span class="im">as</span> transforms</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># The dataset is already downloaded on the cluster</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>dataset_dir <span class="op">=</span> <span class="st">"/mounts/Datasets4/Pascal-VOC2012/"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>download <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># How do we preprocess the image (e.g. none, crop, shrink)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>image_transform_params <span class="op">=</span> {<span class="st">'image_mode'</span>: <span class="st">'none'</span>}</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># How do we preprocess the targets</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>target_transform_params <span class="op">=</span> {<span class="st">'target_mode'</span>: <span class="st">'preprocessed'</span>}</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># The post-processing of the image</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>image_transform <span class="op">=</span> transforms.ToTensor()</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>train_dataset, valid_dataset <span class="op">=</span> data.make_trainval_dataset(</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>        dataset_dir             <span class="op">=</span> dataset_dir,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>        image_transform_params  <span class="op">=</span> image_transform_params,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>        transform               <span class="op">=</span> image_transform,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>        target_transform_params <span class="op">=</span> target_transform_params,</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>        download                <span class="op">=</span> download)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the first element of the dataset</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># i.e. a pair made of an image and the slightly preprocessed targets</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(train_dataset[<span class="dv">0</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>This should output</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>(tensor([[[<span class="fl">1.0000</span>, <span class="fl">1.0000</span>, <span class="fl">1.0000</span>,  ..., <span class="fl">0.7922</span>, <span class="fl">0.7961</span>, <span class="fl">0.8000</span>],</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>         ...,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>         [<span class="fl">0.6980</span>, <span class="fl">0.7059</span>, <span class="fl">0.7255</span>,  ..., <span class="fl">0.3216</span>, <span class="fl">0.2863</span>, <span class="fl">0.3137</span>]],</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        ...,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>         [<span class="fl">0.5922</span>, <span class="fl">0.6000</span>, <span class="fl">0.6196</span>,  ..., <span class="fl">0.2863</span>, <span class="fl">0.2510</span>, <span class="fl">0.2745</span>]]]), </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="st">'annotation'</span>:{</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">'folder'</span>: <span class="st">'VOC2012'</span>, </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">'filename'</span>: <span class="st">'2008_000008.jpg'</span>, </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">'source'</span>: {</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">'database'</span>: <span class="st">'The VOC2008 Database'</span>, </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">'annotation'</span>: <span class="st">'PASCAL VOC2008'</span>, </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="st">'image'</span>: <span class="st">'flickr'</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    }, </span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">'size'</span>: {</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="st">'width'</span>: <span class="dv">500</span>, </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">'height'</span>: <span class="dv">442</span>, </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        <span class="st">'depth'</span>: <span class="dv">3</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    }, </span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">'segmented'</span>: <span class="va">True</span>, </span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">'object'</span>: [</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>            <span class="st">'name'</span>: <span class="st">'horse'</span>, </span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pose'</span>: <span class="st">'Left'</span>, </span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            <span class="st">'truncated'</span>: <span class="va">False</span>, </span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>            <span class="st">'occluded'</span>: <span class="va">True</span>, </span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>            <span class="st">'bndbox'</span>: {<span class="st">'xmin'</span>: <span class="dv">53</span>, <span class="st">'ymin'</span>: <span class="dv">87</span>, <span class="st">'xmax'</span>: <span class="dv">471</span>, <span class="st">'ymax'</span>: <span class="dv">420</span>}, </span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>            <span class="st">'difficult'</span>: <span class="va">False</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        }, </span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>            <span class="st">'name'</span>: <span class="st">'person'</span>, </span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>            <span class="st">'pose'</span>: <span class="st">'Unspecified'</span>, </span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>            <span class="st">'truncated'</span>: <span class="va">True</span>, </span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>            <span class="st">'occluded'</span>: <span class="va">False</span>, </span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>            <span class="st">'bndbox'</span>: {<span class="st">'xmin'</span>: <span class="dv">158</span>, <span class="st">'ymin'</span>: <span class="dv">44</span>, <span class="st">'xmax'</span>: <span class="dv">289</span>, <span class="st">'ymax'</span>: <span class="dv">167</span>}, </span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>            <span class="st">'difficult'</span>: <span class="va">False</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>}})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>To discover the dataset and how to manipulate our dataset objects, I suggest below two exercises.</p>
+<p><strong>Exercise</strong> Can you print out some elements about the distribution of width/height of the images in the training set ? You can access the sizes from within the annotations or the tensor object. I remind you the pytorch tensors are shaped (Channel, Height, Width) (minibatches are shaped (Batch, Channel, Height, Width)),</p>
+<p>Example output :</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./histo_sizes.png" class="img-fluid figure-img" style="width:30.0%"></p>
+<figcaption>Pascal VOC-2012 size distribution. The bins are (111., 149.9, 188.8, 227.7, 266.6, 305.5, 344.4, 383.3, 422.2, 461.1, 500.)</figcaption>
+</figure>
+</div>
+<p><strong>Exercise</strong> Can you identify the total number of objects of each class in the training set ? Please note the “preprocessed” targets are a dictionary with a key “annotation” and subkey “object”. The list of classes is given in <code>data.classes</code>. Expected output :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{<span class="st">'aeroplane'</span>: <span class="dv">470</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a> <span class="st">'bicycle'</span>: <span class="dv">410</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a> <span class="st">'bird'</span>: <span class="dv">592</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a> <span class="st">'boat'</span>: <span class="dv">508</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a> <span class="st">'bottle'</span>: <span class="dv">749</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a> <span class="st">'bus'</span>: <span class="dv">317</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a> <span class="st">'car'</span>: <span class="dv">1191</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a> <span class="st">'cat'</span>: <span class="dv">609</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a> <span class="st">'chair'</span>: <span class="dv">1457</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a> <span class="st">'cow'</span>: <span class="dv">355</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a> <span class="st">'diningtable'</span>: <span class="dv">373</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a> <span class="st">'dog'</span>: <span class="dv">768</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a> <span class="st">'horse'</span>: <span class="dv">377</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a> <span class="st">'motorbike'</span>: <span class="dv">375</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a> <span class="st">'person'</span>: <span class="dv">5019</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a> <span class="st">'pottedplant'</span>: <span class="dv">557</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a> <span class="st">'sheep'</span>: <span class="dv">509</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a> <span class="st">'sofa'</span>: <span class="dv">399</span>,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a> <span class="st">'train'</span>: <span class="dv">327</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a> <span class="st">'tvmonitor'</span>: <span class="dv">412</span>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<!--
+ Validation set 
+ ```{.sourceCode .python}
+ {'aeroplane': 484,
+  'bicycle': 380,
+  'bird': 629,
+  'boat': 491,
+  'bottle': 733,
+  'bus': 320,
+  'car': 1173,
+  'cat': 618,
+  'chair': 1449,
+  'cow': 347,
+  'diningtable': 374,
+  'dog': 773,
+  'horse': 373,
+  'motorbike': 376,
+  'person': 5110,
+  'pottedplant': 542,
+  'sheep': 485,
+  'sofa': 387,
+  'train': 329,
+  'tvmonitor': 414}
+ ```
+-->
+</section>
+<section id="largest-object-detection" class="level2">
+<h2 class="anchored" data-anchor-id="largest-object-detection">Largest object detection</h2>
+<section id="introduction" class="level3">
+<h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
+<p>Before addressing the full problem of detecting multiple objects in an image, we will start a first convenient step which deals with detecting and classifying the largest object in an image. This first step allows to introduce elements for transfer learning as well as the specific <em>classification head</em> and <em>regression head</em>.</p>
+<p>This first step is depicted below.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./single_object_detection.png" class="img-fluid figure-img" style="width:100.0%"></p>
+<figcaption>Single Object detection: classifying and localizing the largest object. <a href="http://draw.io">Draw.io</a> <a href="./object_detection.xml">source</a></figcaption>
+</figure>
+</div>
+</section>
+<section id="preprocessing-the-images" class="level3">
+<h3 class="anchored" data-anchor-id="preprocessing-the-images">Preprocessing the images</h3>
+<p>As we have observed in the beginning of the practical, the images in the dataset are of varying sizes. In order to feed minibatches into our neural networks, we need to resize our images to fixed sizes. The code for resizing the images is already provided to you with two modes <em>shrinking</em> or <em>cropping</em>. The two are illustrated below. For the following we will work exclusively with images shrunk to <span class="math inline">\(224 \times 224\)</span>. Using the code you are provided, <strong>create a script</strong> in which you instantiate the datasets with the different image transforms, take some samples of these datasets, and save them to disk. Hint: if the <em>transform</em> argument of make_trainval_dataset is set to None, the dataset returns PIL images.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./preprocess_images.png" class="img-fluid figure-img" style="width:50.0%"></p>
+<figcaption>Images are resized to fixed size by either shrinking or cropping to 224 x 224 (ImageNet standard)</figcaption>
+</figure>
+</div>
+<p>Shrinking is usually what is done because changing the aspect ratio of objects does not appear experimentally to be dramatic while keeping the whole content of the image. ::: {.callout-note} There are neural network architectures that can deal with varying input sizes but the ones we will consider will make use of fully connected layers which require their input to be of fixed size. :::</p>
+</section>
+<section id="preprocessing-the-targets" class="level3">
+<h3 class="anchored" data-anchor-id="preprocessing-the-targets">Preprocessing the targets</h3>
+<p>As you have seen before, the targets provided by the dataset objects are so far the raw annotations. For supervizing learning to detect the largest object, we need to filter the bounding box and class of the largest objects, and then convert it into pytorch tensors.</p>
+<p>The pipeline for transforming the raw targets into the tensors of the largest object is already coded in <code>data.py</code> but <strong>you still have to write some functions</strong>. The pipeline that is provided extracts and keeps only the classes and bounding boxes of all the objects (filtering out various information we do not need). It further encodes the bounding boxes by its center and width/height and scales these dimensions into [0, 1] independently along the horizontal and vertical axis as shown below.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./bbox_encoding.png" class="img-fluid figure-img" style="width:50.0%"></p>
+<figcaption>The bounding boxes are encoded as center/size and these dimensions are normalized in [0, 1]</figcaption>
+</figure>
+</div>
+<p>The two functions you have to write within <code>data.py</code> are :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> filter_largest(objects: <span class="bu">list</span>): </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    ....</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> target_to_tensor(obj: <span class="bu">dict</span>):</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    ....</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>In order to help you to write these codes, we provide you test codes and their expected output below.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode sourceCocde python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> data</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>objects <span class="op">=</span> [{<span class="st">'bndbox'</span>: {<span class="st">'cx'</span>: <span class="fl">0.524</span>, <span class="st">'cy'</span>: <span class="fl">0.5735294117647058</span>, <span class="st">'width'</span>: <span class="fl">0.836</span>, <span class="st">'height'</span>: <span class="fl">0.753393665158371</span>}, <span class="st">'class'</span>: <span class="dv">5</span>}, </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>           {<span class="st">'bndbox'</span>: {<span class="st">'cx'</span>: <span class="fl">0.447</span>, <span class="st">'cy'</span>: <span class="fl">0.23868778280542988</span>, <span class="st">'width'</span>: <span class="fl">0.262</span>, <span class="st">'height'</span>: <span class="fl">0.27828054298642535</span>}, <span class="st">'class'</span>: <span class="dv">0</span>}]</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>largest_object <span class="op">=</span> data.filter_largest(objects)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(largest_object)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Should output :</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># {'bndbox': {'cx': 0.524, 'cy': 0.5735294117647058, 'width': 0.836, 'height': 0.753393665158371}, 'class': 5}</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>target_tensor <span class="op">=</span> data.target_to_tensor(largest_object)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Should output :</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co"># {'bboxes': tensor([0.5240, 0.5735, 0.8360, 0.7534]), 'labels': tensor([5])}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If this works, you can now proceed on generating the dataset with correctly formatted targets by specifying</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>image_transform_params <span class="op">=</span> {<span class="st">'image_mode'</span>: <span class="st">'shrink'</span>,  </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                          <span class="st">'output_image_size'</span>: {<span class="st">'width'</span>:<span class="dv">224</span>, <span class="st">'height'</span>:<span class="dv">224</span>}}</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>target_transform_params <span class="op">=</span> {<span class="st">'target_mode'</span>: <span class="st">'largest_bbox'</span>, </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                           <span class="st">'image_transform_params'</span>: image_transform_params}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>when you build your datasets.</p>
+</section>
+<section id="extracting-the-features-with-a-pretrained-model" class="level3">
+<h3 class="anchored" data-anchor-id="extracting-the-features-with-a-pretrained-model">Extracting the features with a pretrained model</h3>
+<p>Now we are ready to feed the data within a model ! Great ! How will we proceed ? We will be using a pretrained model, i.e.&nbsp;a model trained on ImageNet for classification, we will cut off the head and replace it by the appropriate head for classifying and regressing the largest object. The interest of using a pretrained model lies in the fact that all the ImageNet data has been used to train that model and, hopefully, the extracted features are sufficiently good for this other task of object detection or at least can provided a reasonably good starting point. In a first approach, we will not further train the pretrained layers so that it makes sense to propagate the datasets through the pretrained layers, save the output features and then separately proceed on training the classification and regression heads. No need to forward propagate through the pretrained layers during training if the pretrained layers are kept fixed ! Do not worry, we will come back to our task soon, for now on, we focus on extracting and saving the features of a pretrained model.</p>
+<p>Torchvision provides several pretrained models in the <a href="https://pytorch.org/docs/stable/torchvision/models.html">torchvision.models</a>. As stated in the documentation, all the pretrained models expect images at least <span class="math inline">\(224 \times 224\)</span>, with channels in <span class="math inline">\([0,1]\)</span> and normalized with <span class="math inline">\(mean=[0.485, 0.456, 0.406]\)</span> and <span class="math inline">\(std = [0.229, 0.224, 0.225]\)</span>.</p>
+<p>This normalization can be provided when you create your training and validation sets as :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>imagenet_preprocessing <span class="op">=</span> transforms.Normalize(mean<span class="op">=</span>[<span class="fl">0.485</span>, <span class="fl">0.456</span>, <span class="fl">0.406</span>],</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>                                              std<span class="op">=</span>[<span class="fl">0.229</span>, <span class="fl">0.224</span>, <span class="fl">0.225</span>]) </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>image_transform <span class="op">=</span> transforms.Compose([transforms.ToTensor(), imagenet_preprocessing]) </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>train_dataset, valid_dataset <span class="op">=</span> data.make_trainval_dataset(</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        dataset_dir             <span class="op">=</span> ..., </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        image_transform_params  <span class="op">=</span> ..., </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        transform               <span class="op">=</span> image_transform, </span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>        target_transform_params <span class="op">=</span> ..., </span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        download                <span class="op">=</span> ...)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Now, we need to construct and load a pretrained model. We will take as example <a href="https://pytorch.org/docs/stable/_modules/torchvision/models/resnet.html">ResNet18</a>. For feature extraction, we consider resnet without the two last layers which are a GlobalAverage and FullyConnected(1000) layers. These are the layers usefull for the classification task in ImageNet. We also remove the GlobalAverage because we will soon need the spatial layout of the feature maps.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> torchvision.models.resnet18(pretrained<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>feature_extractor <span class="op">=</span> nn.Sequential(<span class="op">*</span><span class="bu">list</span>(model.children())[:<span class="op">-</span><span class="dv">2</span>])</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># If working with a CPU </span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>device <span class="op">=</span> torch.device(<span class="st">'cpu'</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># If working with the GPU</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>device <span class="op">=</span> torch.device(<span class="st">'cuda'</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>feature_extractor.to(device)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>You can now set up your datasets, dataloaders and iterate over your training and validation data to extract the features and build up tensors from which we will learn to predict the largest object location and class ! To help you in this work, the script <a href="https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/utils.py">utils.py</a> will be helpful. The function <code>extract_save_features</code> saves a dictionary. Within the context of this section, the dictionnary that is saved will have :</p>
+<ul>
+<li>For the training set :
+<ul>
+<li>the key ‘features’ with torch tensor of shape (5717, 512, 7, 7)</li>
+<li>the key ‘bboxes’ with torch tensor of shape (5717,4)</li>
+<li>the key ‘labels’ with torch tensor of shape (5717)</li>
+</ul></li>
+<li>For the validation set :
+<ul>
+<li>the key ‘features’ with torch tensor of shape (5823, 512, 7, 7)</li>
+<li>the key ‘bboxes’ with torch tensor of shape (5823,4)</li>
+<li>the key ‘labels’ with torch tensor of shape (5823)</li>
+</ul></li>
+</ul>
+<p>The number of features may vary depending on the model you used for feature extraction. In the illustration above, the last feature maps had 512 channels.</p>
+</section>
+<section id="learning-a-classification-and-regression-head-from-pretrained-features" class="level3">
+<h3 class="anchored" data-anchor-id="learning-a-classification-and-regression-head-from-pretrained-features">Learning a classification and regression head from pretrained features</h3>
+<p>We now move on to train our predictor to output the bounding box and class of the largest object taking as input the features we just extracted.</p>
+<p>In case you need it, you can build a dataset from multiple tensors using <a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.TensorDataset">TensorDataset</a></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.utils</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> torch.load(args.train_dataset)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>train_dataset <span class="op">=</span> torch.utils.data.TensorDataset(data[<span class="st">'features'</span>], </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                                               data[<span class="st">'bboxes'</span>], </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                                               data[<span class="st">'labels'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="architecture" class="level4">
+<h4 class="anchored" data-anchor-id="architecture">Architecture</h4>
+<p>You now have to build your network object inheriting from torch.nn.Module. We provide you with a starter code <a href="https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/models.py">models.py</a>. For the bounding box head, remember that your bounding boxes coordinates always lie in <span class="math inline">\([0, 1]\)</span> so you can constrain your output to lie in this range.</p>
+<p>I may suggest :</p>
+<ul>
+<li>a regression head : Dropout(0.5), Linear(<span class="math inline">\(512\times7\times7\)</span>,1024), Relu, BatchNorm(1024), Dropout(0.5), Linear(1024,4), Sigmoid</li>
+<li>a classification head : Linear(<span class="math inline">\(512\times 7\times 7\)</span>, 20)</li>
+</ul>
+<p>With <span class="math inline">\(20\)</span> outputs, you must understand that your model will always try to consider there is an object in your image… but, well, our training set image always contain one of the classes inside it, right ?</p>
+</section>
+<section id="loss" class="level4">
+<h4 class="anchored" data-anchor-id="loss">Loss</h4>
+<p>Now that the architecture is defined, let us consider defining an appropriate loss. Our model is outputing a pair of bounding boxes and logits. We have simultaneously a regression and classification task. We therefore use two losses. Several papers in object detection suggest to use a <a href="https://pytorch.org/docs/stable/nn.html#torch.nn.SmoothL1Loss">SmoothL1Loss</a> for the bounding boxes. For the classification part, we stick to the <a href="https://pytorch.org/docs/stable/nn.html#torch.nn.CrossEntropyLoss">CrossEntropyLoss</a>.</p>
+</section>
+<section id="training" class="level4">
+<h4 class="anchored" data-anchor-id="training">Training</h4>
+<p>You can now stick together :</p>
+<ul>
+<li>your dataloader,</li>
+<li>your model,</li>
+<li>your losses,</li>
+<li>an optimizer,</li>
+<li>ModelCheckpoint</li>
+<li>tensorboard callbacks</li>
+</ul>
+<p>and write your training and testing function. Most of the remaining code is similar to what we did in the previous practical. The only difference comes from the training function where we now have to backpropagate through two losses rather than just one. Hit the button, tweak your optimization/regularization settings and then go on.</p>
+</section>
+</section>
+<section id="testing" class="level3">
+<h3 class="anchored" data-anchor-id="testing">Testing</h3>
+<p>For testing our best model with respect to the validation loss, you can use the following code <a href="https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/test_single.py">test_single.py</a>.</p>
+<p>Below is an example with a resnet-152 as feature extractor, with a raisonnable validation bounding box loss of 0.0098 and validation classification accuracy of 81.57%.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./birds2-predict-one-object.png" class="img-fluid figure-img" style="width:20.0%"></p>
+<figcaption>Testing a single object detector with a resnet-152 feature extractor, when two birds are visible. Source image from <a href="https://www.lpo.fr/actualites/victoire-le-conseil-d-etat-suspend-la-chasse-aux-oies-sauvages">Aurélien Audevard</a></figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./birds2-occlusion-predict-one-object.png" class="img-fluid figure-img" style="width:20.0%"></p>
+<figcaption>Testing a single object detector with a resnet-152 feature extractor, when one of the two birds is occluded. Source image from <a href="https://www.lpo.fr/actualites/victoire-le-conseil-d-etat-suspend-la-chasse-aux-oies-sauvages">Aurélien Audevard</a></figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="multiple-objects-detection" class="level2">
+<h2 class="anchored" data-anchor-id="multiple-objects-detection">Multiple objects detection</h2>
+<section id="introduction-1" class="level3">
+<h3 class="anchored" data-anchor-id="introduction-1">Introduction</h3>
+<p>We now move on to detect multiple objects. In order to do so, we will follow the approach of Yolo and SSD. The pipeline is illustrated below.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./multiple_object_detection.png" class="img-fluid figure-img" style="width:100.0%"></p>
+<figcaption>Multiple Object detection : YoLo like approach</figcaption>
+</figure>
+</div>
+<p>The only difference with multiple object detection is the preprocessing of the targets and the classification/regression head. We first divide the image into a <span class="math inline">\(7 \times 7\)</span> so-called grid cells. Every grid cell is responsible for predicting <strong>at most one object</strong>. It is the responsibility of the <strong>grid cell hosting the center</strong> point of the object to predict it. On the image, the bird is requested to be predicted by the central grid cell.</p>
+</section>
+<section id="preprocessing-the-targets-and-extracting-the-features" class="level3">
+<h3 class="anchored" data-anchor-id="preprocessing-the-targets-and-extracting-the-features">Preprocessing the targets and extracting the features</h3>
+<p>We now consider all the objects annotated on the image. As for single object case, the pipeline is already coded in the <a href="https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/data.py">data.py</a> you already downloaded and filled in the previous part. The interesting function is now</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> targets_to_grid_cell_tensor(objects: <span class="bu">list</span>, num_cells: <span class="bu">int</span>): </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    bboxes  <span class="op">=</span> torch.zeros((<span class="dv">4</span>, num_cells, num_cells),dtype<span class="op">=</span>torch.<span class="bu">float</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    has_obj <span class="op">=</span> torch.zeros((num_cells, num_cells), dtype<span class="op">=</span>torch.uint8)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    labels  <span class="op">=</span> torch.zeros((num_cells, num_cells),dtype<span class="op">=</span>torch.<span class="bu">int</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    ....</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This function is partly coded, you have to finish it. The encoding of the bounding boxes in every cell will be encoded by its center <strong>relative to the current grid cell</strong> and width/height relative to the dimensions of the images. So, the only difference for the encoding is that the center is relative to a grid cell. The encoding of the center of the box is illustrated below. This illustrates the example given in the python code below.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./multi_bbox_encoding.png" class="img-fluid figure-img" style="width:40.0%"></p>
+<figcaption>Encoding of the center of the bounding box is relative to the grid cell hosting the object</figcaption>
+</figure>
+</div>
+<p>In order to help you to write this code, we provide you test codes and their expected output below.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> data <span class="im">as</span> data</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Our objects</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co"># The bounding boxes centers/sizes are relative to the width/height of the image </span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>objects <span class="op">=</span> [{<span class="st">'bndbox'</span>: {<span class="st">'cx'</span>: <span class="fl">0.60</span>, <span class="st">'cy'</span>: <span class="fl">0.65</span>, <span class="st">'width'</span>: <span class="fl">0.84</span>, <span class="st">'height'</span>: <span class="fl">0.75</span>}, <span class="st">'class'</span>: <span class="dv">5</span>},</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>           {<span class="st">'bndbox'</span>: {<span class="st">'cx'</span>: <span class="fl">0.40</span>, <span class="st">'cy'</span>: <span class="fl">0.20</span>, <span class="st">'width'</span>: <span class="fl">0.26</span>, <span class="st">'height'</span>: <span class="fl">0.27</span>}, <span class="st">'class'</span>: <span class="dv">0</span>}]</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> data.targets_to_grid_cell_tensor(objects, <span class="dv">4</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co"># In grid cell tensors, the centers of the bounding boxes are encoded</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co"># relative to the grid cell thats host the object</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"bboxes : </span><span class="sc">{}</span><span class="st">"</span>.<span class="bu">format</span>(output[<span class="st">'bboxes'</span>]))</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"has_obj : </span><span class="sc">{}</span><span class="st">"</span>.<span class="bu">format</span>(output[<span class="st">'has_obj'</span>]))</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"labels : </span><span class="sc">{}</span><span class="st">"</span>.<span class="bu">format</span>(output[<span class="st">'labels'</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>which should output :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>bboxes : tensor([[[<span class="fl">0.0000</span>, <span class="fl">0.6000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.4000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>]],</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>         </span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                 [[<span class="fl">0.0000</span>, <span class="fl">0.8000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.6000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>]],</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>         </span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>                 [[<span class="fl">0.0000</span>, <span class="fl">0.2600</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.8400</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>]],</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>         </span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>                 [[<span class="fl">0.0000</span>, <span class="fl">0.2700</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.7500</span>, <span class="fl">0.0000</span>],</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>                  [<span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>, <span class="fl">0.0000</span>]]])</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>has_obj : tensor([[<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>                  [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>                  [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>],</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>                  [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>]], dtype<span class="op">=</span>torch.uint8)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>labels : tensor([[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>                 [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>                 [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">5</span>, <span class="dv">0</span>],</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>                 [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>]], dtype<span class="op">=</span>torch.int32)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="extracting-the-features-with-a-pretrained-model-1" class="level3">
+<h3 class="anchored" data-anchor-id="extracting-the-features-with-a-pretrained-model-1">Extracting the features with a pretrained model</h3>
+<p>You can now proceed with the almost exact same code that for the single object. The <code>extract_save_features</code> function of <a href="https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/utils.py">utils.py</a> will save a dictionnary with the following keys :</p>
+<ul>
+<li>For the training set :
+<ul>
+<li>the key ‘features’ with torch tensor of shape (5717, 512, 7, 7)</li>
+<li>the key ‘bboxes’ with torch tensor of shape (5717, 4, 7, 7)</li>
+<li>the key ‘has_obj’ with torch tensor of shape (5717, 7, 7)</li>
+<li>the key ‘labels’ with torch tensor of shape (5717, 7, 7)</li>
+</ul></li>
+<li>For the validation set :
+<ul>
+<li>the key ‘features’ with torch tensor of shape (5823, 512, 7, 7)</li>
+<li>the key ‘bboxes’ with torch tensor of shape (5823, 4, 7, 7)</li>
+<li>the key ‘labels’ with torch tensor of shape (5823, 7, 7)</li>
+<li>the key ‘labels’ with torch tensor of shape (5823, 7, 7)</li>
+</ul></li>
+</ul>
+<p>Our target tensors keep their spatial layout. The dimensions (width/height) of the target tensors depend on the number of cells you want.</p>
+</section>
+<section id="learning-a-classification-and-regression-head-from-pretained-features" class="level3">
+<h3 class="anchored" data-anchor-id="learning-a-classification-and-regression-head-from-pretained-features">Learning a classification and regression head from pretained features</h3>
+<section id="architecture-1" class="level4">
+<h4 class="anchored" data-anchor-id="architecture-1">Architecture</h4>
+<p>You now have to build your multi box model inheriting from torch.nn.Module. You can go on filling in the starter code <a href="https://raw.githubusercontent.com/jeremyfix/deeplearning-lectures/master/Labs/01-pytorch-object-detection/models.py">models.py</a>. Remembering all the dimensions of the boundings boxes lie in <span class="math inline">\([0,1]\)</span>, I suggest the following structures :</p>
+<ul>
+<li>a regression head : 2<span class="math inline">\(\times\)</span>[Conv1x1(512), Relu, BatchNorm], Conv1x1(4), Sigmoid</li>
+<li>a classification head : Conv1x1(21)</li>
+</ul>
+<p>We use Conv1x1 networks, i.e.&nbsp;we are sliding a MLP over the spatial feature maps. With this architecture, if your features maps have a spatial layout of <span class="math inline">\(7 \times 7\)</span>, with appropriate zero padding and stride 1, you end with an output <span class="math inline">\((B, 4, 7, 7)\)</span> for the regression head and <span class="math inline">\((B, 21, 7, 7)\)</span> for the classification head. The <span class="math inline">\(21\)</span> numbers of the classification head correspond to the <span class="math inline">\(20\)</span> logits for our classes and an additional number representing the probability the cell hosts an object.</p>
+</section>
+<section id="loss-1" class="level4">
+<h4 class="anchored" data-anchor-id="loss-1">Loss</h4>
+<p>The loss is a multitask loss with a part for the regression and a part for the classification. We want to correctly predict if an object is hosted by a cell and if this is the case, to correctly fit the bounding box and predict the class. Therefore, one possible loss is given below.</p>
+<p><span class="math display">\[
+J = \sum_{i \in cells} 1_i^{obj} (L_{box}(i) + L_{class}(i)) + L_{obj}(i)
+\]</span></p>
+<p>The <span class="math inline">\(1_i^{obj}\)</span> is <span class="math inline">\(1\)</span> if and only if the grid cell <span class="math inline">\(i\)</span> hosts a true object (remember the has_obj tensor) and is <span class="math inline">\(0\)</span> otherwise. When there is an object to predict we want the model to fit the bounding box (e.g.&nbsp;a L1 smooth loss) and the class (e.g.&nbsp;a cross entropy loss). The final term <span class="math inline">\(L_{obj}\)</span> tries to predict the probability that the cell hosts an object (e.g.&nbsp;with a binary cross entropy loss).</p>
+</section>
+</section>
+<section id="training-and-testing" class="level3">
+<h3 class="anchored" data-anchor-id="training-and-testing">Training and Testing</h3>
+<p>You can stick all the components (architecture, loss, checkpoint, monitor callbacks) together and train your network.</p>
+<p>Below is shown an example output of one model where we show the detected objects which have a confidence higher than 0.2.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./multi_object_prediction.png" class="img-fluid figure-img" style="width:25.0%"></p>
+<figcaption>Object detection : Multiple object prediction with a confidence higher than 0.2</figcaption>
+</figure>
+</div>
+<p>As you see, there are several overlapping predictions. This can be eliminated by performing non maximum suppression, as explained in the next sections.</p>
+</section>
+</section>
+<section id="a-possible-solution" class="level2">
+<h2 class="anchored" data-anchor-id="a-possible-solution">A possible solution</h2>
+<p>You will find a possible solution in the <a href="https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/01-pytorch-object-detection">LabsSolutions/01-pytorch-object-detection</a> directory.</p>
+</section>
+<section id="going-further" class="level2">
+<h2 class="anchored" data-anchor-id="going-further">Going further</h2>
+<p>To go on this work, I suggest the following directions :</p>
+<ul>
+<li>cleaning up the predictions with non maximum suppression</li>
+<li>computing the object detector metric of intersection over union (iou)</li>
+<li>constraining bounding box aspect ratios with anchor boxes</li>
+<li>extracting bounding boxes at multiple scales</li>
+<li>experimenting variations on the loss function, in particular using the focal loss</li>
+<li>experimenting with the larger MS Coco detection dataset.</li>
+<li>full fine tuning : we unfreeze the feature extractor and it is allowed to be finetuned.</li>
+<li>dataset augmentation : you need to evaluate the feature extractor during training and pay attention to the adaptation of the bounding boxes</li>
+<li>combining feature detection at multiple scales</li>
+<li>…</li>
+</ul>
+<section id="non-maximum-suppression" class="level3">
+<h3 class="anchored" data-anchor-id="non-maximum-suppression">Non maximum suppression</h3>
+<p>When you test your model for predicting multiple objects, it outputs, locally, several bounding boxes with a pretty high confidence score. We can clean up these predictions with a final step of non maximum suppression. Have a look <a href="https://www.pyimagesearch.com/2014/11/17/non-maximum-suppression-object-detection-python">here</a></p>
+</section>
+<section id="intersection-over-union" class="level3">
+<h3 class="anchored" data-anchor-id="intersection-over-union">Intersection over union</h3>
+<p>Measuring the quality of your bounding box prediction with a L2 or L1 norm is not very handy. Usually, the metric that is used to capture the quality of your bounding box prediction is intersection over union. Have a look <a href="https://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/">here</a></p>
+</section>
+<section id="anchor-boxes" class="level3">
+<h3 class="anchored" data-anchor-id="anchor-boxes">Anchor boxes</h3>
+<p>The multiple object predictor we learned outputs a single bounding box for each grid cell and there is no constrain on the aspect ratio of this bounding box. This is potentially an issue for several reasons. The first is that our object detection might have a hard time fitting bounding boxes of different shapes and the second is that natural objects do not actual span the whole range of bounding box ratio.</p>
+<p>One extension is then 1) to allow every grid cell to output <span class="math inline">\(k\)</span> bounding boxes and 2) to constrain these bounding boxes to have specific aspect ratios.</p>
+</section>
+<section id="extracting-features-at-multiple-scales" class="level3">
+<h3 class="anchored" data-anchor-id="extracting-features-at-multiple-scales">Extracting features at multiple scales</h3>
+<p>If you read the YoLo v3<span class="citation" data-cites="Redmon2018">(<a href="#ref-Redmon2018" role="doc-biblioref">Redmon &amp; Farhadi, 2018</a>)</span>, or SSD paper<span class="citation" data-cites="Liu2015">(<a href="#ref-Liu2015" role="doc-biblioref">Liu et al., 2015</a>)</span>, you will notice that the authors extract bounding boxes at multiple scales taking as input features maps at different depth in the feature extractor convolutional body.</p>
+</section>
+<section id="focal-loss" class="level3">
+<h3 class="anchored" data-anchor-id="focal-loss">Focal loss</h3>
+<p>In the RetinaNet paper <span class="citation" data-cites="Lin2017">(<a href="#ref-Lin2017" role="doc-biblioref">Lin, Goyal, Girshick, He, &amp; Dollár, 2017</a>)</span>, it is suggested that training an object detector is easier using a focal loss which decreases the influence of the correctly predicted targets. In the context of classification, instead of using the cross-entropy loss <span class="math display">\[-\log(p_t)\]</span></p>
+<p>they suggest to use what they call the focal loss :</p>
+<p><span class="math display">\[-(1-p_t)^\gamma \log(p_t)\]</span></p>
+<p>with <span class="math inline">\(\gamma = 5\)</span>. With the focal loss, when an object is correctly classified (i.e.&nbsp;<span class="math inline">\(p_t \approx 1.0\)</span>) its contribution to the total loss is strongly squeezed.</p>
+<p>Note, that, according to Yolo v3<span class="citation" data-cites="Redmon2018">(<a href="#ref-Redmon2018" role="doc-biblioref">Redmon &amp; Farhadi, 2018</a>)</span>, the focal loss is not something that brought improvements.</p>
+</section>
+<section id="larger-dataset-ms-coco" class="level3">
+<h3 class="anchored" data-anchor-id="larger-dataset-ms-coco">Larger dataset : MS COCO</h3>
+<p>You can think about experimenting with a larger dataset, such as <a href="http://cocodataset.org/#download">MS COCO</a>. You need the <a href="https://raw.githubusercontent.comcocodataset/cocoapi/master/PythonAPI">Python coco API</a>, there is also the <a href="https://pytorch.org/docs/stable/torchvision/datasets.html#torchvision.datasets.CocoDetection">torchvision.datasets.CocoDetection</a> and some work to preprocess the provided targets.</p>
+</section>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Huang2016" class="csl-entry" role="listitem">
+Huang, J., Rathod, V., Sun, C., Zhu, M., Korattikara, A., Fathi, A., … Murphy, K. (2016). Speed/accuracy trade-offs for modern convolutional object detectors. <em>CoRR</em>, <em>abs/1611.10012</em>. Retrieved from <a href="http://arxiv.org/abs/1611.10012">http://arxiv.org/abs/1611.10012</a>
+</div>
+<div id="ref-Hui2018" class="csl-entry" role="listitem">
+Hui, J. (2018). <span class="nocase">What do we learn from region based object detectors (Faster R-CNN, R-FCN, FPN)?</span> <a href="https://medium.com/@jonathan_hui/what-do-we-learn-from-single-shot-object-detectors-ssd-yolo-fpn-focal-loss-3888677c5f4d" class="uri">https://medium.com/@jonathan_hui/what-do-we-learn-from-single-shot-object-detectors-ssd-yolo-fpn-focal-loss-3888677c5f4d</a>.
+</div>
+<div id="ref-Lin2017" class="csl-entry" role="listitem">
+Lin, T.-Y., Goyal, P., Girshick, R. B., He, K., &amp; Dollár, P. (2017). Focal loss for dense object detection. <em>CoRR</em>, <em>abs/1708.02002</em>. Retrieved from <a href="http://arxiv.org/abs/1708.02002">http://arxiv.org/abs/1708.02002</a>
+</div>
+<div id="ref-Liu2015" class="csl-entry" role="listitem">
+Liu, W., Anguelov, D., Erhan, D., Szegedy, C., Reed, S. E., Fu, C.-Y., &amp; Berg, A. C. (2015). <span>SSD:</span> Single shot MultiBox detector. <em>CoRR</em>, <em>abs/1512.02325</em>. Retrieved from <a href="http://arxiv.org/abs/1512.02325">http://arxiv.org/abs/1512.02325</a>
+</div>
+<div id="ref-Redmon2018" class="csl-entry" role="listitem">
+Redmon, J., &amp; Farhadi, A. (2018). YOLOv3: An incremental improvement. <em>CoRR</em>, <em>abs/1804.02767</em>. Retrieved from <a href="http://arxiv.org/abs/1804.02767">http://arxiv.org/abs/1804.02767</a>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jeremyfix\.github\.io\/deeplearning-lectures\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

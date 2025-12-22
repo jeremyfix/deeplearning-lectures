@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeremy Fix">
-<meta name="keywords" content="Deep learning, practicals">
+<meta name="keywords" content="argparse">
 
-<title>Home – Deep Learning Lectures</title>
+<title>Parametrizing a script with argparse – Deep Learning Lectures</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,6 +21,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -175,7 +210,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Getting Started</a></li><li class="breadcrumb-item"><a href="./index.html">Home</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./argparse.html">Resources</a></li><li class="breadcrumb-item"><a href="./argparse.html">Parametrizing a script with argparse</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -198,7 +233,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Home</span></a>
   </div>
 </li>
@@ -279,7 +314,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./argparse.html" class="sidebar-item-text sidebar-link">
+  <a href="./argparse.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Parametrizing a script with argparse</span></a>
   </div>
 </li>
@@ -290,45 +325,28 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#additional-ressources" id="toc-additional-ressources" class="nav-link active" data-scroll-target="#additional-ressources">Additional ressources</a>
-  <ul class="collapse">
-  <li><a href="#practicalslectures" id="toc-practicalslectures" class="nav-link" data-scroll-target="#practicalslectures">Practicals/Lectures</a></li>
-  <li><a href="#blog-posts" id="toc-blog-posts" class="nav-link" data-scroll-target="#blog-posts">Blog posts</a></li>
-  </ul></li>
-  </ul>
-</nav>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Getting Started</a></li><li class="breadcrumb-item"><a href="./index.html">Home</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./argparse.html">Resources</a></li><li class="breadcrumb-item"><a href="./argparse.html">Parametrizing a script with argparse</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">Home</h1>
+<h1 class="title">Parametrizing a script with argparse</h1>
 </div>
 
 
-<div class="quarto-title-meta-author">
-  <div class="quarto-title-meta-heading">Author</div>
-  <div class="quarto-title-meta-heading">Affiliation</div>
-  
-    <div class="quarto-title-meta-contents">
-    <p class="author">Jeremy Fix </p>
-  </div>
-  <div class="quarto-title-meta-contents">
-        <p class="affiliation">
-            CentraleSupelec
-          </p>
-      </div>
-  </div>
 
 <div class="quarto-title-meta">
 
-      
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jeremy Fix </p>
+          </div>
+  </div>
+    
   
     
   </div>
@@ -337,39 +355,85 @@ ul.task-list li input[type="checkbox"] {
 <div>
   <div class="keywords">
     <div class="block-title">Keywords</div>
-    <p>Deep learning, practicals</p>
+    <p>argparse</p>
   </div>
 </div>
 
 </header>
 
 
-<p><strong>Forewords</strong> These pages are written in markdown format and generated with <a href="https://quarto.org">quarto</a>. The generation is performed using the github workflows. Thank you all for these very helpful tools.</p>
-<p>These pages contain the subjects and codes for the labs in the deep learning lectures 3MD4040 taking place at CentraleSupélec. Most the work is done in pytorch although you will find one lab using Keras.</p>
-<section id="additional-ressources" class="level2">
-<h2 class="anchored" data-anchor-id="additional-ressources">Additional ressources</h2>
-<section id="practicalslectures" class="level3">
-<h3 class="anchored" data-anchor-id="practicalslectures">Practicals/Lectures</h3>
-<ul>
-<li><a href="http://www.robots.ox.ac.uk/~vgg/practicals/cnn/">Oxford’s CNN practicals</a></li>
-<li><a href="https://www.cs.ox.ac.uk/people/nando.defreitas/machinelearning/">Nando de Freitas lectures and practicals</a></li>
-<li><a href="http://cs231n.github.io/%3E">Stanford A. Karpathy practicals</a></li>
-<li><a href="https://github.com/m2dsupsdlclass/lectures-labs%3E">Master Data Science Paris Saclay</a></li>
-<li><a href="https://www.fast.ai/">Fast.ai, J. Howard</a></li>
-</ul>
-</section>
-<section id="blog-posts" class="level3">
-<h3 class="anchored" data-anchor-id="blog-posts">Blog posts</h3>
-<ul>
-<li><a href="http://ruder.io/optimizing-gradient-descent/">An overview of gradient descent algorithms</a></li>
-<li><a href="http://suriyadeepan.github.io/2016-12-31-practical-seq2seq/">Revisiting sequence to sequence learning, with focus on implementation details</a></li>
-<li><a href="http://karpathy.github.io/2015/05/21/rnn-effectiveness/">The unreasonnable effectivness of recurrent neural networks</a></li>
-<li><a href="https://stats385.github.io/">Theories of Deep learning</a></li>
-</ul>
+<p>When you want to test a family of architectures, to be understood in a large sense, covering both the model, its initialization, the loss, optimization function, possibly preprocessing steps, …, it is certainly easier to write a single script that can take optional command line arguments to parameterize it.</p>
+<p>The <a href="https://docs.python.org/3/library/argparse.html#module-argparse">argparse</a> python module is particularly well suited for defining a parameterized script. A basic usage of argparse is to build an <a href="https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser">ArgumentParser</a> object and to add arguments to it. Arguments can be optional or mandatory, of type int, string, bool (a flag), etc..</p>
+<p>The code below is an example of python script with some elements on how to use it.</p>
+<div id="c5a73bfd" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> argparse</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>parser <span class="op">=</span> argparse.ArgumentParser()</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Argument definition</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>parser.add_argument(</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">'--normalize'</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    choices<span class="op">=</span>[<span class="st">'None'</span>, <span class="st">'minmax'</span>, <span class="st">'std'</span>],</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    default<span class="op">=</span><span class="st">'None'</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">help</span><span class="op">=</span><span class="st">'Which normalization to apply to the input data'</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    action<span class="op">=</span><span class="st">'store'</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>parser.add_argument(</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">'--logdir'</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">type</span><span class="op">=</span><span class="bu">str</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    default<span class="op">=</span><span class="st">"./logs"</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">help</span><span class="op">=</span><span class="st">'The directory in which to store the logs'</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>parser.add_argument(</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">'--h1'</span>,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">type</span><span class="op">=</span><span class="bu">int</span>,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    required<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    <span class="bu">help</span><span class="op">=</span><span class="st">'The size of the hidden layer'</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>group_reg <span class="op">=</span> parser.add_mutually_exclusive_group()</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>group_reg.add_argument(</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">'--L2'</span>,</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="bu">type</span><span class="op">=</span><span class="bu">float</span>,</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="bu">help</span><span class="op">=</span><span class="st">'Activate L2 regularization with the provided penalty'</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>group_reg.add_argument(</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">'--dropout'</span>,</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="bu">type</span><span class="op">=</span><span class="bu">float</span>,</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="bu">help</span><span class="op">=</span><span class="st">'Activate Dropout with the specified rate'</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Actual parsing</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>args <span class="op">=</span> parser.parse_args()</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(args)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>And now some usage examples:</p>
+<pre class="console"><code>
+mymachine:~:mylogin$ python3 argpase_ex.py -h
+usage: argpase_ex.py [-h] [--normalize {None,minmax,std}] [--logdir LOGDIR]
+                          --h1 H1 [--L2 L2 | --dropout DROPOUT]
+
+optional arguments:
+-h, --help            show this help message and exit
+--normalize {None,minmax,std}
+                      Which normalization to apply to the input data
+--logdir LOGDIR       The directory in which to store the logs
+--h1 H1               The size of the hidden layer
+--L2 L2               Activate L2 regularization with the provided penalty
+--dropout DROPOUT     Activate Dropout with the specified rate
+
+mymachine:~:mylogin$ python3 argpase_ex.py
+usage: argpase_ex.py [-h] [--normalize {None,minmax,std}] [--logdir LOGDIR]
+                      --h1 H1 [--L2 L2 | --dropout DROPOUT]     
+argpase_ex.py: error: the following arguments are required: --h1
+
+mymachine:~:mylogin$ python3 argpase_ex.py --h1 10
+Namespace(L2=None, dropout=None, h1=10, logdir='./logs', normalize='None')
+
+mymachine:~:mylogin$ python3 argpase_ex.py --h1 10 --dropout 0.5 --normalize std
+Namespace(L2=None, dropout=0.5, h1=10, logdir='./logs', normalize='std')</code></pre>
 
 
-</section>
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

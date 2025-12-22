@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jeremy Fix">
+<meta name="keywords" content="Keras tutorial, MNIST">
+
+<title>First steps in Keras: classifying handwritten digits(MNIST) – Deep Learning Lectures</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-0b802d246790ecd80511443f8ae76f95.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Deep Learning Lectures</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pytorch" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pytorch</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pytorch">    
+        <li>
+    <a class="dropdown-item" href="../pytorch/fashionMNIST/index.html">
+ <span class="dropdown-text">PyTorch FashionMNIST</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../pytorch/object-detection/index.html">
+ <span class="dropdown-text">PyTorch Object Detection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../pytorch/segmentation/index.html">
+ <span class="dropdown-text">Semantic segmenation on Stanford-2D-3D S</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../pytorch/asr/index.html">
+ <span class="dropdown-text">Automatic Speech Recognition on Mozilla Common Voice</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../pytorch/gan/index.html">
+ <span class="dropdown-text">Deep Convolutional Generative Adversarial Networks</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-keras" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Keras</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-keras">    
+        <li>
+    <a class="dropdown-item" href="../keras/mnist.html">
+ <span class="dropdown-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../keras/cifar.html">
+ <span class="dropdown-text">Keras CIFAR</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-resources" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Resources</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-resources">    
+        <li>
+    <a class="dropdown-item" href="../argparse.html">
+ <span class="dropdown-text">Argparse</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://www.github.com/jeremyfix/deeplearning-lectures">
+            Source Code
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/jeremyfix/deeplearning-lectures/issues/new/choose">
+            Report a bug
+            </a>
+          </li>
+      </ul>
+    </div>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../keras/mnist.html">Keras</a></li><li class="breadcrumb-item"><a href="../keras/mnist.html">First steps in Keras: classifying handwritten digits(MNIST)</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Getting Started</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Pytorch</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../pytorch/fashionMNIST/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">First steps in PyTorch : classifying fashion objects (FashionMNIST)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../pytorch/object-detection/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Transfer learning and Object detection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../pytorch/segmentation/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Semantic segmenation on Stanford-2D-3D S</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../pytorch/asr/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Automatic Speech Recognition on Mozilla Common Voice</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../pytorch/gan/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Deep Convolutional Generative Adversarial Networks (DCGAN)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Keras</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../keras/mnist.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../keras/cifar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A more ambitious image classification dataset : CIFAR-100</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Resources</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../argparse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parametrizing a script with argparse</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#objectives" id="toc-objectives" class="nav-link active" data-scroll-target="#objectives">Objectives</a></li>
+  <li><a href="#having-a-running-python-interpreter-with-the-required-modules" id="toc-having-a-running-python-interpreter-with-the-required-modules" class="nav-link" data-scroll-target="#having-a-running-python-interpreter-with-the-required-modules">Having a running python interpreter with the required modules</a></li>
+  <li><a href="#a-linear-classifier" id="toc-a-linear-classifier" class="nav-link" data-scroll-target="#a-linear-classifier">A Linear classifier</a>
+  <ul class="collapse">
+  <li><a href="#loading-and-basic-preprocessing-the-dataset" id="toc-loading-and-basic-preprocessing-the-dataset" class="nav-link" data-scroll-target="#loading-and-basic-preprocessing-the-dataset">Loading and basic preprocessing the dataset</a></li>
+  <li><a href="#building-the-network" id="toc-building-the-network" class="nav-link" data-scroll-target="#building-the-network">Building the network</a></li>
+  <li><a href="#compiling-and-training" id="toc-compiling-and-training" class="nav-link" data-scroll-target="#compiling-and-training">Compiling and training</a></li>
+  <li><a href="#callbacks-for-saving-the-best-model-and-monitoring-the-training" id="toc-callbacks-for-saving-the-best-model-and-monitoring-the-training" class="nav-link" data-scroll-target="#callbacks-for-saving-the-best-model-and-monitoring-the-training">Callbacks for saving the best model and monitoring the training</a></li>
+  <li><a href="#loading-a-model" id="toc-loading-a-model" class="nav-link" data-scroll-target="#loading-a-model">Loading a model</a></li>
+  <li><a href="#normalizing-the-input" id="toc-normalizing-the-input" class="nav-link" data-scroll-target="#normalizing-the-input">Normalizing the input</a></li>
+  </ul></li>
+  <li><a href="#a-fully-connected-2-hidden-layers-classifier" id="toc-a-fully-connected-2-hidden-layers-classifier" class="nav-link" data-scroll-target="#a-fully-connected-2-hidden-layers-classifier">A Fully connected 2 hidden layers classifier</a>
+  <ul class="collapse">
+  <li><a href="#basics" id="toc-basics" class="nav-link" data-scroll-target="#basics">Basics</a></li>
+  <li><a href="#regularization" id="toc-regularization" class="nav-link" data-scroll-target="#regularization">Regularization</a></li>
+  </ul></li>
+  <li><a href="#a-vanilla-convolutional-neural-network" id="toc-a-vanilla-convolutional-neural-network" class="nav-link" data-scroll-target="#a-vanilla-convolutional-neural-network">A vanilla convolutional neural network</a></li>
+  <li><a href="#small-kernels-no-fully-connected-layers-dataset-augmentation-model-averaging" id="toc-small-kernels-no-fully-connected-layers-dataset-augmentation-model-averaging" class="nav-link" data-scroll-target="#small-kernels-no-fully-connected-layers-dataset-augmentation-model-averaging">Small kernels, no fully connected layers, Dataset Augmentation, Model averaging</a>
+  <ul class="collapse">
+  <li><a href="#architecture" id="toc-architecture" class="nav-link" data-scroll-target="#architecture">Architecture</a></li>
+  <li><a href="#parametrizing-your-experiments" id="toc-parametrizing-your-experiments" class="nav-link" data-scroll-target="#parametrizing-your-experiments">Parametrizing your experiments</a></li>
+  <li><a href="#dataset-augmentation-and-model-averaging" id="toc-dataset-augmentation-and-model-averaging" class="nav-link" data-scroll-target="#dataset-augmentation-and-model-averaging">Dataset Augmentation and model averaging</a></li>
+  </ul></li>
+  <li><a href="#a-possible-solution" id="toc-a-possible-solution" class="nav-link" data-scroll-target="#a-possible-solution">A possible solution</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../keras/mnist.html">Keras</a></li><li class="breadcrumb-item"><a href="../keras/mnist.html">First steps in Keras: classifying handwritten digits(MNIST)</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">First steps in Keras: classifying handwritten digits(MNIST)</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jeremy Fix </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Keywords</div>
+    <p>Keras tutorial, MNIST</p>
+  </div>
+</div>
+
+</header>
+
+
+<section id="objectives" class="level2">
+<h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
+<p>In this practical, we will make our first steps with Keras and train our first models for classifying the handwritten digits of the MNIST dataset. It should be noted that this dataset is no more considered as a challenging problem but for an introduction with Keras and the first trained architectures, it does the job.</p>
+<p>We will use Keras which was once a layer above multiple deep learning frameworks (theano, tensorflow, CNTK) but which has then be embedded within tensorflow since its 2.0 release. Keras is designed to be a general purpose easy to use framework. If you want to play with standard models, it is really quick and easy to do it with Keras but if you target implementing custom architectures, you should consider lower level frameworks such as tensorflow or pytorch.</p>
+<p>The models you will train are :</p>
+<ul>
+<li>a linear classifier</li>
+<li>a fully connected neural network with two hidden layers</li>
+<li>a vanilla convolutional neural network (i.e.&nbsp;a LeNet like convnet)</li>
+<li>some fancier architectures (e.g.&nbsp;ConvNets without fully connected layers)</li>
+</ul>
+<p>The point here is to introduce the various syntactic elements of Keras to:</p>
+<ul>
+<li>load the datasets,</li>
+<li>define the architecture, loss, optimizer,</li>
+<li>save/load a model and evaluate its performances</li>
+<li>monitor the training progress by interfacing with tensorboard</li>
+</ul>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>VERY VERY Important</strong>: Below, we see together step by step how to set up our training script. While reading the following lines you will progressively fill in python script. We also see the modules to be imported only when these are required for the presentation. But obviously, it is clearer to put these imports at the beginning of your scripts. So the following python codes <strong>should not be strictly copy-pasted</strong> on the fly.</p>
+</div>
+</div>
+</section>
+<section id="having-a-running-python-interpreter-with-the-required-modules" class="level2">
+<h2 class="anchored" data-anchor-id="having-a-running-python-interpreter-with-the-required-modules">Having a running python interpreter with the required modules</h2>
+<p>For making the labs, I propose the following way to work :</p>
+<ul>
+<li>for the CentraleSupelec students, you can edit your code on the labs machines, and run it directly on the GPUs. Your home directory is a network home so that any modifications you do locally are seen from the GPUs,</li>
+<li>for SM20 lifelong trainees, you can edit and run your code within the jupyter lab</li>
+<li>for masters students (AVR, PSA), you can edit and run your code within the jupyter lab or, for experienced users, edit your code with VIM within a ssh session, a within the VNC client</li>
+</ul>
+<p>To connect to the GPUs, use one of the procedures described in <a href="cluster.html">Using the CentraleSupelec GPUs</a>.</p>
+<p>You should now have at your disposal a python interpreter with the installed package, i.e.&nbsp;the following should work successfully :</p>
+<pre class="console"><code>sh11:~:mylogin$ python3 -c "from tensorflow import keras" </code></pre>
+<p>If the above fails, stop here and ask me, I’ll be glad to help you.</p>
+</section>
+<section id="a-linear-classifier" class="level2">
+<h2 class="anchored" data-anchor-id="a-linear-classifier">A Linear classifier</h2>
+<p>Before training deep neural networks, it is good to get an idea of the performances of a simple linear classifier. So we will define and train a linear classifier and see together how this is written in Python/Keras.</p>
+<p>While reading the following lines, edit a file named <strong>train_mnist_linear.py</strong> that you will fill.</p>
+<section id="loading-and-basic-preprocessing-the-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="loading-and-basic-preprocessing-the-dataset">Loading and basic preprocessing the dataset</h3>
+<p>The first step is to load the dataset as numpy arrays. Functions are already provided by Keras to <a href="https://www.tensorflow.org/api_docs/python/tf/keras/datasets/">import some datasets</a>. The MNIST dataset is made of gray scale images, of size 28 \times 28, with values in the range [0; 255]. The training set consists in 60000 images and the test set consists in 10000 images. Every image represents an handwritten digit in [0, 9]. Below, we show the 10 first samples of the training set.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="data/00-keras-mnist/mnist_samples.png" class="bordered img-fluid figure-img"></p>
+<figcaption>Few samples of the MNIST dataset</figcaption>
+</figure>
+</div>
+<p>To import the MNIST dataset in Keras, you can do the following:</p>
+<div id="60c45f43" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.datasets <span class="im">import</span> mnist</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.utils <span class="im">import</span> to_categorical</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>(X_train, y_train), (X_test, y_test) <span class="op">=</span> mnist.load_data()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>X_train and y_train are numpy arrays of respective shape (60000, 28, 28) and (60000,). X_test and y_test are numpy arrays of respective shape (10000, 28, 28) and (10000, ). X_train and X_test contain the images and y_train and y_test contain the labels. For a linear classifier (or in fact Dense Layers as well as we shall see in a moment and this is different from convolutional layers we will see later on) expect to get vectors in their input and not images, i.e. 1-dimensional and not 2-dimensional objects. So we need to reshape the loaded numpy arrays</p>
+<div id="85fd1976" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>num_train  <span class="op">=</span> X_train.shape[<span class="dv">0</span>]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>num_test   <span class="op">=</span> X_test.shape[<span class="dv">0</span>]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>img_height <span class="op">=</span> X_train.shape[<span class="dv">1</span>]</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>img_width  <span class="op">=</span> X_train.shape[<span class="dv">2</span>]</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>X_train <span class="op">=</span> X_train.reshape((num_train, img_width <span class="op">*</span> img_height))</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>X_test  <span class="op">=</span> X_test.reshape((num_test, img_width <span class="op">*</span> img_height))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now, the shape of X_train and X_test are (60000, 784) and (10000, 784) respectively.</p>
+<p>The networks we are going to train output, for each input image, a probability distribution over the labels. We therefore need to convert the labels into their one-hot encoding. Keras provides the to_categorical function to do that.</p>
+<div id="cc151918" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>y_train <span class="op">=</span> to_categorical(y_train, num_classes<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>y_test <span class="op">=</span> to_categorical(y_test, num_classes<span class="op">=</span><span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now, the shape of y_train and y_test is (60000, 10) and (10000, 10) respectively and the first 10 entries of y_train are:</p>
+<div id="a673b4f8" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">1.</span>]</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Does these values make sense to you ? What is the label of the fourth sample ? Can you plot the corresponding input to check that the label is correct ?</p>
+<p>For now, this is all we do for loading the dataset. Preprocessing the input actually influences the performances of the training but we come back to this later when normalizing the input.</p>
+</section>
+<section id="building-the-network" class="level3">
+<h3 class="anchored" data-anchor-id="building-the-network">Building the network</h3>
+<p>We consider a linear classifier, i.e.&nbsp;we perform logistic regression. As a reminder, in logistic regression, given an input image <span class="math inline">\(x_i \in \mathbb{R}^{28\times 28}\)</span>, we compute scores for each class as <span class="math inline">\(w_k^T x_i\)</span> (in this notation, the input is supposed to be extended with a constant dimension equal to 1 to take into account the bias), that we pass through the softmax transfer function to get probabilities over the classes :</p>
+<p><span class="math display">\[P(y=k / x_i) = \frac{e^{w_k^T x_i}}{\sum_{j=0}^{9} e^{w_j^T x_i}}\]</span></p>
+<p>To define this <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Model/">model</a> with Keras, we need an <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Input">Input layer</a>, a <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dense">Dense layer</a> and an <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Activation">Activation layer</a></p>
+<blockquote class="blockquote">
+<p><strong>Note</strong></p>
+<p>In keras, a model can be specified with the <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Sequential">Sequential</a> or <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Model/">Functional</a> API. We here make use of the functional API which is more flexible than the Sequential API. Also, while one could incorporate the activation within the dense layers, we will be using linear dense layers so that we can visualize what is going on after each operation.</p>
+</blockquote>
+<p>In Python, this can be written as :</p>
+<div id="6accd4ef" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras <span class="im">import</span> Input</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> Dense, Activation</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.models <span class="im">import</span> Model</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>num_classes <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>xi      <span class="op">=</span> Input(shape<span class="op">=</span>(img_height<span class="op">*</span>img_width,))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>xo      <span class="op">=</span> Dense(num_classes)(xi)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>yo      <span class="op">=</span> Activation(<span class="st">'softmax'</span>)(xo)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>model   <span class="op">=</span> Model(inputs<span class="op">=</span>[xi], outputs<span class="op">=</span>[yo])</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>model.summary()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>In the input layer, we just specify the dimension of a single sample, here 784 pixels per image. The dense layer has num_classes=10 units. The output of the dense layer feeds the softmax transfer function. By default, in Keras, a dense layer is linear and has the bias so that we do not need to extend the input to include the constant dimension. Therefore the outputs of yo are all in the range [0, 1] and sum up to 1. Finally, we define our model specifying the input and output layers. The call to model.summary() will display a summary of the architecture in the terminal.</p>
+</section>
+<section id="compiling-and-training" class="level3">
+<h3 class="anchored" data-anchor-id="compiling-and-training">Compiling and training</h3>
+<p>The next step is, in the terminology of Keras, to <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile">compile</a> the model by providing the loss function to be minimized, the optimizer and the metrics to monitor. For this classification problem, an appropriate loss is the crossentropy loss. In Keras, among all the <a href="https://www.tensorflow.org/api_docs/python/tf/keras/losses">Losses</a>, we will use the <strong>categorical_crossentropy</strong> loss. For the optimizer, several <a href="https://www.tensorflow.org/api_docs/python/tf/keras/optimizers">Optimizers</a> are available and we will use <strong>adam</strong>. For the metrics, you can use some <a href="https://www.tensorflow.org/api_docs/python/tf/keras/metrics">predefined metrics</a> or define your own. Here, we will use the <strong>accuracy</strong> which makes sense because the dataset is balanced.</p>
+<p>In Python, this can be written as</p>
+<div id="49d2834a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model.<span class="bu">compile</span>(loss<span class="op">=</span><span class="st">'categorical_crossentropy'</span>, </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>              optimizer<span class="op">=</span><span class="st">'adam'</span>,  </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>              metrics<span class="op">=</span>[<span class="st">'accuracy'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<blockquote class="blockquote">
+<p><strong>Note</strong></p>
+<p>Metrics, losses and optimizers can be specified in two ways in the call of the compile function. It can be either specified by a string or by passing a function for the loss, a list of functions for the metrics and an Optimizer object for the optimizer.</p>
+</blockquote>
+<p>We are now ready for training our linear classifier, by calling the <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Model#fit">fit function</a>.</p>
+<div id="1a6e649d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>          batch_size<span class="op">=</span><span class="dv">128</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>          epochs<span class="op">=</span><span class="dv">20</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>          verbose<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>          validation_split<span class="op">=</span><span class="fl">0.1</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>score <span class="op">=</span> model.evaluate(X_test, y_test, verbose<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Test loss:'</span>, score[<span class="dv">0</span>])</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Test accuracy:'</span>, score[<span class="dv">1</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We here used <span class="math inline">\(10 \%\)</span> of the training set for validation purpose. This is based on the validation loss that we should select our best model (why should we do it on the validation loss rather than the validation accuracy?). At the end, we evaluate the performances on the test set.</p>
+<p>You are now ready for executing your first training. You need first to log on a GPU node as described in section <a href="cluster.html">Using the GPU cluster of CentraleSupelec</a>.</p>
+<pre class="console"><code># First you log to the cluster
+---
+# And then :
+python3 train_mnist_linear.py</code></pre>
+<p>This is your first trained classifier with Keras. Depending on how lucky you are, you may reach a Test accuracy of something between <span class="math inline">\(50\%\)</span> and <span class="math inline">\(85\%\)</span> . If you repeat the experiment, you should end up with various accuracy; The training does not appear to be very consistent.</p>
+</section>
+<section id="callbacks-for-saving-the-best-model-and-monitoring-the-training" class="level3">
+<h3 class="anchored" data-anchor-id="callbacks-for-saving-the-best-model-and-monitoring-the-training">Callbacks for saving the best model and monitoring the training</h3>
+<p>So far, we just get some information within the terminal but Keras allows you to define <a href="https://www.tensorflow.org/api_docs/python/tf/keras/callbacks">Callbacks</a>. We will define two callbacks :</p>
+<ul>
+<li>a <a href="https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/TensorBoard">TensorBoard</a> callback which allows to monitor the training progress with tensorboard</li>
+<li>a <a href="https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ModelCheckpoint">ModelCheckpoint</a> callback which saves the best model with respect to a provided metric</li>
+</ul>
+<p>For both these callbacks, we need to specify a path to which data will be logged. I propose you the following utility function which generates a unique path:</p>
+<div id="1942654a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate_unique_logpath(logdir, raw_run_name):</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    i <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span>(<span class="va">True</span>):</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        run_name <span class="op">=</span> raw_run_name <span class="op">+</span> <span class="st">"-"</span> <span class="op">+</span> <span class="bu">str</span>(i)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        log_path <span class="op">=</span> os.path.join(logdir, run_name)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> os.path.isdir(log_path):</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> log_path</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        i <span class="op">=</span> i <span class="op">+</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Note that this function will create a unique directory for storing all the things to need to store for one experiment. We will store there the history of the metrics during training, the best model we found, etc…</p>
+<p>For defining a TensorBoard callback, you need to add its import, instantiate it by specifying a directory in which the callback will log the progress and then modify the call to fit to specify the callback.</p>
+<div id="0532deb0" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.callbacks <span class="im">import</span> TensorBoard</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>run_name <span class="op">=</span> <span class="st">"linear"</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>logpath <span class="op">=</span> generate_unique_logpath(<span class="st">"./logs_linear"</span>, run_name)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>tbcb <span class="op">=</span> TensorBoard(log_dir<span class="op">=</span>logpath)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>          batch_size<span class="op">=</span><span class="dv">128</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>      epochs<span class="op">=</span><span class="dv">20</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>      verbose<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      validation_split<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      callbacks<span class="op">=</span>[tbcb])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Once this is done, you have to start tensorboard on the GPU.</p>
+<pre class="console"><code>[In one terminal on the GPU]
+sh11:~:mylogin$ tensorboard --logdir ./logs_linear
+Starting TensorBoard b'47' at http://0.0.0.0:6006
+(Press CTRL+C to quit)</code></pre>
+<p>And then start a browser and log to <a href="http://localhost:6006" class="uri">http://localhost:6006</a> . Once this is done, you will be able to monitor your metrics in the browser while the training are running.</p>
+<p>The second callback we define is a ModelCheckpoint callback which will save the best model based on a provided metric, e.g.&nbsp;the validation loss.</p>
+<div id="3fe234cb" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.callbacks <span class="im">import</span> ModelCheckpoint</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>run_name <span class="op">=</span> <span class="st">"linear"</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>logpath <span class="op">=</span> generate_unique_logpath(<span class="st">"./logs_linear"</span>, run_name)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>checkpoint_filepath <span class="op">=</span> os.path.join(logpath,  <span class="st">"best_model.h5"</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>checkpoint_cb <span class="op">=</span> ModelCheckpoint(checkpoint_filepath, save_best_only<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>          batch_size<span class="op">=</span><span class="dv">128</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      epochs<span class="op">=</span><span class="dv">20</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>      verbose<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>      validation_split<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>      callbacks<span class="op">=</span>[tbcb, checkpoint_cb])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>You can now run several experiments, monitor them and get a copy of the best models. A handy bash command to run several experiments is given below :</p>
+<pre class="console"><code>for iter in $(seq 1 10); do \
+echo "&gt;&gt;&gt;&gt; Run $iter" &amp;&amp; python3 train_mnist_linear.py ; done;</code></pre>
+<blockquote class="blockquote">
+<p><strong>Logistic regression without normalization of the input</strong></p>
+<p>Two metrics are displayed for several runs; on the left the training accuracy and on the right the validation accuracy</p>
+<p><img src="./data/00-keras-mnist/linear_None_acc.png" class="img-fluid" style="width:45.0%" alt="Logistic regression without normalization"> <img src="./data/00-keras-mnist/linear_None_val_acc.png" class="img-fluid" style="width:45.0%" alt="Logistic regression without Normalization"></p>
+</blockquote>
+<p>You should reach a validation and test accuracy between <span class="math inline">\(55\%\)</span> and <span class="math inline">\(85\%\)</span>. The curves above seem to suggest that there might be several local minima…but do not be misleaded, the optimization problem is convex so the results above are just indications that we are not solving our optimization problem the right way. Actually, with recent versions of Keras, it does not appear to be the case anymore.</p>
+</section>
+<section id="loading-a-model" class="level3">
+<h3 class="anchored" data-anchor-id="loading-a-model">Loading a model</h3>
+<p>In the previous paragraph, we regularly saved the best model (with the ModelCheckpoint callback) with respect to the validation loss. You may want to load this best model, for example for estimating its test set performance at the end of your training script.</p>
+<p>At the time of writing this practical, there is <a href="https://github.com/fchollet/keras/issues/4044">an issue in the “h5” file saved by Keras</a> and some of its elements must be removed in order to be able to reload the model :</p>
+<div id="4b407b67" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.models <span class="im">import</span> load_model</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(checkpoint_filepath, <span class="st">'a'</span>) <span class="im">as</span> f:</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="st">'optimizer_weights'</span> <span class="kw">in</span> f.keys():</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">del</span> f[<span class="st">'optimizer_weights'</span>]</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> load_model(checkpoint_filepath)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>score <span class="op">=</span> model.evaluate(X_test, y_test, verbose<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Test loss:'</span>, score[<span class="dv">0</span>])</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Test accuracy:'</span>, score[<span class="dv">1</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="normalizing-the-input" class="level3">
+<h3 class="anchored" data-anchor-id="normalizing-the-input">Normalizing the input</h3>
+<p>So far, we used the raw data, i.e.&nbsp;images with pixels in the range [0, 255]. It is usually a good idea to normalize the input because it allows to make training faster (because the loss becomes more circular symmetric), allows to use a consistent learning rate for all the parameters in the architecture and finally allows to use the same regularization coefficient for every parameter.</p>
+<p>There are various ways to normalize the data and various ways to translate it into Keras. The point of normalization is to equalize the relative importance of the dimensions of the input. One normalization is <strong>min-max scaling</strong> just scaling the input by a constant factor, e.g. given an image I, you feed the network with <span class="math inline">\(\frac{I}{255.} - 0.5\)</span>. Another normalization is standardization. Here, you compute the mean of the <strong>training vectors</strong> and their variance and normalize every input vector (even the test set) with these data. Given a set of training images <span class="math inline">\(X_i \in \mathbb{R}^{784}, i \in [0, N-1]\)</span>, and a vector <span class="math inline">\(X \in \mathbb{R}^{784}\)</span> you feed the network with <span class="math inline">\(\hat{X} \in \mathbb{R}^{784}\)</span> given by</p>
+<p><span class="math display">\[
+X_\mu = \frac{1}{N} \sum_{i=0}^{N-1} X_i
+\]</span> <span class="math display">\[
+X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 10^{-5}
+\]</span></p>
+<p><span class="math display">\[
+\hat{X} = (X - X_\mu)/X_\sigma
+\]</span></p>
+<p>How do we introduce normalization in a Keras model ? One way is to create a dataset that is normalized and use this dataset for training and testing. Another possibility is to embed normalization in the network by introducing a <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Lambda">Lambda layer</a> right after the Input layer. For example, introducing standardization in our linear model could be done the following way :</p>
+<div id="f0cf568d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> Lambda</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>xi <span class="op">=</span> Input(shape<span class="op">=</span>(img_height<span class="op">*</span>img_width,), name<span class="op">=</span><span class="st">"input"</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>mean <span class="op">=</span> X_train.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>std <span class="op">=</span> X_train.std(axis<span class="op">=</span><span class="dv">0</span>) <span class="op">+</span> <span class="fl">1.0</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>xl <span class="op">=</span> Lambda(<span class="kw">lambda</span> image, mu, std: (image <span class="op">-</span> mu) <span class="op">/</span> std,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>           arguments<span class="op">=</span>{<span class="st">'mu'</span>: mean, <span class="st">'std'</span>: std})(xi)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>xo <span class="op">=</span> Dense(num_classes, name<span class="op">=</span><span class="st">"y"</span>)(xl)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>yo <span class="op">=</span> Activation(<span class="st">'softmax'</span>, name<span class="op">=</span><span class="st">"y_act"</span>)(xo)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> Model(inputs<span class="op">=</span>[xi], outputs<span class="op">=</span>[yo])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The advantage of embedding a standardizing layer is that it makes it easier to use the model on new unseen data. Indeed, the normalization coefficients are stored within the model and you do not have to save them separately.</p>
+<blockquote class="blockquote">
+<p><strong>Logistic regression with input standardization</strong></p>
+<p>Two metrics are displayed for several runs; on the left the training accuracy and on the right the validation accuracy</p>
+<p><img src="./data/00-keras-mnist/linear_std_acc.png" class="img-fluid" style="width:45.0%" alt="image"> <img src="./data/00-keras-mnist/linear_std_val_acc.png" class="img-fluid" style="width:45.0%" alt="image"></p>
+</blockquote>
+<p>You should reach a validation accuracy of around <span class="math inline">\(93.6\%\)</span> and a test accuracy of around <span class="math inline">\(92.4\%\)</span>.</p>
+</section>
+</section>
+<section id="a-fully-connected-2-hidden-layers-classifier" class="level2">
+<h2 class="anchored" data-anchor-id="a-fully-connected-2-hidden-layers-classifier">A Fully connected 2 hidden layers classifier</h2>
+<section id="basics" class="level3">
+<h3 class="anchored" data-anchor-id="basics">Basics</h3>
+<p>Let us change the network to build a 2 hidden layers feedforward network. This is simply about adding dense layers with appropriate activations in between the input and the output layer. Basically, the only thing you need to change compared to the linear model is when you build up the model. A simple 2 layers MLP would be defined as :</p>
+<div id="e3634dfc" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>xi <span class="op">=</span> Input(shape<span class="op">=</span>input_shape)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Lambda(....)(xi)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Dense(nhidden1)(x)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Activation(<span class="st">'relu'</span>)(x)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Dense(nhidden2)(x)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Activation(<span class="st">'relu'</span>)(x)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Dense(num_classes)(x)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> Activation(<span class="st">'softmax'</span>)(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>where nhidden1 and nhidden2 are the respective size of the first and second hidden layers. We here used a ReLu activation function but you are free to experiment with other activation functions, e.g. <a href="https://www.tensorflow.org/api_docs/python/tf/keras/activations/selu">SELU</a>, <a href="https://www.tensorflow.org/api_docs/python/tf/keras/activations/elu">ELU</a></p>
+<p>About the minor adaptations, you may want to save the logs in a different root directory than for the linear experiment or keep them in the same directory for comparison. You may also want to change the run_name variable so that it contains the size of the hidden layers to easily distinguish the architectures in the tensorboard.</p>
+<p>For example, training a Input-256(Relu)-256(Relu)-10(Softmax) network (<span class="math inline">\(270.000\)</span> trainable parameters), the inputs being standardized, the training accuracy gets around <span class="math inline">\(99.6\%\)</span>, the validation accuracy around <span class="math inline">\(97.6\%\)</span> and evaluating it on the test set, we get around <span class="math inline">\(97.37\%\)</span>. This model is slightly overfitting. We can try to improve the generalization performance by introducing some regularization, which is addressed in the next paragraph.</p>
+</section>
+<section id="regularization" class="level3">
+<h3 class="anchored" data-anchor-id="regularization">Regularization</h3>
+<p>There are various <a href="https://www.tensorflow.org/api_docs/python/tf/keras/regularizers">Regularizers</a> provided by Keras. Some typical regularizers are <a href="https://www.tensorflow.org/api_docs/python/tf/keras/regularizers/L1L2">L1/L2 penalties</a> or also <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dropout">Dropout</a> layers.</p>
+<p>L2 regularization (or weight decay) is usually applied to the kernel only and not the bias. It adds a term in the loss function to be minimized of the form <span class="math inline">\(\lambda \sum_i w_i^2\)</span>. The parameter <span class="math inline">\(\lambda\)</span> has to be experimentally determined (by monitoring the performances on the validation set) and usually quite small, e.g.&nbsp;values around <span class="math inline">\(10^{-5}\)</span> or so. If you wish to experiment with L2 penalty, you can directly specify it when you create the Dense layer :</p>
+<div id="882a5755" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras <span class="im">import</span> regularizers</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating a dense layer with L2 penalty on the weights (not biases)</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># l2_reg is a floating point value to be determined</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Dense(hidden1, kernel_regularizer<span class="op">=</span>regularizers.l2(l2_reg))(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Another more recently introduced regularization technique is called Dropout <span class="citation" data-cites="Srivastava2014">(<a href="#ref-Srivastava2014" role="doc-biblioref">Srivastava, Hinton, Krizhevsky, Sutskever, &amp; Salakhutdinov, 2014</a>)</span>. It consists in setting to 0 the activations of a certain fraction of the units in a layer. In their original paper, the authors of dropout suggest for example <em>Dropping out 20% of the input units and 50% of the hidden units was often found to be optimal</em>. A dropout mask is generated for every training sample. At test time, an ensemble of dropped out networks are combined to compute the output (see also <a href="http://cs231n.github.io/neural-networks-2/#reg">CS231n regularizers</a>). In Keras, we simply need to introduce <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dropout">Dropout layers</a> specifying the rate at which to drop units. Below we create a Dense(relu) layer followed by dropout where <span class="math inline">\(50\%\)</span> of the output are set to 0. Learning a neural network with dropout is usually slower than without dropout so that you may need to consider increasing the number of epochs.</p>
+<div id="015f76dd" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> Dropout</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Dense(hidden1)(x)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Activation(<span class="st">'relu'</span>)(x)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Dropout(<span class="fl">0.5</span>)(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="a-vanilla-convolutional-neural-network" class="level2">
+<h2 class="anchored" data-anchor-id="a-vanilla-convolutional-neural-network">A vanilla convolutional neural network</h2>
+<p>The multiLayer feedforward network does not take any benefit from the intrinsic structure of the input space, here images. We propose in this paragraph to explore the performances of Convolutional Neural Networks (CNN) which exploit that structure. Our first experiment with CNN will consider a <em>vanilla</em> CNN, i.e.&nbsp;a stack of conv-relu-maxpooling layers followed by some dense layers.</p>
+<p>In order to write our script from training CNN, compared to the script for training a linear or multilayer fully connected model, we need to change the input_shape and also introduce new layers: <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D">Convolutional layers</a>, <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/MaxPool2D">Pooling layers</a> and a <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Flatten">Flatten layer</a>.</p>
+<p>The tensors for convolutional layers are 4D which include batch_size, image width, image height, number of channels. The ordering is framework dependent. In tensorflow, it is channels_last, in which case, the tensors are (batch_size, image height, image width, number of channels).</p>
+<p>The first thing to do is to ensure the data arrays are in the appropriate format. Remember, before, we reshaped the training and test numpy arrays as (60000, 784) and (10000, 784) respectively. Now, with convolutional neural networks, the input data topology is exploited and we shall keep the data as images.</p>
+<div id="269e1f26" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>num_train  <span class="op">=</span> X_train.shape[<span class="dv">0</span>]</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>num_test   <span class="op">=</span> X_test.shape[<span class="dv">0</span>]</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>img_height <span class="op">=</span> X_train.shape[<span class="dv">1</span>]</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>img_width  <span class="op">=</span> X_train.shape[<span class="dv">2</span>]</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>X_train <span class="op">=</span> X_train.reshape((num_train, img_height, img_width))</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>X_test  <span class="op">=</span> X_test.reshape((num_test, img_height, img_width))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then, the input_shape variable, used for defining the shape of the Input layer, must also be adapted :</p>
+<div id="ea1f8285" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>input_shape <span class="op">=</span> (img_rows, img_cols, <span class="dv">1</span>)      </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The next step is to define our model. We here consider stacking Conv-Relu-MaxPool layers. One block with 64 5x5 stride 1 filters and 2x2 stride 2 max pooling would be defined with the following syntax :</p>
+<div id="6da7d4d5" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> Conv2D</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> MaxPooling2D</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Conv2D(filters<span class="op">=</span><span class="dv">64</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>       kernel_size<span class="op">=</span><span class="dv">5</span>, strides<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>           padding<span class="op">=</span><span class="st">'same'</span>)(x)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Activation(<span class="st">'relu'</span>)(x)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> MaxPooling2D(pool_size<span class="op">=</span><span class="dv">2</span>, strides<span class="op">=</span><span class="dv">2</span>)(x)    </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>The “padding=‘same’” parameter induces that the convolutional layers will not decrease the size of the representation. We let this as the job of the max-pooling operation. Indeed, the max pooling layer has a stride 2 which effectively downscale the representation by a size of 2.</p>
+<p>How do you set up the architecture ? the size of the filters ? the number of blocks ? the stride ? the padding ? well, this is all the magic. Actually, we begin to see a small part of the large number of degrees of freedom on which we can play to define a convolutional neural network.</p>
+<p>The last thing we need to speek about is the Flatten Layer. Usually (but this is not always the case), there are some final fully connected (dense) layers at the end of the architecture. When you go from the Conv/MaxPooling layers to the final fully connected layers, you need to flatten your feature maps. This means converting the 4D Tensors to 2D Tensors. For example, the code below illustrates the connection between some convolutional/max-pooling layers to the output layer with a 10-class classification:</p>
+<div id="d34d32a9" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Conv2D(filters<span class="op">=</span><span class="dv">64</span>,</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>       kernel_size<span class="op">=</span><span class="dv">5</span>, strides<span class="op">=</span><span class="dv">1</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>           padding<span class="op">=</span><span class="st">'same'</span>)(x)      </span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Activation(<span class="st">'relu'</span>)(x)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> MaxPooling2D(pool_size<span class="op">=</span><span class="dv">2</span>, strides<span class="op">=</span><span class="dv">2</span>)(x)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Flatten()(x)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> Dense(<span class="dv">10</span>, activation<span class="op">=</span><span class="st">'softmax'</span>)(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now, we should have introduced all the required blocks. As a first try, I propose you to code a network with :</p>
+<ul>
+<li>The input layer</li>
+<li>The standardization Lambda layer</li>
+<li>3 consecutive blocks with Conv(5x5, strides=1, padding=same)-Relu-MaxPooling(2x2, strides=2). Take 16 filters for the first Conv layer, 32 filters for the second and 64 for the third</li>
+<li>Two dense layers of size 128 and 64, with ReLu activations</li>
+<li>One dense layer with 10 units and a softmax activation</li>
+</ul>
+<p>Training this architecture, you should end up with almost <span class="math inline">\(100\%\)</span> training accuracy, <span class="math inline">\(99.2\%\)</span> of validation accuracy and around <span class="math inline">\(98.9\%\)</span> of test accuracy. Introducing Dropout (after the standardizing layer and before the dense layers), the test accuracy should raise up to around <span class="math inline">\(99.2\%\)</span>. This means that 80 images out of the 10000 in the test set are misclassified.</p>
+</section>
+<section id="small-kernels-no-fully-connected-layers-dataset-augmentation-model-averaging" class="level2">
+<h2 class="anchored" data-anchor-id="small-kernels-no-fully-connected-layers-dataset-augmentation-model-averaging">Small kernels, no fully connected layers, Dataset Augmentation, Model averaging</h2>
+<section id="architecture" class="level3">
+<h3 class="anchored" data-anchor-id="architecture">Architecture</h3>
+<p>Recently, it is suggested to use small convolutional kernels (typically <span class="math inline">\(3\times 3\)</span>, and sometimes <span class="math inline">\(5\times 5\)</span>). The rationale is that using two stacked <span class="math inline">\(3\times 3\)</span> convolutional layers gives you receptive field size of <span class="math inline">\(5\times 5\)</span> with less parameters (and more non linearity). This is for example the guideline used in VGG : use mostly <span class="math inline">\(3\times 3\)</span> kernels, stack two of them, followed by a maxpool and then double the number of filters. The number of filters is usually increased as we go deeper in the network (because we expect the low level layers to extract basic features that are combined in the deeper layers). Finally, in <span class="citation" data-cites="Lin2014">(<a href="#ref-Lin2014" role="doc-biblioref">Lin, Chen, &amp; Yan, 2013</a>)</span>, it is also suggested that we can completly remove the final fully connected layers and replace them by <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/GlobalAveragePooling2D">GlobalAveragePooling</a> layers. It appears that removing fully connected layers, the network is less likely to overfit and you end up with much less parameters for a network of a given depth (this is the fully connected layers that usually contain most of your parameters). Therefore, I suggest you to give a try to the following architecture :</p>
+<ul>
+<li>InputLayer</li>
+<li>Standardizing lambda layer</li>
+<li>16C3s1-BN-Relu-16C3s1-BN-Relu - MaxPool2s2</li>
+<li>32C3s1-BN-Relu-32C3s1-BN-Relu - MaxPool2s2</li>
+<li>64C3s1-BN-Relu-64C3s1-BN-Relu - GlobalAverage</li>
+<li>Dense(10), Softmax</li>
+</ul>
+<p>where <strong>16C3s1</strong> denotes a convolutional layer with 16 kernels, of size <span class="math inline">\(3\times 3\)</span>, with stride 1, with zero padding to keep the same size for the input and output. <strong>BN</strong> is a <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/BatchNormalization">BatchNormalization</a> layer. <strong>MaxPool2s2</strong> is a max-pooling layer with receptive field size <span class="math inline">\(2\times 2\)</span> and stride 2. <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/GlobalAveragePooling2D">GlobalAverage</a> is an averaging layer computing an average over a whole feature map.</p>
+<p>This should bring you with a test accuracy around <span class="math inline">\(99.2\%\)</span> with 72.890 trainable parameters.</p>
+</section>
+<section id="parametrizing-your-experiments" class="level3">
+<h3 class="anchored" data-anchor-id="parametrizing-your-experiments">Parametrizing your experiments</h3>
+<p>Before going further, I invite you to read the section on <a href="argparse.html">Parametrizing a script with argparse</a>. This will show you a way to provide options to your script so that you can easily test different configurations.</p>
+<p>Now, it is also a good practice to save the command that was executed for a given experiment. Remember, we created a directory for storing the metrics and the best model, what about also saving the command we executed to keep track of it ? For this, we can both save a summary file and dump its content on the tensorboard.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Write down the summary of the experiment</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>summary_text <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="st">## Executed command</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="sc">{command}</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="st">## Args</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="sc">{args}</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>.<span class="bu">format</span>(command<span class="op">=</span><span class="st">" "</span>.join(sys.argv), args<span class="op">=</span>args)</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(os.path.join(logpath, <span class="st">"summary.txt"</span>), <span class="st">'w'</span>) <span class="im">as</span> f:</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>    f.write(summary_text)</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>writer <span class="op">=</span> tf.summary.create_file_writer(os.path.join(logpath,<span class="st">'summary'</span>))</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> writer.as_default():</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>    tf.summary.text(<span class="st">"Summary"</span>, summary_text, <span class="dv">0</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="dataset-augmentation-and-model-averaging" class="level3">
+<h3 class="anchored" data-anchor-id="dataset-augmentation-and-model-averaging">Dataset Augmentation and model averaging</h3>
+<p>One process which can bring you improvements is Dataset Augmentation. The basic idea is to apply transformations to your input images that must keep invariant your label. For example, slightly rotating, zooming or shearing an image of, say, a 5 is still an image of a 5 as shown below :</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/00-keras-mnist/mnist_5_orig.png" class="img-fluid figure-img" style="width:15.0%"></p>
+<figcaption>image</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./data/00-keras-mnist/mnist_5_augm.png" class="img-fluid figure-img" style="width:45.0%"></p>
+<figcaption>image</figcaption>
+</figure>
+</div>
+<p>Now, the idea is to produce a stream (actually infinite if you allow continuous perturbations) of training samples generated from your finite set of training samples. With Keras, you can augment your image datasets using an <a href="https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image">ImageDataGenerator</a>. Here is a snippet to create the generator that produced the images above :</p>
+<div id="cee371de" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.preprocessing.image <span class="im">import</span> ImageDataGenerator</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>datagen <span class="op">=</span> ImageDataGenerator(shear_range<span class="op">=</span><span class="fl">0.3</span>,</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>                          zoom_range<span class="op">=</span><span class="fl">0.1</span>,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>                          rotation_range<span class="op">=</span><span class="fl">10.</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>As a note, for some of the transformations ImageDataGenerator performs, it is necessary to invoke the <strong>fit</strong> method (e.g. featurewise_std_normalization).</p>
+<p>Now, in order to make use of the generator, we need to slightly adjust our split into training/validation sets, as well as our optimization of the model which we did so far calling the <strong>model.fit</strong> method.</p>
+<div id="bd03d90d" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> split(X, y, test_size):</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>     idx <span class="op">=</span> np.arange(X.shape[<span class="dv">0</span>])</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>     np.random.shuffle(idx)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>     nb_test <span class="op">=</span> <span class="bu">int</span>(test_size <span class="op">*</span> X.shape[<span class="dv">0</span>])</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>     <span class="cf">return</span> X[nb_test:,:, :, :], y[nb_test:],<span class="op">\</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>             X[:nb_test, :, :, :], y[:nb_test]</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>X_train <span class="op">=</span> X_train.reshape(num_train, img_rows, img_cols, <span class="dv">1</span>)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>X_train, y_train, X_val, y_val <span class="op">=</span> split(X_train, y_train,</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>                                       test_size<span class="op">=</span><span class="fl">0.1</span>)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>y_train <span class="op">=</span> to_categorical(y_train, num_classes)</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>y_val <span class="op">=</span> to_categorical(y_val, num_classes)</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>datagen <span class="op">=</span> ImageDataGenerator(....)</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>train_flow <span class="op">=</span> datagen.flow(X_train, y_train, batch_size<span class="op">=</span><span class="dv">128</span>)</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>model.fit(train_flow,</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>          steps_per_epoch<span class="op">=</span>X_train.shape[<span class="dv">0</span>]<span class="op">/</span><span class="dv">128</span>,</span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>          validation_data<span class="op">=</span>(X_val, y_val),</span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>          .....)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Fitting the same architecture as before but with dataset augmentation, you should reach an accuracy around <span class="math inline">\(99.5\%\)</span>.</p>
+<p>Now, as a final step in our beginner tutorial on keras, you can train several models and average their probability predictions over the test set. An average of 4 models might eventually lead you to a loss of 0.0105 and an accuracy of <span class="math inline">\(99.68\%\)</span>.</p>
+</section>
+</section>
+<section id="a-possible-solution" class="level2">
+<h2 class="anchored" data-anchor-id="a-possible-solution">A possible solution</h2>
+<p>You will find a possible solution, with a little bit more than what we have seen in this practical in the <a href="https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/00-keras-MNIST">LabsSolutions/00-keras-MNIST</a> directory. It is structured in three scripts, one for data loading (data.py), one for defining the models (models.py) and one for orchestrating everything (main.py). The script is also ran on FashionMNIST rather than MNIST.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Lin2014" class="csl-entry" role="listitem">
+Lin, M., Chen, Q., &amp; Yan, S. (2013). Network in network. <em>arXiv</em>. Retrieved from <a href="https://arxiv.org/abs/1312.4400">https://arxiv.org/abs/1312.4400</a>
+</div>
+<div id="ref-Srivastava2014" class="csl-entry" role="listitem">
+Srivastava, N., Hinton, G. E., Krizhevsky, A., Sutskever, I., &amp; Salakhutdinov, R. (2014). Dropout: A simple way to prevent neural networks from overfitting. <em>Journal of Machine Learning Research</em>, <em>15</em>(1), 1929–1958. Retrieved from <a href="http://dl.acm.org/citation.cfm?id=2670313">http://dl.acm.org/citation.cfm?id=2670313</a>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jeremyfix\.github\.io\/deeplearning-lectures\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

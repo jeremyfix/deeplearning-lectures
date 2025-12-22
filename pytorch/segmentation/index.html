@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jeremy Fix">
+<meta name="keywords" content="PyTorch tutorial, semantic segmentation, Stanford 2D-3D S">
+
+<title>Semantic segmenation on Stanford-2D-3D S – Deep Learning Lectures</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-0b802d246790ecd80511443f8ae76f95.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-sidebar docked nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Deep Learning Lectures</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../../index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-pytorch" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Pytorch</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-pytorch">    
+        <li>
+    <a class="dropdown-item" href="../../pytorch/fashionMNIST/index.html">
+ <span class="dropdown-text">PyTorch FashionMNIST</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../pytorch/object-detection/index.html">
+ <span class="dropdown-text">PyTorch Object Detection</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../pytorch/segmentation/index.html">
+ <span class="dropdown-text">Semantic segmenation on Stanford-2D-3D S</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../pytorch/asr/index.html">
+ <span class="dropdown-text">Automatic Speech Recognition on Mozilla Common Voice</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../pytorch/gan/index.html">
+ <span class="dropdown-text">Deep Convolutional Generative Adversarial Networks</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-keras" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Keras</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-keras">    
+        <li>
+    <a class="dropdown-item" href="../../keras/mnist.html">
+ <span class="dropdown-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../../keras/cifar.html">
+ <span class="dropdown-text">Keras CIFAR</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-resources" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Resources</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-resources">    
+        <li>
+    <a class="dropdown-item" href="../../argparse.html">
+ <span class="dropdown-text">Argparse</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://www.github.com/jeremyfix/deeplearning-lectures">
+            Source Code
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/jeremyfix/deeplearning-lectures/issues/new/choose">
+            Report a bug
+            </a>
+          </li>
+      </ul>
+    </div>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../pytorch/fashionMNIST/index.html">Pytorch</a></li><li class="breadcrumb-item"><a href="../../pytorch/segmentation/index.html">Semantic segmenation on Stanford-2D-3D S</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Getting Started</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Home</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Pytorch</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/fashionMNIST/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">First steps in PyTorch : classifying fashion objects (FashionMNIST)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/object-detection/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Transfer learning and Object detection</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/segmentation/index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Semantic segmenation on Stanford-2D-3D S</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/asr/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Automatic Speech Recognition on Mozilla Common Voice</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../pytorch/gan/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Deep Convolutional Generative Adversarial Networks (DCGAN)</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Keras</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../keras/mnist.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../keras/cifar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A more ambitious image classification dataset : CIFAR-100</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">Resources</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../argparse.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Parametrizing a script with argparse</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#objectives" id="toc-objectives" class="nav-link active" data-scroll-target="#objectives">Objectives</a></li>
+  <li><a href="#setup-and-predefined-scripts" id="toc-setup-and-predefined-scripts" class="nav-link" data-scroll-target="#setup-and-predefined-scripts">Setup and predefined scripts</a></li>
+  <li><a href="#data-exploration" id="toc-data-exploration" class="nav-link" data-scroll-target="#data-exploration">Data exploration</a></li>
+  <li><a href="#data-pipeline" id="toc-data-pipeline" class="nav-link" data-scroll-target="#data-pipeline">Data pipeline</a></li>
+  <li><a href="#model-implementation" id="toc-model-implementation" class="nav-link" data-scroll-target="#model-implementation">Model implementation</a></li>
+  <li><a href="#evaluation-metrics" id="toc-evaluation-metrics" class="nav-link" data-scroll-target="#evaluation-metrics">Evaluation metrics</a></li>
+  <li><a href="#loss-implementation" id="toc-loss-implementation" class="nav-link" data-scroll-target="#loss-implementation">Loss implementation</a></li>
+  <li><a href="#training-on-a-small-subset" id="toc-training-on-a-small-subset" class="nav-link" data-scroll-target="#training-on-a-small-subset">Training on a small subset</a></li>
+  <li><a href="#inference" id="toc-inference" class="nav-link" data-scroll-target="#inference">Inference</a></li>
+  <li><a href="#going-further" id="toc-going-further" class="nav-link" data-scroll-target="#going-further">Going further</a></li>
+  <li><a href="#a-possible-solution" id="toc-a-possible-solution" class="nav-link" data-scroll-target="#a-possible-solution">A possible solution</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../pytorch/fashionMNIST/index.html">Pytorch</a></li><li class="breadcrumb-item"><a href="../../pytorch/segmentation/index.html">Semantic segmenation on Stanford-2D-3D S</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Semantic segmenation on Stanford-2D-3D S</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jeremy Fix </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+<div>
+  <div class="keywords">
+    <div class="block-title">Keywords</div>
+    <p>PyTorch tutorial, semantic segmentation, Stanford 2D-3D S</p>
+  </div>
+</div>
+
+</header>
+
+
+<section id="objectives" class="level2">
+<h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
+<p>The objective of this lab work is to implement and explore convolutional neural networks for semantic segmentation. <strong>Semantic segmentation</strong> seeks to learn a function <span class="math inline">\(f\)</span>, parametrized by <span class="math inline">\(\theta\)</span> which takes as input a colored image <span class="math inline">\(I\)</span> of arbitrary shape <span class="math inline">\(H\times W\)</span> and outputs an images of labels of the same shape <span class="math inline">\(H \times W\)</span> than the input. Indeed, we seek to label every single pixel of the image as belonging to one of <span class="math inline">\(K\)</span> predefined classes.</p>
+<p>In this labwork, we will be working with the large <a href="http://buildingparser.stanford.edu/dataset.html">Stanford 2D-3D S dataset</a>. This dataset is built from 3D scans of buildings with multiple annotation types (pixelwise depth, pixel class, pixelwise normals, scene category). We will consider only the pixelwise class labeling. The data have been collected in 6 different areas.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Area</th>
+<th>Number of images</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>10,327</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>15,714</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>3,704</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>13,268</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>17,593</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>9,890</td>
+</tr>
+<tr class="odd">
+<td><strong>Total</strong></td>
+<td>70,496</td>
+</tr>
+</tbody>
+</table>
+<p>Below is an example of the input RGB image and the associated labels</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="sample.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>Semantic segmentation : pixelwise classifcation</figcaption>
+</figure>
+</div>
+<p>There are <span class="math inline">\(14\)</span> classes, the first being for the unlabeled pixels.</p>
+</section>
+<section id="setup-and-predefined-scripts" class="level2">
+<h2 class="anchored" data-anchor-id="setup-and-predefined-scripts">Setup and predefined scripts</h2>
+<p>For this lab work, you are provided with environment setup files, either a <a href="./labs/01-pytorch-segmentation/environment.yml">environment.yml</a> if you are using conda and a <a href="./labs/01-pytorch-segmentation/requirements.txt">requirements.txt</a> file if you are a pipenv/pip/virtualenv/etc..</p>
+<p>On the CentraleSupelec clusters, I advise you to use a virtual environment, created with venv for example, as conda requires a lot of dependencies to be installed and can sometimes be cumbersome.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">sh11:~:mylogin$</span> python3 <span class="at">-m</span> venv <span class="va">$TMPDIR</span>/venv</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">sh11:~:mylogin$</span> source <span class="va">$TMPDIR</span>/venv/bin/activate</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">sh11:~:mylogin$</span>  python <span class="at">-m</span> pip install <span class="at">-r</span> requirements.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<!--
+> sh11:~:mylogin$ export PATH=PATH:/opt/conda/bin
+> sh11:~:mylogin$ conda env create -f environment.yml
+> sh11:~:mylogin$ source activate dl-lectures-pytorch-segmentation
+-->
+<p>If your enviromnent is correctly created and activated, the following should work</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">sh11:~:mylogin$</span> python <span class="at">-c</span> <span class="st">"import torch; print(torch.__version__)"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">1.10.1+cu113</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Your are also provided with some base code :</p>
+<ul>
+<li><a href="./labs/01-pytorch-segmentation/data.py">data.py</a> : script responsible for dataset and dataloader building</li>
+<li><a href="./labs/01-pytorch-segmentation/models.py">models.py</a> : script holding the models zoo</li>
+<li><a href="./labs/01-pytorch-segmentation/metrics.py">metrics.py</a> : script for the definition of custom metrics</li>
+<li><a href="./labs/01-pytorch-segmentation/main.py">main.py</a> : the main script orchestrating the call to all your functions for training and inference</li>
+<li><a href="./labs/01-pytorch-segmentation/utils.py">utils.py</a> : several utilitary functions for colorize segmentation masks</li>
+<li><a href="./labs/01-pytorch-segmentation/test_implementation.py">test_implementation.py</a> : a script with unit tests to test your answers to the code questions</li>
+</ul>
+</section>
+<section id="data-exploration" class="level2">
+<h2 class="anchored" data-anchor-id="data-exploration">Data exploration</h2>
+<p>You are provided with the <code>StanfordDataset</code> class which is a pytorch dataset object, i.e.&nbsp;an object implementing the <code>__len__</code> and <code>__getitem__</code> methods. The constructor expects follows the <a href="https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html">VisionDataset</a> interface and expects :</p>
+<ul>
+<li>a root directory for the data (e.g.&nbsp;<code>/mounts/Datasets4/Stanford2D-3D-S/</code>)</li>
+<li>either a pair of <code>transform</code> and <code>target_transform</code> function, or a combined <code>transforms</code> function for transforming the RGB input and the semantic mask</li>
+<li>an optional list of <code>areas</code> to restrict to, e.g.&nbsp;<code>area = ['1', '5b']</code></li>
+</ul>
+<p><strong>Question</strong>: For our problem, what is the dimensionality and type of the tensors you expect for the input and targets ?</p>
+<p><strong>Question</strong> : Instantiate your dataset and check that your guess is correct on one of the samples.</p>
+<p>If you were to plot the distribution of the classes over the <span class="math inline">\(71000\)</span> masks of size <span class="math inline">\(1080\times 1080\)</span>, the relative proportion of the labels are <span class="math inline">\(1.26\%\)</span>, <span class="math inline">\(1.57\%\)</span>, <span class="math inline">\(2.71\%\)</span>, <span class="math inline">\(7.17\%\)</span>, <span class="math inline">\(9.94\%\)</span>, <span class="math inline">\(3.87\%\)</span>, <span class="math inline">\(11.23\%\)</span>, <span class="math inline">\(3.05\%\)</span>, <span class="math inline">\(10.98\%\)</span>, <span class="math inline">\(8.45\%\)</span>, <span class="math inline">\(0.33\%\)</span>, <span class="math inline">\(2.88\%\)</span>, <span class="math inline">\(33.67\%\)</span>, <span class="math inline">\(2.88\%\)</span> which is really unbalanced. These figures are ordered the same than the labels on the image at the top, hence <span class="math inline">\(33.67\%\)</span> of the labeled pixels are “wall”, and only <span class="math inline">\(0.33\%\)</span> are “sofa”. There are several ways to combat this imbalance. One could be in the data sampler when the minibatches are built. Another one is to use an adapted loss function. More on that later in the <a href="#loss-implementation">loss</a> section.</p>
+<p><strong>Question</strong> : Some of the labels in the dataset are noisy. For example, check the input image and mask of the image indexed <span class="math inline">\(2702\)</span> (of the area 5a), corresponding to the filename <code>area_5a/data/semantic/camera_ff5f377af3b34354b054536db27565ae_hallway_7_frame_4_domain_semantic.png</code>. This noise in the oracle, as well as the one possibly induced by the unknow class, has to be kept in mind as this will certainly prevent a perfect generalization.</p>
+<p>The noise in the orcale may also leads to divergence of the cross entropy loss. Since the cross entropy loss read <span class="math inline">\(-log(p_{y_i})\)</span>, if the labels are noisy and your model is super good, the probably of the incorrectly labeled pixels will make the loss diverge.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">sh11:~:mylogin$</span> python data.py <span class="at">--area</span> 5a <span class="at">--datadir</span> /mounts/Datasets4/Stanford2D-3D-S</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="data-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="data-pipeline">Data pipeline</h2>
+<p>The data are loaded and the dataloaders are built by calling <code>get_dataloaders</code> from the <code>data</code> module.</p>
+<p>The raw images have a size of <span class="math inline">\(1080 \times 1080\)</span>. If we keep large images, the minibatches and their successive transformations will occupy a large space in GPU memory. At least, we can resize the images, e.g.&nbsp;to <span class="math inline">\(256\times 256\)</span>, and still keep reasonnable segmentations.</p>
+<p>In addition to resize images to a smaller size, we can add data augmentation in our pipeline. Remember, data augmentation is a set of transforms applied to the input which have a predictable influence on the output.</p>
+<p>For semantic segmentation, several can be considered, such as <a href="https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomCrop">RandomCrop</a>, <a href="https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.HorizontalFlip">HorizontalFlip</a>, <a href="https://albumentations.ai/docs/api_reference/augmentations/dropout/mask_dropout/#maskdropout-augmentation-augmentationsdropoutmask_dropout">MaskDropout</a>, <a href="https://albumentations.ai/docs/api_reference/augmentations/dropout/coarse_dropout/#coarsedropout-augmentation-augmentationsdropoutcoarse_dropout">CoarseDropout</a>. You can have a look at the list of transforms provided by albumentation <a href="https://albumentations.ai/docs/getting_started/transforms_and_targets/">here</a>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The transforms are organized into modules with albumentations, e.g.&nbsp;<a href="https://albumentations.ai/docs/api_reference/augmentations/dropout/coarse_dropout/#coarsedropout-augmentation-augmentationsdropoutcoarse_dropout">CoarseDropout</a> is defined in <code>albumentations.augmentations.dropout.coarse_dropout.CoarseDropout</code>. However, the code of albumentations imports all the classes of the submodules recursively on the parent <code>__init__.py</code> script. Hence, the coarse dropout (and all the others) can be simply created by calling <code>A.CoarseDropout()</code> if you <code>import albumentations as A</code>.</p>
+</div>
+</div>
+<p>In the provided code, the data loading pipeline simply :</p>
+<ul>
+<li>scales the image by <span class="math inline">\(255\)</span> with <a href="https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Normalize">albumentation.Normalize</a></li>
+<li>transforms the numpy image into a pytorch tensor with <a href="https://albumentations.ai/docs/api_reference/pytorch/transforms/#albumentations.pytorch.transforms.ToTensorV2">albumentation.ToTensorV2</a></li>
+</ul>
+<p><strong>Question</strong> In the <code>train</code> function of the main script, implement the data augmentation operations you identified as relevant. For testing visually your data augmentation pipeline, you can implement your data augmentation pipeline in the <code>data.py:test_augmented_dataset</code> function and evaluate the <code>data.py</code> script to see the results. Once satisfied, you can inject your augmentations in the <code>main.py</code> script.</p>
+<p><strong>Question</strong> How would you quantify the quality of the hyperparameters of your augmentation pipeline ?</p>
+</section>
+<section id="model-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="model-implementation">Model implementation</h2>
+<p>The parametric model you learn takes as input a 3-channel image and outputs a probability distribution over the <span class="math inline">\(14\)</span> classes. There has several several propositions in the litterature to adress this problem such as FCN <span class="citation" data-cites="Long2015">(<a href="#ref-Long2015" role="doc-biblioref">Long, Shelhamer, &amp; Darrell, 2015</a>)</span>, UNet <span class="citation" data-cites="Ronneberger2015">(<a href="#ref-Ronneberger2015" role="doc-biblioref">Ronneberger, Fischer, &amp; Brox, 2015</a>)</span>, VNet <span class="citation" data-cites="Milletari2016">(<a href="#ref-Milletari2016" role="doc-biblioref">Milletari, Navab, &amp; Ahmadi, 2016</a>)</span>, SegNet<span class="citation" data-cites="Badrinarayanan2017">(<a href="#ref-Badrinarayanan2017" role="doc-biblioref">Badrinarayanan, Kendall, &amp; Cipolla, 2017</a>)</span>, DeepLab v3+ <span class="citation" data-cites="Chen2018">(<a href="#ref-Chen2018" role="doc-biblioref">Chen, Zhu, Papandreou, Schroff, &amp; Adam, 2018</a>)</span>. In this labwork, I propose we code the UNet of 2015 and you might want to implemented DeepLabv3+ as a homework :)</p>
+<p>UNet is a fully convolutional network (FCN), i.e.&nbsp;involving only convolutional operations (Conv2D, MaxPool , …; there is no fully connected layers).</p>
+<p><strong>Question</strong> What does it mean that UNet is a fully convolutional network ? What does it mean with respect to the input image sizes it can process ?</p>
+<p><strong>Question</strong> For minibatch training, what is the constraint that we have on the input image sizes ?</p>
+<p>The name U-Net comes from the very specific shape of this encoder-decoder network with a contracting pathway for the encoding following by an expanding pathway for the decoding. The contracting pathway is expected to learn higher and higher level features as we progress deeper in the network and the expanding pathway to merge these highlevel features with the finer grain details brought by the encoder through skip layer connections.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./latex/unet.png" class="img-fluid figure-img" style="width:50.0%"></p>
+<figcaption>UNet architecture for semantic segmentation</figcaption>
+</figure>
+</div>
+<p>The provided code implements <code>UNet</code> with a <code>UNetEncoder</code> class and a <code>UNetDecoder</code> class. Both the UNetEncoder and UNetDecoder relies on repetition of blocks which are UNetConvBlock on the one hand and UNetUpConvBlock on the other hand.</p>
+<p><strong>UNetEncoder</strong> This downsampling pathway is made of :</p>
+<ul>
+<li>several <code>UNetConvBlock</code> blocks where the <span class="math inline">\(i\)</span>-th (<span class="math inline">\(i \in [0, \#blocks-1]\)</span>) block is made of:
+<ul>
+<li><code>block1</code>=Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm, with <span class="math inline">\(64 \times 2^i\)</span> channels</li>
+<li><code>block2</code>=Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm, with <span class="math inline">\(64 \times 2^i\)</span> channels and</li>
+<li><code>block3</code>= MaxPooling(<span class="math inline">\(2\times 2\)</span>),</li>
+</ul></li>
+<li>followed by a Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm, with <span class="math inline">\(64 \times 2^{\#blocks}\)</span> channels</li>
+</ul>
+<p>Note that the output of <code>block2</code>, just before the downsampling is transmitted to the decoder stage, therefore the <code>UNetConvBlock</code> forward function outputs two tensors : one to be propagated along the encoder and one to be transmitter to the decoder.</p>
+<p><strong>Question</strong> In the <code>models.py</code> script, implement the code in the <code>UNetEncoder</code> and <code>UNetConvBlock</code> classes. Check your code running the unit tests. Be sure to understand how the propagation is performed through the encoder blocks.</p>
+<p>The output of the final layers of the encoder is a tensor of shape <span class="math inline">\((batch, 64\times 2^{\#blocks}, H/2^{\#blocks}, W/2^{\#blocks})\)</span></p>
+<p><strong>UNetDecoder</strong> This upsampling pathway is made of :</p>
+<ul>
+<li>a first Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm block which keeps constant the number of channels,</li>
+<li>followed by several <code>UNetUpConvBlock</code> blocks with :
+<ul>
+<li><code>upconv</code>=UpSample(<span class="math inline">\(2\)</span>)-Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm which halves the number of channels,</li>
+<li>a concatenation of the upconv output features with the encoder features</li>
+<li>a <code>convblock</code>= Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm-Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm which halves the number of its input channels</li>
+</ul></li>
+</ul>
+<p>For the <code>UNetUpConvBlock</code>, when its input along the decoder pathway has <span class="math inline">\(c_0\)</span> channels, its output has <span class="math inline">\(c_0/2\)</span> channels since :</p>
+<ul>
+<li>upconv outputs <span class="math inline">\(c_0/2\)</span> channels</li>
+<li>the concatenation of <span class="math inline">\(c_0/2\)</span> channels with the <span class="math inline">\(c_0/2\)</span> channels of the encoder leads to <span class="math inline">\(c_0\)</span> channels</li>
+<li>the <code>convblock</code> gets <span class="math inline">\(c_0\)</span> input channels and outputs <span class="math inline">\(c_0/2\)</span> output channels</li>
+</ul>
+<p>In order to output a score for each of the <span class="math inline">\(14\)</span> classes, the very last layer of the decoder is a Conv(<span class="math inline">\(1\times 1\)</span>) with the same number of channels than the number of classes.</p>
+<p><strong>Question</strong> In the <code>models.py</code> script, implement the code in the <code>UNetDecoder</code> and <code>UNetUpConvBlock</code> classes. Check your code against the unit tests. Be sure to understand how the propagation is performed through the decoder blocks.</p>
+<p>Once both the encoder and decoder classes are implemented, you can see that the <code>UNet</code> class is a simple wrapper around them.</p>
+<p><strong>Question</strong> In the <code>models.py</code> script, within the <code>main()</code> function, write a piece of code for propagating a dummy tensor within your model. Is the output tensor the shape you expect ?</p>
+<p>We are done with the model implementation, let us move on to the metrics and loss.</p>
+</section>
+<section id="evaluation-metrics" class="level2">
+<h2 class="anchored" data-anchor-id="evaluation-metrics">Evaluation metrics</h2>
+<p>Semantic segmentation is a multi-way classification task; One natural metric could be the accuracy but, if you remember, our classes are unbalanced.</p>
+<p><strong>Question</strong> What would be the accuracy of a predictor always predicting that a pixel is a wall ? Hint: some figures were given in the <a href="#data-exploration">data exploration</a> section.</p>
+<!--
+
+Given we have 33.67% of the pixels that are wall, only these ones will be correctly classified hence an accuracy of 33.67%
+
+-->
+<p>To prevent to be mislead, a metric taking care of the class imbalance is the macro F1 score which reads</p>
+<p><span class="math display">\[
+F1 = \frac{1}{K}\sum_{k=0}^{K-1} \sum_{i=0}^{N-1} \frac{TP(x_i, y_i, k)}{TP(x_i, y_i, k) + \frac{1}{2}(FP(x_i, y_i, k)+FN(x_i, y_i, k))}
+\]</span></p>
+<p>which is an <span class="math inline">\(F1\)</span> computed for every class and then averaged over the number of classes.</p>
+<p><strong>Question</strong> What would be the macro F1 of a model always predicting a wall class ?</p>
+<!-- 
+
+We need to compute the F1 for every class
+
+For the wall class, 33.67% of the pixels are TP, all the others (66.33%) are FP hence the F1 is  33.67 / (33.67 + 0.5 * (66.33 + 0)) => F1 = 0.5
+For the other classes, as the predictor predicts always wall, there are no positives for the prediction so TP = FP = 0; All the samples are either TN or FN , hence F1 = 0 / (0 + 0.5 * (0 + FN)) = 0     Actually, the FN, which are not necessary to know for the F1 estimation, are class dependent 
+
+FN_unknown = $1.26\%$, FN_beam = $1.57\%$, FN_board = $2.71\%$, ....
+
+At the end of the day, the macro F1 is      1/14 * (0.5 + 13 * 0) = 0.5 / 14. = 0.04
+
+-->
+<p>In the provided code the macro F1 is computed both on the training and validation folds.</p>
+<p><strong>Question</strong> Do you see in the <code>main.py</code> script where this metric is computed and what is the use of the macro F1 on the validation fold ?</p>
+</section>
+<section id="loss-implementation" class="level2">
+<h2 class="anchored" data-anchor-id="loss-implementation">Loss implementation</h2>
+<p>We decided the macro F1 measure is the one to be optimized. Unfortunately, it does not bring in interesting information for a gradient based optimization.</p>
+<p><strong>Question</strong> According to you, why it is useless to use the F1 computed above for the gradient descent optimization of the parameters of our neural network ?</p>
+<!--
+
+The F1 metric as computed above is really flat , piecewise constant and therefore it is gradient is not informative on the direction to follow
+
+-->
+<p>We need a differentiable proxy to that metric. This is still an open area of research (see for example <span class="citation" data-cites="Yeung2022">(<a href="#ref-Yeung2022" role="doc-biblioref">Yeung, Sala, Schönlieb, &amp; Rundo, 2022</a>)</span>). Some of the options we will consider here are to use :</p>
+<ul>
+<li>a class balanced loss <span class="citation" data-cites="Cui2019">(<a href="#ref-Cui2019" role="doc-biblioref">Cui, Jia, Lin, Song, &amp; Belongie, 2019</a>)</span>, e.g.&nbsp;a weighted cross entropy loss</li>
+<li>a focal loss <span class="citation" data-cites="Lin2017">(<a href="#ref-Lin2017" role="doc-biblioref">Lin, Goyal, Girshick, He, &amp; Dollár, 2017</a>)</span></li>
+</ul>
+<p>Other options could be to consider a Dice loss, a Tversky loss, a combination of these, or to use a batch sampler which could oversample the samples with the minority classes, etc …</p>
+<p>Similarly to a batch sampler, a weighted cross entropy loss will put higher importance on the minority classes compard to the majority classes. The weighted cross entropy loss for a single pixel of class <span class="math inline">\(y\)</span> with predicted probabilities <span class="math inline">\(\hat{y}_k, k \in [0, K-1]\)</span> is given as:</p>
+<p><span class="math display">\[
+wBCE(y, \hat{y}) = - w_{y} \log(\hat{y}_y)
+\]</span></p>
+<p>where the standard cross entropy loss is obtained with <span class="math inline">\(w_k = 1, \forall k \in [1, K]\)</span>.</p>
+<p><strong>Question</strong> Which values of the weights would you suggest to fight against class imbalance ? Some classical strategies are discussed in p2 of <span class="citation" data-cites="Cui2019">(<a href="#ref-Cui2019" role="doc-biblioref">Cui et al., 2019</a>)</span> as well as their own scaling strategy. From the pytorch <a href="https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html">documentation on the cross entropy loss</a>, do you see how to specify these weights ?</p>
+<!--
+
+We need to put more importance on the minority classes compared to the majority classes. 
+
+One basic option is to use w_k equals to the inverse of the frequency of the class although some suggest to take the square root of that, and then maybe to normalize the w_k in order to really have :
+
+w_k = (\sum_i n_i)/n_k  where n_k is the number of samples per class thereofre we get the inverse of the relative ratio of the class
+
+-->
+<p><strong>Question</strong> Modify your code to implement the weighted cross entropy with the weighting strategy you choose.</p>
+<p>Another option for the loss is the focal loss which adds a factor in front of the cross entropy loss term :</p>
+<p><span class="math display">\[
+focal(y, \hat{y}) = -(1-\hat{y}_y)^\gamma \log(\hat{y}_y)
+\]</span></p>
+<p>with <span class="math inline">\(\gamma \geq 0\)</span> a tunable parameter. Setting <span class="math inline">\(\gamma=0\)</span>, we recover the cross entropy loss. With higher <span class="math inline">\(\gamma\)</span>, correctly classified pixels have less and less influence, therefore if the most abundant labels are correctly predicted, they barely influence the loss despite their presence in excess. Compared to the cross entropy loss, each term in the focal is penalized by <span class="math display">\[(1-\hat{y}_y)^\gamma\]</span> You can look at <span class="citation" data-cites="Lin2017">(<a href="#ref-Lin2017" role="doc-biblioref">Lin et al., 2017</a>)</span> to see the influence of <span class="math inline">\(\gamma\)</span> on this term or check <a href="https://www.wolframalpha.com/input?i=plot+%281-x%29%5E5+and+%281-x%29%5E2+and+%281-x%29+from+0+to+1">this plot</a>.</p>
+<p><strong>Question</strong> As it can be tricky to implement the focal loss, it is given to you. Do you see where this is implemented and which argument of the main script allows to use it ?</p>
+</section>
+<section id="training-on-a-small-subset" class="level2">
+<h2 class="anchored" data-anchor-id="training-on-a-small-subset">Training on a small subset</h2>
+<p>It is now time to run a training of your model. The training script accepts a list of areas ot train on with the <code>--areas_train</code> option. It is always a good idea to test on a small experiment to ensure everything is running well. You can run a training on <code>area_3</code> by calling :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> main.py <span class="at">--areas_train</span> 3 <span class="at">--model</span> .... <span class="at">--loss</span> ... train</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This training is not expected to lead to super performant models but should run at <span class="math inline">\(1\)</span> or <span class="math inline">\(2\)</span> minutes per epoch. Depending on the GPU you are using, you may need to reduce the footprint on the GPU’s memory, e.g.&nbsp;lowering the input image size, reducing the number of blocks of the encoder and decoder, …</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Training over all the areas can take up to <span class="math inline">\(1\)</span> hour per epoch. If you use the CentraleSupelec clusters, you can consider running a training over all the areas <strong>during your “free” time</strong> with <a href="https://dce.pages.centralesupelec.fr/05_examples/#starting-batch-trainings-of-neural-networks">slurm batch job</a>. For this you are provided with a <a href="./labs/01-pytorch-segmentation/job.py">job.py</a> script. For now, let us move on to the next topics.</p>
+</div>
+</div>
+<p><strong>Question</strong> : While the simulation is running, several information (metrics, inference exemples, …) are dumped into a tensorboard. Take the time to visualize and understand them.</p>
+</section>
+<section id="inference" class="level2">
+<h2 class="anchored" data-anchor-id="inference">Inference</h2>
+<p>As training can take a long time, you are provided with a pretrained UNet. This model has been pretrained on areas 1, 2, 3, 4 and 6. Therefore the areas 5a and 5b were excluded from training to be considered for testing only, although area 5a has been selected for validation (early stopping). Training has been done for <span class="math inline">\(100\)</span> epochs, took 7 hours to complete although the best model has been found after <span class="math inline">\(2\)</span> hours or so. You can download the pretrained model <a href="http://www.metz.supelec.fr//metz/personnel/fix_jer/Deep/unet-10610_0.onnx">unet-10610_0.onnx</a>.</p>
+<p>The main script allows for testing on either a single image or whole areas. Check the arguments of</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> main.py test <span class="at">--datadir</span> ... <span class="at">--model</span> ... <span class="at">--modelpath</span> ... <span class="at">--areas_test</span> ... ... </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>When you just want to use a model for inference, you have multiple possibilities to export your model :</p>
+<ul>
+<li>use pytorch eager mode : this is what you do when you dynamically apply operations as nn.Module,</li>
+<li>use <a href="https://pytorch.org/tutorials/recipes/torchscript_inference.html">torchscript</a> : this is more efficient than eager mode; You loose the dynamic computational graph but you earn performance. You can also infer with Torhscript C/C++ which is even faster than Torchscript python,</li>
+<li>use <a href="https://onnxruntime.ai/">Onnx runtime</a> which is a framework independent (no pytorch, tensorflow, etc..) computational graph evaluator available for various languages and platforms (e.g.&nbsp;Python, C++ but also for mobiles, embedded in web apps, ..)</li>
+</ul>
+<p>In addition to even better performances (throughput and latency), the onnx format is perfect for abstracting the algorithm at its pure level of description without bells and whistles : a computational graph.</p>
+</div>
+</div>
+<p><strong>Question</strong> Visualize the computational graph with <a href="https://netron.app/">netron.app</a></p>
+<p><strong>Question</strong> Can you identify in the <code>main.py</code> script where the model is exported with onnx. Reading <a href="https://pytorch.org/docs/stable/onnx.html#torch.onnx.export">the doc on torch.onnx.export</a> do you understand what is the meaning of the arguments we provided to the call ?</p>
+<p><strong>Question</strong> Can you identify in the <code>main.py</code> script where and how inference is performed with the onnx model ? Can you find more info on the package that is used for inference ?</p>
+<p><strong>Question</strong> Evaluate the quality of the pretrained model on both the training areas (1, 2, 3, 4 and 6) and on the unused areas <code>5a</code> and <code>5b</code>.</p>
+<!--
+For now - october 26rd, 2022 - the performances are not fantastic and the model : around 0.8 for the macro F1 on 5a and 0.48 on 5b.
+-->
+<p><strong>Question</strong> Your model can be evaluated on images of arbitrary sizes (width, height). Why do you think this is the case ?</p>
+<!-- 
+As our model is fully convolutional, it can be applied to images of any size. Since it does not contain any dense layers and only convolutional operations, there is no need to transform the image to a fixed image size.
+
+-->
+<p><strong>Question</strong> Take a picture with your phone, from the web, from the test area in the dataset directory and check the results of inference on this image. Note that the <code>main.py</code> script accepts a <code>--image</code> instead of a <code>--datadir ..</code> to process a single image.</p>
+</section>
+<section id="going-further" class="level2">
+<h2 class="anchored" data-anchor-id="going-further">Going further</h2>
+<p>There are several directions along which you could pursue the study of semantic segmentation. One is about the models. The U-Net architecture we consider has been release in 2015. You might be interested in implementing more recent architectures such as VNet <span class="citation" data-cites="Milletari2016">(<a href="#ref-Milletari2016" role="doc-biblioref">Milletari et al., 2016</a>)</span> or DeepLab v3+ <span class="citation" data-cites="Chen2018">(<a href="#ref-Chen2018" role="doc-biblioref">Chen et al., 2018</a>)</span>. Another direction of study is on the losses. We explored some ways to fight against class imbalance with the weighted cross entropy loss and the focal loss. You might be interested in exploring over losses, such as the Tversky loss, the DICE loss, the Lovasz loss, the Matthews Correlation Coefficient loss <span class="citation" data-cites="Abhishek2021">(<a href="#ref-Abhishek2021" role="doc-biblioref">Abhishek &amp; Hamarneh, 2021</a>)</span>. It is interesting to implement your know loss but you might be interested in packages already implementing them such as <a href="https://smp.readthedocs.io/en/latest/losses.html">smp</a></p>
+<p>In terms of deployment, you could also push a little further the work by serving the onnx model with a webapi that could be requested with an image to label. Probably more on this soon.</p>
+</section>
+<section id="a-possible-solution" class="level2">
+<h2 class="anchored" data-anchor-id="a-possible-solution">A possible solution</h2>
+<p>You will find a possible solution in the <a href="https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/01-pytorch-segmentation">LabsSolutions/01-pytorch-segmentation</a> directory.</p>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-Abhishek2021" class="csl-entry" role="listitem">
+Abhishek, K., &amp; Hamarneh, G. (2021). Matthews correlation coefficient loss for deep convolutional networks: Application to skin lesion segmentation. <em>2021 IEEE 18th International Symposium on Biomedical Imaging (ISBI)</em>, 225–229.
+</div>
+<div id="ref-Badrinarayanan2017" class="csl-entry" role="listitem">
+Badrinarayanan, V., Kendall, A., &amp; Cipolla, R. (2017). SegNet: A deep convolutional encoder-decoder architecture for image segmentation. <em>IEEE Transactions on Pattern Analysis and Machine Intelligence</em>, <em>39</em>(12), 2481–2495. <a href="https://doi.org/10.1109/TPAMI.2016.2644615">https://doi.org/10.1109/TPAMI.2016.2644615</a>
+</div>
+<div id="ref-Chen2018" class="csl-entry" role="listitem">
+Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., &amp; Adam, H. (2018). Encoder-decoder with atrous separable convolution for semantic image segmentation. In V. Ferrari, M. Hebert, C. Sminchisescu, &amp; Y. Weiss (Eds.), <em>Computer vision – <span>ECCV</span> 2018</em> (pp. 833–851). Cham: Springer International Publishing. <a href="https://doi.org/10.1109/TPAMI.2017.2699184">https://doi.org/10.1109/TPAMI.2017.2699184</a>
+</div>
+<div id="ref-Cui2019" class="csl-entry" role="listitem">
+Cui, Y., Jia, M., Lin, T.-Y., Song, Y., &amp; Belongie, S. (2019). Class-balanced loss based on effective number of samples. In <em>2019 IEEE/CVF conference on computer vision and pattern recognition (CVPR)</em> (pp. 9260–9269). <a href="https://doi.org/10.1109/CVPR.2019.00949">https://doi.org/10.1109/CVPR.2019.00949</a>
+</div>
+<div id="ref-Lin2017" class="csl-entry" role="listitem">
+Lin, T.-Y., Goyal, P., Girshick, R. B., He, K., &amp; Dollár, P. (2017). Focal loss for dense object detection. <em>CoRR</em>, <em>abs/1708.02002</em>. Retrieved from <a href="http://arxiv.org/abs/1708.02002">http://arxiv.org/abs/1708.02002</a>
+</div>
+<div id="ref-Long2015" class="csl-entry" role="listitem">
+Long, J., Shelhamer, E., &amp; Darrell, T. (2015). Fully convolutional networks for semantic segmentation. In <em>Proceedings of the IEEE conference on computer vision and pattern recognition, <span>CVPR</span></em>. IEEE Piscataway, NJ.
+</div>
+<div id="ref-Milletari2016" class="csl-entry" role="listitem">
+Milletari, F., Navab, N., &amp; Ahmadi, S.-A. (2016). V-net: Fully convolutional neural networks for volumetric medical image segmentation. <em>2016 Fourth International Conference on 3D Vision (3DV)</em>, 565–571.
+</div>
+<div id="ref-Ronneberger2015" class="csl-entry" role="listitem">
+Ronneberger, O., Fischer, P., &amp; Brox, T. (2015). U-net: Convolutional networks for biomedical image segmentation. In N. Navab, J. Hornegger, W. M. Wells, &amp; A. F. Frangi (Eds.), <em>Medical image computing and computer-assisted intervention – <span>MICCAI</span> 2015</em> (pp. 234–241). Cham: Springer International Publishing. <a href="https://doi.org/10.1007/978-3-319-24574-4_28">https://doi.org/10.1007/978-3-319-24574-4_28</a>
+</div>
+<div id="ref-Yeung2022" class="csl-entry" role="listitem">
+Yeung, M., Sala, E., Schönlieb, C.-B., &amp; Rundo, L. (2022). Unified focal loss: Generalising dice and cross entropy-based losses to handle class imbalanced medical image segmentation. <em>Computerized Medical Imaging and Graphics</em>, <em>95</em>, 102026. https://doi.org/<a href="https://doi.org/10.1016/j.compmedimag.2021.102026">https://doi.org/10.1016/j.compmedimag.2021.102026</a>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/jeremyfix\.github\.io\/deeplearning-lectures\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

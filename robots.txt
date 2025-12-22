@@ -1,0 +1,1 @@
+Sitemap: https://jeremyfix.github.io/deeplearning-lectures/sitemap.xml
