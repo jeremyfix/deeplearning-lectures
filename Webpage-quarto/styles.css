@@ -1,0 +1,47 @@
+/* Custom styles for the Quarto website */
+
+/* Add borders to images where needed */
+img.bordered {
+    border: 1px solid #ddd;
+    padding: 5px;
+}
+
+/* Code block styling */
+.highlight {
+    background-color: #f6f6f6;
+    border-radius: 3px;
+}
+
+/* Warning/alert boxes */
+.w3-card {
+    box-shadow: 0 2px 5px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12);
+    padding: 16px;
+    margin: 16px 0;
+    border-radius: 4px;
+}
+
+.w3-red {
+    color: #fff;
+    background-color: #f44336;
+}
+
+.w3-blue {
+    color: #fff;
+    background-color: #2196F3;
+}
+
+.w3-green {
+    color: #fff;
+    background-color: #4CAF50;
+}
+
+.w3-yellow {
+    color: #000;
+    background-color: #ffeb3b;
+}
+
+/* Console output styling */
+code.console {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+}
