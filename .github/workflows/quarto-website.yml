@@ -18,8 +18,6 @@ jobs:
 
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
-        with:
-          version: stable
 
       - name: Publish to GitHub Pages
         uses: quarto-dev/quarto-actions/publish@v2
