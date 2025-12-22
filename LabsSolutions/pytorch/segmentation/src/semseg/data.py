@@ -279,17 +279,15 @@ def plot_samples(root_dir):
     #    X, y = dataset[i]
     #    print(X.shape)
 
+    # vvvvvvvvv
+    # CODE HERE
+    # Get an annotated sample from the dataset
+    # What are the types and dimensions of the input/output tensors ?
     # @SOL
     X, y = dataset[0]
     print(X.shape, y.shape)
     # SOL@
-    # @TEMPL
-    # # vvvvvvvvv
-    # # CODE HERE
-    # # Get an annotated sample from the dataset
-    # # What are the types and dimensions of the input/output tensors ?
     # # ^^^^^^^^^
-    # TEMPL@
 
     fig, axes = plt.subplots(figsize=(10, 10), facecolor="w", nrows=nrows, ncols=ncols)
 
@@ -316,8 +314,6 @@ def plot_samples(root_dir):
 
 
 # @SOL
-
-
 def look_for_unlabeled(root_dir):
     resize_transforms = []
     conversion_transforms = [
@@ -358,14 +354,26 @@ def look_for_unlabeled(root_dir):
             axes[1].get_yaxis().set_visible(False)
             plt.tight_layout()
             plt.show()
-
-
 # SOL@
 
+def test_dataloaders(root_dir):
+    config = {
+            "root_dir": root_dir,
+            "batch_size": 16,
+            "normalize": True,
+            "crop_size": 256,
+            "valid_ratio": 0.2,
+            "num_workers": 4
+    }
+    get_dataloaders(config, use_cuda=False)
+
 if __name__ == "__main__":
-    # get_trainvalid_dataloaders("/mounts/datasets/datasets/Pascal-VOC2012", 64, True, 0.2, 7)
     # @TEMPL
     # plot_samples("/mounts/datasets/datasets/Pascal-VOC2012")
+    # test_dataloaders("/opt/datasets/Pascal-VOC2012")
     # TEMPL@
-    # plot_samples("/opt/datasets/Pascal-VOC2012")  # @SOL@
-    look_for_unlabeled("/opt/datasets/Pascal-VOC2012")  # @SOL@
+    # @SOL
+    plot_samples("/opt/datasets/Pascal-VOC2012")
+    test_dataloaders("/opt/datasets/Pascal-VOC2012")
+    look_for_unlabeled("/opt/datasets/Pascal-VOC2012")
+    # SOL@
