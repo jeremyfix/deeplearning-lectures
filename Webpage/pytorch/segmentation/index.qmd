@@ -17,6 +17,12 @@ In this labwork, we will be working with the Pascal VOC dataset. The Pascal VOC 
 
 Some samples of the dataset are shown below with the labels overlayed on top of the images. The contour of the objects is labeled with the label $255$ while all the other $21$ categories are labeled $0 \cdots 20$. The classes are strongly inbalanced as most of the labels are from the **background** class.
 
+::: {.callout-warning}
+
+**TBD** gives the proportions of labels
+
+:::
+
 ![Some samples of the Pascal VOC dataset. The contour of the objects is encoded with the label $255$, hence highlighted in a yelloish color.](pascalVOC_samples.png){width=50%}
 
 We will follow exactly the same path as usual starting by exploring the data, then implementing a dedicated model and finally considering a loss able to deal with inbalanced classes.
@@ -115,7 +121,7 @@ A more objective calibration score is given by your estimated real risk.
 
 ## Model implementation
 
-The parametric model you learn takes as input a 3-channel image and outputs a probability distribution over the $14$
+The parametric model you learn takes as input a 3-channel image and outputs a probability distribution over the $21$
 classes. There has several several propositions in the litterature to adress this problem such as FCN [@Long2015], UNet [@Ronneberger2015], VNet [@Milletari2016], SegNet[@Badrinarayanan2017], DeepLab v3+ [@Chen2018]. In this labwork, I propose we code the UNet of 2015 and you might want to implemented DeepLabv3+ as a homework :)
 
 UNet is a fully convolutional network (FCN), i.e. involving only convolutional operations (Conv2D, MaxPool , ...; there is no fully connected layers). 
@@ -131,45 +137,63 @@ with the finer grain details brought by the encoder through skip layer connectio
 
 ![UNet architecture for semantic segmentation](unet.png){width=100%}
 
-The provided code implements `UNet` with a `UNetEncoder` class and a `UNetDecoder` class. Both the UNetEncoder and
-UNetDecoder relies on repetition of blocks which are UNetConvBlock on the one hand and UNetUpConvBlock on the other
-hand.
+The provided code implements `UNet` with a `UNetEncoder` class and a `UNetDecoder` class. Both the UNetEncoder and UNetDecoder rely on repetition of blocks which are UNetEncoderBlock on the one hand and UNetDecoderBlock on the other hand.
 
-**UNetEncoder** This downsampling pathway is made of :
+### Implementing the UNetEncoder
 
-- several `UNetConvBlock` blocks where the $i$-th ($i \in [0, \#blocks-1]$) block is made of:
-	- `block1`=Conv($3\times 3$)-ReLU-BatchNorm, with $64 \times 2^i$ channels 
-	- `block2`=Conv($3\times 3$)-ReLU-BatchNorm, with $64 \times 2^i$ channels and 
+This downsampling pathway is made of :
+
+- several `UNetEncoderBlock` blocks where the $i$-th ($i \in [0, \#blocks-1]$) block is made of:
+	- `block1`=Conv($3\times 3$)-ReLU-BatchNorm, with $64 \times 2^i$ output channels 
+	- `block2`=Conv($3\times 3$)-ReLU-BatchNorm, with $64 \times 2^i$ output channels and 
 	- `block3`= MaxPooling($2\times 2$),
-- followed by a Conv($3\times 3$)-ReLU-BatchNorm, with $64 \times 2^{\#blocks}$ channels
+- followed by a Conv($3\times 3$)-ReLU-BatchNorm, with $64 \times 2^{\#blocks}$ output channels
 
-Note that the output of `block2`, just before the downsampling is transmitted to the decoder stage, therefore the `UNetConvBlock` forward function outputs two tensors : one to be propagated along the encoder and one to be transmitter to the decoder.
+Note that the output of `block2`, just before the downsampling is transmitted to the decoder stage, therefore the `UNetEncoderBlock` forward function **outputs two tensors** : one to be propagated along the encoder and one to be transmitter to the decoder.
 
-**Question** In the `models.py` script, implement the code in the `UNetEncoder` and `UNetConvBlock` classes. Check your code running the unit tests. Be sure to understand how the propagation is performed through the encoder blocks.
+**Question** In the `models.py` script, implement the code in the `UNetEncoder` and `UNetEncoderBlock` classes. Check your code running the unit tests in `models/__main__.py:test_unet_encoder()`. Be sure to understand how the propagation is performed through the encoder blocks.
+
+You can run the test code using the usual module call (check the very bottom of the `models/__main__.py` script):
+
+``` bash
+python -m semseg.models
+```
 
 The output of the final layers of the encoder is a tensor of shape $(batch, 64\times 2^{\#blocks}, H/2^{\#blocks}, W/2^{\#blocks})$
+
+### Implementing the UNet decoder
 
 **UNetDecoder** This upsampling pathway is made of :
 
 - a first Conv($3\times 3$)-ReLU-BatchNorm block which keeps constant the number of channels,
-- followed by several `UNetUpConvBlock` blocks with :
+- followed by several `UNetDecoderBlock` blocks with :
 	- `upconv`=UpSample($2$)-Conv($3\times 3$)-ReLU-BatchNorm which halves the number of channels, 
 	- a concatenation of the upconv output features with the encoder features
 	- a `convblock`= Conv($3\times 3$)-ReLU-BatchNorm-Conv($3\times 3$)-ReLU-BatchNorm which halves the number of its input channels
 
-For the `UNetUpConvBlock`, when its input along the decoder pathway has $c_0$ channels, its output has $c_0/2$ channels since :
+For the `UNetDecoderBlock`, when its input along the decoder pathway has $c_0$ channels, its output has $c_0/2$ channels since :
 
 - upconv outputs $c_0/2$ channels
 - the concatenation of $c_0/2$ channels with the $c_0/2$ channels of the encoder leads to $c_0$ channels
 - the `convblock` gets $c_0$ input channels and outputs $c_0/2$ output channels
 
-In order to output a score for each of the $14$ classes, the very last layer of the decoder is a Conv($1\times 1$) with the same number of channels than the number of classes.
+In order to output a score for each of the $21$ classes, the very last layer of the decoder is a Conv($1\times 1$) with the same number of channels than the number of classes.
 
-**Question** In the `models.py` script, implement the code in the `UNetDecoder` and `UNetUpConvBlock` classes. Check your code against the unit tests. Be sure to understand how the propagation is performed through the decoder blocks.
+**Question** In the `models.py` script, implement the code in the `UNetDecoder` and `UNetDecoderBlock` classes. Check your code against the unit tests. Be sure to understand how the propagation is performed through the decoder blocks.
 
-Once both the encoder and decoder classes are implemented, you can see that the `UNet` class is a simple wrapper around them.
+You can run the test code **uncommenting the appropriate test** and using the usual module call (check the very bottom of the `models/__main__.py` script) :
 
-**Question** In the `models.py` script, within the `main()` function, write a piece of code for propagating a dummy tensor within your model. Is the output tensor the shape you expect ?
+``` bash
+python -m semseg.models
+```
+
+### Implementing the full model
+
+Once both the encoder and decoder classes are implemented, you can see that the `UNet` class is a simple wrapper around them. 
+
+**Question** Do you identify and understand the code of the **UNet** module ?
+
+**Question** In the `models/__main__.py` script, implement the missing code in the `test_unet` function to create a UNet model and test it. Is the output tensor the shape you expect ?
 
 We are done with the model implementation, let us move on to the metrics and loss.
 
@@ -326,6 +350,9 @@ As our model is fully convolutional, it can be applied to images of any size. Si
 
 **Question** Take a picture with your phone, from the web, from the test area in the dataset directory and check the results of inference on this image. Note that the `main.py` script accepts a `--image` instead of a `--datadir ..` to process a single image.
 
+## Using a pretrained encoder
+
+**TBD**
 
 ## Going further
 
@@ -337,7 +364,10 @@ In terms of deployment, you could also push a little further the work by serving
 
 You will find a possible solution in the [LabsSolutions/01-pytorch-segmentation](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/01-pytorch-segmentation) directory.
 
+
 ## Extensions to Stanford 2D-3D 
+
+**TO BE REFACTORED**
 
 Let us now extend the work to the large [Stanford 2D-3D S dataset](http://buildingparser.stanford.edu/dataset.html). This dataset is built from 3D scans of buildings with multiple annotation types (pixelwise depth, pixel class, pixelwise normals, scene category). We will consider only the pixelwise class labeling. The data have been collected in 6 different areas. 
 
@@ -357,8 +387,7 @@ Below is an example of the input RGB image and the associated labels
 
 There are $14$ classes, the first being for the unlabeled pixels.
 
-## Obsolete
-
+### Dataset
 
 You are provided with the `StanfordDataset` class which is a pytorch dataset object, i.e. an object implementing the `__len__` and `__getitem__`  methods. The constructor expects follows the [VisionDataset](https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html) interface and expects :
 
@@ -380,7 +409,7 @@ The noise in the orcale may also leads to divergence of the cross entropy loss. 
 (venv) sh11:~:mylogin$ python data.py --area 5a --datadir /mounts/Datasets4/Stanford2D-3D-S
 ```
 
-## Data pipeline
+### Data pipeline
 
 The data are loaded and the dataloaders are built by calling `get_dataloaders` from the `data` module.
 
