@@ -198,6 +198,7 @@ As we have observed in the beginning of the practical, the images in the dataset
 ![Images are resized to fixed size by either shrinking or cropping to 224 x 224 (ImageNet standard)](./preprocess_images.png){width=50%}
 
 Shrinking is usually what is done because changing the aspect ratio of objects does not appear experimentally to be dramatic while keeping the whole content of the image.
+
 ::: {.callout-note}
 There are neural network architectures that can deal with varying input sizes but the ones we will consider will make use of fully connected layers which require their input to be of fixed size.
 :::
