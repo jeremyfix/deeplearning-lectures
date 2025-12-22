@@ -218,7 +218,7 @@ class UNet(nn.Module):
     UNet model
 
     Args:
-        cfg: configuration dictionary
+        cfg: configuration dictionnary with keys num_blocks and base_c
         input_size: input image size (C, H, W)
         num_classes: number of output classes
     """
