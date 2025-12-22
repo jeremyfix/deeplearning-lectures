@@ -2,38 +2,38 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/asr/index.html</loc>
-    <lastmod>2025-12-22T11:26:59.992Z</lastmod>
+    <lastmod>2025-12-22T13:59:03.502Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/object-detection/index.html</loc>
-    <lastmod>2025-12-22T11:27:00.359Z</lastmod>
+    <lastmod>2025-12-22T13:59:03.866Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/segmentation/index.html</loc>
-    <lastmod>2025-12-22T11:27:00.368Z</lastmod>
+    <lastmod>2025-12-22T13:59:03.875Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/index.html</loc>
-    <lastmod>2025-12-22T11:26:59.990Z</lastmod>
+    <lastmod>2025-12-22T13:59:03.498Z</lastmod>
+  </url>
+  <url>
+    <loc>https://jeremyfix.github.io/deeplearning-lectures/keras/mnist/index.html</loc>
+    <lastmod>2025-12-22T13:59:03.499Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/keras/cifar.html</loc>
-    <lastmod>2025-12-22T11:26:59.990Z</lastmod>
-  </url>
-  <url>
-    <loc>https://jeremyfix.github.io/deeplearning-lectures/keras/mnist.html</loc>
-    <lastmod>2025-12-22T11:26:59.990Z</lastmod>
+    <lastmod>2025-12-22T13:59:03.499Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/argparse.html</loc>
-    <lastmod>2025-12-22T11:26:59.587Z</lastmod>
+    <lastmod>2025-12-22T13:59:03.095Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/fashionMNIST/index.html</loc>
-    <lastmod>2025-12-22T11:27:00.001Z</lastmod>
+    <lastmod>2025-12-22T13:59:03.511Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/gan/index.html</loc>
-    <lastmod>2025-12-22T11:27:00.213Z</lastmod>
+    <lastmod>2025-12-22T13:59:03.725Z</lastmod>
   </url>
 </urlset>

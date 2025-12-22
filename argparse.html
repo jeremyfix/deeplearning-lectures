@@ -107,7 +107,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 
 
-<link rel="stylesheet" href="styles.css">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -164,7 +163,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-keras">    
         <li>
-    <a class="dropdown-item" href="./keras/mnist.html">
+    <a class="dropdown-item" href="./keras/mnist/index.html">
  <span class="dropdown-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </li>  
         <li>
@@ -291,7 +290,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./keras/mnist.html" class="sidebar-item-text sidebar-link">
+  <a href="./keras/mnist/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </div>
 </li>
@@ -365,7 +364,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>When you want to test a family of architectures, to be understood in a large sense, covering both the model, its initialization, the loss, optimization function, possibly preprocessing steps, …, it is certainly easier to write a single script that can take optional command line arguments to parameterize it.</p>
 <p>The <a href="https://docs.python.org/3/library/argparse.html#module-argparse">argparse</a> python module is particularly well suited for defining a parameterized script. A basic usage of argparse is to build an <a href="https://docs.python.org/3/library/argparse.html#argparse.ArgumentParser">ArgumentParser</a> object and to add arguments to it. Arguments can be optional or mandatory, of type int, string, bool (a flag), etc..</p>
 <p>The code below is an example of python script with some elements on how to use it.</p>
-<div id="c5a73bfd" class="cell">
+<div id="70d596e7" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> argparse</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>parser <span class="op">=</span> argparse.ArgumentParser()</span>
@@ -408,30 +407,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(args)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>And now some usage examples:</p>
-<pre class="console"><code>
-mymachine:~:mylogin$ python3 argpase_ex.py -h
-usage: argpase_ex.py [-h] [--normalize {None,minmax,std}] [--logdir LOGDIR]
-                          --h1 H1 [--L2 L2 | --dropout DROPOUT]
-
-optional arguments:
--h, --help            show this help message and exit
---normalize {None,minmax,std}
-                      Which normalization to apply to the input data
---logdir LOGDIR       The directory in which to store the logs
---h1 H1               The size of the hidden layer
---L2 L2               Activate L2 regularization with the provided penalty
---dropout DROPOUT     Activate Dropout with the specified rate
-
-mymachine:~:mylogin$ python3 argpase_ex.py
-usage: argpase_ex.py [-h] [--normalize {None,minmax,std}] [--logdir LOGDIR]
-                      --h1 H1 [--L2 L2 | --dropout DROPOUT]     
-argpase_ex.py: error: the following arguments are required: --h1
-
-mymachine:~:mylogin$ python3 argpase_ex.py --h1 10
-Namespace(L2=None, dropout=None, h1=10, logdir='./logs', normalize='None')
-
-mymachine:~:mylogin$ python3 argpase_ex.py --h1 10 --dropout 0.5 --normalize std
-Namespace(L2=None, dropout=0.5, h1=10, logdir='./logs', normalize='std')</code></pre>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mymachine:~:mylogin$</span> python3 argpase_ex.py <span class="at">-h</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">usage:</span> argpase_ex.py <span class="pp">[-</span><span class="ss">h</span><span class="pp">]</span> [--normalize <span class="dt">{None</span><span class="op">,</span><span class="dt">minmax</span><span class="op">,</span><span class="dt">std}</span>] [--logdir LOGDIR]</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                          <span class="ex">--h1</span> H1 [--L2 L2 <span class="kw">|</span> <span class="ex">--dropout</span> DROPOUT]</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ex">optional</span> arguments:</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="ex">-h,</span> <span class="at">--help</span>            show this help message and exit</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="ex">--normalize</span> <span class="dt">{None</span><span class="op">,</span><span class="dt">minmax</span><span class="op">,</span><span class="dt">std}</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                      <span class="ex">Which</span> normalization to apply to the input data</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="ex">--logdir</span> LOGDIR       The directory in which to store the logs</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ex">--h1</span> H1               The size of the hidden layer</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="ex">--L2</span> L2               Activate L2 regularization with the provided penalty</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="ex">--dropout</span> DROPOUT     Activate Dropout with the specified rate</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="ex">mymachine:~:mylogin$</span> python3 argpase_ex.py</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="ex">usage:</span> argpase_ex.py <span class="pp">[-</span><span class="ss">h</span><span class="pp">]</span> [--normalize <span class="dt">{None</span><span class="op">,</span><span class="dt">minmax</span><span class="op">,</span><span class="dt">std}</span>] [--logdir LOGDIR]</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>                      <span class="ex">--h1</span> H1 [--L2 L2 <span class="kw">|</span> <span class="ex">--dropout</span> DROPOUT]     </span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="ex">argpase_ex.py:</span> error: the following arguments are required: <span class="at">--h1</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="ex">mymachine:~:mylogin$</span> python3 argpase_ex.py <span class="at">--h1</span> 10</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="ex">Namespace</span><span class="er">(</span><span class="va">L2</span><span class="op">=</span>None, <span class="va">dropout</span><span class="op">=</span>None, <span class="va">h1</span><span class="op">=</span>10, <span class="va">logdir</span><span class="op">=</span><span class="st">'./logs'</span>, <span class="va">normalize</span><span class="op">=</span><span class="st">'None'</span><span class="kw">)</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="ex">mymachine:~:mylogin$</span> python3 argpase_ex.py <span class="at">--h1</span> 10 <span class="at">--dropout</span> 0.5 <span class="at">--normalize</span> std</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="ex">Namespace</span><span class="er">(</span><span class="va">L2</span><span class="op">=</span>None, <span class="va">dropout</span><span class="op">=</span>0.5, <span class="va">h1</span><span class="op">=</span>10, <span class="va">logdir</span><span class="op">=</span><span class="st">'./logs'</span>, <span class="va">normalize</span><span class="op">=</span><span class="st">'std'</span><span class="kw">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 

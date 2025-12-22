@@ -156,7 +156,6 @@ window.Quarto = {
 };
 </script>
 
-<link rel="stylesheet" href="../../styles.css">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -213,7 +212,7 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-keras">    
         <li>
-    <a class="dropdown-item" href="../../keras/mnist.html">
+    <a class="dropdown-item" href="../../keras/mnist/index.html">
  <span class="dropdown-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </li>  
         <li>
@@ -340,7 +339,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../keras/mnist.html" class="sidebar-item-text sidebar-link">
+  <a href="../../keras/mnist/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </div>
 </li>
@@ -446,6 +445,7 @@ window.Quarto = {
 </header>
 
 
+<p><a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"></p>
 <section id="objectives" class="level2">
 <h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
 <p>In the previous practical, you trained feedforward neural networks for classifying images, i.e.&nbsp;assigning a <strong>single</strong> label to each image hopefully reaching a good accuracy on the test set. We now consider a second problem in computer vision : object detection. The task is here to find every occurrence of a set of classes of objects. Given an image, we want to output a set of bounding boxes for every object classes of interest.</p>
@@ -482,7 +482,7 @@ window.Quarto = {
 <li><code>{'target_mode':'all_bbox', 'image_transform_params': dict, 'num_cells': int}</code> : a mode you will implement in <a href="#preprocessing-the-targets-1">Multiple object detection/Preprocessing the targets</a></li>
 </ul></li>
 </ul>
-<div id="d128feea" class="cell">
+<div id="bc32cc51" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> data</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torchvision.transforms <span class="im">as</span> transforms</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -631,7 +631,20 @@ window.Quarto = {
 <figcaption>Images are resized to fixed size by either shrinking or cropping to 224 x 224 (ImageNet standard)</figcaption>
 </figure>
 </div>
-<p>Shrinking is usually what is done because changing the aspect ratio of objects does not appear experimentally to be dramatic while keeping the whole content of the image. ::: {.callout-note} There are neural network architectures that can deal with varying input sizes but the ones we will consider will make use of fully connected layers which require their input to be of fixed size. :::</p>
+<p>Shrinking is usually what is done because changing the aspect ratio of objects does not appear experimentally to be dramatic while keeping the whole content of the image.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>There are neural network architectures that can deal with varying input sizes but the ones we will consider will make use of fully connected layers which require their input to be of fixed size.</p>
+</div>
+</div>
 </section>
 <section id="preprocessing-the-targets" class="level3">
 <h3 class="anchored" data-anchor-id="preprocessing-the-targets">Preprocessing the targets</h3>

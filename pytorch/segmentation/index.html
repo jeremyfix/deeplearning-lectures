@@ -156,7 +156,6 @@ window.Quarto = {
 };
 </script>
 
-<link rel="stylesheet" href="../../styles.css">
 </head>
 
 <body class="nav-sidebar docked nav-fixed quarto-light">
@@ -213,7 +212,7 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-keras">    
         <li>
-    <a class="dropdown-item" href="../../keras/mnist.html">
+    <a class="dropdown-item" href="../../keras/mnist/index.html">
  <span class="dropdown-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </li>  
         <li>
@@ -340,7 +339,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../keras/mnist.html" class="sidebar-item-text sidebar-link">
+  <a href="../../keras/mnist/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </div>
 </li>
@@ -428,6 +427,7 @@ window.Quarto = {
 </header>
 
 
+<p><a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"></p>
 <section id="objectives" class="level2">
 <h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
 <p>The objective of this lab work is to implement and explore convolutional neural networks for semantic segmentation. <strong>Semantic segmentation</strong> seeks to learn a function <span class="math inline">\(f\)</span>, parametrized by <span class="math inline">\(\theta\)</span> which takes as input a colored image <span class="math inline">\(I\)</span> of arbitrary shape <span class="math inline">\(H\times W\)</span> and outputs an images of labels of the same shape <span class="math inline">\(H \times W\)</span> than the input. Indeed, we seek to label every single pixel of the image as belonging to one of <span class="math inline">\(K\)</span> predefined classes.</p>
@@ -555,7 +555,7 @@ Note
 <p>The name U-Net comes from the very specific shape of this encoder-decoder network with a contracting pathway for the encoding following by an expanding pathway for the decoding. The contracting pathway is expected to learn higher and higher level features as we progress deeper in the network and the expanding pathway to merge these highlevel features with the finer grain details brought by the encoder through skip layer connections.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="./latex/unet.png" class="img-fluid figure-img" style="width:50.0%"></p>
+<p><img src="unet.png" class="img-fluid figure-img" style="width:100.0%"></p>
 <figcaption>UNet architecture for semantic segmentation</figcaption>
 </figure>
 </div>
