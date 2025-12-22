@@ -15,6 +15,7 @@ dependencies = [
   "tqdm>=4.65.0",
   "matplotlib>=3.7.1",
   "onnxruntime-gpu>=1.19.2",
+  "onnxscript",
   "onnx>=1.17",
   "segmentation_models_pytorch",
   "tensorboard"
