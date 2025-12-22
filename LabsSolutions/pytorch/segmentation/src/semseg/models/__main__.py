@@ -8,8 +8,64 @@ import sys
 import torch
 
 # Local imports
+from .unet import UNetEncoder, UNetDecoder, UNet
 from . import build_model
 
+def test_unet_encoder():
+    logging.info("Testing UNet Encoder")
+    # Encoder with 12 input channels
+    batch_size, cin, height, width = 10, 12, 32, 64
+    
+    num_blocks = 4
+    base_c  = 64
+    encoder = UNetEncoder(cin, base_c=base_c, num_blocks=num_blocks)
+
+    input_tensor = torch.zeros((batch_size, cin, height, width))
+    output_tensor, encoder_features = encoder(input_tensor)
+    output_shape = list(output_tensor.shape)
+
+    expected_shape = [
+        batch_size,
+        2**num_blocks * base_c,
+        height // 2**num_blocks,
+        width // 2**num_blocks,
+    ]
+    if list(output_tensor.shape) == expected_shape:
+        print(f"Congrats ! output shape is {expected_shape}")
+    else:
+        raise RuntimeError(f"was expecting {expected_shape} but got {output_shape}")
+
+def test_unet_decoder():
+    logging.info("Testing UNet Decoder")
+    # Decoder
+    batch_size, encoder_cout, height, width = 10, 512, 4, 8
+    num_blocks, num_classes = 3, 14
+
+    decoder = UNetDecoder(cin=encoder_cout, num_blocks=num_blocks, num_classes=num_classes)
+    input_tensor = torch.zeros((batch_size, encoder_cout, height, width))
+    encoder_features = [
+        torch.zeros(
+            (
+                batch_size,
+                64 * (2**i),
+                height * (2 ** (num_blocks - i)),
+                width * (2 ** (num_blocks - i)),
+            )
+        )
+        for i in range(num_blocks)
+    ]
+    output_tensor = decoder(input_tensor, encoder_features)
+    output_shape = list(output_tensor.shape)
+    expected_shape = [
+        batch_size,
+        num_classes,
+        height * 2**num_blocks,
+        width * 2**num_blocks,
+    ]
+    if list(output_tensor.shape) == expected_shape:
+        print(f"Congrats ! output shape is {expected_shape}")
+    else:
+        raise RuntimeError(f"was expecting {expected_shape} but got {output_shape}")
 
 def test_unet():
     logging.info("Testing UNet")
@@ -18,7 +74,7 @@ def test_unet():
     num_classes = 21
     X = torch.zeros((1, *input_size))
     model = build_model(
-        {"class": "UNet", "encoder": {"model_name": "resnet18"}},
+        {"class": "UNet", "num_blocks": 4, "base_c": 18},
         input_size,
         num_classes,
     )
@@ -27,7 +83,7 @@ def test_unet():
     print(f"Output shape : {y.shape}")
     assert y.shape == (1, num_classes, input_size[1], input_size[2])
 
-
+# @SOL
 def test_deeplabv3():
     logging.info("Testing DeepLabV3Plus")
     cin = 1
@@ -46,11 +102,11 @@ def test_deeplabv3():
     y = model(X)
     print(f"Output shape : {y.shape}")
     assert y.shape == (1, num_classes, input_size[1], input_size[2])
-
+# SOL@
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
-    # test_vision_maskrcnn()
-    # test_mask_rcnn()
-    test_unet()
-    test_deeplabv3()
+    test_unet_encoder()
+    # test_unet_decoder()
+    # test_unet()
+    # test_deeplabv3()
