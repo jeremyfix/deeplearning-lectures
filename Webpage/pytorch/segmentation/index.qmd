@@ -1,5 +1,5 @@
 ---
-title:  "Semantic segmenation on Stanford-2D-3D S"
+title:  "Semantic segmentation on Stanford-2D-3D S"
 author:
 - Jeremy Fix
 keywords: [PyTorch tutorial, semantic segmentation, Stanford 2D-3D S]
@@ -9,58 +9,67 @@ keywords: [PyTorch tutorial, semantic segmentation, Stanford 2D-3D S]
 
 ## Objectives
 
-The objective of this lab work is to implement and explore convolutional neural networks for semantic segmentation. **Semantic segmentation** seeks to learn a function $f$, parametrized by $\theta$ which takes as input a colored image $I$ of arbitrary shape $H\times W$ and outputs an images of labels of the same shape $H \times W$ than the input. Indeed, we seek to label every single pixel of the image as belonging to one of $K$ predefined classes.
+The objective of this lab work is to implement and explore convolutional neural networks for semantic segmentation. **Semantic segmentation** seeks to learn a function $f_\theta$, parametrized by $\theta$ which takes as input an image $I$ of arbitrary shape $H\times W$ and outputs an images of labels of the same shape $H \times W$ than the input. Indeed, we seek to label every single pixel of the image as belonging to one of $K$ predefined classes. This task is also known as **dense labeling**.
 
-In this labwork, we will be working with the large [Stanford 2D-3D S dataset](http://buildingparser.stanford.edu/dataset.html). This dataset is built from 3D scans of buildings with multiple annotation types (pixelwise depth, pixel class, pixelwise normals, scene category). We will consider only the pixelwise class labeling. The data have been collected in 6 different areas. 
+In this labwork, we will be working with the Pascal VOC dataset. The Pascal VOC dataset contains images of variable sizes, colored, where each pixel is labeled as belonging to one out of $22$ classes represented by their color code below.
 
-| Area | Number of images|
-| ---  | --- |
-| 1    | 10,327 |
-| 2    | 15,714 |
-| 3    | 3,704 |
-| 4    | 13,268 |
-| 5    | 17,593 |
-| 6    | 9,890 |
-| **Total** | 70,496 |
+![The $21$ classes de PascalVOC avec leur code couleur. Produced with [this code](https://gist.github.com/ccj5351/ae554ea70cef79ab1efdb3f9f92d2b37)](pascal-voc-label-color-map.jpg){width=75%}
 
-Below is an example of the input RGB image and the associated labels 
+Some samples of the dataset are shown below with the labels overlayed on top of the images. The contour of the objects is labeled with the label $255$ while all the other $21$ categories are labeled $0 \cdots 20$. The classes are strongly inbalanced as most of the labels are from the **background** class.
 
-![Semantic segmentation : pixelwise classifcation](sample.png){width=80%}
+![Some samples of the Pascal VOC dataset. The contour of the objects is encoded with the label $255$, hence highlighted in a yelloish color.](pascalVOC_samples.png){width=50%}
 
-There are $14$ classes, the first being for the unlabeled pixels.
+We will follow exactly the same path as usual starting by exploring the data, then implementing a dedicated model and finally considering a loss able to deal with inbalanced classes.
 
 ## Setup and predefined scripts
 
-For this lab work, you are provided with environment setup files, either a [environment.yml](./labs/01-pytorch-segmentation/environment.yml) if you are using conda and a [requirements.txt](./labs/01-pytorch-segmentation/requirements.txt) file if you are a pipenv/pip/virtualenv/etc..
+For this lab, you are provided a base code to complete : [semseg-kit.tar.gz](../../assets/semseg-kit.tar.gz). To get and use that code :  
 
-On the CentraleSupelec clusters, I advise you to use a virtual environment, created with venv for example, as conda requires a lot of dependencies to be installed and can sometimes be cumbersome.
-
-``` bash
-sh11:~:mylogin$ python3 -m venv $TMPDIR/venv
-sh11:~:mylogin$ source $TMPDIR/venv/bin/activate
-(venv) sh11:~:mylogin$  python -m pip install -r requirements.txt
 ```
-<!--
-> sh11:~:mylogin$ export PATH=PATH:/opt/conda/bin
-> sh11:~:mylogin$ conda env create -f environment.yml
-> sh11:~:mylogin$ source activate dl-lectures-pytorch-segmentation
--->
-
-If your enviromnent is correctly created and activated, the following should work 
-
-``` bash
-(venv) sh11:~:mylogin$ python -c "import torch; print(torch.__version__)"
-1.10.1+cu113
+wget https://jeremyfix.github.io/deeplearning-lectures/assets/semseg-kit.tar.gz
+tar -zxvf semgseg-kit.tar.gz
 ```
 
-Your are also provided with some base code :
+This code is organized as a python library `semseg` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
 
-- [data.py](./labs/01-pytorch-segmentation/data.py) : script responsible for dataset and dataloader building
-- [models.py](./labs/01-pytorch-segmentation/models.py) : script holding the models zoo
-- [metrics.py](./labs/01-pytorch-segmentation/metrics.py) : script for the definition of custom metrics
-- [main.py](./labs/01-pytorch-segmentation/main.py) : the main script orchestrating the call to all your functions for training and inference
-- [utils.py](./labs/01-pytorch-segmentation/utils.py) : several utilitary functions for colorize segmentation masks
-- [test_implementation.py](./labs/01-pytorch-segmentation/test_implementation.py) : a script with unit tests to test your answers to the code questions
+To install the library, you to install it in 1) virtual environnement 2) in developer mode. 
+
+**If you use the DCE of CentraleSupélec**, you can use pre-installed virtual environments that already ship several required packages :
+
+```bash
+/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
+```
+
+**otherwise**, you need to create your own venv, for example using the builtin python venv module :
+
+```bash
+python3 -m venv /tmp/venv
+source /tmp/venv/
+```
+
+Then, to install the library in developer mode :
+
+``` bash
+python -m pip install -e segmentation
+```
+
+You can verify that the library is installed by running :
+
+``` bash
+python -c "import semseg; print(f'Library available at {semseg.__file__}')
+```
+
+This basic code base offers you several modules that **we will cover step by step** :
+
+- data.py : deals with data loading,
+- models/ : contains our neural networks,
+- utils.py : contains several utilitary functions such as the training and test loops, saving the best models, etc..
+- optim.py : defines the focal loss which we will make us of in later on,définit notamment la perte Focal, que nous allons utiliser plus
+- metrics.py : provides metrics such as the F1, confusion matrix, etc..
+- main.py: the main script which will run training and testing.
+
+Une fois la librairie installée, sous Visual Studio Code, vous pouvez indiquer le chemin vers l'interpréteur Python : `~/deepvision-venv/bin/python`.
 
 
 
@@ -333,6 +342,25 @@ In terms of deployment, you could also push a little further the work by serving
 
 You will find a possible solution in the [LabsSolutions/01-pytorch-segmentation](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/01-pytorch-segmentation) directory.
 
+## Extensions to Stanford 2D-3D 
+
+Let us now extend the work to the large [Stanford 2D-3D S dataset](http://buildingparser.stanford.edu/dataset.html). This dataset is built from 3D scans of buildings with multiple annotation types (pixelwise depth, pixel class, pixelwise normals, scene category). We will consider only the pixelwise class labeling. The data have been collected in 6 different areas. 
+
+| Area | Number of images|
+| ---  | --- |
+| 1    | 10,327 |
+| 2    | 15,714 |
+| 3    | 3,704 |
+| 4    | 13,268 |
+| 5    | 17,593 |
+| 6    | 9,890 |
+| **Total** | 70,496 |
+
+Below is an example of the input RGB image and the associated labels 
+
+![Semantic segmentation : pixelwise classifcation](sample.png){width=80%}
+
+There are $14$ classes, the first being for the unlabeled pixels.
 
 ## References
 

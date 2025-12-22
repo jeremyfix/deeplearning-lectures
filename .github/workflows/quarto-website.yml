@@ -40,7 +40,7 @@ jobs:
         run: |
           mkdir -p assets 
           cd StudentsCode/pytorch/ 
-          tar -zcvf ../../assets/semseg-kit.zip segmentation
+          tar -zcvf ../../assets/semseg-kit.tar.gz segmentation
 
       - name: Upload the assets
         uses: actions/upload-artifact@v4
