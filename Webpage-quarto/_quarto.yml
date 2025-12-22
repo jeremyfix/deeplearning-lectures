@@ -30,12 +30,6 @@ website:
         menu:
           - text: "Argparse"
             file: argparse.qmd
-          - text: "Cluster"
-            file: cluster.qmd
-          - text: "How To"
-            file: howto.qmd
-          - text: "FAQ"
-            file: faq.qmd
 
   sidebar:
     style: "docked"
@@ -57,9 +51,6 @@ website:
       - section: "Resources"
         contents:
           - argparse.qmd
-          - cluster.qmd
-          - howto.qmd
-          - faq.qmd
 
 execute:
   enabled: false
