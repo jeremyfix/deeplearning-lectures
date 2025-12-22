@@ -73,14 +73,25 @@ def test_unet():
     input_size = (cin, 256, 256)
     num_classes = 21
     X = torch.zeros((1, *input_size))
+
+    # @SOL 
     model = build_model(
         {"class": "UNet", "num_blocks": 4, "base_c": 18},
         input_size,
         num_classes,
     )
+    # SOL@
+    # @TEMPL
+    # # vvvvvvvvv
+    # # CODE HERE
+    # model = None
+    # # ^^^^^^^^^
+    # TEMPL@
+
     model.eval()
     y = model(X)
-    print(f"Output shape : {y.shape}")
+
+    logging.info(f"Output shape : {y.shape}")
     assert y.shape == (1, num_classes, input_size[1], input_size[2])
 
 # @SOL
@@ -106,7 +117,13 @@ def test_deeplabv3():
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
+    # @TEMPL
+    # test_unet_encoder()
+    # # test_unet_decoder()
+    # # test_unet()
+    # TEMPL@
+    # @SOL
     test_unet_encoder()
-    # test_unet_decoder()
-    # test_unet()
-    # test_deeplabv3()
+    test_unet_decoder()
+    test_unet()
+    # SOL@
