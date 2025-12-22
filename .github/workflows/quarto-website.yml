@@ -42,6 +42,12 @@ jobs:
           cd StudentsCode/pytorch/ 
           tar -zcvf ../../assets/semseg-kit.tar.gz segmentation
 
+      - name: Pytorch Semseg solution code
+        run: |
+          mkdir -p assets 
+          cd LabsSolutions/pytorch/ 
+          tar -zcvf ../../assets/semseg-sol.tar.gz segmentation
+
       - name: Upload the assets
         uses: actions/upload-artifact@v4
         with:

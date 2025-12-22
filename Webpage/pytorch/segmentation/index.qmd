@@ -370,6 +370,8 @@ tensorboard --logdir ./logs
 
 ## Inference
 
+**TBD**
+
 As training can take a long time, you are provided with a pretrained UNet. This model has been pretrained on areas 1, 2, 3, 4 and 6. Therefore the areas 5a and 5b were excluded from training to be considered for testing only, although area 5a has been selected for validation (early stopping). Training has been done for $100$ epochs, took 7 hours to complete although the best model has been found after $2$ hours or so. You can download the pretrained model [unet-10610_0.onnx](http://www.metz.supelec.fr//metz/personnel/fix_jer/Deep/unet-10610_0.onnx). 
 
 The main script allows for testing on either a single image or whole areas. Check the arguments of 
@@ -423,8 +425,7 @@ In terms of deployment, you could also push a little further the work by serving
 
 ## A possible solution
 
-You will find a possible solution in the [LabsSolutions/01-pytorch-segmentation](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/01-pytorch-segmentation) directory.
-
+You will find a possible solution at [semseg-sol.tar.gz](../../assets/semseg-sol.tar.gz).
 
 ## Extensions to Stanford 2D-3D 
 
