@@ -15,6 +15,38 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for LaTeX changes
+        id: latex-check
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q '^Webpage/latex/'; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Cache LaTeX diagrams
+        id: cache-latex
+        uses: actions/cache@v4
+        with:
+          path: Webpage/pytorch/segmentation/unet.png
+          key: latex-diagrams-${{ hashFiles('Webpage/latex/**') }}
+          restore-keys: |
+            latex-diagrams-
+
+      - name: Install LaTeX dependencies
+        if: steps.latex-check.outputs.changed == 'true' || steps.cache-latex.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-extra texlive-pictures poppler-utils
+
+      - name: Build LaTeX diagrams
+        if: steps.latex-check.outputs.changed == 'true' || steps.cache-latex.outputs.cache-hit != 'true'
+        run: |
+          cd Webpage
+          bash build-latex.sh
 
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
@@ -22,7 +54,7 @@ jobs:
       - name: Publish to GitHub Pages
         uses: quarto-dev/quarto-actions/publish@v2
         with:
-          path: Webpage-quarto
+          path: Webpage
           target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

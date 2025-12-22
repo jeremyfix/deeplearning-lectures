@@ -1,0 +1,13 @@
+/.quarto/
+/_site/
+
+**/*.quarto_ipynb
+latex/*.aux
+latex/*.fdb_latexmk
+latex/*.fls
+latex/*.log
+latex/*.pdf
+
+# Generated from the Latex sources
+pytorch/segmentation/unet.pdf
+pytorch/segmentation/unet.png

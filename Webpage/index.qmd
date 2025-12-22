@@ -1,0 +1,32 @@
+---
+title:  'Home'
+author: 
+- name : Jeremy Fix
+  affiliation : CentraleSupelec
+keywords: [Deep learning, practicals]
+---
+
+<a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+
+**Forewords** These pages are written in markdown format and
+generated with [quarto](https://quarto.org). The generation is performed using the github workflows. Thank you all for these very helpful tools.
+
+These pages contain the subjects and codes for the labs in the deep learning lectures 3MD4040 taking place at CentraleSupélec. Most the work is done in pytorch although you will find one lab using Keras.
+
+## Additional ressources
+
+### Practicals/Lectures
+
+- [Oxford’s CNN practicals](http://www.robots.ox.ac.uk/~vgg/practicals/cnn/)
+- [Nando de Freitas lectures and practicals](https://www.cs.ox.ac.uk/people/nando.defreitas/machinelearning/)
+- [Stanford A. Karpathy practicals](http://cs231n.github.io/>)
+- [Master Data Science Paris Saclay](https://github.com/m2dsupsdlclass/lectures-labs>)
+- [Fast.ai, J. Howard](https://www.fast.ai/)
+
+### Blog posts
+
+- [An overview of gradient descent algorithms](http://ruder.io/optimizing-gradient-descent/)
+- [Revisiting sequence to sequence learning, with focus on implementation details](http://suriyadeepan.github.io/2016-12-31-practical-seq2seq/)
+- [The unreasonnable effectivness of recurrent neural networks](http://karpathy.github.io/2015/05/21/rnn-effectiveness/)
+- [Theories of Deep learning](https://stats385.github.io/)
+
