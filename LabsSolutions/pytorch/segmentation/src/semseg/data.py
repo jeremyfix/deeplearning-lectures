@@ -5,6 +5,7 @@ import operator
 import functools
 import random
 import logging
+import sys
 
 # External imports
 import torch
@@ -115,13 +116,18 @@ def get_dataloaders(config: dict, use_cuda):
         mean, std = compute_mean_std(train_dataset, crop_size)
 
     # Build our transform/augmentation functions
+    # @SOL
     augmentation_transforms = [
-        # A.CoarseDropout(p=0.5, max_width=16, max_height=16),
-        # A.PixelDropout(p=0.5),
-        # A.MaskDropout(p=0.5),
+        A.CoarseDropout(p=0.5, max_width=16, max_height=16),
+        A.PixelDropout(p=0.5),
+        A.MaskDropout(p=0.5),
         A.HorizontalFlip(p=0.5),
         A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5),
     ]
+    # SOL@
+    # @TEMPL
+    # augmentation_transforms = []
+    # TEMPL@
     resize_transforms = [
         A.SmallestMaxSize(max_size=crop_size),
         A.RandomCrop(height=crop_size, width=crop_size),
@@ -239,6 +245,7 @@ def plot_samples(root_dir):
 
     crop_size = 256
 
+    # Some augmentations applied to our samples
     # @SOL
     augmentation_transforms = [
         A.CoarseDropout(p=0.5, max_width=16, max_height=16),
@@ -249,7 +256,6 @@ def plot_samples(root_dir):
     ]
     # SOL@
     # @TEMPL
-    # # We will add some augmentations here later on
     # augmentation_transforms = []
     # TEMPL@
     resize_transforms = [
@@ -354,6 +360,32 @@ def look_for_unlabeled(root_dir):
             axes[1].get_yaxis().set_visible(False)
             plt.tight_layout()
             plt.show()
+
+def class_stats(root_dir):
+    dataset = torchvision.datasets.VOCSegmentation(
+        root=root_dir,
+        image_set="train",
+        transforms=None,
+        download=False,
+    )
+    cls_counts = {}
+    for i in range(len(dataset)):
+        _, yi = dataset[i]
+        yi = np.array(yi)
+        unique, counts = np.unique(yi, return_counts=True)
+        for ui, ci in zip(unique, counts):
+            ui = int(ui)
+            if ui not in cls_counts:
+                cls_counts[ui] = 0.0
+            cls_counts[ui] += ci
+    N = sum((vi for _, vi in cls_counts.items()))
+    
+    cls_counts = sorted(cls_counts.items(), key=lambda x: x[0])
+    cls_freqs = ((ui, vi/N) for ui, vi in cls_counts)
+    cls_freqs_msg = "\n".join((f"{ui}: {vi}" for ui, vi in cls_freqs))
+    logging.info(f"Total number of labeled pixels : {N}\n")
+    logging.info("Class frequencies: \n"+cls_freqs_msg)
+
 # SOL@
 
 def test_dataloaders(root_dir):
@@ -368,12 +400,15 @@ def test_dataloaders(root_dir):
     get_dataloaders(config, use_cuda=False)
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     # @TEMPL
     # plot_samples("/mounts/datasets/datasets/Pascal-VOC2012")
     # test_dataloaders("/opt/datasets/Pascal-VOC2012")
     # TEMPL@
     # @SOL
-    plot_samples("/opt/datasets/Pascal-VOC2012")
-    test_dataloaders("/opt/datasets/Pascal-VOC2012")
-    look_for_unlabeled("/opt/datasets/Pascal-VOC2012")
+    root_dir = "/opt/datasets/Pascal-VOC2012"
+    # plot_samples(root_dir)
+    # test_dataloaders(root_dir)
+    # look_for_unlabeled(root_dir)
+    class_stats(root_dir)
     # SOL@

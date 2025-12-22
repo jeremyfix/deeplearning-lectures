@@ -1,7 +1,7 @@
 data:
   root_dir: '/mounts/datasets/datasets/Pascal-VOC2012'
   # root_dir: '/opt/Datasets/Pascal-VOC2012'
-  batch_size: 16
+  batch_size: 32
   normalize: True
   crop_size: 256
   valid_ratio: 0.2
@@ -22,8 +22,8 @@ logging:
 
 model:
   class: "UNet"
-  encoder:
-      model_name: "resnet18"
+  num_blocks: 5
+  base_c: 32
 
 # model:
 #   class: "DeepLabV3Plus"

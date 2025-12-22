@@ -11,17 +11,11 @@ keywords: [PyTorch tutorial, semantic segmentation, Stanford 2D-3D S]
 
 The objective of this lab work is to implement and explore convolutional neural networks for semantic segmentation. **Semantic segmentation** seeks to learn a function $f_\theta$, parametrized by $\theta$ which takes as input an image $I$ of arbitrary shape $H\times W$ and outputs an images of labels of the same shape $H \times W$ than the input. Indeed, we seek to label every single pixel of the image as belonging to one of $K$ predefined classes. This task is also known as **dense labeling**.
 
-In this labwork, we will be working with the Pascal VOC dataset. The Pascal VOC dataset contains images of variable sizes, colored, where each pixel is labeled as belonging to one out of $22$ classes represented by their color code below.
+In this labwork, we will be working with the Pascal VOC dataset. The Pascal VOC dataset contains images of variable sizes, colored, where each pixel is labeled as belonging to one out of $21$ classes represented by their color code below. If you count the number of colored boxes below, you will notice there are $22$ colors. The `void/unlabelled` class is labeled $255$ and has to be ignored since these pixels may correspond to one of the $21$ other classes.
 
 ![The $21$ classes de PascalVOC avec leur code couleur. Produced with [this code](https://gist.github.com/ccj5351/ae554ea70cef79ab1efdb3f9f92d2b37)](pascal-voc-label-color-map.jpg){width=75%}
 
-Some samples of the dataset are shown below with the labels overlayed on top of the images. The contour of the objects is labeled with the label $255$ while all the other $21$ categories are labeled $0 \cdots 20$. The classes are strongly inbalanced as most of the labels are from the **background** class.
-
-::: {.callout-warning}
-
-**TBD** gives the proportions of labels
-
-:::
+Some samples of the dataset are shown below with the labels overlayed on top of the images. The contour of the objects is labeled with the label $255$ while all the other $21$ categories are labeled $0 \cdots 20$. The classes are strongly inbalanced as most of the labels are from the **background** class $0$. Out of $262$M labeled pixels, the background class represents $69\%$. The second most frequent class is class person $15$ with $4.6\%$ of labels. Only $5\%$ of the pixels are labeled as `void/unlabeled` class $255$.
 
 ![Some samples of the Pascal VOC dataset. The contour of the objects is encoded with the label $255$, hence highlighted in a yelloish color.](pascalVOC_samples.png){width=50%}
 
@@ -119,6 +113,8 @@ A more objective calibration score is given by your estimated real risk.
 
 :::
 
+**Complete** the `get_dataloaders` function by updating the content of the augmentation transforms you found interesting in the previous question. The `plot_samples` was a function to test the augmentation transforms but the `get_dataloaders` is the function that is called from the main script to provide the dataloaders. Hence we need to propagate our chosen augmentation transforms into this function.
+
 ## Model implementation
 
 The parametric model you learn takes as input a 3-channel image and outputs a probability distribution over the $21$
@@ -201,9 +197,18 @@ We are done with the model implementation, let us move on to the metrics and los
 
 Semantic segmentation is a multi-way classification task; One natural metric could be the accuracy but, if you remember, our classes are unbalanced. 
 
-**Question** What would be the accuracy of a predictor always predicting that a pixel is a wall ? Hint: some figures were given in the [data exploration](#data-exploration) section.
+**Question** What would be the accuracy of a predictor always predicting that a pixel belongs to the background class $0$ ? Hint: some figures were given in the [data exploration](#data-exploration) section.
 
 <!--
+
+For Pascal VOC :
+
+Given we have 69% of the background class, only these ones will be correctly classified, hence an accuracy of 69% which is pretty high ! 
+
+We may discard the 5% of the unlabeled but this will not change much our computation.
+
+
+For Stanford 2D 3D S : 
 
 Given we have 33.67% of the pixels that are wall, only these ones will be correctly classified hence an accuracy of 33.67%
 
@@ -212,14 +217,35 @@ Given we have 33.67% of the pixels that are wall, only these ones will be correc
 To prevent to be mislead, a metric taking care of the class imbalance is the macro F1 score which reads
 
 $$
-F1 = \frac{1}{K}\sum_{k=0}^{K-1} \sum_{i=0}^{N-1} \frac{TP(x_i, y_i, k)}{TP(x_i, y_i, k) + \frac{1}{2}(FP(x_i, y_i, k)+FN(x_i, y_i, k))}
+macroF1 = \frac{1}{K}\sum_{k=0}^{K-1} \sum_{i=0}^{N-1} \frac{TP(x_i, y_i, k)}{TP(x_i, y_i, k) + \frac{1}{2}(FP(x_i, y_i, k)+FN(x_i, y_i, k))}
 $$
 
-which is an $F1$ computed for every class and then averaged over the number of classes. 
+which is an $F1$ computed for every class and then averaged over the classes. Another expression for the per class F1 is given below :
 
-**Question** What would be the macro F1 of a model always predicting a wall class ?
+\begin{align}
+F1 &= \frac{2}{\frac{1}{precision} + \frac{1}{recall}} \\
+precision &= \frac{TP}{TP + FP}\\
+recall &= \frac{TP}{TP + FN}
+\end{align}
+
+**Question** What would be the macro F1 of a model always predicting a background class ?
 
 <!-- 
+
+For Pascal VOC :
+
+We need to compute the F1 for every class
+
+- for the background class, 69% are TP, all the others 31% are FP => F1 = TP / (TP + 0.5 * (FP + FN)) = 69% / (69% + 0.5 * (31% + 0)) = 0.81
+- for the other 20 classes, TP=FP=0. The predictions are FN => F1 = TP / (TP + 0.5 * (FP + FN)) = 0
+
+The Macro F1 is therefore : 1/21 * (20 * 0 + 0.81) = 0.04
+
+You could adjust these figures removing the 5% unlabeled.
+
+
+
+For Stanford 2D-3D S : 
 
 We need to compute the F1 for every class
 
@@ -261,9 +287,9 @@ $$
 wBCE(y, \hat{y}) = - w_{y} \log(\hat{y}_y)
 $$
 
-where the standard cross entropy loss is obtained with $w_k = 1, \forall k \in [1, K]$.
+where the standard cross entropy loss is obtained with $w_k = 1, \forall k \in [1, K]$. Several weighting strategies are discussed in p2 of [@Cui2019]. The cross entropy loss of Pytorch allows for this weighting.
 
-**Question** Which values of the weights would you suggest to fight against class imbalance ? Some classical strategies are discussed in p2 of [@Cui2019] as well as their own scaling strategy. From the pytorch [documentation on the cross entropy loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html), do you see how to specify these weights ? 
+<!-- **Question** Which values of the weights would you suggest to fight against class imbalance ? Some classical strategies are discussed in p2 of [@Cui2019] as well as their own scaling strategy. From the pytorch [documentation on the cross entropy loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html), do you see how to specify these weights ?  -->
 
 <!--
 
@@ -275,34 +301,69 @@ w_k = (\sum_i n_i)/n_k  where n_k is the number of samples per class thereofre w
 
 -->
 
-**Question** Modify your code to implement the weighted cross entropy with the weighting strategy you choose.
+<!-- **Question** Modify your code to implement the weighted cross entropy with the weighting strategy you choose. -->
 
-Another option for the loss is the focal loss which adds a factor in front of the cross entropy loss term :
+Another option for the loss is the **focal loss** which adds a factor in front of the cross entropy loss term :
 
 $$
 focal(y, \hat{y}) = -(1-\hat{y}_y)^\gamma \log(\hat{y}_y)
 $$
 
-with $\gamma \geq 0$ a tunable parameter. Setting $\gamma=0$, we recover the cross entropy loss. With higher $\gamma$, correctly classified pixels have less and less influence, therefore if the most abundant labels are correctly predicted, they barely influence the loss despite their presence in excess. Compared to the cross entropy loss, each term in the focal is penalized by $$(1-\hat{y}_y)^\gamma$$ You can look at [@Lin2017] to see the influence of $\gamma$ on this term or check [this plot](https://www.wolframalpha.com/input?i=plot+%281-x%29%5E5+and+%281-x%29%5E2+and+%281-x%29+from+0+to+1).
+with $\gamma \geq 0$ a tunable parameter. Setting $\gamma=0$, we recover the cross entropy loss. With higher $\gamma$, correctly classified pixels have less and less influence, therefore if the most abundant labels are correctly predicted, they barely influence the loss despite their presence in excess. Compared to the cross entropy loss, each term in the focal is penalized by $$(1-\hat{y}_y)^\gamma$$.
 
-**Question** As it can be tricky to implement the focal loss, it is given to you. Do you see where this is implemented and which argument of the main script allows to use it ?
+The plot belows compares the cross entropy loss and the focal loss as a function of the probability assigned to the true class to be predicted.
 
+![Cross entropy loss vs focal loss. The focal loss attenuates more quickly than the cross entropy loss the influence of correctly predicted pixels](focal.png){width=70%}
 
-## Training on a small subset
+**Question** As it can be tricky to implement the focal loss, it is given to you. Do you see where this is implemented and which argument of the main script allows to use it ? Hint: check the creation of the loss in the main script.
 
-It is now time to run a training of your model. The training script accepts a list of areas ot train on with the `--areas_train` option. It is always a good idea to test on a small experiment to ensure everything is running well. You can run a training on `area_3` by calling :
+One of the arguments is `ignore_index=255`. Remember, the class $255$ corresponds to the unlabeled class. As you can see below, this `void/unlabeled` may indeed correspond to legit classes ! If you were to consider them as belonging to the `void/unlabeled` class, you would penalize a model predicting they belong to the class sheep $16$ although it would be correct !
+
+![Some unlabeled pixels belong to considered classes](sheep.png){width=70%}
+
+## Training
+
+Since we now have the data, a UNet model and a loss, it is now time to train a model. To start a training, it is sufficient to call our `semseg` library with an appropriate yaml configuration file. 
+
+For exemple, you can call 
 
 ```bash
-python main.py --areas_train 3 --model .... --loss ... train
+python -m semseg.main train config.yaml
 ```
 
-This training is not expected to lead to super performant models but should run at $1$ or $2$ minutes per epoch. Depending on the GPU you are using, you may need to reduce the footprint on the GPU's memory, e.g. lowering the input image size, reducing the number of blocks of the encoder and decoder, ...
+with the file below :
 
+**config.yaml**
+```yaml
+data:
+  root_dir: '/mounts/datasets/datasets/Pascal-VOC2012'
+  batch_size: 32
+  normalize: True
+  crop_size: 256
+  valid_ratio: 0.2
+  num_workers: 10
 
-::: {.callout-note}
-Training over all the areas can take up to $1$ hour per epoch. If you use the CentraleSupelec clusters, you can consider running a training over all the areas **during your "free" time** with [slurm batch job](https://dce.pages.centralesupelec.fr/05_examples/#starting-batch-trainings-of-neural-networks). For this you are provided with a [job.py](./labs/01-pytorch-segmentation/job.py) script. For now, let us move on to the next topics.
-:::
+optim:
+  algo: Adam
+  params:
+    lr: 0.001
 
+nepochs: 20
+
+logging:
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+
+model:
+  class: "UNet"
+  num_blocks: 5
+  base_c: 32
+```
+
+During the training, you can check the metrics outputed in the console and also observe them as well as samples using the tensorboard :
+
+```bash
+tensorboard --logdir ./logs
+```
 
 **Question** : While the simulation is running, several information (metrics, inference exemples, ...) are dumped into a tensorboard. Take the time to visualize and understand them. 
 
