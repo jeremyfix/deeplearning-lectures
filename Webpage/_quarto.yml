@@ -18,9 +18,9 @@ website:
         file: index.qmd
       - text: "Pytorch"
         menu:
-          - text: "PyTorch FashionMNIST"
+          - text: "First steps in PyTorch : classifying fashion objects (FashionMNIST)"
             file: pytorch/fashionMNIST/index.qmd
-          - text: "PyTorch Object Detection"
+          - text: "Transfer learning and Object detection"
             file: pytorch/object-detection/index.qmd
           - text: "Semantic segmenation on Stanford-2D-3D S"
             file: pytorch/segmentation/index.qmd
