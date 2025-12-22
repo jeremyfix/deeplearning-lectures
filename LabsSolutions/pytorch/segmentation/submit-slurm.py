@@ -38,8 +38,12 @@ cd $TMPDIR/code
 git checkout {commit_id}
 
 echo "Setting up the virtual environment"
-python3 -m venv venv
-source venv/bin/activate
+
+/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
+
+# python3 -m venv venv
+# source venv/bin/activate
 
 # Install the library
 python -m pip install .
