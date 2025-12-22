@@ -8,15 +8,62 @@ on:
 
 
 jobs:
+
+  templatecode:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true 
+          cache-dependency-glob: ".github/workflows/requirements.txt"
+
+      - name: Install requirements
+        run: uv pip install -r .github/workflows/requirements.txt
+        env:
+          UV_SYSTEM_PYTHON: 1
+
+      - name: Template code generation and solution code copy
+        run: easylabwork LabsSolutions StudentsCode
+
+      - name: Pytorch Semseg base code
+        run: |
+          mkdir -p assets 
+          cd StudentsCode/pytorch/ 
+          tar -zcvf ../../assets/semseg-kit.zip segmentation
+
+      - name: Upload the assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: assets
+          path: assets
+
   build-and-publish:
     runs-on: ubuntu-latest
+    needs: [templatecode]
     permissions:
       contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+
+      - name: Download the template code
+        uses: actions/download-artifact@v4
+        with:
+          name: assets
 
       - name: Check for LaTeX changes
         id: latex-check
