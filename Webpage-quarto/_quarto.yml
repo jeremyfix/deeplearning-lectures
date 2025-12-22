@@ -1,0 +1,78 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Deep Learning Lectures"
+  navbar:
+    left:
+      - text: "Home"
+        file: index.qmd
+      - text: "Pytorch"
+        menu:
+          - text: "PyTorch FashionMNIST"
+            file: 00-pytorch-fashionMnist.qmd
+          - text: "PyTorch Object Detection"
+            file: 01-pytorch-object-detection.qmd
+          - text: "PyTorch Segmentation"
+            file: 01-pytorch-segmentation.qmd
+          - text: "PyTorch ASR"
+            file: 02-pytorch-asr.qmd
+          - text: "PyTorch GAN"
+            file: 03-pytorch-gan.qmd
+      - text: "Keras"
+        menu:
+          - text: "Keras MNIST"
+            file: 00-keras-mnist.qmd
+          - text: "Keras CIFAR"
+            file: 01-keras-cifar.qmd
+      - text: "Resources"
+        menu:
+          - text: "Argparse"
+            file: argparse.qmd
+          - text: "Cluster"
+            file: cluster.qmd
+          - text: "How To"
+            file: howto.qmd
+          - text: "FAQ"
+            file: faq.qmd
+
+  sidebar:
+    style: "docked"
+    contents:
+      - section: "Getting Started"
+        contents:
+          - index.qmd
+      - section: "Pytorch"
+        contents:
+          - 00-pytorch-fashionMnist.qmd
+          - 01-pytorch-object-detection.qmd
+          - 01-pytorch-segmentation.qmd
+          - 02-pytorch-asr.qmd
+          - 03-pytorch-gan.qmd
+      - section: "Keras"
+        contents:
+          - 00-keras-mnist.qmd
+          - 01-keras-cifar.qmd
+      - section: "Resources"
+        contents:
+          - argparse.qmd
+          - cluster.qmd
+          - howto.qmd
+          - faq.qmd
+
+execute:
+  enabled: false
+  
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-line-numbers: false
+    css: styles.css
+    link-citations: true
+
+bibliography: biblio.bib
+csl: apsa.csl
