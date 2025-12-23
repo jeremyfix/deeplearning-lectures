@@ -72,6 +72,9 @@ jobs:
           name: assets
           path: Webpage
 
+      - name: List the content of the downloaded assets
+        run: ls -all Webpage/assets/
+
       - name: Check for LaTeX changes
         id: latex-check
         run: |
