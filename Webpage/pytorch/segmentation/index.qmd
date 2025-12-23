@@ -371,13 +371,20 @@ tensorboard --logdir ./logs
 
 The previously implemented network, trained from scratch does not perform very well. We can obtain much better results by considering a pretrained encoder. The encoder has the structure of a classification network. We can take a convolutional network, pretrained on ImageNet for example, chop off the head and connect a decoder.
 
+We also see how to create a `GenericUNet` class built from a pretrained encoder and a generic decoder connected to it.
+
 **TBD**
 
 ## Inference
 
 **TBD**
 
-As training can take a long time, you are provided with a pretrained UNet. This model has been pretrained on areas 1, 2, 3, 4 and 6. Therefore the areas 5a and 5b were excluded from training to be considered for testing only, although area 5a has been selected for validation (early stopping). Training has been done for $100$ epochs, took 7 hours to complete although the best model has been found after $2$ hours or so. You can download the pretrained model [unet-10610_0.onnx](http://www.metz.supelec.fr//metz/personnel/fix_jer/Deep/unet-10610_0.onnx). 
+As training can take a long time, you are provided with a pretrained DeepLabV3+ model. Training the model for $100$ epochs took **TBD** hours.
+
+You can download the pretrained model at **TBD**. It is provided as a bundle with the normalization statistics and the onnx computational graph. You need to unpack the onnx files and normalizing statistics file in the same directory. Let us call that directory `logdir`.
+
+**WIP** : update the test function
+
 
 The main script allows for testing on either a single image or whole areas. Check the arguments of 
 
