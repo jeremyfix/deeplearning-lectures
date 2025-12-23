@@ -390,8 +390,8 @@ window.Quarto = {
   <li><a href="#evaluation-metrics" id="toc-evaluation-metrics" class="nav-link" data-scroll-target="#evaluation-metrics">Evaluation metrics</a></li>
   <li><a href="#loss-implementation" id="toc-loss-implementation" class="nav-link" data-scroll-target="#loss-implementation">Loss implementation</a></li>
   <li><a href="#training" id="toc-training" class="nav-link" data-scroll-target="#training">Training</a></li>
-  <li><a href="#inference" id="toc-inference" class="nav-link" data-scroll-target="#inference">Inference</a></li>
   <li><a href="#using-a-pretrained-encoder" id="toc-using-a-pretrained-encoder" class="nav-link" data-scroll-target="#using-a-pretrained-encoder">Using a pretrained encoder</a></li>
+  <li><a href="#inference" id="toc-inference" class="nav-link" data-scroll-target="#inference">Inference</a></li>
   <li><a href="#going-further" id="toc-going-further" class="nav-link" data-scroll-target="#going-further">Going further</a></li>
   <li><a href="#a-possible-solution" id="toc-a-possible-solution" class="nav-link" data-scroll-target="#a-possible-solution">A possible solution</a></li>
   <li><a href="#extensions-to-stanford-2d-3d" id="toc-extensions-to-stanford-2d-3d" class="nav-link" data-scroll-target="#extensions-to-stanford-2d-3d">Extensions to Stanford 2D-3D</a>
@@ -743,6 +743,11 @@ focal(y, \hat{y}) = -(1-\hat{y}_y)^\gamma \log(\hat{y}_y)
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">tensorboard</span> <span class="at">--logdir</span> ./logs</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Question</strong> : While the simulation is running, several information (metrics, inference exemples, …) are dumped into a tensorboard. Take the time to visualize and understand them.</p>
 </section>
+<section id="using-a-pretrained-encoder" class="level2">
+<h2 class="anchored" data-anchor-id="using-a-pretrained-encoder">Using a pretrained encoder</h2>
+<p>The previously implemented network, trained from scratch does not perform very well. We can obtain much better results by considering a pretrained encoder. The encoder has the structure of a classification network. We can take a convolutional network, pretrained on ImageNet for example, chop off the head and connect a decoder.</p>
+<p><strong>TBD</strong></p>
+</section>
 <section id="inference" class="level2">
 <h2 class="anchored" data-anchor-id="inference">Inference</h2>
 <p><strong>TBD</strong></p>
@@ -781,10 +786,6 @@ As our model is fully convolutional, it can be applied to images of any size. Si
 
 -->
 <p><strong>Question</strong> Take a picture with your phone, from the web, from the test area in the dataset directory and check the results of inference on this image. Note that the <code>main.py</code> script accepts a <code>--image</code> instead of a <code>--datadir ..</code> to process a single image.</p>
-</section>
-<section id="using-a-pretrained-encoder" class="level2">
-<h2 class="anchored" data-anchor-id="using-a-pretrained-encoder">Using a pretrained encoder</h2>
-<p><strong>TBD</strong></p>
 </section>
 <section id="going-further" class="level2">
 <h2 class="anchored" data-anchor-id="going-further">Going further</h2>
