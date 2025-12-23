@@ -429,6 +429,31 @@ In terms of deployment, you could also push a little further the work by serving
 
 You will find a possible solution at [semseg-sol.tar.gz](../../assets/semseg-sol.tar.gz).
 
+## Extensions : Using models from SMP
+
+In order with other models, we can import models from the [segmentation_models_pytorch (SMP)](https://github.com/qubvel-org/segmentation_models.pytorch) library.
+
+With our code base structure, it is pretty straightforward to add new models. You are provided with the `models/smp.py` script and the `DeepLabV3Plus` function  :
+
+```python
+def DeepLabV3Plus(cfg, input_size, num_classes):
+  return None
+```
+
+Using the [documentation of SMP](https://smp.readthedocs.io/en/latest/models.html#deeplabv3plus), **fill in** the missing code to create a DeepLabV3+ model with the correct number of channels, classes and other parameters you consider useful. 
+
+Do not forget to **provide a test code** in `models/__main__.py` to locally test your model. The following dictionnary should be sufficient for creating a DeepLabV3+ model with a pretrained resnet18 backbone.
+
+```python
+{
+    "class": "DeepLabV3Plus",
+    "parameters": {
+      "encoder_name": "resnet18", 
+      "encoder_weights": "imagenet"
+    }
+}
+```
+
 ## Extensions to Stanford 2D-3D 
 
 **TO BE REFACTORED**
