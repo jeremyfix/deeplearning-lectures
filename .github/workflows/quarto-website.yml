@@ -69,7 +69,8 @@ jobs:
       - name: Download the template code
         uses: actions/download-artifact@v4
         with:
-          name: Webpage/assets
+          name: assets
+          path: Webpage
 
       - name: Check for LaTeX changes
         id: latex-check
