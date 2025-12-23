@@ -367,6 +367,11 @@ tensorboard --logdir ./logs
 
 **Question** : While the simulation is running, several information (metrics, inference exemples, ...) are dumped into a tensorboard. Take the time to visualize and understand them. 
 
+## Using a pretrained encoder
+
+The previously implemented network, trained from scratch does not perform very well. We can obtain much better results by considering a pretrained encoder. The encoder has the structure of a classification network. We can take a convolutional network, pretrained on ImageNet for example, chop off the head and connect a decoder.
+
+**TBD**
 
 ## Inference
 
@@ -413,9 +418,6 @@ As our model is fully convolutional, it can be applied to images of any size. Si
 
 **Question** Take a picture with your phone, from the web, from the test area in the dataset directory and check the results of inference on this image. Note that the `main.py` script accepts a `--image` instead of a `--datadir ..` to process a single image.
 
-## Using a pretrained encoder
-
-**TBD**
 
 ## Going further
 

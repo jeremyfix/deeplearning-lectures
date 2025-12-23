@@ -115,6 +115,31 @@ def test_deeplabv3():
     assert y.shape == (1, num_classes, input_size[1], input_size[2])
 # SOL@
 
+# @SOL
+
+def test_generic_unet():
+    logging.info("Testing the Generic UNet")
+    cin = 1
+    input_size = (cin, 256, 256)
+    num_classes = 21
+    X = torch.zeros((1, *input_size))
+    model = build_model(
+        {
+            "class": "GenericUNet",
+            "encoder": {
+                "model_name": "resnet18",
+                "pretrained": True
+            }
+        },
+        input_size,
+        num_classes,
+    )
+    model.eval()
+    y = model(X)
+    print(f"Output shape : {y.shape}")
+    assert y.shape == (1, num_classes, input_size[1], input_size[2])
+# SOL@
+
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     # @TEMPL
@@ -126,4 +151,6 @@ if __name__ == "__main__":
     test_unet_encoder()
     test_unet_decoder()
     test_unet()
+    test_deeplabv3()
+    test_generic_unet()
     # SOL@

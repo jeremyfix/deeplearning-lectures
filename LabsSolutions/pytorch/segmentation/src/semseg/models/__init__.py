@@ -5,6 +5,7 @@ import torch
 
 # Local imports
 from .unet import *
+from .timm import GenericUNet
 from .smp import *
 
 
