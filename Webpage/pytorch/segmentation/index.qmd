@@ -379,9 +379,15 @@ We also see how to create a `GenericUNet` class built from a pretrained encoder 
 
 **TBD**
 
-As training can take a long time, you are provided with a pretrained DeepLabV3+ model. Training the model for $100$ epochs took **TBD** hours.
+As training can take a long time, you are provided with a pretrained UNet model with a ResNet-18 backbone which obtained a macro F1 on a validation fold of $0.55$. 
 
-You can download the pretrained model at **TBD**. It is provided as a bundle with the normalization statistics and the onnx computational graph. You need to unpack the onnx files and normalizing statistics file in the same directory. Let us call that directory `logdir`.
+<!--
+   F1: [0.9124775361767214, 0.7006744463367578, 0.23233671576908083, 0.5535907000215841, 0.4635044908539235, 0.384556450298308, 0.7398696719244741, 0.7702732678974861, 0.7912242252857311, 0.1832549864905834, 0.33383548152534415, 
+0.5378044389728343, 0.561990687837907, 0.4863660217776533, 0.7543760387566746, 0.7868117132857577, 0.43192675546561066, 0.5170726304236187, 0.25632429911504834, 0.7742795344143246, 0.4469266547406082]
+   macro_F1: 0.55330841654143[>> BETTER <<]
+-->
+
+You can download the pretrained model [genericunet.tar.gz](genericunet.tar.gz). It is provided as a bundle with the normalization statistics and the onnx computational graph. You need to unpack the onnx files and normalizing statistics file in the same directory. Let us call that directory `modeldir`.
 
 **WIP** : update the test function
 

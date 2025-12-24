@@ -272,7 +272,6 @@ def test(logdir, img_path):
 
     providers = []
     use_cuda = True
-    patch_size = 2000
 
     if use_cuda:
         providers.append("CUDAExecutionProvider")
@@ -287,56 +286,33 @@ def test(logdir, img_path):
     mean = stats["mean"]
     std = stats["std"]
 
-    scan_img = np.array(Image.open(img_path))
-    scan_img = scan_img[:8000, :8000]
+    orig_img = np.array(Image.open(img_path))
 
-    # Crop the image to only keep an integral number of patches
-    # otherwise the inference will fail apparently because ORT will see
-    # that the width/height of the patch has changed.
-    # Maybe we need in that case to recreate the inference session object
-    print("Cropping the image to keep a multiple of the patch size")
-    scan_height = scan_img.shape[0]
-    scan_width = scan_img.shape[1]
-    scan_img = scan_img[
-        : (scan_height // patch_size) * patch_size,
-        : (scan_width // patch_size) * patch_size :,
-    ]
-
+    # TODO: crop/pad to the next power of 2
+    orig_img = orig_img[:1024,:2048,:]
+    
     # Normalize our input
-    scan_img = ((scan_img - mean * 255.0) / (std * 255.0)).astype(np.float32)
-    scan_img = scan_img[np.newaxis, np.newaxis, ...]
-    pred_probs = np.zeros_like(scan_img, dtype=np.float32)
+    img = ((orig_img - mean * 255.0) / (std * 255.0)).astype(np.float32)
 
-    # Perform an inference over the patches
-    for i in tqdm.tqdm(range(0, scan_img.shape[2], patch_size)):
-        for j in range(0, scan_img.shape[3], patch_size):
-            patch = scan_img[:, :, i : i + patch_size, j : j + patch_size]
-            logits = inference_session.run(None, {"scan": patch})[0]
-            probs = 1.0 / (1.0 + np.exp(-logits))
-            pred_probs[:, :, i : i + patch_size, j : j + patch_size] = probs
+    #  Convert the image to (C, H, W) then (B, C, H, W)
+    img = np.transpose(img, (2, 0, 1))[np.newaxis, ...]
 
-    pred_mask = pred_probs >= 0.5
+    pred = inference_session.run(None, {"scan": img})[0]
+    mask = pred.squeeze().argmax(axis=0)
+    print(mask.shape) 
+    cmap = data.color_map()
+    overlaid = data.overlay(cmap, orig_img/255., mask)
 
     # Plot the results
     plt.figure(dpi=300)
-    plt.subplot(1, 3, 1)
-    plt.imshow(scan_img.squeeze(), cmap="gray")
-    plt.title("Zooscan image")
-    plt.axis("off")
-
-    plt.subplot(1, 3, 2)
-    plt.imshow(pred_probs.squeeze(), interpolation="none", clim=(0.0, 1.0))
-    plt.title("Probabilities")
-    plt.axis("off")
-
-    plt.subplot(1, 3, 3)
-    plt.imshow(pred_mask.squeeze(), interpolation="none", cmap="tab20c")
-    plt.title("Predicted Mask")
+    plt.imshow(overlaid)
+    plt.title("Predictions")
     plt.axis("off")
 
     plt.tight_layout()
-    plt.savefig(logdir / "prediction.png", bbox_inches="tight", dpi=600)
-    print(f"Prediction saved in {logdir / 'prediction.png'}")
+    plt.savefig("prediction.png")
+    plt.show()
+    print("Prediction saved in prediction.png")
 
 
 if __name__ == "__main__":
