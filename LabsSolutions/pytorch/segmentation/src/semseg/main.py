@@ -288,7 +288,9 @@ def test(logdir, img_path):
 
     orig_img = np.array(Image.open(img_path))
 
-    # TODO: crop/pad to the next power of 2
+    # Pad to the next power of 2
+    # This is to guarantee that pooling with stride 2 and 
+    # upsamping by a factor 2 end up with the same shapes
     h, w = orig_img.shape[:2]
     padded_height = int(2**(np.ceil(np.log2(h))))
     padded_width = int(2**(np.ceil(np.log2(w))))
