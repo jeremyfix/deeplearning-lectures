@@ -289,17 +289,22 @@ def test(logdir, img_path):
     orig_img = np.array(Image.open(img_path))
 
     # TODO: crop/pad to the next power of 2
-    orig_img = orig_img[:1024,:2048,:]
+    h, w = orig_img.shape[:2]
+    padded_height = int(2**(np.ceil(np.log2(h))))
+    padded_width = int(2**(np.ceil(np.log2(w))))
+    logging.info(f"Original image of shape {h, w} is padded to size {padded_height, padded_width} before being processed")
     
     # Normalize our input
-    img = ((orig_img - mean * 255.0) / (std * 255.0)).astype(np.float32)
+    img = np.zeros((padded_height, padded_width, 3), dtype=np.float32)
+    img[:h, :w, :] = ((orig_img - mean * 255.0) / (std * 255.0)).astype(np.float32)
 
     #  Convert the image to (C, H, W) then (B, C, H, W)
     img = np.transpose(img, (2, 0, 1))[np.newaxis, ...]
 
+
     pred = inference_session.run(None, {"scan": img})[0]
     mask = pred.squeeze().argmax(axis=0)
-    print(mask.shape) 
+    mask = mask[:h, :w]
     cmap = data.color_map()
     overlaid = data.overlay(cmap, orig_img/255., mask)
 
@@ -311,7 +316,7 @@ def test(logdir, img_path):
 
     plt.tight_layout()
     plt.savefig("prediction.png")
-    plt.show()
+    # plt.show()
     print("Prediction saved in prediction.png")
 
 
