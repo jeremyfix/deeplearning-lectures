@@ -377,8 +377,6 @@ We also see how to create a `GenericUNet` class built from a pretrained encoder 
 
 ## Inference
 
-**TBD**
-
 As training can take a long time, you are provided with a pretrained UNet model with a ResNet-18 backbone which obtained a macro F1 on a validation fold of $0.55$. 
 
 <!--
@@ -389,38 +387,9 @@ As training can take a long time, you are provided with a pretrained UNet model 
 
 You can download the pretrained model [genericunet.tar.gz](genericunet.tar.gz). It is provided as a bundle with the normalization statistics and the onnx computational graph. You need to unpack the onnx files and normalizing statistics file in the same directory. Let us call that directory `modeldir`.
 
-**WIP** : update the test function
-
-
-The main script allows for testing on either a single image or whole areas. Check the arguments of 
-
-```bash
-python main.py test --datadir ... --model ... --modelpath ... --areas_test ... ... 
-```
-
-
-::: {.callout-note}
-When you just want to use a model for inference, you have multiple possibilities to export your model :
-
-- use pytorch eager mode : this is what you do when you dynamically apply operations as nn.Module,
-- use [torchscript](https://pytorch.org/tutorials/recipes/torchscript_inference.html) : this is more efficient than eager mode; You loose the dynamic computational graph but you earn performance. You can also infer with Torhscript C/C++ which is even faster than Torchscript python,
-- use [Onnx runtime](https://onnxruntime.ai/) which is a framework independent (no pytorch, tensorflow, etc..) computational graph evaluator available for various languages and platforms (e.g. Python, C++ but also for mobiles, embedded in web apps, ..)
-
-In addition to even better performances (throughput and latency), the onnx format is perfect for abstracting the algorithm at its pure level of description without bells and whistles : a computational graph. 
-
-:::
-
 **Question** Visualize the computational graph with [netron.app](https://netron.app/)
 
-**Question** Can you identify in the `main.py` script where the model is exported with onnx. Reading [the doc on torch.onnx.export](https://pytorch.org/docs/stable/onnx.html#torch.onnx.export) do you understand what is the meaning of the arguments we provided to the call ?
-
-**Question** Can you identify in the `main.py` script where and how inference is performed with the onnx model ? Can you find more info on the package that is used for inference ?
-
-**Question** Evaluate the quality of the pretrained model on both the training areas (1, 2, 3, 4 and 6) and on the unused areas `5a` and `5b`.
-
-<!--
-For now - october 26rd, 2022 - the performances are not fantastic and the model : around 0.8 for the macro F1 on 5a and 0.48 on 5b.
--->
+**Question** The model was exported to ONNX for you, by the `ModelCheckpoint` class defined in the `utils.py` script. Can you identify in the `utils.py` script where the model is exported with onnx ? Reading [the doc on torch.onnx.export](https://pytorch.org/docs/stable/onnx.html#torch.onnx.export) do you understand what is the meaning of the arguments we provided to the export call ?
 
 **Question** Your model can be evaluated on images of arbitrary sizes (width, height). Why do you think this is the case ? 
 
@@ -429,8 +398,15 @@ As our model is fully convolutional, it can be applied to images of any size. Si
 
 -->
 
-**Question** Take a picture with your phone, from the web, from the test area in the dataset directory and check the results of inference on this image. Note that the `main.py` script accepts a `--image` instead of a `--datadir ..` to process a single image.
+Now you can take an image and test your model on it. Some exemple images can be found from the [Coco dataset explorer](https://cocodataset.org/#explore). There, you will find images organized by categories and pick some for which there are objects belonging to the Pascal VOC dataset. 
 
+To run the test function :
+
+```bash
+python -m semseg.main test <path_to_modeldir> <path_to_image>
+```
+
+**Question** Did you understand the `test` function in the `main.py` scrit ?
 
 ## Going further
 
