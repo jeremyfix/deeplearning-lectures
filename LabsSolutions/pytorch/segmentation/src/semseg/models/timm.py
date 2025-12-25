@@ -6,6 +6,22 @@ import torch
 import torch.nn as nn
 import timm
 
+def GenericTimmEncoder(cin, model_name, pretrained=True):
+    # @TEMPL
+    # # vvvvvvvvv
+    # # CODE HERE
+    # return None
+    # # ^^^^^^^^^
+    # TEMPL@
+    # @SOL
+    return timm.create_model(
+        model_name=model_name,
+        in_chans=cin,
+        pretrained=pretrained,
+        features_only=True,
+    )
+    # SOL@
+
 def conv_relu_bn(cin, cout):
     return [
         nn.Conv2d(cin, cout, kernel_size=3, stride=1, padding=1),
@@ -15,20 +31,6 @@ def conv_relu_bn(cin, cout):
         nn.ReLU(),
         nn.BatchNorm2d(cout),
     ]
-
-class GenericTimmEncoder(nn.Module):
-    def __init__(self, cin, model_name, pretrained=True):
-        super().__init__()
-        self.model = timm.create_model(
-            model_name=model_name,
-            in_chans=cin,
-            pretrained=pretrained,
-            features_only=True,
-        )
-
-    def forward(self, x):
-        return self.model(x)
-
 
 class GenericDecoderBlock(nn.Module):
     def __init__(self, cin, ccat):
@@ -47,18 +49,21 @@ class GenericDecoderBlock(nn.Module):
 
 
 class GenericDecoder(nn.Module):
-    def __init__(self, encoder_features, num_classes):
+    def __init__(self, encoder_channels, num_classes):
         super().__init__()
         self.num_classes = num_classes
         self.decoder = nn.ModuleList()
-        encoder_features = encoder_features[::-1]
 
-        cin = encoder_features[0].shape[1]
-        for i, f in enumerate(encoder_features[:-1]):
+        # Revert the list of channels since we expand from the
+        # deepest layers of the encoder
+        encoder_channels = encoder_channels[::-1]
+
+        cin = encoder_channels[0]
+        for cout in encoder_channels[1:]:
             self.decoder.append(
                 GenericDecoderBlock(
                     cin=cin,
-                    ccat=(cin // 2 + encoder_features[i + 1].shape[1]),
+                    ccat=(cin // 2 + cout),
                 )
             )
             cin = cin // 2
@@ -79,10 +84,12 @@ def GenericUNet(cfg, input_size, num_classes):
     cin, _, _ = input_size
     encoder = GenericTimmEncoder(cin, **(cfg["encoder"]))
 
-    # Forward propagation of a dummy tensor to get the encoder features dimensions
+    # Forward propagation of a dummy tensor to get the encoder 
+    # features dimensions
     X = torch.zeros((1, cin, 256, 256))
     encoder_features = encoder(X)
+    encoder_channels = [fi.shape[1] for fi in encoder_features]
 
-    decoder = GenericDecoder(encoder_features, num_classes)
+    decoder = GenericDecoder(encoder_channels, num_classes)
     return nn.Sequential(encoder, decoder)
 
