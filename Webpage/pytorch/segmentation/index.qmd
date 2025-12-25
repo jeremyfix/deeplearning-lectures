@@ -441,9 +441,11 @@ python -m semseg.main test <path_to_modeldir> <path_to_image>
 
 ## Going further
 
-There are several directions along which you could pursue the study of semantic segmentation. One is about the models. The U-Net architecture we consider has been release in 2015. You might be interested in implementing more recent architectures such as VNet [@Milletari2016] or DeepLab v3+ [@Chen2018]. Another direction of study is on the losses. We explored some ways to fight against class imbalance with the weighted cross entropy loss and the focal loss. You might be interested in exploring over losses, such as the Tversky loss, the DICE loss, the Lovasz loss, the Matthews Correlation Coefficient loss [@Abhishek2021]. It is interesting to implement your know loss but you might be interested in packages already implementing them such as [smp](https://smp.readthedocs.io/en/latest/losses.html)
+There are several directions along which you could pursue the study of semantic segmentation. One is about the models. The U-Net architecture we consider has been released in 2015. You might be interested in implementing more recent architectures such as VNet [@Milletari2016] or DeepLab v3+ [@Chen2018]. 
 
-In terms of deployment, you could also push a little further the work by serving the onnx model with a webapi that could be requested with an image to label. Probably more on this soon.
+Another direction of study is on the losses. We explored some ways to fight against class imbalance with the weighted cross entropy loss and the focal loss. You might be interested in exploring over losses, such as the Tversky loss, the DICE loss, the Lovasz loss, the Matthews Correlation Coefficient loss [@Abhishek2021]. It is interesting to implement yourself the loss but you might be interested in packages already implementing them such as [smp](https://smp.readthedocs.io/en/latest/losses.html)
+
+In terms of deployment, you could also push a little further the work by serving the onnx model with a webapi that could be requested with an image to label.
 
 ## A possible solution
 
@@ -476,7 +478,7 @@ Do not forget to **provide a test code** in `models/__main__.py` to locally test
 
 ## Extensions to Stanford 2D-3D 
 
-**TO BE REFACTORED**
+### Dataset description
 
 Let us now extend the work to the large [Stanford 2D-3D S dataset](http://buildingparser.stanford.edu/dataset.html). This dataset is built from 3D scans of buildings with multiple annotation types (pixelwise depth, pixel class, pixelwise normals, scene category). We will consider only the pixelwise class labeling. The data have been collected in 6 different areas. 
 
@@ -494,52 +496,23 @@ Below is an example of the input RGB image and the associated labels
 
 ![Semantic segmentation : pixelwise classifcation](sample.png){width=80%}
 
-There are $14$ classes, the first being for the unlabeled pixels.
+There are $14$ classes, the first being for the unlabeled pixels. The raw images have a size of $1080 \times 1080$. If we keep large images, the minibatches and their successive transformations will occupy a large space in GPU memory. At least, we can resize the images, e.g. to $256\times 256$, and still keep reasonnable segmentations.
 
-### Dataset
+If you were to plot the distribution of the classes over the $71000$ masks of size $1080\times 1080$, the relative proportion of the labels are $1.26\%$, $1.57\%$, $2.71\%$, $7.17\%$, $9.94\%$, $3.87\%$, $11.23\%$, $3.05\%$, $10.98\%$, $8.45\%$, $0.33\%$, $2.88\%$, $33.67\%$, $2.88\%$ which is really unbalanced. These figures are ordered the same than the labels on the image at the top, hence $33.67\%$ of the labeled pixels are "wall", and only $0.33\%$ are "sofa". As for Pascal-VOC, the classes are inbalanced.
 
-You are provided with the `StanfordDataset` class which is a pytorch dataset object, i.e. an object implementing the `__len__` and `__getitem__`  methods. The constructor expects follows the [VisionDataset](https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html) interface and expects :
+Some of the labels in the dataset are noisy. For example, check the input image and mask of the image indexed $2702$ (of the area 5a), corresponding to the filename `area_5a/data/semantic/camera_ff5f377af3b34354b054536db27565ae_hallway_7_frame_4_domain_semantic.png`. This noise in the oracle, as well as the one possibly induced by the unknow class, has to be kept in mind as this will certainly prevent a perfect generalization. 
+
+The noise in the oracle may also leads to divergence of the cross entropy loss. Since the cross entropy loss read $-log(p_{y_i})$, if the labels are noisy and your model is super good, the probably of the incorrectly labeled pixels will make the loss diverge.
+
+### Implementation
+
+You are provided, in the `stanford.py` script of your package, with the `StanfordDataset` class which is a pytorch dataset object, i.e. an object implementing the `__len__` and `__getitem__`  methods. The constructor expects follows the [VisionDataset](https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html) interface and expects :
 
 - a root directory for the data (e.g. `/mounts/Datasets4/Stanford2D-3D-S/`)
 - either a pair of `transform` and `target_transform` function, or a combined `transforms` function for transforming the RGB input and the semantic mask
 - an optional list of `areas` to restrict to, e.g. `area = ['1', '5b']` 
 
-**Question**: For our problem, what is the dimensionality and type of the tensors you expect for the input and targets ?
-
-**Question** : Instantiate your dataset and check that your guess is correct on one of the samples.
-
-If you were to plot the distribution of the classes over the $71000$ masks of size $1080\times 1080$, the relative proportion of the labels are $1.26\%$, $1.57\%$, $2.71\%$, $7.17\%$, $9.94\%$, $3.87\%$, $11.23\%$, $3.05\%$, $10.98\%$, $8.45\%$, $0.33\%$, $2.88\%$, $33.67\%$, $2.88\%$ which is really unbalanced. These figures are ordered the same than the labels on the image at the top, hence $33.67\%$ of the labeled pixels are "wall", and only $0.33\%$ are "sofa". There are several ways to combat this imbalance. One could be in the data sampler when the minibatches are built. Another one is to use an adapted loss function. More on that later in the [loss](#loss-implementation) section. 
-
-**Question** : Some of the labels in the dataset are noisy. For example, check the input image and mask of the image indexed $2702$ (of the area 5a), corresponding to the filename `area_5a/data/semantic/camera_ff5f377af3b34354b054536db27565ae_hallway_7_frame_4_domain_semantic.png`. This noise in the oracle, as well as the one possibly induced by the unknow class, has to be kept in mind as this will certainly prevent a perfect generalization. 
-
-The noise in the orcale may also leads to divergence of the cross entropy loss. Since the cross entropy loss read $-log(p_{y_i})$, if the labels are noisy and your model is super good, the probably of the incorrectly labeled pixels will make the loss diverge.
-
-``` bash
-(venv) sh11:~:mylogin$ python data.py --area 5a --datadir /mounts/Datasets4/Stanford2D-3D-S
-```
-
-### Data pipeline
-
-The data are loaded and the dataloaders are built by calling `get_dataloaders` from the `data` module.
-
-The raw images have a size of $1080 \times 1080$. If we keep large images, the minibatches and their successive transformations will occupy a large space in GPU memory. At least, we can resize the images, e.g. to $256\times 256$, and still keep reasonnable segmentations.
-
-In addition to resize images to a smaller size, we can add data augmentation in our pipeline. Remember, data augmentation is a set of transforms applied to the input which have a predictable influence on the output.
-
-For semantic segmentation, several can be considered, such as [RandomCrop](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomCrop), [HorizontalFlip](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.HorizontalFlip), [MaskDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/mask_dropout/#maskdropout-augmentation-augmentationsdropoutmask_dropout), [CoarseDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/coarse_dropout/#coarsedropout-augmentation-augmentationsdropoutcoarse_dropout). You can have a look at the list of transforms provided by albumentation [here](https://albumentations.ai/docs/getting_started/transforms_and_targets/).
-
-::: {.callout-note}
-The transforms are organized into modules with albumentations, e.g. [CoarseDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/coarse_dropout/#coarsedropout-augmentation-augmentationsdropoutcoarse_dropout) is defined in `albumentations.augmentations.dropout.coarse_dropout.CoarseDropout`. However, the code of albumentations imports all the classes of the submodules recursively on the parent `__init__.py` script. Hence, the coarse dropout (and all the others) can be simply created by calling `A.CoarseDropout()` if you `import albumentations as A`.
-:::
-
-In the provided code, the data loading pipeline simply :
-
-- scales the image by $255$ with [albumentation.Normalize](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Normalize)
-- transforms the numpy image into a pytorch tensor with [albumentation.ToTensorV2](https://albumentations.ai/docs/api_reference/pytorch/transforms/#albumentations.pytorch.transforms.ToTensorV2) 
- 
-**Question** In the `train` function of the main script, implement the data augmentation operations you identified as relevant. For testing visually your data augmentation pipeline, you can implement your data augmentation pipeline in the `data.py:test_augmented_dataset` function and evaluate the `data.py` script to see the results. Once satisfied, you can inject your augmentations in the `main.py` script.
-
-**Question** How would you quantify the quality of the hyperparameters of your augmentation pipeline ? 
+**Question** Update your pipeline to train a model using the Stanford-2D-3D-S dataset. On the DCE, the datasets are available on `/mounts/datasets/datasets/Stanford2D-3D-S`
 
 ## References
 
