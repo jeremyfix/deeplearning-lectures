@@ -394,10 +394,11 @@ window.Quarto = {
   <li><a href="#inference" id="toc-inference" class="nav-link" data-scroll-target="#inference">Inference</a></li>
   <li><a href="#going-further" id="toc-going-further" class="nav-link" data-scroll-target="#going-further">Going further</a></li>
   <li><a href="#a-possible-solution" id="toc-a-possible-solution" class="nav-link" data-scroll-target="#a-possible-solution">A possible solution</a></li>
+  <li><a href="#extensions-using-models-from-smp" id="toc-extensions-using-models-from-smp" class="nav-link" data-scroll-target="#extensions-using-models-from-smp">Extensions : Using models from SMP</a></li>
   <li><a href="#extensions-to-stanford-2d-3d" id="toc-extensions-to-stanford-2d-3d" class="nav-link" data-scroll-target="#extensions-to-stanford-2d-3d">Extensions to Stanford 2D-3D</a>
   <ul class="collapse">
-  <li><a href="#dataset" id="toc-dataset" class="nav-link" data-scroll-target="#dataset">Dataset</a></li>
-  <li><a href="#data-pipeline" id="toc-data-pipeline" class="nav-link" data-scroll-target="#data-pipeline">Data pipeline</a></li>
+  <li><a href="#dataset-description" id="toc-dataset-description" class="nav-link" data-scroll-target="#dataset-description">Dataset description</a></li>
+  <li><a href="#implementation" id="toc-implementation" class="nav-link" data-scroll-target="#implementation">Implementation</a></li>
   </ul></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
@@ -746,59 +747,82 @@ focal(y, \hat{y}) = -(1-\hat{y}_y)^\gamma \log(\hat{y}_y)
 <section id="using-a-pretrained-encoder" class="level2">
 <h2 class="anchored" data-anchor-id="using-a-pretrained-encoder">Using a pretrained encoder</h2>
 <p>The previously implemented network, trained from scratch does not perform very well. We can obtain much better results by considering a pretrained encoder. The encoder has the structure of a classification network. We can take a convolutional network, pretrained on ImageNet for example, chop off the head and connect a decoder.</p>
-<p><strong>TBD</strong></p>
+<p>We also see how to create a <code>GenericUNet</code> class built from a pretrained encoder and a generic decoder connected to it. The <a href="https://github.com/huggingface/pytorch-image-models/">timm library</a> offers several state-of-the-art (SOTA) models pretrained on various versions of ImageNet. You can use these models for image classifcation but the API also allows <a href="https://huggingface.co/docs/timm/feature_extraction#multi-scale-feature-maps-feature-pyramid">to get the intermediate features</a> facilitating the construction of an encoder on top of a pretrained encoder.</p>
+<p><strong>Question</strong> Looking at the documentation, fill in the <code>models/timm.py</code> script, the <code>GenericTimmEncoder</code> function that returns a pretrained encoder ready <a href="https://huggingface.co/docs/timm/feature_extraction#multi-scale-feature-maps-feature-pyramid">to get the intermediate features</a>.</p>
+<p>You can test your implementation by calling the <code>test_timm_encoder()</code> function in the <code>models/__main__.py</code> script :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> semseg.models</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="ex">For</span> an input of shape torch.Size<span class="er">(</span><span class="ex">[1,</span> 3, 256, 256]<span class="kw">)</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Output</span> features of the encoder</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a> <span class="ex">-</span> torch.Size<span class="er">(</span><span class="ex">[1,</span> 64, 128, 128]<span class="kw">)</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a> <span class="ex">-</span> torch.Size<span class="er">(</span><span class="ex">[1,</span> 64, 64, 64]<span class="kw">)</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a> <span class="ex">-</span> torch.Size<span class="er">(</span><span class="ex">[1,</span> 128, 32, 32]<span class="kw">)</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a> <span class="ex">-</span> torch.Size<span class="er">(</span><span class="ex">[1,</span> 256, 16, 16]<span class="kw">)</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a> <span class="ex">-</span> torch.Size<span class="er">(</span><span class="ex">[1,</span> 512, 8, 8]<span class="kw">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>We now have to implement the generic decoder. Basically, as you can see from the <code>GenericUNet</code> function reproduced below, we can propagate a dummy tensor, at build time, through the encoder, to get the features it outputs and more precisely the number of channels of these features. This is the only information needed by the decoder to create its layers.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> GenericUNet(cfg, input_size, num_classes):</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    cin, _, _ <span class="op">=</span> input_size</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    encoder <span class="op">=</span> GenericTimmEncoder(cin, <span class="op">**</span>(cfg[<span class="st">"encoder"</span>]))</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Forward propagation of a dummy tensor to get the encoder </span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># features dimensions</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> torch.zeros((<span class="dv">1</span>, cin, <span class="dv">256</span>, <span class="dv">256</span>))</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    encoder_features <span class="op">=</span> encoder(X)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    encoder_channels <span class="op">=</span> [fi.shape[<span class="dv">1</span>] <span class="cf">for</span> fi <span class="kw">in</span> encoder_features]</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    decoder <span class="op">=</span> GenericDecoder(encoder_channels, num_classes)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> nn.Sequential(encoder, decoder)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Question</strong> : Define a YAML configuration script to run a training with your newly implemented GenericUNet using a resnet18 pretrained backbone.</p>
 </section>
 <section id="inference" class="level2">
 <h2 class="anchored" data-anchor-id="inference">Inference</h2>
-<p><strong>TBD</strong></p>
-<p>As training can take a long time, you are provided with a pretrained UNet. This model has been pretrained on areas 1, 2, 3, 4 and 6. Therefore the areas 5a and 5b were excluded from training to be considered for testing only, although area 5a has been selected for validation (early stopping). Training has been done for <span class="math inline">\(100\)</span> epochs, took 7 hours to complete although the best model has been found after <span class="math inline">\(2\)</span> hours or so. You can download the pretrained model <a href="http://www.metz.supelec.fr//metz/personnel/fix_jer/Deep/unet-10610_0.onnx">unet-10610_0.onnx</a>.</p>
-<p>The main script allows for testing on either a single image or whole areas. Check the arguments of</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> main.py test <span class="at">--datadir</span> ... <span class="at">--model</span> ... <span class="at">--modelpath</span> ... <span class="at">--areas_test</span> ... ... </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>When you just want to use a model for inference, you have multiple possibilities to export your model :</p>
-<ul>
-<li>use pytorch eager mode : this is what you do when you dynamically apply operations as nn.Module,</li>
-<li>use <a href="https://pytorch.org/tutorials/recipes/torchscript_inference.html">torchscript</a> : this is more efficient than eager mode; You loose the dynamic computational graph but you earn performance. You can also infer with Torhscript C/C++ which is even faster than Torchscript python,</li>
-<li>use <a href="https://onnxruntime.ai/">Onnx runtime</a> which is a framework independent (no pytorch, tensorflow, etc..) computational graph evaluator available for various languages and platforms (e.g.&nbsp;Python, C++ but also for mobiles, embedded in web apps, ..)</li>
-</ul>
-<p>In addition to even better performances (throughput and latency), the onnx format is perfect for abstracting the algorithm at its pure level of description without bells and whistles : a computational graph.</p>
-</div>
-</div>
-<p><strong>Question</strong> Visualize the computational graph with <a href="https://netron.app/">netron.app</a></p>
-<p><strong>Question</strong> Can you identify in the <code>main.py</code> script where the model is exported with onnx. Reading <a href="https://pytorch.org/docs/stable/onnx.html#torch.onnx.export">the doc on torch.onnx.export</a> do you understand what is the meaning of the arguments we provided to the call ?</p>
-<p><strong>Question</strong> Can you identify in the <code>main.py</code> script where and how inference is performed with the onnx model ? Can you find more info on the package that is used for inference ?</p>
-<p><strong>Question</strong> Evaluate the quality of the pretrained model on both the training areas (1, 2, 3, 4 and 6) and on the unused areas <code>5a</code> and <code>5b</code>.</p>
+<p>As training can take a long time, you are provided with a pretrained UNet model with a ResNet-18 backbone which obtained a macro F1 on a validation fold of <span class="math inline">\(0.55\)</span>.</p>
 <!--
-For now - october 26rd, 2022 - the performances are not fantastic and the model : around 0.8 for the macro F1 on 5a and 0.48 on 5b.
+   F1: [0.9124775361767214, 0.7006744463367578, 0.23233671576908083, 0.5535907000215841, 0.4635044908539235, 0.384556450298308, 0.7398696719244741, 0.7702732678974861, 0.7912242252857311, 0.1832549864905834, 0.33383548152534415, 
+0.5378044389728343, 0.561990687837907, 0.4863660217776533, 0.7543760387566746, 0.7868117132857577, 0.43192675546561066, 0.5170726304236187, 0.25632429911504834, 0.7742795344143246, 0.4469266547406082]
+   macro_F1: 0.55330841654143[>> BETTER <<]
 -->
+<p>You can download the pretrained model <a href="genericunet.tar.gz">genericunet.tar.gz</a>. It is provided as a bundle with the normalization statistics and the onnx computational graph. You need to unpack the onnx files and normalizing statistics file in the same directory. Let us call that directory <code>modeldir</code>.</p>
+<p><strong>Question</strong> Visualize the computational graph with <a href="https://netron.app/">netron.app</a></p>
+<p><strong>Question</strong> The model was exported to ONNX for you, by the <code>ModelCheckpoint</code> class defined in the <code>utils.py</code> script. Can you identify in the <code>utils.py</code> script where the model is exported with onnx ? Reading <a href="https://pytorch.org/docs/stable/onnx.html#torch.onnx.export">the doc on torch.onnx.export</a> do you understand what is the meaning of the arguments we provided to the export call ?</p>
 <p><strong>Question</strong> Your model can be evaluated on images of arbitrary sizes (width, height). Why do you think this is the case ?</p>
 <!-- 
 As our model is fully convolutional, it can be applied to images of any size. Since it does not contain any dense layers and only convolutional operations, there is no need to transform the image to a fixed image size.
 
 -->
-<p><strong>Question</strong> Take a picture with your phone, from the web, from the test area in the dataset directory and check the results of inference on this image. Note that the <code>main.py</code> script accepts a <code>--image</code> instead of a <code>--datadir ..</code> to process a single image.</p>
+<p>Now you can take an image and test your model on it. Some exemple images can be found from the <a href="https://cocodataset.org/#explore">Coco dataset explorer</a>. There, you will find images organized by categories and pick some for which there are objects belonging to the Pascal VOC dataset.</p>
+<p>To run the test function :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> semseg.main test <span class="op">&lt;</span>path_to_modeldir<span class="op">&gt;</span> <span class="op">&lt;</span>path_to_image<span class="op">&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Question</strong> Did you understand the <code>test</code> function in the <code>main.py</code> scrit ?</p>
 </section>
 <section id="going-further" class="level2">
 <h2 class="anchored" data-anchor-id="going-further">Going further</h2>
-<p>There are several directions along which you could pursue the study of semantic segmentation. One is about the models. The U-Net architecture we consider has been release in 2015. You might be interested in implementing more recent architectures such as VNet <span class="citation" data-cites="Milletari2016">(<a href="#ref-Milletari2016" role="doc-biblioref">Milletari et al., 2016</a>)</span> or DeepLab v3+ <span class="citation" data-cites="Chen2018">(<a href="#ref-Chen2018" role="doc-biblioref">Chen et al., 2018</a>)</span>. Another direction of study is on the losses. We explored some ways to fight against class imbalance with the weighted cross entropy loss and the focal loss. You might be interested in exploring over losses, such as the Tversky loss, the DICE loss, the Lovasz loss, the Matthews Correlation Coefficient loss <span class="citation" data-cites="Abhishek2021">(<a href="#ref-Abhishek2021" role="doc-biblioref">Abhishek &amp; Hamarneh, 2021</a>)</span>. It is interesting to implement your know loss but you might be interested in packages already implementing them such as <a href="https://smp.readthedocs.io/en/latest/losses.html">smp</a></p>
-<p>In terms of deployment, you could also push a little further the work by serving the onnx model with a webapi that could be requested with an image to label. Probably more on this soon.</p>
+<p>There are several directions along which you could pursue the study of semantic segmentation. One is about the models. The U-Net architecture we consider has been released in 2015. You might be interested in implementing more recent architectures such as VNet <span class="citation" data-cites="Milletari2016">(<a href="#ref-Milletari2016" role="doc-biblioref">Milletari et al., 2016</a>)</span> or DeepLab v3+ <span class="citation" data-cites="Chen2018">(<a href="#ref-Chen2018" role="doc-biblioref">Chen et al., 2018</a>)</span>.</p>
+<p>Another direction of study is on the losses. We explored some ways to fight against class imbalance with the weighted cross entropy loss and the focal loss. You might be interested in exploring over losses, such as the Tversky loss, the DICE loss, the Lovasz loss, the Matthews Correlation Coefficient loss <span class="citation" data-cites="Abhishek2021">(<a href="#ref-Abhishek2021" role="doc-biblioref">Abhishek &amp; Hamarneh, 2021</a>)</span>. It is interesting to implement yourself the loss but you might be interested in packages already implementing them such as <a href="https://smp.readthedocs.io/en/latest/losses.html">smp</a></p>
+<p>In terms of deployment, you could also push a little further the work by serving the onnx model with a webapi that could be requested with an image to label.</p>
 </section>
 <section id="a-possible-solution" class="level2">
 <h2 class="anchored" data-anchor-id="a-possible-solution">A possible solution</h2>
 <p>You will find a possible solution at <a href="../../assets/semseg-sol.tar.gz">semseg-sol.tar.gz</a>.</p>
 </section>
+<section id="extensions-using-models-from-smp" class="level2">
+<h2 class="anchored" data-anchor-id="extensions-using-models-from-smp">Extensions : Using models from SMP</h2>
+<p>In order with other models, we can import models from the <a href="https://github.com/qubvel-org/segmentation_models.pytorch">segmentation_models_pytorch (SMP)</a> library.</p>
+<p>With our code base structure, it is pretty straightforward to add new models. You are provided with the <code>models/smp.py</code> script and the <code>DeepLabV3Plus</code> function :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> DeepLabV3Plus(cfg, input_size, num_classes):</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="va">None</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Using the <a href="https://smp.readthedocs.io/en/latest/models.html#deeplabv3plus">documentation of SMP</a>, <strong>fill in</strong> the missing code to create a DeepLabV3+ model with the correct number of channels, classes and other parameters you consider useful.</p>
+<p>Do not forget to <strong>provide a test code</strong> in <code>models/__main__.py</code> to locally test your model. The following dictionnary should be sufficient for creating a DeepLabV3+ model with a pretrained resnet18 backbone.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"class"</span>: <span class="st">"DeepLabV3Plus"</span>,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"parameters"</span>: {</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>      <span class="st">"encoder_name"</span>: <span class="st">"resnet18"</span>, </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">"encoder_weights"</span>: <span class="st">"imagenet"</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
 <section id="extensions-to-stanford-2d-3d" class="level2">
 <h2 class="anchored" data-anchor-id="extensions-to-stanford-2d-3d">Extensions to Stanford 2D-3D</h2>
-<p><strong>TO BE REFACTORED</strong></p>
+<section id="dataset-description" class="level3">
+<h3 class="anchored" data-anchor-id="dataset-description">Dataset description</h3>
 <p>Let us now extend the work to the large <a href="http://buildingparser.stanford.edu/dataset.html">Stanford 2D-3D S dataset</a>. This dataset is built from 3D scans of buildings with multiple annotation types (pixelwise depth, pixel class, pixelwise normals, scene category). We will consider only the pixelwise class labeling. The data have been collected in 6 different areas.</p>
 <table class="caption-top table">
 <thead>
@@ -845,48 +869,20 @@ As our model is fully convolutional, it can be applied to images of any size. Si
 <figcaption>Semantic segmentation : pixelwise classifcation</figcaption>
 </figure>
 </div>
-<p>There are <span class="math inline">\(14\)</span> classes, the first being for the unlabeled pixels.</p>
-<section id="dataset" class="level3">
-<h3 class="anchored" data-anchor-id="dataset">Dataset</h3>
-<p>You are provided with the <code>StanfordDataset</code> class which is a pytorch dataset object, i.e.&nbsp;an object implementing the <code>__len__</code> and <code>__getitem__</code> methods. The constructor expects follows the <a href="https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html">VisionDataset</a> interface and expects :</p>
+<p>There are <span class="math inline">\(14\)</span> classes, the first being for the unlabeled pixels. The raw images have a size of <span class="math inline">\(1080 \times 1080\)</span>. If we keep large images, the minibatches and their successive transformations will occupy a large space in GPU memory. At least, we can resize the images, e.g.&nbsp;to <span class="math inline">\(256\times 256\)</span>, and still keep reasonnable segmentations.</p>
+<p>If you were to plot the distribution of the classes over the <span class="math inline">\(71000\)</span> masks of size <span class="math inline">\(1080\times 1080\)</span>, the relative proportion of the labels are <span class="math inline">\(1.26\%\)</span>, <span class="math inline">\(1.57\%\)</span>, <span class="math inline">\(2.71\%\)</span>, <span class="math inline">\(7.17\%\)</span>, <span class="math inline">\(9.94\%\)</span>, <span class="math inline">\(3.87\%\)</span>, <span class="math inline">\(11.23\%\)</span>, <span class="math inline">\(3.05\%\)</span>, <span class="math inline">\(10.98\%\)</span>, <span class="math inline">\(8.45\%\)</span>, <span class="math inline">\(0.33\%\)</span>, <span class="math inline">\(2.88\%\)</span>, <span class="math inline">\(33.67\%\)</span>, <span class="math inline">\(2.88\%\)</span> which is really unbalanced. These figures are ordered the same than the labels on the image at the top, hence <span class="math inline">\(33.67\%\)</span> of the labeled pixels are “wall”, and only <span class="math inline">\(0.33\%\)</span> are “sofa”. As for Pascal-VOC, the classes are inbalanced.</p>
+<p>Some of the labels in the dataset are noisy. For example, check the input image and mask of the image indexed <span class="math inline">\(2702\)</span> (of the area 5a), corresponding to the filename <code>area_5a/data/semantic/camera_ff5f377af3b34354b054536db27565ae_hallway_7_frame_4_domain_semantic.png</code>. This noise in the oracle, as well as the one possibly induced by the unknow class, has to be kept in mind as this will certainly prevent a perfect generalization.</p>
+<p>The noise in the oracle may also leads to divergence of the cross entropy loss. Since the cross entropy loss read <span class="math inline">\(-log(p_{y_i})\)</span>, if the labels are noisy and your model is super good, the probably of the incorrectly labeled pixels will make the loss diverge.</p>
+</section>
+<section id="implementation" class="level3">
+<h3 class="anchored" data-anchor-id="implementation">Implementation</h3>
+<p>You are provided, in the <code>stanford.py</code> script of your package, with the <code>StanfordDataset</code> class which is a pytorch dataset object, i.e.&nbsp;an object implementing the <code>__len__</code> and <code>__getitem__</code> methods. The constructor expects follows the <a href="https://pytorch.org/vision/stable/generated/torchvision.datasets.VisionDataset.html">VisionDataset</a> interface and expects :</p>
 <ul>
 <li>a root directory for the data (e.g.&nbsp;<code>/mounts/Datasets4/Stanford2D-3D-S/</code>)</li>
 <li>either a pair of <code>transform</code> and <code>target_transform</code> function, or a combined <code>transforms</code> function for transforming the RGB input and the semantic mask</li>
 <li>an optional list of <code>areas</code> to restrict to, e.g.&nbsp;<code>area = ['1', '5b']</code></li>
 </ul>
-<p><strong>Question</strong>: For our problem, what is the dimensionality and type of the tensors you expect for the input and targets ?</p>
-<p><strong>Question</strong> : Instantiate your dataset and check that your guess is correct on one of the samples.</p>
-<p>If you were to plot the distribution of the classes over the <span class="math inline">\(71000\)</span> masks of size <span class="math inline">\(1080\times 1080\)</span>, the relative proportion of the labels are <span class="math inline">\(1.26\%\)</span>, <span class="math inline">\(1.57\%\)</span>, <span class="math inline">\(2.71\%\)</span>, <span class="math inline">\(7.17\%\)</span>, <span class="math inline">\(9.94\%\)</span>, <span class="math inline">\(3.87\%\)</span>, <span class="math inline">\(11.23\%\)</span>, <span class="math inline">\(3.05\%\)</span>, <span class="math inline">\(10.98\%\)</span>, <span class="math inline">\(8.45\%\)</span>, <span class="math inline">\(0.33\%\)</span>, <span class="math inline">\(2.88\%\)</span>, <span class="math inline">\(33.67\%\)</span>, <span class="math inline">\(2.88\%\)</span> which is really unbalanced. These figures are ordered the same than the labels on the image at the top, hence <span class="math inline">\(33.67\%\)</span> of the labeled pixels are “wall”, and only <span class="math inline">\(0.33\%\)</span> are “sofa”. There are several ways to combat this imbalance. One could be in the data sampler when the minibatches are built. Another one is to use an adapted loss function. More on that later in the <a href="#loss-implementation">loss</a> section.</p>
-<p><strong>Question</strong> : Some of the labels in the dataset are noisy. For example, check the input image and mask of the image indexed <span class="math inline">\(2702\)</span> (of the area 5a), corresponding to the filename <code>area_5a/data/semantic/camera_ff5f377af3b34354b054536db27565ae_hallway_7_frame_4_domain_semantic.png</code>. This noise in the oracle, as well as the one possibly induced by the unknow class, has to be kept in mind as this will certainly prevent a perfect generalization.</p>
-<p>The noise in the orcale may also leads to divergence of the cross entropy loss. Since the cross entropy loss read <span class="math inline">\(-log(p_{y_i})\)</span>, if the labels are noisy and your model is super good, the probably of the incorrectly labeled pixels will make the loss diverge.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">sh11:~:mylogin$</span> python data.py <span class="at">--area</span> 5a <span class="at">--datadir</span> /mounts/Datasets4/Stanford2D-3D-S</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="data-pipeline" class="level3">
-<h3 class="anchored" data-anchor-id="data-pipeline">Data pipeline</h3>
-<p>The data are loaded and the dataloaders are built by calling <code>get_dataloaders</code> from the <code>data</code> module.</p>
-<p>The raw images have a size of <span class="math inline">\(1080 \times 1080\)</span>. If we keep large images, the minibatches and their successive transformations will occupy a large space in GPU memory. At least, we can resize the images, e.g.&nbsp;to <span class="math inline">\(256\times 256\)</span>, and still keep reasonnable segmentations.</p>
-<p>In addition to resize images to a smaller size, we can add data augmentation in our pipeline. Remember, data augmentation is a set of transforms applied to the input which have a predictable influence on the output.</p>
-<p>For semantic segmentation, several can be considered, such as <a href="https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomCrop">RandomCrop</a>, <a href="https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.HorizontalFlip">HorizontalFlip</a>, <a href="https://albumentations.ai/docs/api_reference/augmentations/dropout/mask_dropout/#maskdropout-augmentation-augmentationsdropoutmask_dropout">MaskDropout</a>, <a href="https://albumentations.ai/docs/api_reference/augmentations/dropout/coarse_dropout/#coarsedropout-augmentation-augmentationsdropoutcoarse_dropout">CoarseDropout</a>. You can have a look at the list of transforms provided by albumentation <a href="https://albumentations.ai/docs/getting_started/transforms_and_targets/">here</a>.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The transforms are organized into modules with albumentations, e.g.&nbsp;<a href="https://albumentations.ai/docs/api_reference/augmentations/dropout/coarse_dropout/#coarsedropout-augmentation-augmentationsdropoutcoarse_dropout">CoarseDropout</a> is defined in <code>albumentations.augmentations.dropout.coarse_dropout.CoarseDropout</code>. However, the code of albumentations imports all the classes of the submodules recursively on the parent <code>__init__.py</code> script. Hence, the coarse dropout (and all the others) can be simply created by calling <code>A.CoarseDropout()</code> if you <code>import albumentations as A</code>.</p>
-</div>
-</div>
-<p>In the provided code, the data loading pipeline simply :</p>
-<ul>
-<li>scales the image by <span class="math inline">\(255\)</span> with <a href="https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Normalize">albumentation.Normalize</a></li>
-<li>transforms the numpy image into a pytorch tensor with <a href="https://albumentations.ai/docs/api_reference/pytorch/transforms/#albumentations.pytorch.transforms.ToTensorV2">albumentation.ToTensorV2</a></li>
-</ul>
-<p><strong>Question</strong> In the <code>train</code> function of the main script, implement the data augmentation operations you identified as relevant. For testing visually your data augmentation pipeline, you can implement your data augmentation pipeline in the <code>data.py:test_augmented_dataset</code> function and evaluate the <code>data.py</code> script to see the results. Once satisfied, you can inject your augmentations in the <code>main.py</code> script.</p>
-<p><strong>Question</strong> How would you quantify the quality of the hyperparameters of your augmentation pipeline ?</p>
+<p><strong>Question</strong> Update your pipeline to train a model using the Stanford-2D-3D-S dataset. On the DCE, the datasets are available on <code>/mounts/datasets/datasets/Stanford2D-3D-S</code></p>
 </section>
 </section>
 <section id="references" class="level2">
