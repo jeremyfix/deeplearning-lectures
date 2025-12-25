@@ -371,9 +371,40 @@ tensorboard --logdir ./logs
 
 The previously implemented network, trained from scratch does not perform very well. We can obtain much better results by considering a pretrained encoder. The encoder has the structure of a classification network. We can take a convolutional network, pretrained on ImageNet for example, chop off the head and connect a decoder.
 
-We also see how to create a `GenericUNet` class built from a pretrained encoder and a generic decoder connected to it.
+We also see how to create a `GenericUNet` class built from a pretrained encoder and a generic decoder connected to it. The [timm library](https://github.com/huggingface/pytorch-image-models/) offers several state-of-the-art (SOTA) models pretrained on various versions of ImageNet. You can use these models for image classifcation but the API also allows [to get the intermediate features](https://huggingface.co/docs/timm/feature_extraction#multi-scale-feature-maps-feature-pyramid) facilitating the construction of an encoder on top of a pretrained encoder.
 
-**TBD**
+**Question** Looking at the documentation, fill in the `models/timm.py` script, the `GenericTimmEncoder` function that returns a pretrained encoder ready [to get the intermediate features](https://huggingface.co/docs/timm/feature_extraction#multi-scale-feature-maps-feature-pyramid).
+
+You can test your implementation by calling the `test_timm_encoder()` function in the `models/__main__.py` script :
+
+```bash
+$ python -m semseg.models
+For an input of shape torch.Size([1, 3, 256, 256])
+Output features of the encoder
+ - torch.Size([1, 64, 128, 128])
+ - torch.Size([1, 64, 64, 64])
+ - torch.Size([1, 128, 32, 32])
+ - torch.Size([1, 256, 16, 16])
+ - torch.Size([1, 512, 8, 8])
+```
+
+We now have to implement the generic decoder. Basically, as you can see from the `GenericUNet` function reproduced below, we can propagate a dummy tensor, at build time, through the encoder, to get the features it outputs and more precisely the number of channels of these features. This is the only information needed by the decoder to create its layers.
+
+```python
+def GenericUNet(cfg, input_size, num_classes):
+    cin, _, _ = input_size
+    encoder = GenericTimmEncoder(cin, **(cfg["encoder"]))
+
+    # Forward propagation of a dummy tensor to get the encoder 
+    # features dimensions
+    X = torch.zeros((1, cin, 256, 256))
+    encoder_features = encoder(X)
+    encoder_channels = [fi.shape[1] for fi in encoder_features]
+    decoder = GenericDecoder(encoder_channels, num_classes)
+    return nn.Sequential(encoder, decoder)
+```
+
+**Question** : Define a YAML configuration script to run a training with your newly implemented GenericUNet using a resnet18 pretrained backbone.
 
 ## Inference
 

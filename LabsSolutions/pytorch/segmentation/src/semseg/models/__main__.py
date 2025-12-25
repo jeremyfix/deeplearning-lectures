@@ -9,6 +9,7 @@ import torch
 
 # Local imports
 from .unet import UNetEncoder, UNetDecoder, UNet
+from .timm import GenericTimmEncoder
 from . import build_model
 
 def test_unet_encoder():
@@ -115,7 +116,30 @@ def test_deeplabv3():
     assert y.shape == (1, num_classes, input_size[1], input_size[2])
 # SOL@
 
-# @SOL
+def test_timm_encoder():
+    logging.info("Testing the Timm encoder")
+    cin = 3
+    input_size = (cin, 256, 256)
+    num_classes = 21
+    cfg = {
+        "class": "GenericUNet",
+        "encoder": {
+            "model_name": "resnet18",
+            "pretrained": True
+        }
+    }
+    model = GenericTimmEncoder(cin, 
+                                cfg["encoder"]["model_name"], 
+                                cfg["encoder"]["pretrained"])
+    X = torch.zeros((1, *input_size))
+
+    model.eval()
+    y = model(X)
+    
+    logging.info(f"For an input of shape {X.shape}")
+    logging.info("Output features of the encoder")
+    for f in y:
+        logging.info(f" - {f.shape}")
 
 def test_generic_unet():
     logging.info("Testing the Generic UNet")
@@ -138,7 +162,6 @@ def test_generic_unet():
     y = model(X)
     print(f"Output shape : {y.shape}")
     assert y.shape == (1, num_classes, input_size[1], input_size[2])
-# SOL@
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
@@ -146,11 +169,14 @@ if __name__ == "__main__":
     # test_unet_encoder()
     # # test_unet_decoder()
     # # test_unet()
+    # # test_timm_encoder()
+    # # test_generic_unet()
     # TEMPL@
     # @SOL
     test_unet_encoder()
     test_unet_decoder()
     test_unet()
     test_deeplabv3()
+    test_timm_encoder()
     test_generic_unet()
     # SOL@
