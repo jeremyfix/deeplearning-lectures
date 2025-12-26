@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeremy Fix">
-<meta name="keywords" content="PyTorch tutorial, semantic segmentation, Stanford 2D-3D S">
+<meta name="keywords" content="PyTorch tutorial, semantic segmentation, UNet, Pascal VOC, Stanford 2D-3D S">
 
-<title>Semantic segmentation on Stanford-2D-3D S – Deep Learning Lectures</title>
+<title>Semantic segmentation on Pascal VOC – Deep Learning Lectures</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -258,7 +258,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../pytorch/fashionMNIST/index.html">Pytorch</a></li><li class="breadcrumb-item"><a href="../../pytorch/segmentation/index.html">Semantic segmentation on Stanford-2D-3D S</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../pytorch/fashionMNIST/index.html">Pytorch</a></li><li class="breadcrumb-item"><a href="../../pytorch/segmentation/index.html">Semantic segmentation on Pascal VOC</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
     </div>
@@ -311,7 +311,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../pytorch/segmentation/index.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Semantic segmentation on Stanford-2D-3D S</span></a>
+ <span class="menu-text">Semantic segmentation on Pascal VOC</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -407,9 +407,9 @@ window.Quarto = {
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../pytorch/fashionMNIST/index.html">Pytorch</a></li><li class="breadcrumb-item"><a href="../../pytorch/segmentation/index.html">Semantic segmentation on Stanford-2D-3D S</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../pytorch/fashionMNIST/index.html">Pytorch</a></li><li class="breadcrumb-item"><a href="../../pytorch/segmentation/index.html">Semantic segmentation on Pascal VOC</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">Semantic segmentation on Stanford-2D-3D S</h1>
+<h1 class="title">Semantic segmentation on Pascal VOC</h1>
 </div>
 
 
@@ -431,7 +431,7 @@ window.Quarto = {
 <div>
   <div class="keywords">
     <div class="block-title">Keywords</div>
-    <p>PyTorch tutorial, semantic segmentation, Stanford 2D-3D S</p>
+    <p>PyTorch tutorial, semantic segmentation, UNet, Pascal VOC, Stanford 2D-3D S</p>
   </div>
 </div>
 
@@ -484,7 +484,6 @@ tar -zxvf semgseg-kit.tar.gz</code></pre>
 <li>metrics.py : provides metrics such as the F1, confusion matrix, etc..</li>
 <li>main.py: the main script which will run training and testing.</li>
 </ul>
-<p>Une fois la librairie installée, sous Visual Studio Code, vous pouvez indiquer le chemin vers l’interpréteur Python : <code>~/deepvision-venv/bin/python</code>.</p>
 </section>
 <section id="data-exploration" class="level2">
 <h2 class="anchored" data-anchor-id="data-exploration">Data exploration</h2>
