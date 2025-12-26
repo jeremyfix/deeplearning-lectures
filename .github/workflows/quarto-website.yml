@@ -36,6 +36,7 @@ jobs:
       - name: Template code generation and solution code copy
         run: easylabwork LabsSolutions StudentsCode
 
+      # Semantic segmentation
       - name: Pytorch Semseg base code
         run: |
           mkdir -p assets 
@@ -47,7 +48,21 @@ jobs:
           mkdir -p assets 
           cd LabsSolutions/pytorch/ 
           tar -zcvf ../../assets/semseg-sol.tar.gz segmentation
+    
+      # GAN
+      - name: Pytorch ganlab base code
+        run: |
+          mkdir -p assets 
+          cd StudentsCode/pytorch/ 
+          tar -zcvf ../../assets/ganlab-kit.tar.gz gan 
 
+      - name: Pytorch ganlab solution code
+        run: |
+          mkdir -p assets 
+          cd LabsSolutions/pytorch/ 
+          tar -zcvf ../../assets/ganlab-sol.tar.gz gan
+
+      # Upload
       - name: Upload the assets
         uses: actions/upload-artifact@v4
         with:
