@@ -22,7 +22,7 @@ website:
             file: pytorch/fashionMNIST/index.qmd
           - text: "Transfer learning and Object detection"
             file: pytorch/object-detection/index.qmd
-          - text: "Semantic segmenation on Stanford-2D-3D S"
+          - text: "Semantic segmentation on Pascal VOC"
             file: pytorch/segmentation/index.qmd
           - text: "Automatic Speech Recognition on Mozilla Common Voice"
             file: pytorch/asr/index.qmd
