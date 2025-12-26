@@ -1,0 +1,22 @@
+data: 
+  dataset: "MNIST" # SVHN, EMNIST, FashionMNIST, CelebA
+  rootdir: "/opt/datasets/"
+  debug: False
+  batch_size: 256
+
+optim:
+  base_lr: 0.0002
+  wdecay: 0.0
+  lblsmooth: 0.2
+
+nepochs: 200
+
+logging:
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+
+model:
+  dnoise: 0.1
+  discriminator_base_c: 32
+  generator_base_c: 256
+  latent_size: 100
+  dropout: 0.5
