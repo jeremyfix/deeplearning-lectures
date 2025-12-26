@@ -194,7 +194,7 @@ window.Quarto = {
   </li>  
         <li>
     <a class="dropdown-item" href="../../pytorch/segmentation/index.html">
- <span class="dropdown-text">Semantic segmenation on Stanford-2D-3D S</span></a>
+ <span class="dropdown-text">Semantic segmentation on Pascal VOC</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../../pytorch/asr/index.html">
@@ -441,54 +441,54 @@ window.Quarto = {
 <p><a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"></p>
 <section id="objectives" class="level2">
 <h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
-<p>The objective of this lab work is to implement and explore convolutional neural networks for semantic segmentation. <strong>Semantic segmentation</strong> seeks to learn a function <span class="math inline">\(f_\theta\)</span>, parametrized by <span class="math inline">\(\theta\)</span> which takes as input an image <span class="math inline">\(I\)</span> of arbitrary shape <span class="math inline">\(H\times W\)</span> and outputs an images of labels of the same shape <span class="math inline">\(H \times W\)</span> than the input. Indeed, we seek to label every single pixel of the image as belonging to one of <span class="math inline">\(K\)</span> predefined classes. This task is also known as <strong>dense labeling</strong>.</p>
-<p>In this labwork, we will be working with the Pascal VOC dataset. The Pascal VOC dataset contains images of variable sizes, colored, where each pixel is labeled as belonging to one out of <span class="math inline">\(21\)</span> classes represented by their color code below. If you count the number of colored boxes below, you will notice there are <span class="math inline">\(22\)</span> colors. The <code>void/unlabelled</code> class is labeled <span class="math inline">\(255\)</span> and has to be ignored since these pixels may correspond to one of the <span class="math inline">\(21\)</span> other classes.</p>
+<p>The objective of this lab work is to implement and explore convolutional neural networks for semantic segmentation. <strong>Semantic segmentation</strong> seeks to learn a function <span class="math inline">\(f_\theta\)</span>, parametrized by <span class="math inline">\(\theta\)</span>, which takes as input an image <span class="math inline">\(I\)</span> of arbitrary shape <span class="math inline">\(H\times W\)</span> and outputs an image of labels of the same shape <span class="math inline">\(H \times W\)</span> as the input. Indeed, we seek to label every single pixel of the image as belonging to one of <span class="math inline">\(K\)</span> predefined classes. This task is also known as <strong>dense labeling</strong>.</p>
+<p>In this lab work, we will be working with the Pascal VOC dataset. The Pascal VOC dataset contains color images of variable sizes, where each pixel is labeled as belonging to one of <span class="math inline">\(21\)</span> classes represented by their color code below. If you count the number of colored boxes below, you will notice there are <span class="math inline">\(22\)</span> colors. The <code>void/unlabeled</code> class is labeled <span class="math inline">\(255\)</span> and has to be ignored since these pixels may correspond to one of the <span class="math inline">\(21\)</span> other classes.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="pascal-voc-label-color-map.jpg" class="img-fluid figure-img" style="width:75.0%"></p>
-<figcaption>The <span class="math inline">\(21\)</span> classes de PascalVOC avec leur code couleur. Produced with <a href="https://gist.github.com/ccj5351/ae554ea70cef79ab1efdb3f9f92d2b37">this code</a></figcaption>
+<figcaption>The <span class="math inline">\(21\)</span> Pascal VOC classes with their color codes. Produced with <a href="https://gist.github.com/ccj5351/ae554ea70cef79ab1efdb3f9f92d2b37">this code</a></figcaption>
 </figure>
 </div>
-<p>Some samples of the dataset are shown below with the labels overlayed on top of the images. The contour of the objects is labeled with the label <span class="math inline">\(255\)</span> while all the other <span class="math inline">\(21\)</span> categories are labeled <span class="math inline">\(0 \cdots 20\)</span>. The classes are strongly inbalanced as most of the labels are from the <strong>background</strong> class <span class="math inline">\(0\)</span>. Out of <span class="math inline">\(262\)</span>M labeled pixels, the background class represents <span class="math inline">\(69\%\)</span>. The second most frequent class is class person <span class="math inline">\(15\)</span> with <span class="math inline">\(4.6\%\)</span> of labels. Only <span class="math inline">\(5\%\)</span> of the pixels are labeled as <code>void/unlabeled</code> class <span class="math inline">\(255\)</span>.</p>
+<p>Some samples of the dataset are shown below with the labels overlaid on top of the images. The contour of the objects is labeled with <span class="math inline">\(255\)</span> while all the other <span class="math inline">\(21\)</span> categories are labeled <span class="math inline">\(0 \cdots 20\)</span>. The classes are strongly imbalanced as most of the labels are from the <strong>background</strong> class <span class="math inline">\(0\)</span>. Out of <span class="math inline">\(262\)</span>M labeled pixels, the background class represents <span class="math inline">\(69\%\)</span>. The second most frequent class is person (class <span class="math inline">\(15\)</span>) with <span class="math inline">\(4.6\%\)</span> of labels. Only <span class="math inline">\(5\%\)</span> of the pixels are labeled as <code>void/unlabeled</code> (class <span class="math inline">\(255\)</span>).</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="pascalVOC_samples.png" class="img-fluid figure-img" style="width:50.0%"></p>
-<figcaption>Some samples of the Pascal VOC dataset. The contour of the objects is encoded with the label <span class="math inline">\(255\)</span>, hence highlighted in a yelloish color.</figcaption>
+<figcaption>Some samples of the Pascal VOC dataset. The contour of the objects is encoded with the label <span class="math inline">\(255\)</span>, hence highlighted in a yellowish color.</figcaption>
 </figure>
 </div>
-<p>We will follow exactly the same path as usual starting by exploring the data, then implementing a dedicated model and finally considering a loss able to deal with inbalanced classes.</p>
+<p>We will follow the usual path, starting by exploring the data, then implementing a dedicated model, and finally considering a loss able to deal with imbalanced classes.</p>
 </section>
 <section id="setup-and-predefined-scripts" class="level2">
 <h2 class="anchored" data-anchor-id="setup-and-predefined-scripts">Setup and predefined scripts</h2>
-<p>For this lab, you are provided a base code to complete : <a href="../../assets/semseg-kit.tar.gz">semseg-kit.tar.gz</a>. To get and use that code :</p>
-<pre><code>wget https://jeremyfix.github.io/deeplearning-lectures/assets/semseg-kit.tar.gz
-tar -zxvf semgseg-kit.tar.gz</code></pre>
-<p>This code is organized as a python library <code>semseg</code> to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.</p>
-<p>To install the library, you to install it in 1) virtual environnement 2) in developer mode.</p>
-<p><strong>If you use the DCE of CentraleSupélec</strong>, you can use pre-installed virtual environments that already ship several required packages :</p>
+<p>For this lab, you are provided base code to complete: <a href="../../assets/semseg-kit.tar.gz">semseg-kit.tar.gz</a>. To get and use that code:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">wget</span> https://jeremyfix.github.io/deeplearning-lectures/assets/semseg-kit.tar.gz</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-zxvf</span> semseg-kit.tar.gz</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This code is organized as a Python library <code>semseg</code> to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.</p>
+<p>To install the library, you should 1) create a virtual environment and 2) install it in developer mode.</p>
+<p><strong>If you use the DCE of CentraleSupélec</strong>, you can use pre-installed virtual environments that already ship several required packages:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/dce/dce_venv.sh</span> /mounts/datasets/venvs/torch-2.7.1 <span class="va">$TMPDIR</span>/venv</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> <span class="va">$TMPDIR</span>/venv/bin/activate</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>otherwise</strong>, you need to create your own venv, for example using the builtin python venv module :</p>
+<p><strong>Otherwise</strong>, you need to create your own venv, for example using the built-in Python venv module:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> venv /tmp/venv</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> /tmp/venv/</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Then, to install the library in developer mode :</p>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> /tmp/venv/bin/activate</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Then, to install the library in developer mode:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pip install <span class="at">-e</span> segmentation</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>You can verify that the library is installed by running :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-c</span> <span class="st">"import semseg; print(f'Library available at {semseg.__file__}')</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This basic code base offers you several modules that <strong>we will cover step by step</strong> :</p>
+<p>You can verify that the library is installed by running:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-c</span> <span class="st">"import semseg; print(f'Library available at {semseg.__file__}')"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This basic code base offers you several modules that <strong>we will cover step by step</strong>:</p>
 <ul>
-<li>data.py : deals with data loading,</li>
-<li>models/ : contains our neural networks,</li>
-<li>utils.py : contains several utilitary functions such as the training and test loops, saving the best models, etc..</li>
-<li>optim.py : defines the focal loss which we will make us of in later on,définit notamment la perte Focal, que nous allons utiliser plus</li>
-<li>metrics.py : provides metrics such as the F1, confusion matrix, etc..</li>
+<li>data.py: deals with data loading,</li>
+<li>models/: contains our neural networks,</li>
+<li>utils.py: contains several utility functions such as the training and test loops, saving the best models, etc.</li>
+<li>optim.py: defines the focal loss, which we will use later on,</li>
+<li>metrics.py: provides metrics such as the F1, confusion matrix, etc.</li>
 <li>main.py: the main script which will run training and testing.</li>
 </ul>
 </section>
 <section id="data-exploration" class="level2">
 <h2 class="anchored" data-anchor-id="data-exploration">Data exploration</h2>
-<p>Data loading is handled by the <code>data.py</code> submodule. The objective of this module is to provide the dataloaders. To get a grip on the data, let us starting visualizing some samples and apply augmentations on them. In this lab, we will use the <a href="https://albumentations.ai/">albumentations</a> library which is dedicated to data augmentation for vision.</p>
-<p><strong>Read and understand</strong> the <code>plot_samples</code> function of the <code>data.py</code> submodule. You can execute this code :</p>
+<p>Data loading is handled by the <code>data.py</code> submodule. The objective of this module is to provide the dataloaders. To get a grip on the data, let us start by visualizing some samples and applying augmentations to them. In this lab, we will use the <a href="https://albumentations.ai/">albumentations</a> library, which is dedicated to data augmentation for vision.</p>
+<p><strong>Read and understand</strong> the <code>plot_samples</code> function of the <code>data.py</code> submodule. You can execute this code:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> semseg.data</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -500,20 +500,20 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>The code that gets executed once you evaluate the module <code>semseg.data</code> is located at the very end of the script :</p>
+<p>The code that gets executed once you evaluate the module <code>semseg.data</code> is located at the very end of the script:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    plot_samples(<span class="st">"/mounts/datasets/datasets/Pascal-VOC2012"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>In this <code>plot_samples</code> function, you will see several transforms are applied. The proposed pipeline is pretty basic :</p>
+<p>In this <code>plot_samples</code> function, you will see several transforms are applied. The proposed pipeline is pretty basic:</p>
 <ul>
 <li><code>SmallestMaxSize</code> ensures the shortest dimension of the image is at least <span class="math inline">\(256\)</span> pixels long,</li>
 <li><code>RandomCrop</code> randomly crops a <span class="math inline">\(256\times 256\)</span> patch,</li>
 <li><code>Normalize(mean, std, max)</code> applies the normalization transform <span class="math inline">\((x - max \times mean)/(max \times std)\)</span></li>
-<li><code>ToTensorV2</code> converts the image from PIL to a pytorch Tensor</li>
+<li><code>ToTensorV2</code> converts the image from PIL to a PyTorch tensor</li>
 </ul>
-<p><strong>Complete</strong> the transform pipeline adding transforms in the <code>augmentation_transforms</code> list. You can access a list of suitable transforms on <a href="https://albumentations.ai/docs/api_reference/full_reference/">the documentation page of albumentations</a></p>
-<p>Some augmented samples using <code>CoarseDropout</code>, <code>PixelDropout</code>, <code>MaskDropout</code>, <code>HorizontalFlip</code>, <code>ShiftScaleRotate</code> are shown below :</p>
+<p><strong>Complete</strong> the transform pipeline by adding transforms in the <code>augmentation_transforms</code> list. You can access a list of suitable transforms on <a href="https://albumentations.ai/docs/api_reference/full_reference/">the documentation page of albumentations</a>.</p>
+<p>Some augmented samples using <code>CoarseDropout</code>, <code>PixelDropout</code>, <code>MaskDropout</code>, <code>HorizontalFlip</code>, and <code>ShiftScaleRotate</code> are shown below:</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="pascalVOC_samples_aug.png" class="img-fluid figure-img" style="width:50.0%"></p>
@@ -530,19 +530,19 @@ Warning
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>It is always important to take the time to calibrate visually your augmentations. These are expected to be plausible samples. If you use transforms that are too aggressive, you may render the problem unlearnable.</p>
-<p>A more objective calibration score is given by your estimated real risk.</p>
+<p>It is always important to take the time to visually calibrate your augmentations. These are expected to be plausible samples. If you use transforms that are too aggressive, you may render the problem unlearnable.</p>
+<p>A more objective calibration score is given by the estimated real risk.</p>
 </div>
 </div>
-<p><strong>Complete</strong> the <code>get_dataloaders</code> function by updating the content of the augmentation transforms you found interesting in the previous question. The <code>plot_samples</code> was a function to test the augmentation transforms but the <code>get_dataloaders</code> is the function that is called from the main script to provide the dataloaders. Hence we need to propagate our chosen augmentation transforms into this function.</p>
+<p><strong>Complete</strong> the <code>get_dataloaders</code> function by updating the content of the augmentation transforms you found interesting in the previous question. The <code>plot_samples</code> function was to test the augmentation transforms, but <code>get_dataloaders</code> is the function that is called from the main script to provide the dataloaders. Hence we need to propagate our chosen augmentation transforms into this function.</p>
 </section>
 <section id="model-implementation" class="level2">
 <h2 class="anchored" data-anchor-id="model-implementation">Model implementation</h2>
-<p>The parametric model you learn takes as input a 3-channel image and outputs a probability distribution over the <span class="math inline">\(21\)</span> classes. There has several several propositions in the litterature to adress this problem such as FCN <span class="citation" data-cites="Long2015">(<a href="#ref-Long2015" role="doc-biblioref">Long, Shelhamer, &amp; Darrell, 2015</a>)</span>, UNet <span class="citation" data-cites="Ronneberger2015">(<a href="#ref-Ronneberger2015" role="doc-biblioref">Ronneberger, Fischer, &amp; Brox, 2015</a>)</span>, VNet <span class="citation" data-cites="Milletari2016">(<a href="#ref-Milletari2016" role="doc-biblioref">Milletari, Navab, &amp; Ahmadi, 2016</a>)</span>, SegNet<span class="citation" data-cites="Badrinarayanan2017">(<a href="#ref-Badrinarayanan2017" role="doc-biblioref">Badrinarayanan, Kendall, &amp; Cipolla, 2017</a>)</span>, DeepLab v3+ <span class="citation" data-cites="Chen2018">(<a href="#ref-Chen2018" role="doc-biblioref">Chen, Zhu, Papandreou, Schroff, &amp; Adam, 2018</a>)</span>. In this labwork, I propose we code the UNet of 2015 and you might want to implemented DeepLabv3+ as a homework :)</p>
-<p>UNet is a fully convolutional network (FCN), i.e.&nbsp;involving only convolutional operations (Conv2D, MaxPool , …; there is no fully connected layers).</p>
-<p><strong>Question</strong> What does it mean that UNet is a fully convolutional network ? What does it mean with respect to the input image sizes it can process ?</p>
-<p><strong>Question</strong> For minibatch training, what is the constraint that we have on the input image sizes ?</p>
-<p>The name U-Net comes from the very specific shape of this encoder-decoder network with a contracting pathway for the encoding following by an expanding pathway for the decoding. The contracting pathway is expected to learn higher and higher level features as we progress deeper in the network and the expanding pathway to merge these highlevel features with the finer grain details brought by the encoder through skip layer connections.</p>
+<p>The parametric model you learn takes as input a 3-channel image and outputs a probability distribution over the <span class="math inline">\(21\)</span> classes. There are several propositions in the literature to address this problem such as FCN <span class="citation" data-cites="Long2015">(<a href="#ref-Long2015" role="doc-biblioref">Long, Shelhamer, &amp; Darrell, 2015</a>)</span>, UNet <span class="citation" data-cites="Ronneberger2015">(<a href="#ref-Ronneberger2015" role="doc-biblioref">Ronneberger, Fischer, &amp; Brox, 2015</a>)</span>, VNet <span class="citation" data-cites="Milletari2016">(<a href="#ref-Milletari2016" role="doc-biblioref">Milletari, Navab, &amp; Ahmadi, 2016</a>)</span>, SegNet <span class="citation" data-cites="Badrinarayanan2017">(<a href="#ref-Badrinarayanan2017" role="doc-biblioref">Badrinarayanan, Kendall, &amp; Cipolla, 2017</a>)</span>, and DeepLab v3+ <span class="citation" data-cites="Chen2018">(<a href="#ref-Chen2018" role="doc-biblioref">Chen, Zhu, Papandreou, Schroff, &amp; Adam, 2018</a>)</span>. In this lab work, I propose we code the UNet of 2015, and you might want to implement DeepLabv3+ as homework :)</p>
+<p>UNet is a fully convolutional network (FCN), i.e., involving only convolutional operations (Conv2D, MaxPool, …; there are no fully connected layers).</p>
+<p><strong>Question</strong> What does it mean that UNet is a fully convolutional network? What does it mean with respect to the input image sizes it can process?</p>
+<p><strong>Question</strong> For minibatch training, what is the constraint that we have on the input image sizes?</p>
+<p>The name U-Net comes from the specific shape of this encoder–decoder network with a contracting pathway for the encoding followed by an expanding pathway for the decoding. The contracting pathway is expected to learn higher and higher-level features as we progress deeper in the network, and the expanding pathway merges these high-level features with the finer-grained details brought by the encoder through skip connections.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="unet.png" class="img-fluid figure-img" style="width:100.0%"></p>
@@ -562,47 +562,47 @@ Warning
 </ul></li>
 <li>followed by a Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm, with <span class="math inline">\(64 \times 2^{\#blocks}\)</span> output channels</li>
 </ul>
-<p>Note that the output of <code>block2</code>, just before the downsampling is transmitted to the decoder stage, therefore the <code>UNetEncoderBlock</code> forward function <strong>outputs two tensors</strong> : one to be propagated along the encoder and one to be transmitter to the decoder.</p>
-<p><strong>Question</strong> In the <code>models.py</code> script, implement the code in the <code>UNetEncoder</code> and <code>UNetEncoderBlock</code> classes. Check your code running the unit tests in <code>models/__main__.py:test_unet_encoder()</code>. Be sure to understand how the propagation is performed through the encoder blocks.</p>
+<p>Note that the output of <code>block2</code>, just before the downsampling, is transmitted to the decoder stage; therefore, the <code>UNetEncoderBlock</code> forward function <strong>outputs two tensors</strong>: one to be propagated along the encoder and one to be transmitted to the decoder.</p>
+<p><strong>Question</strong> In the <code>models.py</code> script, implement the code in the <code>UNetEncoder</code> and <code>UNetEncoderBlock</code> classes. Check your code by running the unit tests in <code>models/__main__.py:test_unet_encoder()</code>. Be sure to understand how the propagation is performed through the encoder blocks.</p>
 <p>You can run the test code using the usual module call (check the very bottom of the <code>models/__main__.py</code> script):</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> semseg.models</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The output of the final layers of the encoder is a tensor of shape <span class="math inline">\((batch, 64\times 2^{\#blocks}, H/2^{\#blocks}, W/2^{\#blocks})\)</span></p>
 </section>
 <section id="implementing-the-unet-decoder" class="level3">
 <h3 class="anchored" data-anchor-id="implementing-the-unet-decoder">Implementing the UNet decoder</h3>
-<p><strong>UNetDecoder</strong> This upsampling pathway is made of :</p>
+<p><strong>UNetDecoder</strong> This upsampling pathway is made of:</p>
 <ul>
 <li>a first Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm block which keeps constant the number of channels,</li>
-<li>followed by several <code>UNetDecoderBlock</code> blocks with :
+<li>followed by several <code>UNetDecoderBlock</code> blocks with:
 <ul>
 <li><code>upconv</code>=UpSample(<span class="math inline">\(2\)</span>)-Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm which halves the number of channels,</li>
 <li>a concatenation of the upconv output features with the encoder features</li>
 <li>a <code>convblock</code>= Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm-Conv(<span class="math inline">\(3\times 3\)</span>)-ReLU-BatchNorm which halves the number of its input channels</li>
 </ul></li>
 </ul>
-<p>For the <code>UNetDecoderBlock</code>, when its input along the decoder pathway has <span class="math inline">\(c_0\)</span> channels, its output has <span class="math inline">\(c_0/2\)</span> channels since :</p>
+<p>For the <code>UNetDecoderBlock</code>, when its input along the decoder pathway has <span class="math inline">\(c_0\)</span> channels, its output has <span class="math inline">\(c_0/2\)</span> channels since:</p>
 <ul>
 <li>upconv outputs <span class="math inline">\(c_0/2\)</span> channels</li>
 <li>the concatenation of <span class="math inline">\(c_0/2\)</span> channels with the <span class="math inline">\(c_0/2\)</span> channels of the encoder leads to <span class="math inline">\(c_0\)</span> channels</li>
 <li>the <code>convblock</code> gets <span class="math inline">\(c_0\)</span> input channels and outputs <span class="math inline">\(c_0/2\)</span> output channels</li>
 </ul>
-<p>In order to output a score for each of the <span class="math inline">\(21\)</span> classes, the very last layer of the decoder is a Conv(<span class="math inline">\(1\times 1\)</span>) with the same number of channels than the number of classes.</p>
+<p>In order to output a score for each of the <span class="math inline">\(21\)</span> classes, the very last layer of the decoder is a Conv(<span class="math inline">\(1\times 1\)</span>) with the same number of channels as the number of classes.</p>
 <p><strong>Question</strong> In the <code>models.py</code> script, implement the code in the <code>UNetDecoder</code> and <code>UNetDecoderBlock</code> classes. Check your code against the unit tests. Be sure to understand how the propagation is performed through the decoder blocks.</p>
-<p>You can run the test code <strong>uncommenting the appropriate test</strong> and using the usual module call (check the very bottom of the <code>models/__main__.py</code> script) :</p>
+<p>You can run the test code by <strong>uncommenting the appropriate test</strong> and using the usual module call (check the very bottom of the <code>models/__main__.py</code> script):</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> semseg.models</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="implementing-the-full-model" class="level3">
 <h3 class="anchored" data-anchor-id="implementing-the-full-model">Implementing the full model</h3>
 <p>Once both the encoder and decoder classes are implemented, you can see that the <code>UNet</code> class is a simple wrapper around them.</p>
-<p><strong>Question</strong> Do you identify and understand the code of the <strong>UNet</strong> module ?</p>
-<p><strong>Question</strong> In the <code>models/__main__.py</code> script, implement the missing code in the <code>test_unet</code> function to create a UNet model and test it. Is the output tensor the shape you expect ?</p>
+<p><strong>Question</strong> Do you identify and understand the code of the <strong>UNet</strong> module?</p>
+<p><strong>Question</strong> In the <code>models/__main__.py</code> script, implement the missing code in the <code>test_unet</code> function to create a UNet model and test it. Is the output tensor the shape you expect?</p>
 <p>We are done with the model implementation, let us move on to the metrics and loss.</p>
 </section>
 </section>
 <section id="evaluation-metrics" class="level2">
 <h2 class="anchored" data-anchor-id="evaluation-metrics">Evaluation metrics</h2>
-<p>Semantic segmentation is a multi-way classification task; One natural metric could be the accuracy but, if you remember, our classes are unbalanced.</p>
-<p><strong>Question</strong> What would be the accuracy of a predictor always predicting that a pixel belongs to the background class <span class="math inline">\(0\)</span> ? Hint: some figures were given in the <a href="#data-exploration">data exploration</a> section.</p>
+<p>Semantic segmentation is a multi-way classification task; one natural metric could be accuracy, but, if you remember, our classes are unbalanced.</p>
+<p><strong>Question</strong> What would be the accuracy of a predictor always predicting that a pixel belongs to the background class <span class="math inline">\(0\)</span>? Hint: some figures were given in the <a href="#data-exploration">data exploration</a> section.</p>
 <!--
 
 For Pascal VOC :
@@ -617,17 +617,17 @@ For Stanford 2D 3D S :
 Given we have 33.67% of the pixels that are wall, only these ones will be correctly classified hence an accuracy of 33.67%
 
 -->
-<p>To prevent to be mislead, a metric taking care of the class imbalance is the macro F1 score which reads</p>
+<p>To avoid being misled, a metric accounting for class imbalance is the macro F1 score, which reads</p>
 <p><span class="math display">\[
 macroF1 = \frac{1}{K}\sum_{k=0}^{K-1} \sum_{i=0}^{N-1} \frac{TP(x_i, y_i, k)}{TP(x_i, y_i, k) + \frac{1}{2}(FP(x_i, y_i, k)+FN(x_i, y_i, k))}
 \]</span></p>
-<p>which is an <span class="math inline">\(F1\)</span> computed for every class and then averaged over the classes. Another expression for the per class F1 is given below :</p>
+<p>which is an <span class="math inline">\(F1\)</span> computed for every class and then averaged over the classes. Another expression for the per-class F1 is given below:</p>
 <p><span class="math display">\[\begin{align}
 F1 &amp;= \frac{2}{\frac{1}{precision} + \frac{1}{recall}} \\
 precision &amp;= \frac{TP}{TP + FP}\\
 recall &amp;= \frac{TP}{TP + FN}
 \end{align}\]</span></p>
-<p><strong>Question</strong> What would be the macro F1 of a model always predicting a background class ?</p>
+<p><strong>Question</strong> What would be the macro F1 of a model always predicting the background class?</p>
 <!-- 
 
 For Pascal VOC :
@@ -655,29 +655,29 @@ FN_unknown = $1.26\%$, FN_beam = $1.57\%$, FN_board = $2.71\%$, ....
 At the end of the day, the macro F1 is      1/14 * (0.5 + 13 * 0) = 0.5 / 14. = 0.04
 
 -->
-<p>In the provided code the macro F1 is computed both on the training and validation folds.</p>
-<p><strong>Question</strong> Do you see in the <code>main.py</code> script where this metric is computed and what is the use of the macro F1 on the validation fold ?</p>
+<p>In the provided code, the macro F1 is computed both on the training and validation folds.</p>
+<p><strong>Question</strong> Do you see in the <code>main.py</code> script where this metric is computed and what is the use of the macro F1 on the validation fold?</p>
 </section>
 <section id="loss-implementation" class="level2">
 <h2 class="anchored" data-anchor-id="loss-implementation">Loss implementation</h2>
-<p>We decided the macro F1 measure is the one to be optimized. Unfortunately, it does not bring in interesting information for a gradient based optimization.</p>
-<p><strong>Question</strong> According to you, why it is useless to use the F1 computed above for the gradient descent optimization of the parameters of our neural network ?</p>
+<p>We decided the macro F1 measure is the one to be optimized. Unfortunately, it does not provide useful information for gradient-based optimization.</p>
+<p><strong>Question</strong> According to you, why is it useless to use the F1 computed above for the gradient descent optimization of the parameters of our neural network?</p>
 <!--
 
-The F1 metric as computed above is really flat , piecewise constant and therefore it is gradient is not informative on the direction to follow
+The F1 metric as computed above is really flat, piecewise constant, and therefore its gradient is not informative about the direction to follow
 
 -->
-<p>We need a differentiable proxy to that metric. This is still an open area of research (see for example <span class="citation" data-cites="Yeung2022">(<a href="#ref-Yeung2022" role="doc-biblioref">Yeung, Sala, Schönlieb, &amp; Rundo, 2022</a>)</span>). Some of the options we will consider here are to use :</p>
+<p>We need a differentiable proxy for that metric. This is still an open area of research (see, for example, <span class="citation" data-cites="Yeung2022">(<a href="#ref-Yeung2022" role="doc-biblioref">Yeung, Sala, Schönlieb, &amp; Rundo, 2022</a>)</span>). Some of the options we will consider here are to use:</p>
 <ul>
 <li>a class balanced loss <span class="citation" data-cites="Cui2019">(<a href="#ref-Cui2019" role="doc-biblioref">Cui, Jia, Lin, Song, &amp; Belongie, 2019</a>)</span>, e.g.&nbsp;a weighted cross entropy loss</li>
 <li>a focal loss <span class="citation" data-cites="Lin2017">(<a href="#ref-Lin2017" role="doc-biblioref">Lin, Goyal, Girshick, He, &amp; Dollár, 2017</a>)</span></li>
 </ul>
 <p>Other options could be to consider a Dice loss, a Tversky loss, a combination of these, or to use a batch sampler which could oversample the samples with the minority classes, etc …</p>
-<p>Similarly to a batch sampler, a weighted cross entropy loss will put higher importance on the minority classes compard to the majority classes. The weighted cross entropy loss for a single pixel of class <span class="math inline">\(y\)</span> with predicted probabilities <span class="math inline">\(\hat{y}_k, k \in [0, K-1]\)</span> is given as:</p>
+<p>Similarly to a batch sampler, a weighted cross entropy loss will put higher importance on the minority classes compared to the majority classes. The weighted cross entropy loss for a single pixel of class <span class="math inline">\(y\)</span> with predicted probabilities <span class="math inline">\(\hat{y}_k, k \in [0, K-1]\)</span> is given as:</p>
 <p><span class="math display">\[
 wBCE(y, \hat{y}) = - w_{y} \log(\hat{y}_y)
 \]</span></p>
-<p>where the standard cross entropy loss is obtained with <span class="math inline">\(w_k = 1, \forall k \in [1, K]\)</span>. Several weighting strategies are discussed in p2 of <span class="citation" data-cites="Cui2019">(<a href="#ref-Cui2019" role="doc-biblioref">Cui et al., 2019</a>)</span>. The cross entropy loss of Pytorch allows for this weighting.</p>
+<p>where the standard cross entropy loss is obtained with <span class="math inline">\(w_k = 1, \forall k \in [1, K]\)</span>. Several weighting strategies are discussed on p.2 of <span class="citation" data-cites="Cui2019">(<a href="#ref-Cui2019" role="doc-biblioref">Cui et al., 2019</a>)</span>. The cross entropy loss of PyTorch allows for this weighting.</p>
 <!-- **Question** Which values of the weights would you suggest to fight against class imbalance ? Some classical strategies are discussed in p2 of [@Cui2019] as well as their own scaling strategy. From the pytorch [documentation on the cross entropy loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html), do you see how to specify these weights ?  -->
 <!--
 
