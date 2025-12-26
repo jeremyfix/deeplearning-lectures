@@ -1,0 +1,22 @@
+[project]
+name = "ganlab"
+version = "0.0.1"
+
+dependencies = [
+    "torch>=2.0",
+    "torchvision",
+    "tqdm>=4.65.0",
+    "numpy>=2.2.4",
+    "deepcs>=0.2.10",
+    "tensorboard",
+    "matplotlib",
+    "onnx>=1.17",
+    "onnxruntime-gpu>=1.19.2",
+    "onnxscript",
+    "scipy>=1.15.2",
+    "requests>=2.32.3",
+    "PyYAML>=6.0",
+]
+
+[options]
+package_dir = "ganlab"
