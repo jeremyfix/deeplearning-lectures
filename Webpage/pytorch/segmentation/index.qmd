@@ -1,8 +1,8 @@
 ---
-title:  "Semantic segmentation on Stanford-2D-3D S"
+title:  "Semantic segmentation on Pascal VOC"
 author:
 - Jeremy Fix
-keywords: [PyTorch tutorial, semantic segmentation, Stanford 2D-3D S]
+keywords: [PyTorch tutorial, semantic segmentation, UNet, Pascal VOC, Stanford 2D-3D S]
 ---
 
 <a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
@@ -68,8 +68,6 @@ This basic code base offers you several modules that **we will cover step by ste
 - optim.py : defines the focal loss which we will make us of in later on,définit notamment la perte Focal, que nous allons utiliser plus
 - metrics.py : provides metrics such as the F1, confusion matrix, etc..
 - main.py: the main script which will run training and testing.
-
-Une fois la librairie installée, sous Visual Studio Code, vous pouvez indiquer le chemin vers l'interpréteur Python : `~/deepvision-venv/bin/python`.
 
 ## Data exploration
 
