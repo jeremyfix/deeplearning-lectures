@@ -78,9 +78,7 @@ sh11:~:mylogin$ source $TMPDIR/venv/bin/activate
 ```
 
 
-## Implementing the Vanilla GAN
-
-### Implementing the critic
+## Implementing the critic
 
 The critic is a simple convolutional neural network which has to stay if the input image is a real or a fake. You are free to experiment with any architecture but I can suggest you one. Denote by `CBlock(k)` the following sequence of layers :
 
@@ -110,7 +108,7 @@ def test_discriminator():
 ```
 
 
-### Implementing the generator
+## Implementing the generator
 
 The generator takes as input a $(B, N_z)$ normally distributed tensor and has to produce a $28\times 28$ grayscale image. While the DCGAN paper suggested to use fractionnally strided convolutions (or transposed convolutions), this [can introduce artifacts](https://distill.pub/2016/deconv-checkerboard/) if not properly tuned. We rather consider the alternative proposed by [@Odena2016] which is to perform a bilinear upsampling followed by a convolution. 
 
@@ -152,13 +150,13 @@ def test_generator():
 
 Note that the generator is outputting values in $[-1, 1]$. You may also notice in the dataloaders that the real images are rescaled in $[-1, 1]$ to guarantee that both the real and fake images lie in the same range of values (do you see where in the code the pixel values of the images are projected into $[-1, -1]$ ?).
 
-### Implementing the GAN
+## Implementing the GAN
 
 The GAN network is the discriminator along with the generator.
 
 **Exercice** Fill in the missing code in the forward method of the GAN class. Note that the forward method has two modes, either accepting a tensor (that we expect are real images) or a number of images to sample. Its output is always the pair of logits and images. 
 
-### Implementing the optimizers, losses and backprop
+## Implementing the optimizers, losses and backprop
 
 It is now time to implement the losses in the `main.py` script. The critic and the generator are trained separately, one after the other. Both training involves the binary cross entropy loss on the logits output of the critic :
 
@@ -189,7 +187,7 @@ $$
 
 **Exercice** Implement the above loss in the `main.py` script within the training loop. Note that you have the vector named pos_labels containing respectively only ones. Implement also the three lines for the backward pass (reset the gradient accumulator, perform the backward pass, update the parameters) for the generator.
 
-### Training
+## Training
 
 You can now start training your networks by running the main script. The default arguments given to argparse should be reasonably good. Do not forget to start the tensorboard and to look at it, at every epochs, some generated samples are written on it. During the first 5 epochs, you should already observe some kind of written digits. Your model should have almost 2.5M parameters and it takes 40s. per epoch on a Geforce 1080.
 
@@ -215,7 +213,7 @@ Below is an example of digits generated during a successful training with a nois
 
 While training, you can move on the next section where you will load a **pretrained network**.
 
-### Generating fake images
+## Generating fake images
 
 To generate new samples, we just need to evaluate the generator of normally distributed inputs. For every random input vector, you get a fake image that looks hopefully realistic.
 
@@ -227,7 +225,7 @@ mymachine:~:mylogin$ python3 main.py generate --modelpath generator.onnx
 
 Note that the generated images have been already denormalized in the code you are provided.
 
-### Interpolating in the latent space
+## Interpolating in the latent space
 
 There is an interesting property of the generator which is that if you move in the latent space you continuously move in the digits space. 
 
@@ -240,6 +238,10 @@ At the time of writing the subject, I'm quite surprised by the values of the los
 GAN can have problems being trained. Sometimes, training is unstable. Sometimes, training leads to mode collapse, a situation where the generator fails to produce diversity in its output and the model gets locked in this mode. Variations, known as Wasserstein GAN (WGAN, [@Arjovsky2017]), Wasserstein GAN with gradient penalty [@Gulrajani2017] and others were introduced to fix these issues. However, a recent paper [@Lucic2018] suggests that with enough hyperparameters tuning, "even" the vanilla GAN can work as well as its variations. 
 
 Finally, for evaluating the quality of the generated image, the literature is currently on the Fréchet Inception Distance introduced in [@Heusel2018].
+
+## A possible solution
+
+You will find a possible solution at [ganlab-sol.tar.gz](../../assets/ganlab-sol.tar.gz).
 
 ## References
 
