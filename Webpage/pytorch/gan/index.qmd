@@ -52,18 +52,51 @@ Our aim is to generate fake data and you are free to choose between several data
 
 ![Fake Celebrity faces. These celebrities do not exist.](generated-celeba.png){width=40%}
 
-## Lab work materials
+## Setup and predefined scripts
 
-You are provided with some starter code which already implements some functionalities :
+For this lab, you are provided a base code to complete : [ganlab-kit.tar.gz](../../assets/ganlab-kit.tar.gz). To get and use that code :  
 
-- [data.py](./labs/03-pytorch-gan/data.py) : code performing the data loading 
-- [models.py](./labs/03-pytorch-gan/models.py) : code defining the GAN 
-- [main.py](./labs/03-pytorch-gan/main.py) : code containing the training and testing functions
-- [mnist_generator.onnx](mnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on MNIST in ONNX format
-- [emnist_generator.onnx](emnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on eMNIST in ONNX format
-- [fashiomnist_generator.onnx](fashionmnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on Fashion MNIST in ONNX format
-- [celeba_generator.onnx](celeba_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on CelebA in ONNX format
-- [svhn_generator.onnx](svhn_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on SVHN in ONNX format
+```
+wget https://jeremyfix.github.io/deeplearning-lectures/assets/ganlab-kit.tar.gz
+tar -zxvf ganlab-kit.tar.gz
+```
+
+This code is organized as a python library `ganlab` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
+
+To install the library, you to install it in 1) virtual environnement 2) in developer mode. 
+
+**If you use the DCE of CentraleSupélec**, you can use pre-installed virtual environments that already ship several required packages :
+
+```bash
+/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
+```
+
+**otherwise**, you need to create your own venv, for example using the builtin python venv module :
+
+```bash
+python3 -m venv /tmp/venv
+source /tmp/venv/
+```
+
+Then, to install the library in developer mode :
+
+``` bash
+python -m pip install -e gan
+```
+
+You can verify that the library is installed by running :
+
+``` bash
+python -c "import ganlab; print(f'Library available at {ganlab.__file__}')
+```
+
+This basic code base offers you several modules that **we will cover step by step** :
+
+- data.py : data loading from the datasets to learn from (MNIST, FashionMNIST, SVHN, CelebA, EMNIST),
+- models/ : contains our DCGAN implementation,
+- utils.py : contains several utilitary functions such as the training and test loops, saving the best models, etc..
+- main.py: the main script which will run training and testing.
 
 ## Setup of the environment
 
@@ -189,22 +222,43 @@ $$
 
 ## Training
 
-You can now start training your networks by running the main script. The default arguments given to argparse should be reasonably good. Do not forget to start the tensorboard and to look at it, at every epochs, some generated samples are written on it. During the first 5 epochs, you should already observe some kind of written digits. Your model should have almost 2.5M parameters and it takes 40s. per epoch on a Geforce 1080.
+You can now start training your networks by running the main script. To run a training, you need to provide a `config.yaml` file. One example is given below :
 
-By default, the dataset used is MNIST but you can change this to the dataset you want (check the --dataset option of the main.py script). For example, for training on SVHN : 
+```yaml
+data: 
+  dataset: "MNIST" # SVHN, EMNIST, FashionMNIST, CelebA
+  rootdir: "/mounts/datasets/datasets/"
+  debug: False
+  batch_size: 256
 
-``` bash
-(venv) mymachine:~:mylogin$ python main.py train --dataset SVHN
+optim:
+  base_lr: 0.0002
+  wdecay: 0.0
+  lblsmooth: 0.2
+
+nepochs: 200
+
+logging:
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+
+model:
+  dnoise: 0.1
+  discriminator_base_c: 32
+  generator_base_c: 256
+  latent_size: 100
+  dropout: 0.5
 ```
 
-For the training parameters, you may need to slightly change them. For example, the following should be working :
+Then, you run a training using :
 
-``` bash
-mymachine:~:mylogin$ python3 main.py train --dataset SVHN --wdecay 0.0 --base_lr 0.0002 --batch_size 256
+```bash
+(venv) mymachine:~:mylogin$ python -m ganlab.main train config.yaml
 ```
 
+Successfull training of a GAN is not always guaranteed. The trainings are very sensitive to the hyperparameters. In principle, the parameters provided above
+ should be good default values. Do not forget to start the tensorboard and to look at it, at every epochs, some generated samples are written on it. During the first 5 epochs, you should already observe some kind of written digits. Your model should have almost 2.5M parameters and it takes 40s. per epoch on a Geforce 1080.
 
-Below is an example of digits generated during a successful training with a noise vector defined once for all before training (i.e. we always plot the generated image associated with the same random inputs) on MNIST.
+Below are example of generated images during a successful training with a noise vector defined once for all before training (i.e. we always plot the generated image associated with the same random inputs) on MNIST.
 
 ![Fake digits generated during trainig](mnist.gif){width=24%}
 ![Fake Fashion generated during trainig](fashionmnist.gif){width=24%}
@@ -216,6 +270,16 @@ While training, you can move on the next section where you will load a **pretrai
 ## Generating fake images
 
 To generate new samples, we just need to evaluate the generator of normally distributed inputs. For every random input vector, you get a fake image that looks hopefully realistic.
+
+If you were able to train generators, you can use the ONNX file saved during training. Otherwise, we provide you with pre-trained generators :
+
+- [mnist_generator.onnx](mnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on MNIST in ONNX format
+- [emnist_generator.onnx](emnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on eMNIST in ONNX format
+- [fashiomnist_generator.onnx](fashionmnist_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on Fashion MNIST in ONNX format
+- [celeba_generator.onnx](celeba_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on CelebA in ONNX format
+- [svhn_generator.onnx](svhn_generator.onnx) : a pretrained generator used for the end of the labwork pretrained on SVHN in ONNX format
+
+
 
 **Exercice** Download one of the pretrained generators provided at the top of this page, that has been pretrained for $400$ epochs (which is by far more than necessary for most of the tasks). Fill in the code in the generate function of the `main.py` script and run some generation of fake images by issuing : 
 
@@ -229,7 +293,13 @@ Note that the generated images have been already denormalized in the code you ar
 
 There is an interesting property of the generator which is that if you move in the latent space you continuously move in the digits space. 
 
-**Exercice** Generate two random vectors $z_1, z_2$ drawn from $\mathcal{N}(0, 1)$, compute their image through the generator $G(z_1), G(z_2)$ as well as the image of the linearly interpolated noise vectors $G(z_1 + \alpha (z_2 - z_1)), \alpha \in [0, 1]$.
+**Exercise** Generate two random vectors $z_1, z_2$ drawn from $\mathcal{N}(0, 1)$, compute their image through the generator $G(z_1), G(z_2)$ as well as the image of the linearly interpolated noise vectors $G(z_1 + \alpha (z_2 - z_1)), \alpha \in [0, 1]$.
+
+You could even go further and consider three latent vectors $z_1$, $z_2$ and $z_3$. From there, we can define a basis with the origin $z_1$ and two vectors $\vec{v}_1 = z_2 - z_1$ and $\vec{v}_2 = z_3 - z_1$. Finally, considering two weights $\alpha, \beta \in [0, 1]^2$, we can generate images as $G(z_1 + \alpha \vec{v}_1 + \beta \vec{v}_2)$.
+
+**Exercise** Implement a grid interpolation from one of the generators. An example grid is show below. 
+
+![Interpolating on a grid from three latent vectors $z_1$, $z_2$ and $z_3$](https://raw.githubusercontent.com/jeremyfix/gan_experiments/refs/heads/main/results/svhn_interpolated.png){width=80%}
 
 ## Going further
 
