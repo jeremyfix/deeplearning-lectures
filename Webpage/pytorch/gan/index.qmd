@@ -68,27 +68,27 @@ To install the library, you need to install it in 1) a virtual environment and 2
 **If you use the DCE of CentraleSupélec**, you can use pre-installed virtual environments that already ship several required packages :
 
 ```bash
-/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
-source $TMPDIR/venv/bin/activate
+mymachine:~:mylogin$ /opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+mymachine:~:mylogin$ source $TMPDIR/venv/bin/activate
 ```
 
 **otherwise**, you need to create your own venv, for example using the built-in python venv module :
 
 ```bash
-python3 -m venv /tmp/venv
-source /tmp/venv/bin/activate
+mymachine:~:mylogin$ python3 -m venv /tmp/venv
+mymachine:~:mylogin$ source /tmp/venv/bin/activate
 ```
 
 Then, to install the library in developer mode :
 
 ``` bash
-python -m pip install -e gan
+(venv) mymachine:~:mylogin$ python -m pip install -e gan
 ```
 
 You can verify that the library is installed by running :
 
 ``` bash
-python -c "import ganlab; print(f'Library available at {ganlab.__file__}')
+(venv) mymachine:~:mylogin$ python -c "import ganlab; print(f'Library available at {ganlab.__file__}')"
 ```
 
 This basic code base offers you several modules that **we will cover step by step** :
@@ -98,41 +98,35 @@ This basic code base offers you several modules that **we will cover step by ste
 - utils.py : contains several utility functions such as the training and test loops, saving the best models, etc..
 - main.py: the main script which will run training and testing.
 
-## Setup of the environment
-
-For this lab work, you are provided with environment setup files [requirements.txt](./labs/03-pytorch-gan/requirements.txt) file if you are a pipenv/pip/virtualenv/etc..
-
-On the CentraleSupelec clusters, I advise you to proceed as :
-
-``` bash
-sh11:~:mylogin$ python3 -m venv $TMPDIR/venv
-sh11:~:mylogin$ source $TMPDIR/venv/bin/activate
-(venv) sh11:~:mylogin$ python -m pip install -r requirements.txt
-```
-
-
 ## Implementing the critic
 
 The critic is a simple convolutional neural network which has to state whether the input image is real or fake. You are free to experiment with any architecture but I can suggest you one. Denote by `CBlock(k)` the following sequence of layers :
 
-- $2 \times [$Conv($k$ channels, 3x3, stride=1, padding=same) - BatchNorm - LeakyRelu(0.2)$]$
-- Conv($k$ channels, 3x3, stride=2, padding=same) - LeakyRelu(0.2) : this is a convolution downsampling. Do you see why ?
+- $2 \times [$Conv($k$ output channels, 3x3, stride=1, padding=1) - BatchNorm - LeakyRelu(0.2)$]$
+- Conv($k$ output channels, 3x3, stride=2, padding=1) - LeakyRelu(0.2) : this is a convolution downsampling. Do you see why ?
 - Dropout(0.3)
 
 The architecture for the discriminator I propose you is :
 
-- CBlock(32) - CBlock(64) - CBlock(96) - Linear(1)
+- CBlock($k=32$) - CBlock($k=64$) - CBlock($k=96$) - Linear(2)
 
 Every block is downsampling the representation so that with a $(B, 1, 28, 28)$ input, we end the convolutional part with a $(B, 96, 4, 4)$ and the linear layer has therefore $1536$ weights and $1$ bias for one output. The output of the network is the logit, i.e. before the application of the sigmoid which is actually embedded in the [BCEWithLogitsLoss](https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html) we will be using.
 
-We will inject a GAN hack in the code. Indeed, we will smooth the target labels and hence we need to produce $2$ outputs and not only one.
+We will inject a [GAN hack](https://github.com/soumith/ganhacks) in the code. Indeed, we will smooth the target labels and hence we need to produce $2$ outputs and not only one.
 
 **Exercise** Implement the critic in the `models.py` script. You have to define the neural network in the constructor Discriminator class and implement the forward method. Note that since every convolutional layer is followed by a batch-normalization, you can remove the bias from the convolutional layer that would anyway be canceled by the normalization (see the constructor of Conv2d). 
 
-**Sanity check** : 
+::: {.callout-warning}
+
+To test your implementation, a test function is provided in the `models/__main__.py` script. This test function `test_discriminator` is callable with :
+
+``` bash
+(venv) mymachine:~:mylogin$ python -m ganlab.models
+```
+
+The test function is the following :
 
 ```{.python}
-
 def test_discriminator():
     critic = Discriminator((1, 28, 28), dropout=0.5, base_c=32, dnoise=0.1, num_classes=2)
     X = torch.randn(64, 1, 28, 28)
@@ -140,6 +134,7 @@ def test_discriminator():
     assert(out.shape == torch.Size([64, 2]))
 ```
 
+:::
 
 ## Implementing the generator
 
@@ -147,39 +142,53 @@ The generator takes as input a $(B, N_z)$ normally distributed tensor and has to
 
 Let us denote by `GBlock(k)` the following sequence of layers:
 
-- [UpSample(scale_factor=2)](https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html?highlight=upsample)
-- Conv(k channels, 3x3, padding=same) - BatchNorm - ReLU
-- Conv(k channels, 3x3, padding=same) - BatchNorm - ReLU
+- [UpSample(scale_factor=2)](https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html)
+- Conv($c_{out}=k$, size=$3\times 3$, padding=1) - BatchNorm - ReLU
+- Conv($c_{out}=k$, size=$3\times3$, padding=1) - BatchNorm - ReLU
 
 The proposed architecture of the generator is:
 
 - Linear($8\times8\times256$) - ReLU
-- GBlock(128)
-- GBlock(64)
-- Conv(1 channel, 1x1) - Tanh
+- GBlock($k=128$)
+- GBlock($k=64$)
+- Conv($c_{out}=1$, size=$1\times1$) - Tanh
 
 If you use CelebA, you should be adding one more upsampling block because these images are $64 \times 64$.
 
-In between the linear layer and the first convolution, note you will have to "reshape" the tensor (using the [Tensor.view](https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view)) method. The tanh activation for the last layer is suggested in [@Radford2016] to be a good idea. 
+In between the linear layer and the first convolution, note you will have to "reshape" the tensor (using the [Tensor.view](https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view)) method to transform the 2D tensor into a 4D tensor. The tanh activation for the last layer is suggested in [@Radford2016] to be a good idea 🧙. 
 
-**Exercise** Implement the generator in the `models.py` script. You have to create the network in the constructor of the Generator class and to implement the forward function. Note you can use the `up_conv_bn_relu` builder function provided in this script. The forward(X, batch_size) either takes as input a random vector $X$ or the number of samples you want. As for the critic, the bias is useless in the convolutional layers that are followed by a batch-normalization.
+**Exercise** Implement the generator in the `models.py` script. You have to create the network in the constructor of the Generator class and to implement the forward function. Note you can use the `up_conv_relu_bn` builder function provided in this script. The forward(X, batch_size) takes as input either:
 
-**Sanity check** : 
+- a random vector $X$,
+- or the number of samples you want. 
+
+As for the critic, the bias is useless in the convolutional layers that are followed by a batch-normalization.
+
+::: {.callout-warning}
+
+To test your implementation, a test function is provided in the `models/__main__.py` script. This test function `test_discriminator` is callable with :
+
+``` bash
+(venv) mymachine:~:mylogin$ python -m ganlab.models
+```
+
+This test function is the following :
 
 ```{.python}
-
 def test_generator():
 	# Testing the generator for producing MNIST like data
 	# Note: if you use SVHN, change these to (3, 32, 32)
 	# Note: if you use CelebA, change these to (3, 64, 64)
 	# and adapt below
-    generator = Generator((1, 32, 32), latent_size=100, base_c=256)
+    generator = Generator((1, 28, 28), latent_size=100, base_c=256)
     X = torch.randn(64, 100)
     out = generator(X, None)
-    assert(out.shape == torch.Size([64, 1, 32, 32]))
+    assert(out.shape == torch.Size([64, 1, 28, 28]))
     out = generator(None, 64)
-    assert(out.shape == torch.Size([64, 1, 32, 32]))
+    assert(out.shape == torch.Size([64, 1, 28, 28]))
 ```
+
+:::
 
 Note that the generator is outputting values in $[-1, 1]$. You may also notice in the dataloaders that the real images are rescaled in $[-1, 1]$ to guarantee that both the real and fake images lie in the same range of values (do you see where in the code the pixel values of the images are projected into $[-1, 1]$ ?).
 
@@ -200,15 +209,29 @@ When we train the discriminator, only the parameters of the discriminator are ex
 
 **Exercise** Define the optimizers and loss in the `main.py` script. 
 
-The next step is to compute the backward propagation on the right losses. If we denote $r_i$ and $f_i$ the logits assigned by the critic to respectively a minibatch $X$ of real images and a minibatch of size $b_i$ of fake images, the loss to be minimized by the critic is: 
+The next step is to compute the backward propagation on the right losses. If we denote :
+
+- $r_i$ the logits assigned by the critic to a minibatch $X$ of real images,
+- $f_i$ the logits assigned by the critic to a minibatch of size $b_i$ fake images.
+
+The loss to be minimized by the critic is: 
 
 $$
 \mathcal{L}_c = \frac{1}{2m} \sum_{i=1}^m -\log(D(x_i)) - \log(1-D(G(z_i)))
 $$
 
+Remember that the cross-entropy loss is the average of $-\log$ of the probabilities assigned by your model to the labeled class.
+
 $$
-\mathcal{L}_c = BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \\ f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix} 1 \\ \vdots \\ 1 \\ 0 \\ \vdots \\ 0 \end{bmatrix}) = -\frac{1}{2b_i} (\sum_i \log(r_i) + \sum_k \log(1-f_i)) = \frac{BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \end{bmatrix}, \begin{bmatrix}1 \\ \vdots \\ 1\end{bmatrix}) + BCELoss(\begin{bmatrix} f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix}0 \\ \vdots \\ 0\end{bmatrix}) }{2}
+\begin{eqnarray}
+\mathcal{L}_c &=& BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \\ f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix} 1 \\ \vdots \\ 1 \\ 0 \\ \vdots \\ 0 \end{bmatrix}) \\
+&=& -\frac{1}{2b_i} (\sum_i \log(r_i) + \sum_k \log(1-f_i)) \\
+&=& -\frac{1}{2} (\frac{1}{b_i} \sum_i \log(r_i) + \frac{1}{b_i} \sum_k \log(1-f_i)) \\
+&=& \frac{BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \end{bmatrix}, \begin{bmatrix}1 \\ \vdots \\ 1\end{bmatrix}) + BCELoss(\begin{bmatrix} f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix}0 \\ \vdots \\ 0\end{bmatrix}) }{2}
+\end{eqnarray}
 $$
+
+Therefore, the loss is the average of two losses : one BCE with positive targets when the samples are real and one BCE with negative targets when the images are fake.
 
 **Exercise** Implement the above loss in the `main.py` script within the training loop. Note that you have two vectors named pos_labels and neg_labels containing respectively only ones and zeros. Implement also the three lines for the backward pass (reset the gradient accumulator, perform the backward pass, update the parameters).
 
@@ -283,7 +306,7 @@ If you were able to train generators, you can use the ONNX file saved during tra
 **Exercise** Download one of the pretrained generators provided at the top of this page, that has been pretrained for $400$ epochs (which is by far more than necessary for most of the tasks). Fill in the code in the generate function of the `main.py` script and run some generation of fake images by issuing : 
 
 ``` bash
-mymachine:~:mylogin$ python3 main.py generate --modelpath generator.onnx
+(venv) mymachine:~:mylogin$ python -m ganlab.main generate path/to/generator.onnx
 ```
 
 Note that the generated images have been already denormalized in the code you are provided.
