@@ -8,6 +8,9 @@ jobs:
     timeout-minutes: 15
     steps:
 
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+
       - name: Check out repository code
         uses: actions/checkout@v4
 
