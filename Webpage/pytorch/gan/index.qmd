@@ -68,27 +68,27 @@ To install the library, you need to install it in 1) a virtual environment and 2
 **If you use the DCE of CentraleSupélec**, you can use pre-installed virtual environments that already ship several required packages :
 
 ```bash
-/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
-source $TMPDIR/venv/bin/activate
+mymachine:~:mylogin$ /opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+mymachine:~:mylogin$ source $TMPDIR/venv/bin/activate
 ```
 
 **otherwise**, you need to create your own venv, for example using the built-in python venv module :
 
 ```bash
-python3 -m venv /tmp/venv
-source /tmp/venv/bin/activate
+mymachine:~:mylogin$ python3 -m venv /tmp/venv
+mymachine:~:mylogin$ source /tmp/venv/bin/activate
 ```
 
 Then, to install the library in developer mode :
 
 ``` bash
-python -m pip install -e gan
+(venv) mymachine:~:mylogin$ python -m pip install -e gan
 ```
 
 You can verify that the library is installed by running :
 
 ``` bash
-python -c "import ganlab; print(f'Library available at {ganlab.__file__}')
+(venv) mymachine:~:mylogin$ python -c "import ganlab; print(f'Library available at {ganlab.__file__}')"
 ```
 
 This basic code base offers you several modules that **we will cover step by step** :
