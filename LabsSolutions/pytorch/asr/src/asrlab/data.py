@@ -8,6 +8,7 @@ import operator
 from pathlib import Path
 from typing import Union, Tuple
 import pickle
+import sys
 import time
 
 
@@ -31,6 +32,9 @@ from torchaudio.transforms import (
 )
 import matplotlib.pyplot as plt
 import multiprocess
+
+# Local imports
+from asrlab import utils
 
 
 _DEFAULT_COMMONVOICE_ROOT = "/mounts/Datasets4/CommonVoice/"
@@ -619,6 +623,105 @@ def plot_spectro(
     plt.colorbar(im)
     plt.tight_layout()
 
+def test_waveform_processor():
+    utils.head("Testing the waveform processor")
+
+    try:
+        wp = WaveformProcessor(
+            rate=_DEFAULT_RATE,
+            win_length=_DEFAULT_WIN_LENGTH * 1e-3,
+            win_step=_DEFAULT_WIN_STEP * 1e-3,
+            nmels=_DEFAULT_NUM_MELS,
+            augment=False,
+            spectro_normalization=None,
+        )
+
+        torch.manual_seed(0)
+        # Take some dummy waveforms
+        T, B = 15000, 10
+        waveforms = torch.randn((T, B))
+        out = wp(waveforms)
+
+        Ts = wp.get_spectro_length(T)
+
+        utils.info(f"[1/2] Got an output of shape {out.shape}")
+        expected_shape = [Ts, B, _DEFAULT_NUM_MELS]
+        if list(out.shape) == expected_shape:
+            utils.succeed()
+        else:
+            utils.fail(f"was expecting {expected_shape}")
+
+        expected_out = [
+            29.68541717529297,
+            31.100982666015625,
+            26.96457862854004,
+            29.370576858520508,
+            28.93488883972168,
+            32.764102935791016,
+            33.291133880615234,
+            29.038545608520508,
+            28.55718231201172,
+            33.35734558105469,
+        ]
+
+        utils.info(f"[2/2] Got the output at [0, :, 0] = {out[0, :, 0].tolist()}")
+        if utils.test_equal(list(out[0, :, 0]), expected_out, eps=1e-2):
+            utils.succeed()
+        else:
+            utils.fail(f"was expecting {expected_out}")
+    except:
+        utils.fail(f"{sys.exc_info()[0]}")
+
+
+def test_dataloaders():
+    utils.head("Testing the dataloaders")
+
+    try:
+        datasetroot = _DEFAULT_COMMONVOICE_ROOT
+        datasetversion = _DEFAULT_COMMONVOICE_VERSION
+        use_cuda = False
+        B = 10
+        nthreads = 2
+        train_augment = False
+        min_duration = 1  # s.
+        max_duration = 5  # s.
+        loaders = get_dataloaders(
+            datasetroot,
+            datasetversion,
+            cuda=use_cuda,
+            batch_size=B,
+            n_threads=nthreads,
+            min_duration=min_duration,
+            max_duration=max_duration,
+            small_experiment=False,
+            train_augment=train_augment,
+            nmels=_DEFAULT_NUM_MELS,
+            logger=None,
+        )
+        train_loader, valid_loader, test_loader = loaders
+
+        minibatch = next(iter(train_loader))
+
+        utils.info(f"[1/] Got a minibatch of type {type(minibatch)}")
+        if not isinstance(minibatch, tuple) or len(minibatch) != 2:
+            utils.fail("Expected a minibatch to be a tuple spectrograms, transcripts")
+        else:
+            utils.succeed()
+
+        packed_batch, packed_transcripts = minibatch
+
+        utils.info(
+            f"[2/] Got two items of type {type(packed_batch), type(packed_transcripts)}"
+        )
+        if not isinstance(packed_batch, PackedSequence) or not isinstance(
+            packed_transcripts, PackedSequence
+        ):
+            utils.fail("Expected two PackedSequence")
+        else:
+            utils.succeed()
+
+    except:
+        utils.fail(f"{sys.exc_info()[0]}")
 
 # @SOL
 def ex_charmap():
@@ -888,6 +991,8 @@ def test_spectro():
 # SOL@
 if __name__ == "__main__":
     # @TEMPL@pass
+    test_waveform_processor()
+    test_dataloaders()
     # @SOL
     # order_by_length()
     ex_charmap()
