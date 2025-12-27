@@ -497,7 +497,7 @@ Important
 <h2 class="anchored" data-anchor-id="working-with-datasets-datasets-dataloaders-transforms">Working with datasets : datasets, dataloaders, transforms</h2>
 <p>A <a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset">torch.utils.data.dataset</a> is an object which provides a set of data accessed with the operator[ ]. Pytorch already inherits dataset within the torchvision module for for <a href="https://pytorch.org/vision/stable/datasets.html">classical image datasets</a>.</p>
 <p>In this pratical, we will be working on the <a href="https://pytorch.org/vision/stable/datasets.html#fashion-mnist">FashionMNIST</a>. Let us discuss what we need to do with our dataset. Obviously, we need to load the data and FashionMNIST provides a training set and a test set (train flag in the FashionMNIST constructor). In order to latter perform early stopping, we need to split the training set in a training set and validation set, which will be done by calling <a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.random_split">random_split</a>.</p>
-<div id="770a8cee" class="cell">
+<div id="530f3016" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torchvision                                                       </span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torchvision.transforms <span class="im">as</span> transforms</span>
@@ -541,7 +541,7 @@ Note
 </div>
 </div>
 <p>We now need to convert the PIL images into Pytorch tensors, a simple call to <a href="https://pytorch.org/vision/stable/transforms.html#torchvision.transforms.ToTensor">torchvision.transforms.ToTensor()</a> will do the job for now. Later on, we will add other transforms in the pipeline (e.g.&nbsp;dataset normalization and dataset augmentation) and I would like to already define the code which later will make inserting new transforms easy. I propose to do it the following way :</p>
-<div id="8572810e" class="cell">
+<div id="e7c63615" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DatasetTransformer(torch.utils.data.Dataset):</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, base_dataset, transform):</span>
@@ -561,7 +561,7 @@ Note
 <span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>test_dataset  <span class="op">=</span> DatasetTransformer(test_dataset , transforms.ToTensor())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now that we get our datasets, we need to define <a href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader">DataLoader</a> s that will allow us to iterate over the eventually shuffled sets, creating minibatches on the fly. Preparing the mini batches is performed in a parallel way, ensure to set num_threads to an appropriate values depending on your setup (the <code>lscpu</code> command will give that information). Parallel processing of the mini batches really has an impact and can actually be a limiting factor. To give you an idea, when preparing this tutorial, switching from 1 to 8 workers on a 8 cores machine changed the running time of a single epoch from 8s down to 2s.</p>
-<div id="d5016af2" class="cell">
+<div id="e4ba6d07" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">############################################################################################ Dataloaders</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>num_threads <span class="op">=</span> <span class="dv">4</span>     <span class="co"># Loading the dataset is using 4 CPU threads</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>batch_size  <span class="op">=</span> <span class="dv">128</span>   <span class="co"># Using minibatches of 128 samples</span></span>
@@ -599,7 +599,7 @@ Note
 </figure>
 </div>
 <p>As a matter of interest, the image above has been generated with the following code :</p>
-<div id="5753ac6e" class="cell">
+<div id="c0ea377a" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.cm <span class="im">as</span> cm</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -642,7 +642,7 @@ Note
 <p>We could have defined our model by simply calling the <a href="https://pytorch.org/docs/stable/nn.html#torch.nn.Sequential">torch.nn.Sequential</a> function but this works only for the very specific case of a …. sequence of layers and we aimed in this tutorial not to restrict our presentation of the syntax to this very specific use case.</p>
 </div>
 </div>
-<div id="89c19322" class="cell">
+<div id="e3de94d3" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> LinearNet(nn.Module):</span>
@@ -681,7 +681,7 @@ Note
 </div>
 </div>
 <p>I suppose the piece of code above requires some further explanation. The code above is going to compute the scores for each classes. In the constructor, we simply instantiate a <a href="https://pytorch.org/docs/stable/generated/torch.nn.Linear.html">torch.nn.Linear</a> object which is hosting the weights (a matrix of size (10, 784)) and the biases (a vector of size (10,)). Now, in the <strong>forward</strong> function, we start by reshaping our inputs from images to vectors before applying the linear transformation. Below is an example to better understand <a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view">torch.Tensor.view</a></p>
-<div id="d23263ac" class="cell">
+<div id="1046f226" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="im">import</span> torch</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> a <span class="op">=</span> torch.randn(<span class="dv">128</span>, <span class="dv">1</span>, <span class="dv">28</span>, <span class="dv">28</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;&gt;&gt;</span> <span class="bu">print</span>(a.size())</span>
@@ -697,20 +697,20 @@ Note
 <h4 class="anchored" data-anchor-id="instantiating-the-cross-entropy-loss">Instantiating The Cross entropy loss</h4>
 <p>As we saw in the lecture, multiclass logistic regression with the cross entropy loss function is convex which is very nice from an optimization perspective : local minima are all global minima. Pytorch provides the <a href="https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html">torch.nn.CrossEntropyLoss()</a> object which computes the softmax followed by the cross entropy.</p>
 <p>Let us see this in action by considering a 3-class problem. Let us take an input, of true class y=1, being assigned the scores <span class="math inline">\(\hat{z} = [-100, 10, 8]\)</span>, i.e.&nbsp;the assigned probabilities being <span class="math inline">\(\hat{y} = [\frac{\exp(-100)}{\sum_i \exp(y_i)}, \frac{\exp(10)}{\sum_i \exp(y_i)}, \frac{\exp(8)}{\sum_i \exp(y_i)}] = [0.0000, 0.8808, 0.1192]\)</span> the cross entropy loss is given by <span class="math inline">\(- \log(\hat{y}_y) = -\log(0.8808) \approx 0.1269\)</span> and is computed in Pytorch as :</p>
-<div id="795f5da3" class="cell">
+<div id="ee7c225e" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>f_loss <span class="op">=</span> torch.nn.CrossEntropyLoss()</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>f_loss(torch.Tensor([[<span class="op">-</span><span class="dv">100</span>, <span class="dv">10</span>, <span class="dv">8</span>]]), torch.LongTensor([<span class="dv">1</span>]))</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># This prints :   torch.Tensor(0.1269)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>For now, back to our experiment, we just need to instantiate the loss :</p>
-<div id="9c41050f" class="cell">
+<div id="4c214d5e" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>f_loss <span class="op">=</span> torch.nn.CrossEntropyLoss()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="instantiating-the-optimizer" class="level4">
 <h4 class="anchored" data-anchor-id="instantiating-the-optimizer">Instantiating the optimizer</h4>
 <p>As you know, optimizing the parameters of our neural network is performed by some kind of gradient descent. There are several optimizers provided in the <a href="https://pytorch.org/docs/stable/optim.html">torch.optim package</a>. We will use the <a href="https://pytorch.org/docs/stable/optim.html#torch.optim.Adam">Adam optimizer</a>; To know more about optimizers, there is a <a href="https://www.ruder.io/optimizing-gradient-descent/">compendium of optimizers provided by Sebastian Ruder</a>. In Pytorch, the optimizer needs a reference to the parameters that it needs to modifies.</p>
-<div id="060dd6ef" class="cell">
+<div id="5df7b829" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>optimizer <span class="op">=</span> torch.optim.Adam(model.parameters())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
@@ -719,7 +719,7 @@ Note
 <h3 class="anchored" data-anchor-id="training-and-testing-the-network">Training and testing the network</h3>
 <p>Training our model means iterating over the mini batches of the training set and, for each mini-batch, computing the forward and backward passes to ultimately provide the optimizer the gradient from which it can compute an update of the parameters.</p>
 <p>Below is a proposal for a train function that you must read, copy and understand.</p>
-<div id="e9a78ce1" class="cell">
+<div id="ab9bda4d" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> train(model, loader, f_loss, optimizer, device):</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Train a model for one epoch, iterating over the loader</span></span>
@@ -760,7 +760,7 @@ Note
 <span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>    train(model, train_loader, f_loss, optimizer, device)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>For testing the network, we define a <strong>test</strong> function which computes our metrics of interest. There are no built-in metrics in pytorch. In the following code, what might be surprising is the <strong>with</strong> statement and the call to <strong>model.eval()</strong>. The python <a href="https://docs.python.org/3/reference/compound_stmts.html#with">with statement</a> is used to invoke a piece of code within a context, here the context of the <a href="https://pytorch.org/docs/stable/autograd.html#locally-disable-grad">torch.no_grad() object</a>. This disables any gradient computation therefore improving the performances. The second statement is the <a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.eval">model.eval</a> which indicates to all the modules to switch into evaluation mode (layers such as Batch Normalization layers behave differently in training or inference modes).</p>
-<div id="e3a2cfbb" class="cell">
+<div id="2a49cd01" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test(model, loader, f_loss, device):</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Test a model by iterating over the loader</span></span>
@@ -815,7 +815,7 @@ Note
 <span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> tot_loss<span class="op">/</span>N, correct<span class="op">/</span>N</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We are now ready to setup our training/evaluation loop where we will be training on the training set and after every epoch display our metrics on the validation set (here, we will evaluate on the test set only at the very end, when the best model would have been selected to prevent us from making any kind of decision based on the test set metrics).</p>
-<div id="14742d47" class="cell">
+<div id="9368a6ca" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(epochs):</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Epoch </span><span class="sc">{}</span><span class="st">"</span>.<span class="bu">format</span>(t))</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    train(model, train_loader, f_loss, optimizer, device)</span>
@@ -828,7 +828,7 @@ Note
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> train_fashion_mnist_linear.py</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This is your first trained classifier with Pytorch. You may reach a validation accuracy of something around 85% after about 5 epochs.</p>
 <p><strong>Exercice</strong> Modify the train function in order to accumulate the number of correctly classified samples during iterating over the training set. You can then display the training loss and accuracies nicely during training. Try the code below to see what I mean.</p>
-<div id="3dc6f532" class="cell">
+<div id="8cb8851e" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> random</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
@@ -855,7 +855,7 @@ Note
 <li>the model could be loaded in a brand new script, not only in the training script (e.g.&nbsp;if normalization is applied to the dataset, the parameters of the normalization must also be saved)</li>
 </ul>
 <p>For the first point, I provide you the following function.</p>
-<div id="e985d183" class="cell">
+<div id="ddd5a798" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate_unique_logpath(logdir, raw_run_name):</span>
@@ -889,7 +889,7 @@ Note
 <span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a>    os.mkdir(logdir)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>We now need to keep track of the validation loss and save the best model if it improves that metric. Up to my knowledge, there is nothing already provided within pytorch to perform this. I propose to define a class called ModelCheckpoint for this task :</p>
-<div id="a8ddb3b5" class="cell">
+<div id="1fb7cef2" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ModelCheckpoint:</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, filepath, model):</span>
@@ -922,7 +922,7 @@ Note
 <section id="loading" class="level4">
 <h4 class="anchored" data-anchor-id="loading">Loading</h4>
 <p>To load a saved model, you need to instantiate your model and to invoke the <a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.load_state_dict">load_state_dict</a> function. Below is an example script loading and testing the model.</p>
-<div id="651f1967" class="cell">
+<div id="1bedcf74" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>model_path <span class="op">=</span> THE_PATH_TO_YOUR_model.pt_FILE</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> LinearNet(<span class="dv">1</span><span class="op">*</span><span class="dv">28</span><span class="op">*</span><span class="dv">28</span>, <span class="dv">10</span>)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -956,7 +956,7 @@ Note
 <p>You can actually display much more information on a tensorboard (e.g. sending images, videos, audios, texts, histograms, precision/recall curves, …), you can check the <a href="https://pytorch.org/tutorials/intermediate/tensorboard_tutorial.html">pytorch tensorboard tutorial</a></p>
 </div>
 </div>
-<div id="6a911b88" class="cell">
+<div id="b460eb36" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.utils.tensorboard <span class="im">import</span> SummaryWriter</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>[...]</span>
@@ -997,7 +997,7 @@ Note
 <h3 class="anchored" data-anchor-id="saving-a-summary-file-of-your-run">Saving a summary file of your run</h3>
 <p>If you want to test several models, meta-parameters and so one, it is good practice to dump all the necessary information of your run to know exactly in which condition it has been done.</p>
 <p>Fortunately, the Pytorch objects usually overwrite the <strong>repr</strong> python function which provides a handy way to generate and save such a summary :</p>
-<div id="7ff91c47" class="cell">
+<div id="9cdaf6d3" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>[....]</span>
@@ -1039,7 +1039,7 @@ Note
 <p><span class="math display">\[X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 10^{-5}\]</span></p>
 <p><span class="math display">\[\hat{X} = (X - X_\mu)/X_\sigma\]</span></p>
 <p>How do we introduce normalization in our Pytorch model ? One way is to create a dataset that is normalized and use this dataset for training and testing. Another possibility is to embed normalization in the network by introducing normalization within the forward method of your model. Below, we will see how to compute the mean and variance images and to introduce normalization in our DatasetTransformer objects. <strong>Important</strong> the statistics for normalization are to be computed on the training set and the same statistics should be used on the validation and test sets.</p>
-<div id="8507e398" class="cell">
+<div id="ad446628" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>normalizing_dataset <span class="op">=</span> DatasetTransformer(train_dataset, transforms.ToTensor())</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>normalizing_loader <span class="op">=</span> torch.utils.data.DataLoader(dataset<span class="op">=</span>normalizing_dataset,</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                                           batch_size<span class="op">=</span>batch_size,</span>
@@ -1059,7 +1059,7 @@ Note
 <span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>test_dataset  <span class="op">=</span> DatasetTransformer(test_dataset , data_transforms)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>with the following definition for compute_mean_std</p>
-<div id="f7c3c665" class="cell">
+<div id="0922a152" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_mean_std(loader):</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute the mean over minibatches</span></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    mean_img <span class="op">=</span> <span class="va">None</span></span>
@@ -1090,7 +1090,7 @@ Note
 <section id="basics" class="level3">
 <h3 class="anchored" data-anchor-id="basics">Basics</h3>
 <p>Let us change the network to build a 2 hidden layers feedforward network. This is simply about adding dense layers with appropriate activations in between the input and the output layer. Basically, the only thing you need to change compared to the linear model is when you build up the model. A simple 2 layers network would be defined as :</p>
-<div id="c6543909" class="cell">
+<div id="5c36c22d" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> linear_relu(dim_in, dim_out):</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [nn.Linear(dim_in, dim_out),</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>            nn.ReLU(inplace<span class="op">=</span><span class="va">True</span>)]</span>
@@ -1144,7 +1144,7 @@ Note
 <p>To introduce weight decay, you could have used the <em>weight_decay</em> keyword argument of the optimizer. But I found it better to introduce you to the more general syntax that can allow you to customize your loss basically.</p>
 </div>
 </div>
-<div id="0565d6f8" class="cell">
+<div id="a9539a8a" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> FullyConnectedRegularized(nn.Module):</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, input_size, num_classes, l2_reg):</span>
@@ -1166,7 +1166,7 @@ Note
 <span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> y</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>In this code, as you may see, we access the pytorch tensor of the weights and compute its L2 norm to be included in the penalty. This penalty brings in an element through which our gradient can be backpropagated :</p>
-<div id="c18f8648" class="cell">
+<div id="26397211" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> train(model, loader, loss_function, optimizer, device):</span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>[...]</span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1190,7 +1190,7 @@ Note
 </figure>
 </div>
 <p>Another more recently introduced regularization technique is called Dropout <span class="citation" data-cites="Srivastava2014">(<a href="#ref-Srivastava2014" role="doc-biblioref">Srivastava, Hinton, Krizhevsky, Sutskever, &amp; Salakhutdinov, 2014</a>)</span>. It consists in setting to 0 the activations of a certain fraction of the units in a layer. In their original paper, the authors of dropout suggest for example <em>Dropping out 20% of the input units and 50% of the hidden units was often found to be optimal</em>. A dropout mask is generated for every training sample. At test time, an ensemble of dropped out networks are combined to compute the output (see also <a href="http://cs231n.github.io/neural-networks-2/#reg" class="uri">http://cs231n.github.io/neural-networks-2/#reg</a>). In Pytorch, we simply need to introduce <a href="https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html">nn.Dropout layers</a> specifying the rate at which to drop (i.e.&nbsp;zero) units. You will see below an example of how to make use of dropout in your network. Learning a neural network with dropout is usually slower than without dropout so that you may need to consider increasing the number of epochs.</p>
-<div id="79c8434e" class="cell">
+<div id="3114c3c8" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Using the Layer approach</span></span>
@@ -1227,7 +1227,7 @@ Note
 <li>channels_first (theano convention), in which case, the tensors are (batch_size, number of channels, image height, image width)</li>
 </ul>
 <p>The next step is to define our model. We here consider stacking Conv-Relu-MaxPool layers. In PyTorch, from an input of 16 channels, one block with 32 <span class="math inline">\(5\times 5\)</span> stride 1 filters and <span class="math inline">\(2\times 2\)</span> stride 2 max pooling would be defined with the following syntax :</p>
-<div id="9a8a62c8" class="cell">
+<div id="94b9eeb3" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn </span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>conv_classifier <span class="op">=</span> nn.Sequential(</span>
@@ -1241,7 +1241,7 @@ Note
 <p>The padding argument of the convolution is ensuring that the convolution will not decrease the size of the representation. We let this as the job of the max-pooling operation. Indeed, the max pooling layer has a stride 2 which effectively downscale the representation by a size of 2.</p>
 <p>How do you set up the architecture ? the size of the filters ? the number of blocks ? the stride ? the padding ? well, this is all the magic. Actually, we begin to see a small part of the large number of degrees of freedom on which we can play to define a convolutional neural network.</p>
 <p>The last thing we need to speek about is the flattening we need to operate before going through the eventual last dense layers. Usually (but this is not always the case), there are some final fully connected (dense) layers at the end of the architecture. When you go from the Conv/MaxPooling layers to the final fully connected layers, you need to flatten your feature maps because linear layers expect an input which is a vector, not a matrix. This means converting the 4D Tensors to 2D Tensors. For example, the code below illustrates the connection between some convolutional/max-pooling layers to the output layer with a 10-class classification:</p>
-<div id="6f6d6dc5" class="cell">
+<div id="29fb5f25" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Given x of size (128, 16, 28, 28)</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> torch.randn(<span class="dv">128</span>, <span class="dv">16</span>, <span class="dv">28</span>, <span class="dv">28</span>)</span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> conv_classifier(x)</span>
@@ -1292,7 +1292,7 @@ Note
 </figure>
 </div>
 <p>Now, the idea is to produce a stream (actually infinite if you allow continuous perturbations) of training samples generated from your finite set of training samples. Transformation of images can be performed by composing and calling functions in <a href="https://pytorch.org/vision/stable/transforms.html">torchvision.transforms</a>. These functions work on PIL images. For example, I show you below how I would perform some random transformations on an image “toto.png”</p>
-<div id="d94a8a26" class="cell">
+<div id="68070672" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># An example code calling transforms on PIL images</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PIL <span class="im">import</span> Image, ImageFilter</span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torchvision.transforms <span class="im">as</span> transforms </span>
@@ -1329,13 +1329,13 @@ Note
 </figure>
 </div>
 <p>Now, to introduce this into our training script, remember when we created our datasets :</p>
-<div id="cac9ee40" class="cell">
+<div id="6165d7d4" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>train_dataset <span class="op">=</span> DatasetTransformer(train_dataset, transforms.ToTensor())</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>valid_dataset <span class="op">=</span> DatasetTransformer(valid_dataset, transforms.ToTensor())</span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>test_dataset  <span class="op">=</span> DatasetTransformer(test_dataset , transforms.ToTensor())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The last argument of DatasetTransformer is actually expecting a function which is applied to every sample. In the case above, it was simply transforming the PIL image into a Pytorch tensor. Now, we will do a little bit more :</p>
-<div id="d8d48e0d" class="cell">
+<div id="e8bf2368" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.transforms <span class="im">as</span> transforms</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>train_augment_transforms <span class="op">=</span> transforms.Compose([</span>

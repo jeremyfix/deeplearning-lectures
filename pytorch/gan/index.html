@@ -380,7 +380,6 @@ window.Quarto = {
   <ul>
   <li><a href="#objectives" id="toc-objectives" class="nav-link active" data-scroll-target="#objectives">Objectives</a></li>
   <li><a href="#setup-and-predefined-scripts" id="toc-setup-and-predefined-scripts" class="nav-link" data-scroll-target="#setup-and-predefined-scripts">Setup and predefined scripts</a></li>
-  <li><a href="#setup-of-the-environment" id="toc-setup-of-the-environment" class="nav-link" data-scroll-target="#setup-of-the-environment">Setup of the environment</a></li>
   <li><a href="#implementing-the-critic" id="toc-implementing-the-critic" class="nav-link" data-scroll-target="#implementing-the-critic">Implementing the critic</a></li>
   <li><a href="#implementing-the-generator" id="toc-implementing-the-generator" class="nav-link" data-scroll-target="#implementing-the-generator">Implementing the generator</a></li>
   <li><a href="#implementing-the-gan" id="toc-implementing-the-gan" class="nav-link" data-scroll-target="#implementing-the-gan">Implementing the GAN</a></li>
@@ -495,15 +494,15 @@ tar -zxvf ganlab-kit.tar.gz</code></pre>
 <p>This code is organized as a python library <code>ganlab</code> to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.</p>
 <p>To install the library, you need to install it in 1) a virtual environment and 2) in developer mode.</p>
 <p><strong>If you use the DCE of CentraleSupélec</strong>, you can use pre-installed virtual environments that already ship several required packages :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/opt/dce/dce_venv.sh</span> /mounts/datasets/venvs/torch-2.7.1 <span class="va">$TMPDIR</span>/venv</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> <span class="va">$TMPDIR</span>/venv/bin/activate</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mymachine:~:mylogin$</span> /opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 <span class="va">$TMPDIR</span>/venv</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mymachine:~:mylogin$</span> source <span class="va">$TMPDIR</span>/venv/bin/activate</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>otherwise</strong>, you need to create your own venv, for example using the built-in python venv module :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> venv /tmp/venv</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> /tmp/venv/bin/activate</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mymachine:~:mylogin$</span> python3 <span class="at">-m</span> venv /tmp/venv</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">mymachine:~:mylogin$</span> source /tmp/venv/bin/activate</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Then, to install the library in developer mode :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> pip install <span class="at">-e</span> gan</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-m</span> pip install <span class="at">-e</span> gan</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>You can verify that the library is installed by running :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-c</span> <span class="st">"import ganlab; print(f'Library available at {ganlab.__file__}')</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-c</span> <span class="st">"import ganlab; print(f'Library available at {ganlab.__file__}')"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>This basic code base offers you several modules that <strong>we will cover step by step</strong> :</p>
 <ul>
 <li>data.py : data loading from the datasets to learn from (MNIST, FashionMNIST, SVHN, CelebA, EMNIST),</li>
@@ -512,69 +511,92 @@ tar -zxvf ganlab-kit.tar.gz</code></pre>
 <li>main.py: the main script which will run training and testing.</li>
 </ul>
 </section>
-<section id="setup-of-the-environment" class="level2">
-<h2 class="anchored" data-anchor-id="setup-of-the-environment">Setup of the environment</h2>
-<p>For this lab work, you are provided with environment setup files <a href="./labs/03-pytorch-gan/requirements.txt">requirements.txt</a> file if you are a pipenv/pip/virtualenv/etc..</p>
-<p>On the CentraleSupelec clusters, I advise you to proceed as :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">sh11:~:mylogin$</span> python3 <span class="at">-m</span> venv <span class="va">$TMPDIR</span>/venv</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">sh11:~:mylogin$</span> source <span class="va">$TMPDIR</span>/venv/bin/activate</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">sh11:~:mylogin$</span> python <span class="at">-m</span> pip install <span class="at">-r</span> requirements.txt</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
 <section id="implementing-the-critic" class="level2">
 <h2 class="anchored" data-anchor-id="implementing-the-critic">Implementing the critic</h2>
 <p>The critic is a simple convolutional neural network which has to state whether the input image is real or fake. You are free to experiment with any architecture but I can suggest you one. Denote by <code>CBlock(k)</code> the following sequence of layers :</p>
 <ul>
-<li><span class="math inline">\(2 \times [\)</span>Conv(<span class="math inline">\(k\)</span> channels, 3x3, stride=1, padding=same) - BatchNorm - LeakyRelu(0.2)<span class="math inline">\(]\)</span></li>
-<li>Conv(<span class="math inline">\(k\)</span> channels, 3x3, stride=2, padding=same) - LeakyRelu(0.2) : this is a convolution downsampling. Do you see why ?</li>
+<li><span class="math inline">\(2 \times [\)</span>Conv(<span class="math inline">\(k\)</span> output channels, 3x3, stride=1, padding=1) - BatchNorm - LeakyRelu(0.2)<span class="math inline">\(]\)</span></li>
+<li>Conv(<span class="math inline">\(k\)</span> output channels, 3x3, stride=2, padding=1) - LeakyRelu(0.2) : this is a convolution downsampling. Do you see why ?</li>
 <li>Dropout(0.3)</li>
 </ul>
 <p>The architecture for the discriminator I propose you is :</p>
 <ul>
-<li>CBlock(32) - CBlock(64) - CBlock(96) - Linear(1)</li>
+<li>CBlock(<span class="math inline">\(k=32\)</span>) - CBlock(<span class="math inline">\(k=64\)</span>) - CBlock(<span class="math inline">\(k=96\)</span>) - Linear(2)</li>
 </ul>
 <p>Every block is downsampling the representation so that with a <span class="math inline">\((B, 1, 28, 28)\)</span> input, we end the convolutional part with a <span class="math inline">\((B, 96, 4, 4)\)</span> and the linear layer has therefore <span class="math inline">\(1536\)</span> weights and <span class="math inline">\(1\)</span> bias for one output. The output of the network is the logit, i.e.&nbsp;before the application of the sigmoid which is actually embedded in the <a href="https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html">BCEWithLogitsLoss</a> we will be using.</p>
-<p>We will inject a GAN hack in the code. Indeed, we will smooth the target labels and hence we need to produce <span class="math inline">\(2\)</span> outputs and not only one.</p>
+<p>We will inject a <a href="https://github.com/soumith/ganhacks">GAN hack</a> in the code. Indeed, we will smooth the target labels and hence we need to produce <span class="math inline">\(2\)</span> outputs and not only one.</p>
 <p><strong>Exercise</strong> Implement the critic in the <code>models.py</code> script. You have to define the neural network in the constructor Discriminator class and implement the forward method. Note that since every convolutional layer is followed by a batch-normalization, you can remove the bias from the convolutional layer that would anyway be canceled by the normalization (see the constructor of Conv2d).</p>
-<p><strong>Sanity check</strong> :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_discriminator():</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    critic <span class="op">=</span> Discriminator((<span class="dv">1</span>, <span class="dv">28</span>, <span class="dv">28</span>), dropout<span class="op">=</span><span class="fl">0.5</span>, base_c<span class="op">=</span><span class="dv">32</span>, dnoise<span class="op">=</span><span class="fl">0.1</span>, num_classes<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> torch.randn(<span class="dv">64</span>, <span class="dv">1</span>, <span class="dv">28</span>, <span class="dv">28</span>)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> critic(X)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span>(out.shape <span class="op">==</span> torch.Size([<span class="dv">64</span>, <span class="dv">2</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>To test your implementation, a test function is provided in the <code>models/__main__.py</code> script. This test function <code>test_discriminator</code> is callable with :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-m</span> ganlab.models</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The test function is the following :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_discriminator():</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    critic <span class="op">=</span> Discriminator((<span class="dv">1</span>, <span class="dv">28</span>, <span class="dv">28</span>), dropout<span class="op">=</span><span class="fl">0.5</span>, base_c<span class="op">=</span><span class="dv">32</span>, dnoise<span class="op">=</span><span class="fl">0.1</span>, num_classes<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> torch.randn(<span class="dv">64</span>, <span class="dv">1</span>, <span class="dv">28</span>, <span class="dv">28</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> critic(X)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span>(out.shape <span class="op">==</span> torch.Size([<span class="dv">64</span>, <span class="dv">2</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
 </section>
 <section id="implementing-the-generator" class="level2">
 <h2 class="anchored" data-anchor-id="implementing-the-generator">Implementing the generator</h2>
 <p>The generator takes as input a <span class="math inline">\((B, N_z)\)</span> normally distributed tensor and has to produce a <span class="math inline">\(28\times 28\)</span> grayscale image. While the DCGAN paper suggested to use fractionally strided convolutions (or transposed convolutions), this <a href="https://distill.pub/2016/deconv-checkerboard/">can introduce artifacts</a> if not properly tuned. We rather consider the alternative proposed by <span class="citation" data-cites="Odena2016">(<a href="#ref-Odena2016" role="doc-biblioref">Odena, Dumoulin, &amp; Olah, 2016</a>)</span> which is to perform a bilinear upsampling followed by a convolution.</p>
 <p>Let us denote by <code>GBlock(k)</code> the following sequence of layers:</p>
 <ul>
-<li><a href="https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html?highlight=upsample">UpSample(scale_factor=2)</a></li>
-<li>Conv(k channels, 3x3, padding=same) - BatchNorm - ReLU</li>
-<li>Conv(k channels, 3x3, padding=same) - BatchNorm - ReLU</li>
+<li><a href="https://pytorch.org/docs/stable/generated/torch.nn.Upsample.html">UpSample(scale_factor=2)</a></li>
+<li>Conv(<span class="math inline">\(c_{out}=k\)</span>, size=<span class="math inline">\(3\times 3\)</span>, padding=1) - BatchNorm - ReLU</li>
+<li>Conv(<span class="math inline">\(c_{out}=k\)</span>, size=<span class="math inline">\(3\times3\)</span>, padding=1) - BatchNorm - ReLU</li>
 </ul>
 <p>The proposed architecture of the generator is:</p>
 <ul>
 <li>Linear(<span class="math inline">\(8\times8\times256\)</span>) - ReLU</li>
-<li>GBlock(128)</li>
-<li>GBlock(64)</li>
-<li>Conv(1 channel, 1x1) - Tanh</li>
+<li>GBlock(<span class="math inline">\(k=128\)</span>)</li>
+<li>GBlock(<span class="math inline">\(k=64\)</span>)</li>
+<li>Conv(<span class="math inline">\(c_{out}=1\)</span>, size=<span class="math inline">\(1\times1\)</span>) - Tanh</li>
 </ul>
 <p>If you use CelebA, you should be adding one more upsampling block because these images are <span class="math inline">\(64 \times 64\)</span>.</p>
-<p>In between the linear layer and the first convolution, note you will have to “reshape” the tensor (using the <a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view">Tensor.view</a>) method. The tanh activation for the last layer is suggested in <span class="citation" data-cites="Radford2016">(<a href="#ref-Radford2016" role="doc-biblioref">Radford et al., 2016</a>)</span> to be a good idea.</p>
-<p><strong>Exercise</strong> Implement the generator in the <code>models.py</code> script. You have to create the network in the constructor of the Generator class and to implement the forward function. Note you can use the <code>up_conv_bn_relu</code> builder function provided in this script. The forward(X, batch_size) either takes as input a random vector <span class="math inline">\(X\)</span> or the number of samples you want. As for the critic, the bias is useless in the convolutional layers that are followed by a batch-normalization.</p>
-<p><strong>Sanity check</strong> :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_generator():</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Testing the generator for producing MNIST like data</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Note: if you use SVHN, change these to (3, 32, 32)</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Note: if you use CelebA, change these to (3, 64, 64)</span></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># and adapt below</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    generator <span class="op">=</span> Generator((<span class="dv">1</span>, <span class="dv">32</span>, <span class="dv">32</span>), latent_size<span class="op">=</span><span class="dv">100</span>, base_c<span class="op">=</span><span class="dv">256</span>)</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> torch.randn(<span class="dv">64</span>, <span class="dv">100</span>)</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> generator(X, <span class="va">None</span>)</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span>(out.shape <span class="op">==</span> torch.Size([<span class="dv">64</span>, <span class="dv">1</span>, <span class="dv">32</span>, <span class="dv">32</span>]))</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> generator(<span class="va">None</span>, <span class="dv">64</span>)</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span>(out.shape <span class="op">==</span> torch.Size([<span class="dv">64</span>, <span class="dv">1</span>, <span class="dv">32</span>, <span class="dv">32</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>In between the linear layer and the first convolution, note you will have to “reshape” the tensor (using the <a href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor.view">Tensor.view</a>) method to transform the 2D tensor into a 4D tensor. The tanh activation for the last layer is suggested in <span class="citation" data-cites="Radford2016">(<a href="#ref-Radford2016" role="doc-biblioref">Radford et al., 2016</a>)</span> to be a good idea 🧙.</p>
+<p><strong>Exercise</strong> Implement the generator in the <code>models.py</code> script. You have to create the network in the constructor of the Generator class and to implement the forward function. Note you can use the <code>up_conv_relu_bn</code> builder function provided in this script. The forward(X, batch_size) takes as input either:</p>
+<ul>
+<li>a random vector <span class="math inline">\(X\)</span>,</li>
+<li>or the number of samples you want.</li>
+</ul>
+<p>As for the critic, the bias is useless in the convolutional layers that are followed by a batch-normalization.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>To test your implementation, a test function is provided in the <code>models/__main__.py</code> script. This test function <code>test_discriminator</code> is callable with :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-m</span> ganlab.models</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This test function is the following :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_generator():</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Testing the generator for producing MNIST like data</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Note: if you use SVHN, change these to (3, 32, 32)</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Note: if you use CelebA, change these to (3, 64, 64)</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># and adapt below</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    generator <span class="op">=</span> Generator((<span class="dv">1</span>, <span class="dv">28</span>, <span class="dv">28</span>), latent_size<span class="op">=</span><span class="dv">100</span>, base_c<span class="op">=</span><span class="dv">256</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> torch.randn(<span class="dv">64</span>, <span class="dv">100</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> generator(X, <span class="va">None</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span>(out.shape <span class="op">==</span> torch.Size([<span class="dv">64</span>, <span class="dv">1</span>, <span class="dv">28</span>, <span class="dv">28</span>]))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> generator(<span class="va">None</span>, <span class="dv">64</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span>(out.shape <span class="op">==</span> torch.Size([<span class="dv">64</span>, <span class="dv">1</span>, <span class="dv">28</span>, <span class="dv">28</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
 <p>Note that the generator is outputting values in <span class="math inline">\([-1, 1]\)</span>. You may also notice in the dataloaders that the real images are rescaled in <span class="math inline">\([-1, 1]\)</span> to guarantee that both the real and fake images lie in the same range of values (do you see where in the code the pixel values of the images are projected into <span class="math inline">\([-1, 1]\)</span> ?).</p>
 </section>
 <section id="implementing-the-gan" class="level2">
@@ -591,13 +613,25 @@ tar -zxvf ganlab-kit.tar.gz</code></pre>
 </ul>
 <p>When we train the discriminator, only the parameters of the discriminator are expected to be modified. When we train the generator (even though its loss goes through the discriminator network), only the parameters of the generator are expected to be modified. Therefore, two optimizers will be defined : one for the parameters of the critic, one for the parameters of the generator. For the loss, we need a binary cross entropy loss <a href="https://pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html">taking as input the logits</a></p>
 <p><strong>Exercise</strong> Define the optimizers and loss in the <code>main.py</code> script.</p>
-<p>The next step is to compute the backward propagation on the right losses. If we denote <span class="math inline">\(r_i\)</span> and <span class="math inline">\(f_i\)</span> the logits assigned by the critic to respectively a minibatch <span class="math inline">\(X\)</span> of real images and a minibatch of size <span class="math inline">\(b_i\)</span> of fake images, the loss to be minimized by the critic is:</p>
+<p>The next step is to compute the backward propagation on the right losses. If we denote :</p>
+<ul>
+<li><span class="math inline">\(r_i\)</span> the logits assigned by the critic to a minibatch <span class="math inline">\(X\)</span> of real images,</li>
+<li><span class="math inline">\(f_i\)</span> the logits assigned by the critic to a minibatch of size <span class="math inline">\(b_i\)</span> fake images.</li>
+</ul>
+<p>The loss to be minimized by the critic is:</p>
 <p><span class="math display">\[
 \mathcal{L}_c = \frac{1}{2m} \sum_{i=1}^m -\log(D(x_i)) - \log(1-D(G(z_i)))
 \]</span></p>
+<p>Remember that the cross-entropy loss is the average of <span class="math inline">\(-\log\)</span> of the probabilities assigned by your model to the labeled class.</p>
 <p><span class="math display">\[
-\mathcal{L}_c = BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \\ f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix} 1 \\ \vdots \\ 1 \\ 0 \\ \vdots \\ 0 \end{bmatrix}) = -\frac{1}{2b_i} (\sum_i \log(r_i) + \sum_k \log(1-f_i)) = \frac{BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \end{bmatrix}, \begin{bmatrix}1 \\ \vdots \\ 1\end{bmatrix}) + BCELoss(\begin{bmatrix} f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix}0 \\ \vdots \\ 0\end{bmatrix}) }{2}
+\begin{eqnarray}
+\mathcal{L}_c &amp;=&amp; BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \\ f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix} 1 \\ \vdots \\ 1 \\ 0 \\ \vdots \\ 0 \end{bmatrix}) \\
+&amp;=&amp; -\frac{1}{2b_i} (\sum_i \log(r_i) + \sum_k \log(1-f_i)) \\
+&amp;=&amp; -\frac{1}{2} (\frac{1}{b_i} \sum_i \log(r_i) + \frac{1}{b_i} \sum_k \log(1-f_i)) \\
+&amp;=&amp; \frac{BCELoss(\begin{bmatrix}r_0 \\ \vdots \\ r_{b_i-1} \end{bmatrix}, \begin{bmatrix}1 \\ \vdots \\ 1\end{bmatrix}) + BCELoss(\begin{bmatrix} f_0 \\ \vdots \\ f_{b_i - 1}\end{bmatrix}, \begin{bmatrix}0 \\ \vdots \\ 0\end{bmatrix}) }{2}
+\end{eqnarray}
 \]</span></p>
+<p>Therefore, the loss is the average of two losses : one BCE with positive targets when the samples are real and one BCE with negative targets when the images are fake.</p>
 <p><strong>Exercise</strong> Implement the above loss in the <code>main.py</code> script within the training loop. Note that you have two vectors named pos_labels and neg_labels containing respectively only ones and zeros. Implement also the three lines for the backward pass (reset the gradient accumulator, perform the backward pass, update the parameters).</p>
 <p>Finally, for the generator, since it wants to fool the critic, denoting <span class="math inline">\(f_i\)</span> the logits assigned by the critic to a newly sampled set of fake images, the loss to be minimized by the generator is :</p>
 <p><span class="math display">\[
@@ -608,30 +642,30 @@ tar -zxvf ganlab-kit.tar.gz</code></pre>
 <section id="training" class="level2">
 <h2 class="anchored" data-anchor-id="training">Training</h2>
 <p>You can now start training your networks by running the main script. To run a training, you need to provide a <code>config.yaml</code> file. One example is given below :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span><span class="kw">:</span><span class="at"> </span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">dataset</span><span class="kw">:</span><span class="at"> </span><span class="st">"MNIST"</span><span class="co"> # SVHN, EMNIST, FashionMNIST, CelebA</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">rootdir</span><span class="kw">:</span><span class="at"> </span><span class="st">"/mounts/datasets/datasets/"</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">debug</span><span class="kw">:</span><span class="at"> </span><span class="ch">False</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">batch_size</span><span class="kw">:</span><span class="at"> </span><span class="dv">256</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">optim</span><span class="kw">:</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">base_lr</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.0002</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">wdecay</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.0</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">lblsmooth</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="fu">nepochs</span><span class="kw">:</span><span class="at"> </span><span class="dv">200</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="fu">logging</span><span class="kw">:</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">logdir</span><span class="kw">:</span><span class="at"> </span><span class="st">"./logs"</span><span class="co">  # Better to provide the full path, especially on the cluster</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="fu">model</span><span class="kw">:</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">dnoise</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.1</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">discriminator_base_c</span><span class="kw">:</span><span class="at"> </span><span class="dv">32</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">generator_base_c</span><span class="kw">:</span><span class="at"> </span><span class="dv">256</span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">latent_size</span><span class="kw">:</span><span class="at"> </span><span class="dv">100</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">dropout</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">dataset</span><span class="kw">:</span><span class="at"> </span><span class="st">"MNIST"</span><span class="co"> # SVHN, EMNIST, FashionMNIST, CelebA</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">rootdir</span><span class="kw">:</span><span class="at"> </span><span class="st">"/mounts/datasets/datasets/"</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">debug</span><span class="kw">:</span><span class="at"> </span><span class="ch">False</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">batch_size</span><span class="kw">:</span><span class="at"> </span><span class="dv">256</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">optim</span><span class="kw">:</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">base_lr</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.0002</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">wdecay</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.0</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">lblsmooth</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.2</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="fu">nepochs</span><span class="kw">:</span><span class="at"> </span><span class="dv">200</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="fu">logging</span><span class="kw">:</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">logdir</span><span class="kw">:</span><span class="at"> </span><span class="st">"./logs"</span><span class="co">  # Better to provide the full path, especially on the cluster</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="fu">model</span><span class="kw">:</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">dnoise</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.1</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">discriminator_base_c</span><span class="kw">:</span><span class="at"> </span><span class="dv">32</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">generator_base_c</span><span class="kw">:</span><span class="at"> </span><span class="dv">256</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">latent_size</span><span class="kw">:</span><span class="at"> </span><span class="dv">100</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">dropout</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Then, you run a training using :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-m</span> ganlab.main train config.yaml</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-m</span> ganlab.main train config.yaml</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Successful training of a GAN is not always guaranteed. The trainings are very sensitive to the hyperparameters. In principle, the parameters provided above should be good default values. Do not forget to start the tensorboard and to look at it, at every epoch, some generated samples are written on it. During the first 5 epochs, you should already observe some kind of written digits. Your model should have almost 2.5M parameters and it takes about 40s per epoch on a Geforce 1080.</p>
 <p>Below are examples of generated images during a successful training with a noise vector defined once and for all before training (i.e.&nbsp;we always plot the generated image associated with the same random inputs) on MNIST.</p>
 <p><img src="mnist.gif" class="img-fluid" style="width:24.0%" alt="Fake digits generated during training"> <img src="fashionmnist.gif" class="img-fluid" style="width:24.0%" alt="Fake Fashion generated during training"> <img src="svhn.gif" class="img-fluid" style="width:24.0%" alt="Fake street house numbers generated during training"> <img src="celeba.gif" class="img-fluid" style="width:24.0%" alt="Fake celebrities generated during training"></p>
@@ -649,7 +683,7 @@ tar -zxvf ganlab-kit.tar.gz</code></pre>
 <li><a href="svhn_generator.onnx">svhn_generator.onnx</a> : a pretrained generator used for the end of the labwork pretrained on SVHN in ONNX format</li>
 </ul>
 <p><strong>Exercise</strong> Download one of the pretrained generators provided at the top of this page, that has been pretrained for <span class="math inline">\(400\)</span> epochs (which is by far more than necessary for most of the tasks). Fill in the code in the generate function of the <code>main.py</code> script and run some generation of fake images by issuing :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mymachine:~:mylogin$</span> python3 main.py generate <span class="at">--modelpath</span> generator.onnx</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-m</span> ganlab.main generate path/to/generator.onnx</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Note that the generated images have been already denormalized in the code you are provided.</p>
 </section>
 <section id="interpolating-in-the-latent-space" class="level2">
