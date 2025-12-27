@@ -1,0 +1,10 @@
+data: 
+  dataset: "MNIST" # SVHN, EMNIST, FashionMNIST, CelebA
+  rootdir: "/opt/datasets/"
+  debug: False
+  batch_size: 256
+
+nepochs: 200
+
+logging:
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
