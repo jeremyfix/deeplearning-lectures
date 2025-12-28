@@ -37,14 +37,6 @@ import multiprocess
 from asrlab import utils
 
 
-_DEFAULT_COMMONVOICE_ROOT = "/mounts/Datasets4/CommonVoice/"
-_DEFAULT_COMMONVOICE_VERSION = "v15.0"
-_DEFAULT_RATE = 16000  # Hz
-_DEFAULT_WIN_LENGTH = 40  # ms
-_DEFAULT_WIN_STEP = 10  # ms
-_DEFAULT_NUM_MELS = 20  #
-
-
 
 
 # @SOL

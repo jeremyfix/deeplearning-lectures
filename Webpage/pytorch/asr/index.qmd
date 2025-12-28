@@ -21,6 +21,12 @@ Throughout this labwork, you will also learn about dealing with the specific ten
 
 ### Starter code
 
+::: {.callout-warning}
+
+**TO BE REFACTORED**
+
+:::
+
 During this lab work, it is unreasonable to ask you to code everything from scratch. Therefore, we provide you with some starter code that is supposed to help you to work on the interesting parts.
 
 **Download** the starter codes below but do not spend too much time digging into them for now (we will discuss them step by step). All these files are expected to be placed in the same directory.
@@ -31,55 +37,6 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 - [train-v15.0-1-5.idx](train-v15.0-1-5.idx), [test-v15.0-1-5.idx](test-v15.0-1-5.idx), [dev-v15.0-1-5.idx](dev-v15.0-1-5.idx) : files with the indices of the CommonVoice **v5 fr** dataset filtered between 1s. and 5.
 - [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
 
-### Installing a virtual environment
-
-You can use the [requirements.txt](requirements.txt) file to install your virtual environment.
-
-``` bash
-mymachine:~:mylogin$ python3 -m venv $TMPDIR/venv
-mymachine:~:mylogin$ source $TMPDIR/venv/bin/activate
-(venv) mymachine:~:mylogin$ python -m pip install -r requirements.txt
-```
-
-### Pre-installed environments (for users on the DCE)
-
-For the users of the DCE, we provide pre-installed conda environments which you can load by executing the following commands (as the conda environment is 5Go, it might take 5 minutes to copy). At the time of writting (january 2024), it does not seem to work due to some permission denied to be debugged.
-
-``` bash
-mymachine:~:mylogin$ source "/opt/conda/etc/profile.d/conda.sh"
-mymachine:~:mylogin$ mkdir -p $TMPDIR/my_env
-mymachine:~:mylogin$ tar -zxf /mounts/Datasets3/SharedConda/3MD4040-asr-py3.9.tar.gz -C $TMPDIR/my_env
-mymachine:~:mylogin$ source $TMPDIR/my_env/bin/activate 
-(my_env) mymachine:~:mylogin$ cd ~
-```
-
-Note that the two `source` commands must be repeated in any new shell session.
-
-As we use UTF-8 encoding, your shell must be able to interpret these symbols :
-
-``` bash
-mymachine:~:mylogin$ echo $LANG
-```
-and set it if necessary (e.g. `export LANG=en_US.UTF-8`)
-
-### Installing the environment with conda (for the other users)
-
-We provide a yaml file for creating a conda environment suitable for performing the labwork. That conda environment can installed with the [pytorch-asr-py3.9.yaml](./labs/02-pytorch-asr/pytorch-asr-py3.9.yaml) environment file.
-
-With [conda](https://docs.conda.io/en/latest/miniconda.html) installed, you should run :
-
-``` bash
-mymachine:~:mylogin$ conda env create -f pytorch-asr-py3.9.yaml
-mymachine:~:mylogin$ conda activate pytorch-asr-py3.9
-(pytorch-asr-py3.9) mymachine:~:mylogin$ 
-```
-
-As we use UTF-8 encoding, your shell must be able to interpret these symbols :
-
-``` bash
-(pytorch-asr-py3.9) mymachine:~:mylogin$ echo $LANG
-```
-and set it if necessary (e.g. `export LANG=en_US.UTF-8`)
 
 
 ## Setting up the dataloaders
@@ -91,20 +48,17 @@ The data are therefore : a waveform as input and a sequence of characters for th
 - instead of taking as input the waveform (that we will resample at 16kHz), we will be computing a spectrogram in Mel scale
 - the characters will be filtered (to remove some variability) and converted to lists of integers
 
-And these signals need to be stacked in mini-batch tensors. For doing so, you will have to fill in the `data.py` script but before doing so, let us discuss some details. From a general point of view, it contains :
+And these signals need to be stacked in mini-batch tensors. For doing so, you will have to fill in code in the `asrlab/data` module. This module is more complex than what we did in the other labs. It is based on :
 
-- load_dataset : the function for loading the CommonVoice datasets
-- CharMap : the object in charge of performing the encoding/decoding from the characters to the integer representation
-- WaveformProcessor : the object transforming the waveforms to the spectrograms
-- BatchCollate : the object in charge of stacking multiple spectrograms and multiple encoded transcripts
-- get_dataloaders : the function returning the train, valid and test dataloaders
-- plot_spectro : a function for easily plotting a spectrogram and its transcript
+- `charmap.py` which deals with the encoding/decoding of the transcripts,
+- `waveform.py` which deals with the computation of the spectrogram from the waveform,
+- `dataloader.py` which sticks together the previous two elements in addition to deal with the sequences of varying length.
 
-The end result of this module is essentially the get_dataloaders which, by making use of the other functions/objects, build up the iterable minibatch collections. The CharMap will also be useful for converting the transcripts to and from their integer representations.
+The end result of this module is still the `get_dataloaders` which, by making use of the other functions/objects, build up the iterable minibatch collections. 
 
 ### Integer representations of the transcripts
 
-The transcripts are encoded into integers and decoded from integers thanks to a vocabulary in the CharMap object, represented as the char2idx dictionnary and idx2char list. Let us play a little bit with this object.
+The transcripts are encoded into integers and decoded from integers thanks to a vocabulary in the CharMap object, represented as the `char2idx` dictionnary and `idx2char` list. Let us play a little bit with this object.
 
 For this part, we will work on the `data/charmap.py` script. This submodule is responsible for encoding/decoding transcripts.  
 
@@ -141,13 +95,35 @@ As you may have notice in the functionning of the `CharMap` object, there are so
 
 ### Transforming the waveforms into spectrograms
 
-Let us now have a look to the waveforms. Usually the models do not take the raw waveforms as input but preprocess them by computing a spectrogram using a short time fourier transform (STFT). The obtained spectrogram is then converted in logmel scale.
+Let us now have a look to the waveforms. Usually the models do not take the raw waveforms as input but preprocess them by computing a spectrogram using a short time fourier transform (STFT). The amplitude of the complex spectrogram is then converted in mel scale and then in decibels using a log. 
+
+The STFT is a Fourier transform applied on a local little temporal segment of the signal (hence Short Time). That segment is obtained by windowing the signal. By default, torchaudio [Spectrogram](https://pytorch.org/audio/stable/transforms.html#spectrogram) function uses the [Hann Function](https://en.wikipedia.org/wiki/Hann_function). The Fourier transform returns a complex valued signal from which we only take the magnitude as is usually done. Then, the real valued magnitude is converted in logmel scale which better reflects the sensitivity of the human ear. Remember, this preprocessing aims to better highlight important features for decoding what is said, therefore it makes sense 
+
+
+The MEL scale is a frequency scale that gives more importance to the frequency bands humans are most sensitive to. 
 
 ![The pipeline from the waveform to the logmel spectrogram when someone is saying "Rue Wolfgang Doeblin, zéro huit, six cents Givet"](waveform_to_spectro.png){width=100%}
 
-**Exercice** In the WaveformProcessor, fill-in the code in the constructor for initializing the `transform` attribute. It must be a `torch.nn.Sequential` with the [MelSpectrogram](https://pytorch.org/audio/stable/transforms.html#melspectrogram) followed by a [conversion to DB](https://pytorch.org/audio/stable/transforms.html#amplitudetodb). To validate your implementation, run the script `test_implementation.py`, the corresponding test should pass.
+**Exercice** In the `data/waveform.py`, WaveformProcessor object, fill-in the code in the constructor for initializing the `transform` attribute. It must be a `torch.nn.Sequential` with the [MelSpectrogram](https://pytorch.org/audio/stable/transforms.html#melspectrogram) followed by a [conversion to DB](https://pytorch.org/audio/stable/transforms.html#amplitudetodb). 
+
+
+::: {.callout-warning}
+
+To validate your implementation, you are provided with a test function in the `data/waveform.py` script. You simply need to run :
+
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.data.waveform
+```
+
+:::
 
 You can test your code with the following
+
+::: {.callout-warning}
+
+**TO BE REFACTORED** : not in the `waveform.py` script anymore
+
+:::
 
 ```{.python}
 
@@ -192,12 +168,12 @@ def test_spectro():
 
 ### Collating variable size spectrograms and transcripts in minibatches
 
-We know how to convert the transcripts into tensors of integers, we know how to convert waveforms to spectrograms, it remains to collate together multiple samples into minibatches but there are two difficulties :
+We can convert the transcripts into tensors of integers and waveforms into spectrograms, it remains to collate together multiple samples into minibatches but there are two difficulties :
 
-- the waveforms have different time-spans and therefore their spectrograms have different time-spans
-- the transcripts have different time-spans 
+- the waveforms have different durations, hence their spectrograms also have different durations,
+- the transcripts have different durations.
 
-To represent sequences of variable length, pytorch provides you with the [PackedSequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.PackedSequence.html) datatype. We will not dig into the implementation details of this data structure. Sufficient to say that you are not expected to create PackedSequence directly but use the [pad_packed_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pad_packed_sequence.html) and [pack_padded_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pack_padded_sequence.html) functions. Let us see these in actions on one example :
+These can be represented by using "normal" tensors. As tensors are dense structures, you can pad the shortest sequences of a minibatch so that all the sentences have the same size. But this is not very efficient, especially if you have a large span of sizes. To represent sequences of variable length in a more efficient way, pytorch provides you with the [PackedSequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.PackedSequence.html) datatype. Roughly speaking, a `PackedSequence` is created by concatenating multiple sequences along the time dimension. In order to split that concatenated sequence back into the individual sequences, a `PackedSequence` also memorizes the time indices where to cut that concatenated sequence. To go from `PackedSequences` to padded sequences and vice versa, we use the [pad_packed_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pad_packed_sequence.html) and [pack_padded_sequence](https://pytorch.org/docs/stable/generated/torch.nn.utils.rnn.pack_padded_sequence.html) functions. Let us see these in actions on one example :
 
 ```{.python}
 
@@ -208,29 +184,33 @@ def ex_pack():
     batch_size = 10
     n_mels = 80
     max_length = 512
-    # Given a list of batch_size tensors of variable sizes of shape (Ti, n_mels)
+
+    # We create a collection of variable sizes sequences
+    # Each element is of shape (Ti, n_mels) with Ti different
+    # for each sequence
     tensors = [torch.randn(random.randint(1, max_length), n_mels) for i in range(batch_size)]
 
-    # To be packed, the tensors need to be sorted by
-    # decreasing length
+    # 1- To be packed, the tensors need to be sorted by
+    #    decreasing length (see the doc of pack_padded_sequence)
     tensors = sorted(tensors,
                      key=lambda tensor: tensor.shape[0],
                      reverse=True)
     lengths = [t.shape[0] for t in tensors]
 
-    # We start by padding the sequences to the max_length
+    # 2- We then pad the sequences to the length
+    #    of the longest sequence
     tensors = pad_sequence(tensors)
     # tensors is (T, batch_size, n_mels)
     # note T is equal to the maximal length of the sequences
 
-    # We can pack the sequence
-    # Note we need to provide the timespans of the individual tensors
-	packed_data = pack_padded_sequence(tensors, lengths=lengths)
+    # 3- Padded sequences can then be packed
+    #    Note we need to provide the durations of the individual tensors
+    packed_data = pack_padded_sequence(tensors, lengths=lengths)
 
     # Later, we can unpack the sequence
     # Note we recover the lengths that can be used to slice the "dense"
     # tensor unpacked_data appropriatly
-	unpacked_data, lens_data = pad_packed_sequence(packed_data)
+    unpacked_data, lens_data = pad_packed_sequence(packed_data)
 
 ```
 
