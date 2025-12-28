@@ -1,5 +1,8 @@
 # coding: utf-8
 
+# Standard imports
+import logging
+import sys
 
 class CharMap(object):
     """
@@ -9,8 +12,8 @@ class CharMap(object):
     """
 
     _BLANK = 172  # Corresponds to '¬'
-    _SOS = 182  # Corresponds to '¶'
-    _EOS = 166  # Corresponds to '¦'
+    _SOS = 182  # Corresponds to '¶', which will encode the start of string
+    _EOS = 166  # Corresponds to '¦', which will encode the end of string
 
     def __init__(self):
         ord_chars = frozenset().union(
@@ -83,34 +86,36 @@ class CharMap(object):
     def decode(self, tokens):
         return "".join([self.idx2char[it] for it in tokens])
 
-# @SOL
-def ex_charmap():
+def test_charmap():
     charmap = CharMap()
 
-    # Some encoding/decoding tests
+    # Get the vocabulary size
+    # @TEMPL@ vocab_size = 0
+    # @SOL
+    vocab_size = charmap.vocab_size
+    # SOL@
+    logging.info(f"The vocabulary contains {charmap.vocab_size} characters")
+
+    # Experiment with the encoding of a sentence
     utterance = "Je vais m'éclater avec des RNNs !"
-    encoded = charmap.encode(utterance)
-    decoded = charmap.decode(encoded)
-    print(f'"{utterance}" -> "{encoded}" -> "{decoded}" ')
+    # @TEMPL@ encoded = []
+    encoded = charmap.encode(utterance) # @SOL@
+    logging.info(f"The encoding of '{utterance}' is : {encoded}")
 
-    # For some reasons, the replacement of œ fails
-    print(
-        charmap.decode(
-            charmap.encode(
-                "nous sommes heureux de vous souhaiter nos meilleurs vœux pour 2021"
-            )
-        )
-    )
-    print("œ" in charmap.char2idx)
+    # Decode the encoded sentence. Is it ok for you ?
+    # @TEMPL@ decoded = ""
+    decoded = charmap.decode(encoded) # @SOL@
+    charmap.encode(utterance)
+    logging.info(f"The decoding of the encoded sentence is '{decoded}'")
 
-    print(f"The vocabulary contains {charmap.vocab_size} characters")
-
-    print(charmap.decode([16, 20, 3, 22, 36, 37, 1, 29, 32, 26, 31, 5, 2]))
-
-# SOL@
+    # @SOL
+    # What happens if a character is unknown ?
+    utterance = "Nous sommes heureux de vous souhaiter nos meilleurs vœux pour 2021."
+    encoded = charmap.encode(utterance) # @SOL@
+    decoded = charmap.decode(encoded) # @SOL@
+    logging.info(f"The decoding of '{utterance}' is '{decoded}'")
+    # SOL@
 
 if __name__ == "__main__":
-    # @TEMPL@pass
-    # @SOL
-    ex_charmap()
-    # SOL@
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
+    test_charmap()

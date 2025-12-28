@@ -104,18 +104,31 @@ The end result of this module is essentially the get_dataloaders which, by makin
 
 ### Integer representations of the transcripts
 
-The transcripts are encoded into integers and decoded from integers thanks to a vocabulary in the CharMap object, representend as the char2idx dictionnary and idx2char list. Let us play a little bit with this object.
+The transcripts are encoded into integers and decoded from integers thanks to a vocabulary in the CharMap object, represented as the char2idx dictionnary and idx2char list. Let us play a little bit with this object.
 
-**Exercice** Which function call gives you the vocabulary size ? What is this vocabulary size ? What is the encoding of the sentence "Je vais m'éclater avec des RNNS!". What do you obtain if you decode the encoded sentence ? Does it make sense to you ? The code you write for answering these questions is expected to be written within the `data.py` script in dedicated functions called within the *main* block :
+For this part, we will work on the `data/charmap.py` script. This submodule is responsible for encoding/decoding transcripts.  
 
-```{.python}
+**Exercice** Let us practice this encoding. Answer the following questions :
 
-if __name__ == '__main__':
-    question1()
-    question2()
-    ...
+- Which function call gives you the vocabulary size ? 
+- What is this vocabulary size ? 
+- What is the encoding of the sentence "Je vais m'éclater avec des RNNS!". 
+- What do you obtain if you decode the encoded sentence ? Does it make sense to you ?  Do you see differences and some specific characters at the beginning and at the end of the decoded sentence ?
 
+::: {.callout-warning}
+
+To answer this question, you are provided with a base code to complete in the `data/charmap.py` submodule :
+
+```python
+def test_charmap():
+    charmap = CharMap()
+
+    # Get the vocabulary size
+    vocab_size = 0
+
+    ....
 ```
+:::
 
 <!--
 
@@ -124,6 +137,7 @@ vocab_size : 44
 "¶je vais m'eclater avec des rnns .|"
 -->
 
+As you may have notice in the functionning of the `CharMap` object, there are some design choices that have been made to limit the number of characters in our dataset : French accents, punctuation and case marks are removed.
 
 ### Transforming the waveforms into spectrograms
 
