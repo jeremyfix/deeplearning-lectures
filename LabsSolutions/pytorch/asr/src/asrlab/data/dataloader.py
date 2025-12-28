@@ -18,6 +18,7 @@ from torch.nn.utils.rnn import (
 )
 import torch.utils.data
 import torchaudio
+import numpy as np
 import tqdm
 
 # Local imports
@@ -280,7 +281,7 @@ def get_dataloaders(
                 N_elem += functools.reduce(operator.mul, unpacked_raveled.shape, 1)
             mean_spectro /= N_elem
             mean2_spectro /= N_elem
-            std_spectro = torch.sqrt(mean2_spectro - mean_spectro**2)
+            std_spectro = np.sqrt(mean2_spectro - mean_spectro**2)
         
         else:
             logging.info("Using the provided mean_spectro/std_spectro")
@@ -386,8 +387,9 @@ def test_dataloaders():
         "win_step": 10*1e-3, # s.
         "nmels": 20,
         "normalize": True,
-        # "mean_spectro": -31,
-        # "std_spectro": 32,
+        "mean_spectro": -53.,
+        "std_spectro": 29.,
+        # "num_samples": 100,
         "overwrite_index": False,
         "min_duration": 1., # s.
         "max_duration": 5., # s.
