@@ -197,7 +197,7 @@ def dataset_exploration():
     # Display the transcript of one of the samples
     # What is the duration, in seconds, of this sample ?
     
-    # SOL@
+    # @SOL
     idx = 0
 
     line = ds._walker[idx]
