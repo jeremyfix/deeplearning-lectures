@@ -5,6 +5,7 @@ version = "0.0.1"
 dependencies = [
     "torch>=2.0",
     "torchaudio",
+    "torchcodec",
     "tqdm>=4.65.0",
     "numpy>=2.2.4",
     "deepcs>=0.2.10",

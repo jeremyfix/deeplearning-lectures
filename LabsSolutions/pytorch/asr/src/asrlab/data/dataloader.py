@@ -409,6 +409,7 @@ def test_dataloaders():
     if not isinstance(minibatch, tuple) or len(minibatch) != 2:
         utils.fail("Expected a minibatch to be a tuple spectrograms, transcripts")
     else:
+        utils.info("The minibatch is a tuple with 2 elements")
         utils.succeed()
 
     packed_batch, packed_transcripts = minibatch
@@ -421,6 +422,7 @@ def test_dataloaders():
     ):
         utils.fail("Expected two PackedSequence")
     else:
+        utils.info("The two items are correctly of type PackedSequence")
         utils.succeed()
 
     # except:

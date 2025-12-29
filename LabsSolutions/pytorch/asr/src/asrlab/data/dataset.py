@@ -3,6 +3,7 @@
 # Standard imports
 import os
 from pathlib import Path
+from socket import SOL_ALG
 from typing import Union
 import pickle
 import time
@@ -13,6 +14,8 @@ import torch.nn as nn
 import torch.utils.data
 from torchaudio.datasets import COMMONVOICE
 import multiprocess
+import tqdm
+import matplotlib.pyplot as plt
 
 def load_dataset(
     fold: str,
@@ -113,5 +116,109 @@ class DatasetFilter(object):
     def __len__(self):
         return len(self.valid_indices)
 
+# @SOL
+
+def dataset_statistics():
+
+    fold = "train"
+    root = "/opt/datasets/CommonVoice"
+    version = "v24.0"
+    lang = "fr"
+
+    ds = load_dataset(
+        fold,
+        root=root,
+        version=version,
+        lang=lang
+    )
+
+    def collate_durations(batch):
+        """
+        Tricky collate function just to extract the duration of the
+        samples. This approach benefits from the multiprocessing of 
+        the dataloaders
+
+        Returns:
+            a list of durations of the samples
+        """
+        return [len(xi.squeeze())/sri for xi, sri, _ in batch]
+
+    durations = []
+
+    # ds = torch.utils.data.Subset(ds, range(5000))
+    dl = torch.utils.data.DataLoader(ds, batch_size=256, collate_fn=collate_durations)
+    for dur_i in tqdm.tqdm(dl):
+        durations.extend(dur_i)
+    print(durations)
+
+    plt.figure()
+    plt.ecdf(durations)
+    plt.title(f"Duration histogram ({min(durations):.2f} s. <= d <= {max(durations):.2f} s.)")
+    plt.xlabel("Duration (s.)")
+    plt.ylabel("Probability duration < x")
+    plt.savefig('durations_hist.png')
+
+def check_votes():
+    fold = "train"
+    root = "/opt/datasets/CommonVoice"
+    version = "v24.0"
+    lang = "fr"
+
+    ds = load_dataset(
+        fold,
+        root=root,
+        version=version,
+        lang=lang
+    )
+    for i in range(len(ds)):
+        _, _, dicoi = ds[i]
+        upi = dicoi["up_votes"]
+        downi = dicoi["down_votes"]
+        if downi > upi:
+            print(f"{upi} {downi}")
 
 
+# SOL@
+
+def dataset_exploration():
+    fold = "train"
+    root = "/opt/datasets/CommonVoice"
+    version = "v24.0"
+    lang = "fr"
+
+    ds = load_dataset(
+        fold,
+        root=root,
+        version=version,
+        lang=lang
+    )
+    
+    # TODO: Explore the content of the dataset
+    # Display the transcript of one of the samples
+    # What is the duration, in seconds, of this sample ?
+    
+    # SOL@
+    idx = 0
+
+    line = ds._walker[idx]
+    mp3path = os.path.join(ds._path, ds._folder_audio, line[1])
+    print(mp3path)
+    print(ds._folder_audio)
+    xi, sri, dicoi = ds[idx]
+    
+    print(dicoi)
+
+    duration = xi.squeeze().shape[0] / sri
+    plt.figure()
+    plt.plot(xi[0])
+    plt.title(f'{dicoi["sentence"]}, {duration} s.')
+    plt.savefig("sample.png")
+    # SOL@
+
+
+if __name__ == "__main__":
+    dataset_exploration()
+    # @SOL
+    # check_votes()
+    # dataset_statistics()
+    # SOL@

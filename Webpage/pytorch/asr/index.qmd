@@ -11,7 +11,7 @@ keywords: [PyTorch tutorial, Automatic Speech recognition, speech to text]
 
 In this labwork, you will be experimenting with various recurrent neural networks for addressing the quite exciting problem of transcribing in text was is said in an audio file, a so called [Automatic Speech Recognition (ASR)](https://en.wikipedia.org/wiki/Speech_recognition) task.
 
-The data we will be using are collected within the [Mozilla common voice](https://commonvoice.mozilla.org/) which are multi-language datasets of audio recordings and unaligned text transcripts. At the time of writing, the v15 corpus contains 2500 hours in English and almost 1000 hours in French. You can contribute yourself by either recording or validating recordings. Although we will be using Common Voice, there are [several other datasets you might interested in](https://www.afcp-parole.org/ressources/corpus-et-outils/corpus/) if you work on ASR.
+The data we will be using are collected within the [Mozilla common voice](https://commonvoice.mozilla.org/) which are multi-language datasets of audio recordings and unaligned text transcripts. At the time of writing, the v24 corpus contains 2750 hours in English and almost 1100 hours in French. You can contribute yourself by either recording or validating recordings. Although we will be using Common Voice, there are [several other datasets you might interested in](https://www.afcp-parole.org/ressources/corpus-et-outils/corpus/) if you work on ASR.
 
 You will be experimenting with the Connectionist Temporal Classification model (CTC) as introduced in [@Graves2014], which is the basis of the Deep Speech models (proposed by Baidu research[@Amodei2015] and also implemented by [Mozilla](https://github.com/mozilla/DeepSpeech)). Soon or later, this labwork might be extended to encompass Seq2Seq with attention as introduced in the Listen Attend and Spell [@Chan2016].
 
@@ -41,7 +41,9 @@ During this lab work, it is unreasonable to ask you to code everything from scra
 
 ## Setting up the dataloaders
 
-In the CommonVoice dataset, you are provided with MP3 waveforms, usually sampled at 48 kHz (sometimes, slightly less on the version 6.1 corpus) with their unaligned transcripts. Unaligned means the annotation does not tell you when each word has been pronounced. No worries, the CTC model is designed to deal with non aligned sequence to sequence.
+In the CommonVoice dataset, you are provided with MP3 waveforms, usually sampled at 48 kHz (sometimes, slightly less on the version 6.1 corpus) with their unaligned transcripts. Unaligned means the annotation does not tell you when each word has been pronounced. No worries, the CTC model is designed to deal with non aligned sequence to sequence. The Common Voice dataset contains small snippets of speech from half a second up to 18 seconds for the French dataset v24. Below is a plot of the cumulative distribution of the speech duration on the train fold.
+
+![Cumulative distribution of the speech length on the train fold of the v24 French Common Voice dataset](./durations_hist.png){width=50%}
 
 The data are therefore : a waveform as input and a sequence of characters for the output. These two signals will be processed :
 
@@ -55,6 +57,39 @@ And these signals need to be stacked in mini-batch tensors. For doing so, you wi
 - `dataloader.py` which sticks together the previous two elements in addition to deal with the sequences of varying length.
 
 The end result of this module is still the `get_dataloaders` which, by making use of the other functions/objects, build up the iterable minibatch collections. 
+
+### Dataset exploration
+
+::: {.callout-warning}
+
+**TO BE REFACTORED**
+
+:::
+
+We begin by looking at the content of the data. The [Common Voice](https://docs.pytorch.org/audio/main/generated/torchaudio.datasets.COMMONVOICE.html) dataset is made of :
+
+- a waveform which is the audio recording,
+- the sampling rate (in Hz),
+- a dictionnary with metadata such as speaker ids, transcripts, etc...
+
+**Exercice** By completing the code in `data/dataset.py` in the `dataset_exploration` function, can you get one sample and :
+
+- display the transcripts of what is said by the speaker 
+- compute the duration, in seconds, of the sample ? (This may require to combine the length of the waveform and the sampling rate, isn't it ?)
+
+If you want to listen to this audio clip, the path to the MP3 file can be built as :
+
+```python
+ds = load_dataset(...)
+
+idx = 0
+line = ds._walker[idx]
+mp3path = os.path.join(ds._path, ds._folder_audio, line[1])
+```
+
+An example waveform with its transcript and duration is shown below 
+
+![Sample 0 (common_voice_fr_39772910.mp3) of the French v24.0 Common Voice dataset, "Parfois, on incorpore de la ricotta dans la pâte."](sample_waveform.png){width=50%}
 
 ### Integer representations of the transcripts
 
