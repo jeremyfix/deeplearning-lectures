@@ -67,12 +67,6 @@ The end result of this module is still the `get_dataloaders` which, by making us
 
 ### Dataset exploration
 
-::: {.callout-warning}
-
-**TO BE REFACTORED**
-
-:::
-
 We begin by looking at the content of the data. The [Common Voice](https://docs.pytorch.org/audio/main/generated/torchaudio.datasets.COMMONVOICE.html) dataset is made of :
 
 - a waveform which is the audio recording,
@@ -224,7 +218,22 @@ def ex_pack():
 
 Note that you may want to use usual "dense" tensors, padding at the end your tensors of variable size, but that is not a good idea because 1) the processing on the GPU can be limited to just the right amount if it knows the length of the sequences, 2) padding at the end is not a big deal with unidirectional RNNs but can possibly be a problem with bidirectional RNNs.
 
-**Exercice** Equipped with these new PackedSequence tools, you now have to work on the build up of the minibatches by filling in the missing code in the BatchCollate class. To validate your implementation, the dataloaders test in the `test_implementation.py` script should pass.
+Collating together samples is the business of the dataloader. The torch dataloader has a default function for sticking together samples into a minibatch, see [default_collate](https://docs.pytorch.org/docs/stable/data.html#torch.utils.data.default_collate). As we are dealing with sequences of varying length, we have some specific code to implement. We will therefore implement our own `collate_fn`
+
+**Exercice** Equipped with these new PackedSequence tools, you now have to work on the build up of the minibatches by filling in the missing code in the `BatchCollate` class in the `data/dataloader.py` script. You only have $5$ lines to write which is basically :
+
+- `pad` the waveforms, compute their spectrogram and `pack` them. The lengths of the unpadded spectrograms are given in the `spectro_lengths` list provided to you,
+- `pad` and `pack` the encoded transcripts.
+
+::: {.callout-warning}
+
+To validate your implementation, you are given a test function in the `data/dataloader.py` script that you can call with :
+
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.data.dataloader
+```
+
+:::
 
 
 After completion, write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) plot the spectrograms associated with their transcripts. For the plot part, you can make use of the `plot_spectro` function (in data.py).
@@ -233,11 +242,14 @@ Below is an example expected output :
 
 ![An example spectrogram in log-Mel scale of the validation set with its transcript](spectro_valid.png){width=75%}
 
-### Final remarks about dataloading
+### Normalizing the spectrograms
 
-As a final note on the data loading part, you may notice that in the `get_dataloaders` function, the BatchCollate object are created with **normalization coefficients** of the spectrogram. I hard-coded the mean and variance. This is dirty, I agree, but that's speeding up your ability to experiment since otherwise it takes quite a while to compute these values. Nevertheless, keep this in mind that if you experiment with some other data, you may need to uncomment the code computing these normalization coefficients.
+As a final note on the data loading part, you may notice that in the `get_dataloaders` function, the BatchCollate object are created with **normalization coefficients** of the spectrogram. These can be given in the configuration dictionnary of the dataloaders under the `mean_spectro` and `std_spectro` keys. I already computed these values on the train fold of the v24 of the French dataset, these are :
 
-Also, please note that the train-v1.idx, dev-v1.idx and test-v1.idx files are precomputed to contain the list of the datasamples that have a duration between 1s. and 5s. In case you want to modify these timelengths in the get_dataloaders, you may need to remove these idx files so that they regenerated (see the DatasetFilter object).
+- `mean_spectro = -53`
+- `std_spectro = 29`
+
+You can provide these values in the configuration dictionnary. If you do not provide them, they will be recomputed if `normalize` is set to True. Computing these values can take up to $13$ minutes.
 
 ## Connectionist Temporal Classification (CTC)
 

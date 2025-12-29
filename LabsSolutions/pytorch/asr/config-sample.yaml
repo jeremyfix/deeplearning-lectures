@@ -1,8 +1,21 @@
 data: 
-  dataset: "MNIST" # SVHN, EMNIST, FashionMNIST, CelebA
-  rootdir: "/opt/datasets/"
-  debug: False
-  batch_size: 256
+  root_dir: "/mounts/datasets/datasets/CommonVoice"
+  version: "v24.0"
+  lang: "fr"
+  batch_size: 10
+  num_workers: 2
+  train_augment: True
+  sampling_rate: 16000 
+  win_length: 0.040
+  win_step: 0.010
+  nmels: 20
+  normalize: True
+  mean_spectro: -53.
+  std_spectro: 29.
+  num_samples: 100
+  overwrite_index: False
+  min_duration: 1.
+  max_duration: 9.
 
 nepochs: 200
 
