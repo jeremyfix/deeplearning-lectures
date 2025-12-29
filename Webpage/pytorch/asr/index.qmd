@@ -58,6 +58,7 @@ The data are therefore : a waveform as input and a sequence of characters for th
 
 And these signals need to be stacked in mini-batch tensors. For doing so, you will have to fill in code in the `asrlab/data` module. This module is more complex than what we did in the other labs. It is based on :
 
+- `dataset.py` which offers a function to load the CommonVoice dataset and to filter it based on the duration of the recordings,
 - `charmap.py` which deals with the encoding/decoding of the transcripts,
 - `waveform.py` which deals with the computation of the spectrogram from the waveform,
 - `dataloader.py` which sticks together the previous two elements in addition to deal with the sequences of varying length.
@@ -158,54 +159,20 @@ To validate your implementation, you are provided with a test function in the `d
 
 :::
 
-You can test your code with the following
 
-::: {.callout-warning}
+### Wrapping the spectrogram computation and transcript encoding
 
-**TO BE REFACTORED** : not in the `waveform.py` script anymore
+We can now combine the two previous steps to get a Mel spectrogram from the waveform as well as the encoding of the transcript. The function is already given to you in the `data/__main__.py` script that you can call with :
 
-:::
 
-```{.python}
-
-import matplotlib.pyplot as plt
-
-def test_spectro():
-    dataset = load_dataset("train",
-                           _DEFAULT_COMMONVOICE_ROOT,
-                           _DEFAULT_COMMONVOICE_VERSION)
-
-    # Take one of the waveforms 
-    idx = 10
-    waveform, rate, dictionary = dataset[idx]
-    waveform = waveform.transpose(0, 1)  # (B, T) to (T, B) as expected by WaveformProcessor
-
-    win_step = _DEFAULT_WIN_STEP*1e-3
-    trans_mel_spectro = WaveformProcessor(rate=rate,
-                                          win_length=_DEFAULT_WIN_LENGTH*1e-3,
-                                          win_step=win_step,
-                                          nmels=_DEFAULT_NUM_MELS,
-                                          augment=False,
-										  spectro_normalization=None)
-    mel_spectro = trans_mel_spectro(waveform).squeeze()  # (T, 1, N_MELS) to (T, N_MELS)
-
-    fig = plt.figure(figsize=(10, 2))
-    ax = fig.add_subplot()
-
-    im = ax.imshow(mel_spectro.T,
-                   extent=[0, mel_spectro.shape[0]*win_step,
-                           0, mel_spectro.shape[1]],
-                   aspect='auto',
-                   cmap='magma',
-                   origin='lower')
-    ax.set_ylabel('Mel scale')
-    ax.set_xlabel('TIme (s.)')
-    ax.set_title('Log mel spectrogram')
-    plt.colorbar(im)
-    plt.tight_layout()
-    plt.show()
-
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.data
 ```
+
+An example is shown below.
+
+![A sample of the dataset with the Spectrogram in logmel scale](./dataset_sample.png){width=85%}
+
 
 ### Collating variable size spectrograms and transcripts in minibatches
 

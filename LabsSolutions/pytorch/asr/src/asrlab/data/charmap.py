@@ -94,7 +94,7 @@ def test_charmap():
     # @SOL
     vocab_size = charmap.vocab_size
     # SOL@
-    logging.info(f"The vocabulary contains {charmap.vocab_size} characters")
+    logging.info(f"The vocabulary contains {vocab_size} characters")
 
     # Experiment with the encoding of a sentence
     utterance = "Je vais m'éclater avec des RNNs !"
