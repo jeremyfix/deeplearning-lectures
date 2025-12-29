@@ -236,7 +236,7 @@ def get_dataloaders(
                 ds=ds,
                 min_duration=min_duration,
                 max_duration=max_duration,
-                cacheprefix=fold + "-" + version,
+                cacheprefix=f"{fold}-{commonvoice_lang}-{version}",
                 overwrite_index=overwrite_index,
             )
 
@@ -392,7 +392,7 @@ def test_dataloaders():
         # "num_samples": 100,
         "overwrite_index": False,
         "min_duration": 1., # s.
-        "max_duration": 5., # s.
+        "max_duration": 9., # s.
     }
 
     # try:
