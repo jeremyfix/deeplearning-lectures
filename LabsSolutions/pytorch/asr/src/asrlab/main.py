@@ -15,6 +15,7 @@ from torch.optim import lr_scheduler
 from torch.utils.tensorboard import SummaryWriter
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import torchaudio
+import matplotlib.pyplot as plt
 import deepcs.display
 from deepcs.training import train as ftrain, ModelCheckpoint
 from deepcs.testing import test as ftest
@@ -114,6 +115,9 @@ def train(configpath):
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
+    if "seed" in config:
+        deepcs.rng.seed_torch(config["seed"])
+
     if "wandb" in args["logging"]:
         wandb_config = args["logging"]["wandb"]
         wandb.init(project=wandb_config["project"], entity=wandb_config["entity"])
@@ -212,7 +216,8 @@ def train(configpath):
 
     # Save the normalizing statistics
     with open(logdir / "normalizing_stats.yaml", "w") as file:
-        yaml.dump(train_stats, file)
+        stats_dict = {"mean": train_stats[0], "std": train_stats[1]}
+        yaml.dump(stats_dict, file)
 
     # Make a summary script of the experiment
     summary_text = (
@@ -354,11 +359,15 @@ def train(configpath):
         #     export_onnx(model, n_mels, device, onnx_filepath)
 
 
-def test(args):
+def test(logdir, audiopath):
     """
     Test function to decode a sample with a pretrained model
     """
-    import matplotlib.pyplot as plt
+    logging.info("Testing")
+
+    configpath = logdir / "config.yaml"
+    logging.info(f"Loading {configpath}")
+    args = yaml.safe_load(open(configpath, "r"))
 
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
@@ -373,71 +382,75 @@ def test(args):
     # modelpath pt file saved. A better way to handle that
     # would be to use yaml files containing the hyperparameters for
     # training and load this yaml file when loading.
-    n_mels = args.nmels
-    nhidden_rnn = args.nhidden_rnn
-    nlayers_rnn = args.nlayers_rnn
-    cell_type = args.cell_type
-    dropout = args.dropout
-
-    modelpath = args.modelpath
-    audiofile = args.audiofile
-    beamwidth = args.beamwidth
-    beamsearch = args.beamsearch
-    assert modelpath is not None
-    assert audiofile is not None
-
     logging.info("Building the model")
-    model = models.CTCModel(
-        charmap, n_mels, nhidden_rnn, nlayers_rnn, cell_type, dropout
+    modelconfig = args["model"]
+    model = models.build_model(
+        charmap, modelconfig
     )
     model.to(device)
-    model.load_state_dict(torch.load(modelpath))
+    model.load_state_dict(torch.load(str(logdir / "best_model.pt")))
 
     # Switch the model to eval mode
     model.eval()
 
     # Load and preprocess the audiofile
+    datacfg = args["data"]
     logging.info("Loading and preprocessing the audio file")
-    waveform, sample_rate = torchaudio.load(audiofile)
-    waveform = torchaudio.transforms.Resample(sample_rate, data._DEFAULT_RATE)(
+    waveform, sample_rate = torchaudio.load(audiopath)
+    waveform = torchaudio.transforms.Resample(sample_rate,
+                                              datacfg["sampling_rate"])(
         waveform
     ).transpose(
         0, 1
     )  # (T, B)
-    # Hardcoded normalization, this is dirty, I agree
-    spectro_normalization = (-31, 32)
+
+    # Reload the normalization statistics
+    dico_norm = yaml.safe_load(open(str(logdir / "normalizing_stats.yaml"), "r"))
+    spectro_normalization = (dico_norm["mean"], dico_norm["std"])
+
     # The processor for computing the spectrogram
     waveform_processor = data.WaveformProcessor(
-        data._DEFAULT_RATE,
-        data._DEFAULT_WIN_LENGTH * 1e-3,
-        data._DEFAULT_WIN_STEP * 1e-3,
-        n_mels,
+        datacfg["sampling_rate"],
+        datacfg["win_length"],
+        datacfg["win_step"],
+        datacfg["nmels"],
         False,
         spectro_normalization,
     )
-    spectrogram = waveform_processor(waveform).to(device)
-    spectro_length = spectrogram.shape[0]
+    mel_spectro = waveform_processor(waveform).to(device)
+    logging.info(mel_spectro.shape)
+    spectro_length = mel_spectro.shape[0]
 
     # Plot the spectrogram
     logging.info("Plotting the spectrogram")
     fig = plt.figure()
     ax = fig.add_subplot()
-    ax.imshow(
-        spectrogram[0].cpu().numpy(), aspect="equal", cmap="magma", origin="lower"
-    )
-    ax.set_xlabel("Mel scale")
-    ax.set_ylabel("Time (sample)")
+    im = ax.imshow(mel_spectro.squeeze().cpu().numpy().T,
+                   extent=[0, mel_spectro.shape[0]*datacfg["win_step"],
+                           0, mel_spectro.shape[2]],
+                   aspect='auto',
+                   cmap='magma',
+                   origin='lower')
+    plt.colorbar(im)
+    ax.set_xlabel("Time (sample)")
+    ax.set_ylabel("Mel scale")
     fig.tight_layout()
     plt.savefig("spectro_test.png")
 
-    spectrogram = pack_padded_sequence(spectrogram, lengths=[spectro_length])
+    mel_spectro = pack_padded_sequence(mel_spectro, lengths=[spectro_length])
 
     logging.info("Decoding the spectrogram")
 
-    if beamsearch:
-        likely_sequences = model.beam_decode(spectrogram, beamwidth, charmap.blankid)
+    if "decoding" in args:
+        if args["decoding"]["beamsearch"]:
+            beamwidth = args["decoding"]["beamwidth"]
+            logging.info(f"Using beamsearch with beamwidth = {beamwidth}")
+            likely_sequences = model.beam_decode(mel_spectro, 
+                                                 beamwidth, 
+                                                 charmap.blankid)
     else:
-        likely_sequences = model.decode(spectrogram)
+        logging.info("Using greedy decoding")
+        likely_sequences = model.decode(mel_spectro)
 
     print("Log prob    Sequence\n")
     print("\n".join(["{:.2f}      {}".format(p, s) for (p, s) in likely_sequences]))
@@ -449,7 +462,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         logging.error(f"Incorrect number of arguments. Usage is : ")
         logging.error(f" - {sys.argv[0]} train config.yaml")
-        logging.error(f" - {sys.argv[0]} test")
+        logging.error(f" - {sys.argv[0]} test <logdir> <audio file>")
         sys.exit(-1)
 
     if sys.argv[1] == "train":
@@ -457,24 +470,14 @@ if __name__ == "__main__":
         train(configpath)
 
     elif sys.argv[1] == "test": 
-        raise NotImplementedError
-        test(args)
-        # For testing/decoding
-        # parser.add_argument("--modelpath", type=Path, help="The pt path to load")
-        # parser.add_argument(
-        #     "--audiofile", type=Path, help="The path to the audio file to transcript"
-        # )
-        # parser.add_argument(
-        #     "--beamwidth",
-        #     type=int,
-        #     help="The number of alternative decoding hypotheses" " to consider in parallel",
-        #     default=10,
-        # )
-        # parser.add_argument(
-        #     "--beamsearch",
-        #     action="store_true",
-        #     help="Whether or not to use beam search. If not, use" " max decoding.",
-        # )
+        if len(sys.argv) != 4:
+            logging.error(f"Incorrect number of arguments. Usage is : ")
+            logging.error(f" - {sys.argv[0]} test <logdir> <audio file>")
+            sys.exit(-1)
+
+        logdir = pathlib.Path(sys.argv[2])
+        audiopath = pathlib.Path(sys.argv[3])
+        test(logdir, audiopath)
     else:
         raise RuntimeError(f"Unknown command {sys.argv[1]}")
 

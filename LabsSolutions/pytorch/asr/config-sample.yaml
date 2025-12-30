@@ -12,7 +12,7 @@ data:
   normalize: True
   mean_spectro: -53.
   std_spectro: 29.
-  num_samples: 100
+  # num_samples: 100
   overwrite_index: False
   min_duration: 0.
   max_duration: 60.
@@ -42,6 +42,10 @@ model:
     cell_type: GRU
     dropout: 0.5
     n_mels: 20 # TODO: must be the same as data["nmels"]
+
+decoding:
+  beamwidth: 10
+  beamsearch: True
 
 logging:
   # wandb: 
