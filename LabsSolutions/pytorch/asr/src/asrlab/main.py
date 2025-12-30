@@ -92,8 +92,8 @@ def train(configpath):
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
-    if "seed" in config:
-        deepcs.rng.seed_torch(config["seed"])
+    if "seed" in args:
+        deepcs.rng.seed_torch(args["seed"])
 
     if "wandb" in args["logging"]:
         wandb_config = args["logging"]["wandb"]
