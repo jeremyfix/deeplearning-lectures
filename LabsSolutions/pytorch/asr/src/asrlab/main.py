@@ -134,8 +134,9 @@ def train(configpath):
     ##########################
 
     decode = model.decode
+    # beamwidth = args["decoding"]["beamwidth"]
     # decode = lambda spectro: model.beam_decode(
-    #     spectro, beam_size=args.beamwidth, blank_id=blank_id
+    #     spectro, beam_size=beamwidth, blank_id=blank_id
     # )
 
     model.to(device)
