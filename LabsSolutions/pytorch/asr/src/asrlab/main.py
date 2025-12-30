@@ -426,6 +426,9 @@ def test(logdir, audiopath):
             likely_sequences = model.beam_decode(mel_spectro, 
                                                  beamwidth, 
                                                  charmap.blankid)
+        else:
+            logging.info("Using greedy decoding")
+            likely_sequences = model.decode(mel_spectro)
     else:
         logging.info("Using greedy decoding")
         likely_sequences = model.decode(mel_spectro)
