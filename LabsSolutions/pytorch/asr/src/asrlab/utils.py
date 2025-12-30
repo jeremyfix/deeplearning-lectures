@@ -3,10 +3,12 @@
 # Standard imports
 import inspect
 import os
+import pathlib
 
 # External imports
 import torch
 import torch.nn
+from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence
 
 class colors:
     HEADER = "\033[95m"
@@ -77,14 +79,16 @@ class ModelCheckpoint(object):
         self,
         model: torch.nn.Module,
         savepath,
-        input_size,
         device,
         min_is_best: bool = True,
     ) -> None:
         self.model = model
         self.savepath_pt = savepath / "best_model.pt"
         self.savepath_onnx = savepath / "best_model.onnx"
-        self.dummy_inputs = torch.zeros(input_size, device=device)
+
+        T, B = 2, 3
+        self.dummy_inputs = torch.zeros((T, B, self.model.n_mels), device=device)
+
         self.best_score = None
         if min_is_best:
             self.is_better = self.lower_is_better
@@ -108,18 +112,46 @@ class ModelCheckpoint(object):
             # Export the pytorch parameters tensor
             torch.save(self.model.state_dict(), self.savepath_pt)
 
-            # Save also the onnx
-            torch.onnx.export(
-                self.model,
-                self.dummy_inputs,
-                self.savepath_onnx,
-                input_names=["scan"],
-                output_names=["output"],
-                dynamic_axes={
-                    "scan": {0: "batch", 2: "height", 3: "width"},
-                    "output": {0: "batch", 2: "height", 3: "width"},
-                },
-            )
+            # # Save also the onnx
+            # # Create a wrapper that accepts unpacked tensors and unpacks the output
+            # # This is necessary because torch.onnx.export uses symbolic tracing
+            # # which doesn't support PackedSequence operations
+            # class ExportableWrapper(torch.nn.Module):
+            #     def __init__(self, model):
+            #         super().__init__()
+            #         self.model = model
+            #
+            #     def forward(self, x):
+            #         # x is a regular tensor of shape (T, B, features)
+            #         # we pack it to do a forward pass through the model
+            #         T = x.shape[0]
+            #         packed_x = pack_padded_sequence(x, lengths=[T]*x.shape[1])
+            #
+            #         packed_output = self.model(x)
+            #         unpacked_output, _ = pad_packed_sequence(packed_output)
+            #
+            #         return unpacked_output
+            #
+            # wrapper = ExportableWrapper(self.model)
+            #
+            # # Use lower-level API to avoid torch.export.export issues
+            # try:
+            #     torch.onnx.export(
+            #         wrapper,
+            #         self.dummy_inputs,
+            #         self.savepath_onnx,
+            #         input_names=["input"],
+            #         output_names=["output"],
+            #         dynamic_shapes=(
+            #             {0: "seq_len", 1: "batch"},
+            #             {0: "seq_len", 1: "batch"},
+            #         ),
+            #     )
+            # except Exception as e:
+            #     # If ONNX export fails, we can still continue training
+            #     # The model will be saved in PyTorch format
+            #     import warnings
+            #     warnings.warn(f"ONNX export failed: {e}. Continuing with PyTorch format only.")
 
             self.best_score = score
 
@@ -129,4 +161,27 @@ class ModelCheckpoint(object):
             return True
         return False
 
+# @SOL
+def test_export():
+    import tempfile
 
+    # Dummy model
+    class DummyModel(torch.nn.Module):
+
+        def __init__(self):
+            super().__init__()
+            self.n_mels = 20
+
+        def forward(self, x):
+            return x
+
+    model = DummyModel()
+       
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        checkpoint = ModelCheckpoint(model, pathlib.Path(tmpdirname), torch.device('cpu'), min_is_best=True)
+        checkpoint.update(1.0)
+# SOL@
+
+if __name__ == "__main__":
+    # @TEMPL@ pass
+    test_export() # @SOL@

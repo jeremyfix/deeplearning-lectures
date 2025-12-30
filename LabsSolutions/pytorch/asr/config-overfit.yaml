@@ -1,0 +1,49 @@
+data: 
+  root_dir: "/mounts/datasets/datasets/CommonVoice"
+  version: "v24.0"
+  lang: "fr"
+  batch_size: 10
+  num_workers: 6
+  train_augment: False
+  sampling_rate: 16000 
+  win_length: 0.040
+  win_step: 0.010
+  nmels: 80
+  normalize: True
+  mean_spectro: -53.
+  std_spectro: 29.
+  num_samples: 10
+  overwrite_index: False
+  min_duration: 0.
+  max_duration: 60.
+
+nepochs: 200
+# seed: 12345
+# resume_from: <path_to_pt>
+
+optim:
+  base_lr: 0.0001
+  # weight_decay: 0.0001
+  grad_clip: 20
+
+# scheduler: 
+#   class: "StepLR"
+#   params: 
+#     step_size: 10
+#     gamma: 0.5
+
+
+model:
+  class: CTCModel
+  params:
+    nhidden_rnn: 1024
+    nlayers_rnn: 4
+    cell_type: GRU
+    dropout: 0.0 #0.5
+    n_mels: 80 # TODO: must be the same as data["nmels"]
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster

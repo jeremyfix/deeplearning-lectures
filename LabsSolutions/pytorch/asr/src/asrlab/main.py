@@ -235,11 +235,8 @@ def train(configpath):
         wandb_log({"summary": summary_text})
 
     # Define the early stopping callback
-    x0, _ = next(iter(train_loader))
-    # x0 is a list of tensors (spectro, transcript)
-    input_size = (1,) + x0[0].shape
     model_checkpoint = utils.ModelCheckpoint(
-        model, logdir, input_size, device, min_is_best=False
+        model, logdir, device, min_is_best=True
     )
 
     # Learning rate scheduler
@@ -314,7 +311,7 @@ def train(configpath):
         # Compute and record the metrics on the test set
         test_metrics = ftest(model, test_loader, device, test_fmetrics, num_model_args=1)
         logging.info(
-            "[%d/%d] Test:   Loss : %.3f " % (e, num_epochs, test_metrics["CTC"])
+            "[%d/%d] Test:   Loss : %.3f " % (e, nepochs, test_metrics["CTC"])
         )
         for m_name, m_value in test_metrics.items():
             tensorboard_writer.add_scalar(f"metrics/test_{m_name}", m_value, e + 1)
