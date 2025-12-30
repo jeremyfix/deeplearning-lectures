@@ -18,7 +18,6 @@ import torchaudio
 import deepcs.display
 from deepcs.training import train as ftrain, ModelCheckpoint
 from deepcs.testing import test as ftest
-import deepcs.metrics
 import deepcs.rng
 import wandb
 
@@ -26,7 +25,7 @@ import wandb
 from . import data
 from . import models
 from . import utils
-
+from . import metrics
 
 def wrap_ctc_args(packed_predictions, packed_targets):
     """
@@ -203,7 +202,8 @@ def train(configpath):
     logging.info(f"Will be logging into {logdir}")
 
     # Build the metrics
-    metrics = {"CTC": deepcs.metrics.GenericBatchMetric(loss)}
+    train_fmetrics = {"CTC": metrics.GenericBatchMetric(loss)}
+    test_fmetrics = {"CTC": metrics.GenericBatchMetric(loss)}
 
     # Copy the config file into the logdir
     logdir = pathlib.Path(logdir)
@@ -282,7 +282,7 @@ def train(configpath):
             loss,
             optimizer,
             device,
-            metrics,
+            train_fmetrics,
             grad_clip=args["optim"]["grad_clip"],
             num_model_args=1,
             num_epoch=e,
@@ -292,7 +292,7 @@ def train(configpath):
             tensorboard_writer.add_scalar(f"metrics/train_{m_name}", m_value, e + 1)
 
         # Compute and record the metrics on the validation set
-        valid_metrics = ftest(model, valid_loader, device, metrics, num_model_args=1)
+        valid_metrics = ftest(model, valid_loader, device, train_fmetrics, num_model_args=1)
         better_model = model_checkpoint.update(valid_metrics["CTC"])
 
         if scheduler is not None:
@@ -312,7 +312,7 @@ def train(configpath):
             tensorboard_writer.add_scalar(f"metrics/valid_{m_name}", m_value, e + 1)
 
         # Compute and record the metrics on the test set
-        test_metrics = ftest(model, test_loader, device, metrics, num_model_args=1)
+        test_metrics = ftest(model, test_loader, device, test_fmetrics, num_model_args=1)
         logging.info(
             "[%d/%d] Test:   Loss : %.3f " % (e, num_epochs, test_metrics["CTC"])
         )
