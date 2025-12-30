@@ -4,8 +4,8 @@
 import os
 import sys
 import logging
-import argparse
-from pathlib import Path
+import yaml
+import pathlib
 
 # External imports
 import torch
@@ -18,7 +18,6 @@ import torchaudio
 import deepcs.display
 from deepcs.training import train as ftrain, ModelCheckpoint
 from deepcs.testing import test as ftest
-from deepcs.fileutils import generate_unique_logpath
 import deepcs.metrics
 import deepcs.rng
 import wandb
@@ -26,6 +25,7 @@ import wandb
 # Local imports
 from . import data
 from . import models
+from . import utils
 
 
 def wrap_ctc_args(packed_predictions, packed_targets):
@@ -103,63 +103,49 @@ def decode_samples(fdecode, loader, n, device, charmap):
     return decoding_results
 
 
-def train(args):
+def train(configpath):
     """
     Training of the algorithm
     """
     logging.info("Training")
 
-    if args.wandb_project is not None and args.wandb_entity is not None:
-        wandb.init(
-            project=args.wandb_project, entity=args.wandb_entity, config=vars(args)
-        )
-        wandb_log = wandb.log
-        logging.info("Will be recording in wandb run name : {wandb.run.name}")
-    else:
-        wandb_log = None
+    logging.info(f"Loading {configpath}")
+    args = yaml.safe_load(open(configpath, "r"))
 
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
-    # Data loading
-    loaders = data.get_dataloaders(
-        args.datasetroot,
-        args.datasetversion,
-        cuda=use_cuda,
-        batch_size=args.batch_size,
-        n_threads=args.nthreads,
-        min_duration=args.min_duration,
-        max_duration=args.max_duration,
-        small_experiment=args.debug,
-        train_augment=args.train_augment,
-        nmels=args.nmels,
-        logging=logging,
-    )
-    train_loader, valid_loader, test_loader = loaders
+    if "wandb" in args["logging"]:
+        wandb_config = args["logging"]["wandb"]
+        wandb.init(project=wandb_config["project"], entity=wandb_config["entity"])
+        wandb_log = wandb.log
+        wandb_log(config)
+        logging.info(f"Will be recording in wandb run name : {wandb.run.name}")
+    else:
+        wandb_log = None
 
-    # Parameters
-    n_mels = args.nmels
-    nhidden_rnn = args.nhidden_rnn
-    nlayers_rnn = args.nlayers_rnn
-    cell_type = args.cell_type
-    dropout = args.dropout
-    base_lr = args.base_lr
-    num_epochs = args.num_epochs
-    grad_clip = args.grad_clip
+    # Data loading
+    logging.info("= Building the dataloaders")
+    train_loader, valid_loader, test_loader, train_stats = data.get_dataloaders(
+        args["data"],
+        use_cuda=use_cuda,
+    )
 
     # We need the char map to know about the vocabulary size
     charmap = data.CharMap()
     blank_id = charmap.blankid
 
-    # Model definition
+    # Build the model
+    logging.info("= Model")
     ###########################
     #### START CODING HERE ####
     ###########################
+    modelconfig = args["model"]
     # @TEMPL@model = None
     # @SOL
     # model = models.LinearModel(charmap, n_mels)
-    model = models.CTCModel(
-        charmap, n_mels, nhidden_rnn, nlayers_rnn, cell_type, dropout
+    model = models.build_model(
+        charmap, modelconfig
     )
 
     # SOL@
@@ -175,34 +161,60 @@ def train(args):
     model.to(device)
 
     # @SOL
-    if args.resume_from is not None:
-        model.load_state_dict(torch.load(args.resume_from))
+    if "resume_from" in args:
+        model.load_state_dict(torch.load(args["resume_from"]))
     # SOL@
 
-    # Loss, optimizer
+    # Build the loss
+    logging.info("= Loss")
     baseloss = nn.CTCLoss(blank=blank_id, reduction="mean", zero_infinity=True)
     loss = lambda *params: baseloss(*wrap_ctc_args(*params))
 
     ###########################
     #### START CODING HERE ####
     ###########################
+    # Build the optimizer
+    logging.info("= Optimizer")
+    optimconfig = args["optim"]
     # @TEMPL@optimizer = None
     # @SOL
-    if args.weight_decay is not None and args.weight_decay != 0.0:
+    if "weight_decay" in optimconfig:
         optimizer = optim.AdamW(
-            model.parameters(), lr=base_lr, weight_decay=args.weight_decay
+            model.parameters(), 
+            lr=optimconfig["base_lr"], 
+            weight_decay=optimconfig["weight_decay"]
         )
     else:
-        optimizer = optim.Adam(model.parameters(), lr=base_lr)
+        optimizer = optim.Adam(model.parameters(), 
+                               lr=optimconfig["base_lr"])
     # SOL@
 
     ##########################
     #### STOP CODING HERE ####
     ##########################
 
+    # Build the callbacks
+    logging_config = args["logging"]
+    # Let us use as base logname the class name of the modek
+    logname = modelconfig["class"]
+    logdir = utils.generate_unique_logpath(logging_config["logdir"], logname)
+    if not os.path.isdir(logdir):
+        os.makedirs(logdir)
+    logging.info(f"Will be logging into {logdir}")
+
+    # Build the metrics
     metrics = {"CTC": deepcs.metrics.GenericBatchMetric(loss)}
 
-    # Callbacks
+    # Copy the config file into the logdir
+    logdir = pathlib.Path(logdir)
+    with open(logdir / "config.yaml", "w") as file:
+        yaml.dump(args, file)
+
+    # Save the normalizing statistics
+    with open(logdir / "normalizing_stats.yaml", "w") as file:
+        yaml.dump(train_stats, file)
+
+    # Make a summary script of the experiment
     summary_text = (
         "## Summary of the model architecture\n"
         + f"{deepcs.display.torch_summarize(model)}\n"
@@ -211,12 +223,10 @@ def train(args):
     summary_text += "\n\n## Executed command :\n" + "{}".format(" ".join(sys.argv))
     summary_text += "\n\n## Args : \n {}".format(args)
 
+    with open(logdir / "summary.txt", "w") as f:
+        f.write(summary_text)
     logging.info(summary_text)
 
-    if args.logname is not None:
-        logdir = os.path.join(args.baselogdir, args.logname)
-    else:
-        logdir = generate_unique_logpath(args.baselogdir, "ctc")
     tensorboard_writer = SummaryWriter(log_dir=logdir, flush_secs=5)
     tensorboard_writer.add_text(
         "Experiment summary", deepcs.display.htmlize(summary_text)
@@ -224,14 +234,20 @@ def train(args):
     if wandb_log is not None:
         wandb_log({"summary": summary_text})
 
-    with open(os.path.join(logdir, "summary.txt"), "w") as f:
-        f.write(summary_text)
+    # Define the early stopping callback
+    x0, _ = next(iter(train_loader))
+    # x0 is a list of tensors (spectro, transcript)
+    input_size = (1,) + x0[0].shape
+    model_checkpoint = utils.ModelCheckpoint(
+        model, logdir, input_size, device, min_is_best=False
+    )
 
-    logging.info(f">>>>> Results saved in {logdir}")
-
-    model_checkpoint = ModelCheckpoint(model, os.path.join(logdir, "best_model.pt"))
-    if args.scheduler:
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+    # Learning rate scheduler
+    if "scheduler" in args:
+        cfg = args["scheduler"]
+        scheduler = lr_scheduler.StepLR(optimizer, 
+                                        step_size=cfg["params"]["step_size"], 
+                                        gamma=cfg["params"]["gamma"])
         # scheduler = lr_scheduler.CosineAnnealingWarmRestarts(
         #     optimizer, T_0=10, T_mult=2, eta_min=0.01, last_epoch=-1
         # )
@@ -256,7 +272,8 @@ def train(args):
     logging.info("\n" + decoding_results + "\n\n")
 
     # Training loop
-    for e in range(num_epochs):
+    nepochs = args["nepochs"]
+    for e in range(nepochs):
         logging.info("\n" + (">" * 20) + f" Epoch {e:05d}" + ("<" * 20) + "\n\n")
 
         train_metrics = ftrain(
@@ -266,7 +283,7 @@ def train(args):
             optimizer,
             device,
             metrics,
-            grad_clip=grad_clip,
+            grad_clip=args["optim"]["grad_clip"],
             num_model_args=1,
             num_epoch=e,
             tensorboard_writer=tensorboard_writer,
@@ -285,7 +302,7 @@ def train(args):
             "[%d/%d] Validation:   CTCLoss : %.3f %s"
             % (
                 e,
-                num_epochs,
+                nepochs,
                 valid_metrics["CTC"],
                 "[>> BETTER <<]" if better_model else "",
             )
@@ -293,6 +310,7 @@ def train(args):
 
         for m_name, m_value in valid_metrics.items():
             tensorboard_writer.add_scalar(f"metrics/valid_{m_name}", m_value, e + 1)
+
         # Compute and record the metrics on the test set
         test_metrics = ftest(model, test_loader, device, metrics, num_model_args=1)
         logging.info(
@@ -439,9 +457,7 @@ if __name__ == "__main__":
 
     if sys.argv[1] == "train":
         configpath = sys.argv[2]
-        logging.info(f"Loading {configpath}")
-        config = yaml.safe_load(open(configpath, "r"))
-        train(config)
+        train(configpath)
 
     elif sys.argv[1] == "test": 
         raise NotImplementedError
