@@ -7,17 +7,11 @@ keywords: [PyTorch tutorial, Automatic Speech recognition, speech to text]
 
 <a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
 
-🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
-
-🚧🚧🚧🚧🚧🚧 **WARNING** Refactoring in progress 🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
-
-🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
-
 ## Objectives
 
 In this labwork, you will be experimenting with various recurrent neural networks for addressing the quite exciting problem of transcribing in text was is said in an audio file, a so called [Automatic Speech Recognition (ASR)](https://en.wikipedia.org/wiki/Speech_recognition) task.
 
-The data we will be using are collected within the [Mozilla common voice](https://commonvoice.mozilla.org/) which are multi-language datasets of audio recordings and unaligned text transcripts. At the time of writing, the v24 corpus contains 2750 hours in English and almost 1100 hours in French. You can contribute yourself by either recording or validating recordings. Although we will be using Common Voice, there are [several other datasets you might interested in](https://www.afcp-parole.org/ressources/corpus-et-outils/corpus/) if you work on ASR.
+The data we will be using are collected within the [Mozilla common voice](https://commonvoice.mozilla.org/) which are multi-language datasets of audio recordings and unaligned text transcripts. At the time of writing, the v24 corpus contains $2750$ hours in English 🇬🇧, almost $1100$ hours in French 🇫🇷 and $100$ hours in Ukrainian 🇺🇦. You can contribute yourself by either recording or validating recordings. Although we will be using Common Voice, there are [several other datasets you might interested in](https://www.afcp-parole.org/ressources/corpus-et-outils/corpus/) if you work on ASR.
 
 You will be experimenting with the Connectionist Temporal Classification model (CTC) as introduced in [@Graves2014], which is the basis of the Deep Speech models (proposed by Baidu research[@Amodei2015] and also implemented by [Mozilla](https://github.com/mozilla/DeepSpeech)). Soon or later, this labwork might be extended to encompass Seq2Seq with attention as introduced in the Listen Attend and Spell [@Chan2016].
 
@@ -442,6 +436,12 @@ To add L2 regularization, you can use the [AdamW](https://docs.pytorch.org/docs/
 You could also implement a `penalty()` function in your CTCModel called from the training function.
 
 ## Testing on a new audioclip
+
+🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
+
+Refactoring in progress
+
+🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
 
 To test of an audio clip, you can record yourself as a mp3 and call the `asrlab` library with a path to the log directory and the path to the recording. In its current version, the model is saved as a `pt` file and therefore we need to recreate the model before loading its parameters. And to create the model, we need the parameters (number of layers, hidden units, ...) used to create it in the first place.
 
