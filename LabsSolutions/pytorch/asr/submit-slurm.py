@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 
 
-def makejob(commit_id, configpath, nruns):
+def makejob(commit_id, configpath):
     return f"""#!/bin/bash
 
 #SBATCH --job-name=asrlab
@@ -15,18 +15,25 @@ def makejob(commit_id, configpath, nruns):
 #SBATCH --time=48:00:00
 #SBATCH --output=logslurms/slurm-%A_%a.out
 #SBATCH --error=logslurms/slurm-%A_%a.err
-#SBATCH --array=1-{nruns}
 #SBATCH --exclude=sh00,sh[10-19]
 
 current_dir=`pwd`
 export PATH=$PATH:~/.local/bin
 
-echo "Session " ${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}}
+echo "Session " ${{SLURM_JOB_ID}}
 
 echo "Running on " $(hostname)
 
+echo "Copying the data"
+date
+mkdir -p $TMPDIR/CommonVoice
+cp -r /mounts/datasets/datasets/CommonVoice/cv-corpus-24.0-2025-12-05 $TMPDIR/CommonVoice/
+ln -s $TMPDIR/CommonVoice/cv-corpus-24.0-2025-12-05 $TMPDIR/CommonVoice/v24.0 
+date
+
 echo "Copying the config file"
-mv {configpath} $TMPDIR/config.yaml
+envsubst < {configpath} > $TMPDIR/config.yml
+rm -f {configpath}
 
 echo "Copying the source directory and data"
 date
@@ -38,8 +45,12 @@ cd $TMPDIR/code
 git checkout {commit_id}
 
 echo "Setting up the virtual environment"
-python3 -m venv venv
-source venv/bin/activate
+
+/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
+
+# python3 -m venv venv
+# source venv/bin/activate
 
 # Install the library
 python -m pip install .
@@ -89,10 +100,6 @@ if len(sys.argv) not in [2, 3]:
     sys.exit(-1)
 
 configpath = sys.argv[1]
-if len(sys.argv) == 2:
-    nruns = 1
-else:
-    nruns = int(sys.argv[2])
 
 # Copy the config in a temporary config file
 os.system("mkdir -p configs")
@@ -100,4 +107,4 @@ tmp_configfilepath = tempfile.mkstemp(dir="./configs", suffix="-config.yml")[1]
 os.system(f"cp {configpath} {tmp_configfilepath}")
 
 # Launch the batch jobs
-submit_job(makejob(commit_id, tmp_configfilepath, nruns))
+submit_job(makejob(commit_id, tmp_configfilepath))
