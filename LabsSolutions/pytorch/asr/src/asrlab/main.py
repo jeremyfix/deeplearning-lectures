@@ -107,8 +107,7 @@ def train(args):
     """
     Training of the algorithm
     """
-    logger = logging.getLogger(__name__)
-    logger.info("Training")
+    logging.info("Training")
 
     if args.wandb_project is not None and args.wandb_entity is not None:
         wandb.init(
@@ -134,7 +133,7 @@ def train(args):
         small_experiment=args.debug,
         train_augment=args.train_augment,
         nmels=args.nmels,
-        logger=logger,
+        logging=logging,
     )
     train_loader, valid_loader, test_loader = loaders
 
@@ -212,7 +211,7 @@ def train(args):
     summary_text += "\n\n## Executed command :\n" + "{}".format(" ".join(sys.argv))
     summary_text += "\n\n## Args : \n {}".format(args)
 
-    logger.info(summary_text)
+    logging.info(summary_text)
 
     if args.logname is not None:
         logdir = os.path.join(args.baselogdir, args.logname)
@@ -228,7 +227,7 @@ def train(args):
     with open(os.path.join(logdir, "summary.txt"), "w") as f:
         f.write(summary_text)
 
-    logger.info(f">>>>> Results saved in {logdir}")
+    logging.info(f">>>>> Results saved in {logdir}")
 
     model_checkpoint = ModelCheckpoint(model, os.path.join(logdir, "best_model.pt"))
     if args.scheduler:
@@ -242,7 +241,7 @@ def train(args):
     # The location where to save the best model in ONNX
     # onnx_filepath = os.path.join(logdir, "best_model.onnx")
 
-    logger.info(">>>>> Decodings before training")
+    logging.info(">>>>> Decodings before training")
     train_decodings = decode_samples(
         decode, train_loader, n=2, device=device, charmap=charmap
     )
@@ -254,11 +253,11 @@ def train(args):
     decoding_results += train_decodings
     decoding_results += "## Decoding results on the validation set\n"
     decoding_results += valid_decodings
-    logger.info("\n" + decoding_results + "\n\n")
+    logging.info("\n" + decoding_results + "\n\n")
 
     # Training loop
     for e in range(num_epochs):
-        logger.info("\n" + (">" * 20) + f" Epoch {e:05d}" + ("<" * 20) + "\n\n")
+        logging.info("\n" + (">" * 20) + f" Epoch {e:05d}" + ("<" * 20) + "\n\n")
 
         train_metrics = ftrain(
             model,
@@ -282,7 +281,7 @@ def train(args):
         if scheduler is not None:
             scheduler.step()
 
-        logger.info(
+        logging.info(
             "[%d/%d] Validation:   CTCLoss : %.3f %s"
             % (
                 e,
@@ -296,7 +295,7 @@ def train(args):
             tensorboard_writer.add_scalar(f"metrics/valid_{m_name}", m_value, e + 1)
         # Compute and record the metrics on the test set
         test_metrics = ftest(model, test_loader, device, metrics, num_model_args=1)
-        logger.info(
+        logging.info(
             "[%d/%d] Test:   Loss : %.3f " % (e, num_epochs, test_metrics["CTC"])
         )
         for m_name, m_value in test_metrics.items():
@@ -317,7 +316,7 @@ def train(args):
         tensorboard_writer.add_text(
             "Decodings", deepcs.display.htmlize(decoding_results), global_step=e + 1
         )
-        logger.info("\n" + decoding_results)
+        logging.info("\n" + decoding_results)
 
         # Log in wandb if available
         if wandb_log is not None:
@@ -346,9 +345,6 @@ def test(args):
     """
     import matplotlib.pyplot as plt
 
-    logger = logging.getLogger(__name__)
-    logger.info("Test")
-
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
@@ -375,7 +371,7 @@ def test(args):
     assert modelpath is not None
     assert audiofile is not None
 
-    logger.info("Building the model")
+    logging.info("Building the model")
     model = models.CTCModel(
         charmap, n_mels, nhidden_rnn, nlayers_rnn, cell_type, dropout
     )
@@ -386,7 +382,7 @@ def test(args):
     model.eval()
 
     # Load and preprocess the audiofile
-    logger.info("Loading and preprocessing the audio file")
+    logging.info("Loading and preprocessing the audio file")
     waveform, sample_rate = torchaudio.load(audiofile)
     waveform = torchaudio.transforms.Resample(sample_rate, data._DEFAULT_RATE)(
         waveform
@@ -408,7 +404,7 @@ def test(args):
     spectro_length = spectrogram.shape[0]
 
     # Plot the spectrogram
-    logger.info("Plotting the spectrogram")
+    logging.info("Plotting the spectrogram")
     fig = plt.figure()
     ax = fig.add_subplot()
     ax.imshow(
@@ -421,7 +417,7 @@ def test(args):
 
     spectrogram = pack_padded_sequence(spectrogram, lengths=[spectro_length])
 
-    logger.info("Decoding the spectrogram")
+    logging.info("Decoding the spectrogram")
 
     if beamsearch:
         likely_sequences = model.beam_decode(spectrogram, beamwidth, charmap.blankid)
