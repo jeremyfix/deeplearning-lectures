@@ -259,7 +259,7 @@ After completion, write a little piece for testing which should : 1) access a mi
 
 Below is an example expected output :
 
-![An example spectrogram in log-Mel scale of the validation set with its transcript](spectro_valid.png){width=75%}
+![An example spectrogram in log-Mel scale of the validation set with its transcript](spectro_valid.png){width=100%}
 
 ### Normalizing the spectrograms
 
@@ -274,7 +274,7 @@ You can provide these values in the configuration dictionnary. If you do not pro
 
 Now that our data are ready, it is time to setup our first model. The Connectionist Temporal Classification approach is based on a multi-layer recurrent neural network taking as input the successive frames of the spectrogram and outputting, at every time step, a probability distribution over the vocabulary to which we add a $\epsilon$ blank character. The CTC model is outputting one character at every iteration, therefore, it produces an output sequence of the same length of the input sequence, possibly with some $\epsilon$ blank characters and also some duplicated characters. The labeling, though, is constrained to be of length smaller than the input (the RNN transducer overcomes that possible constraint).
 
-![Illustration of the CTC model](ctc.png){width=80%}
+![Illustration of the CTC model](ctc.png){width=100%}
 
 It also uses a specific loss which estimates the likelihood of the transcript, conditioned on the spectrogram, by summing over the probabilities of all the possible alignments with the blank character. Given a spectrogram $x$ and a transcript $y$ (e.g. ['t','u','_', 'e', 's']), its probability is computed as :
 
