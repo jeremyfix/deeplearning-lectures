@@ -25,13 +25,13 @@ echo "Running on " $(hostname)
 
 echo "Copying the data"
 date
-mkdir -p $TMPDIR/CommonVoice
-cp -r /mounts/datasets/datasets/CommonVoice/cv-corpus-24.0-2025-12-05 $TMPDIR/CommonVoice/
-ln -s $TMPDIR/CommonVoice/cv-corpus-24.0-2025-12-05 $TMPDIR/CommonVoice/v24.0 
+# mkdir -p $TMPDIR/CommonVoice
+# cp -r /mounts/datasets/datasets/CommonVoice/cv-corpus-24.0-2025-12-05 $TMPDIR/CommonVoice/
+# ln -s $TMPDIR/CommonVoice/cv-corpus-24.0-2025-12-05 $TMPDIR/CommonVoice/v24.0 
 date
 
 echo "Copying the config file"
-envsubst < {configpath} > $TMPDIR/config.yml
+envsubst < {configpath} > $TMPDIR/config.yaml
 rm -f {configpath}
 
 echo "Copying the source directory and data"
