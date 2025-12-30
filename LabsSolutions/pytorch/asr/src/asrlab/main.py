@@ -433,171 +433,40 @@ def test(args):
 
 
 if __name__ == "__main__":
-    logging.basicConfig()
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["train", "test"])
-    # Training parameters
-    parser.add_argument(
-        "--batch_size", type=int, help="The size of the minibatch", default=128
-    )
-    parser.add_argument(
-        "--debug", action="store_true", help="Whether to use small datasets"
-    )
-    parser.add_argument(
-        "--num_epochs", type=int, help="The number of epochs to train for", default=50
-    )
-    parser.add_argument(
-        "--base_lr",
-        type=float,
-        help="The base learning rate for the optimizer",
-        default=0.0005,
-    )
-    parser.add_argument(
-        "--grad_clip",
-        type=float,
-        help="The maxnorm of the gradient to clip to",
-        default=None,
-    )
-    parser.add_argument(
-        "--scheduler",
-        action="store_true",
-        help="Whether or not to use a learning rate scheduler.",
-    )
-    parser.add_argument(
-        "--resume_from",
-        type=Path,
-        help="The path to a tensor to use as initial conditions. Your model's parameters must be compatible with that tensor, otherwise, loading will fail.",
-        default=None,
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        help="Seed used for the random number generators. To be used for reproducibitliy",
-        default=None,
-    )
+    if len(sys.argv) < 2:
+        logging.error(f"Incorrect number of arguments. Usage is : ")
+        logging.error(f" - {sys.argv[0]} train config.yaml")
+        logging.error(f" - {sys.argv[0]} test")
+        sys.exit(-1)
 
-    # Data parameters
-    parser.add_argument(
-        "--datasetversion",
-        choices=["v1", "v6.1", "v12.0", "v15.0"],
-        default=data._DEFAULT_COMMONVOICE_VERSION,
-        help="Which CommonVoice corpus to consider",
-    )
-    parser.add_argument(
-        "--datasetroot",
-        type=str,
-        default=data._DEFAULT_COMMONVOICE_ROOT,
-        help="The root directory holding the datasets. "
-        " These are supposed to be datasetroot/v1/fr or "
-        " datasetroot/v6.1/fr",
-    )
-    parser.add_argument(
-        "--nthreads",
-        type=int,
-        help="The number of threads to use for " "loading the data",
-        default=6,
-    )
-    parser.add_argument(
-        "--min_duration",
-        type=float,
-        help="The minimal duration of the waveform (s.)",
-        default=1,
-    )
-    parser.add_argument(
-        "--max_duration",
-        type=float,
-        help="The maximal duration of the waveform (s.)",
-        default=5,
-    )
-    parser.add_argument(
-        "--nmels",
-        type=int,
-        help="The number of scales in the MelSpectrogram",
-        default=data._DEFAULT_NUM_MELS,
-    )
+    if sys.argv[1] == "train":
+        configpath = sys.argv[2]
+        logging.info(f"Loading {configpath}")
+        config = yaml.safe_load(open(configpath, "r"))
+        train(config)
 
-    # Model parameters
-    parser.add_argument(
-        "--nlayers_rnn", type=int, help="The number of RNN layers", default=4
-    )
-    parser.add_argument(
-        "--nhidden_rnn",
-        type=int,
-        help="The number of units per recurrent layer",
-        default=1024,
-    )
-    parser.add_argument(
-        "--cell_type",
-        choices=["GRU", "LSTM"],
-        default="GRU",
-        help="The type of reccurent memory cell",
-    )
+    elif sys.argv[1] == "test": 
+        raise NotImplementedError
+        test(args)
+        # For testing/decoding
+        # parser.add_argument("--modelpath", type=Path, help="The pt path to load")
+        # parser.add_argument(
+        #     "--audiofile", type=Path, help="The path to the audio file to transcript"
+        # )
+        # parser.add_argument(
+        #     "--beamwidth",
+        #     type=int,
+        #     help="The number of alternative decoding hypotheses" " to consider in parallel",
+        #     default=10,
+        # )
+        # parser.add_argument(
+        #     "--beamsearch",
+        #     action="store_true",
+        #     help="Whether or not to use beam search. If not, use" " max decoding.",
+        # )
+    else:
+        raise RuntimeError(f"Unknown command {sys.argv[1]}")
 
-    # Regularization
-    parser.add_argument(
-        "--train_augment",
-        action="store_true",
-        help="Whether to use or not SpecAugment " "during training",
-    )
-    parser.add_argument(
-        "--weight_decay", type=float, help="The weight decay coefficient", default=0.01
-    )
-    parser.add_argument(
-        "--dropout",
-        type=float,
-        help="The dropout in the feedforward layers",
-        default=0.1,
-    )
 
-    # For testing/decoding
-    parser.add_argument("--modelpath", type=Path, help="The pt path to load")
-    parser.add_argument(
-        "--audiofile", type=Path, help="The path to the audio file to transcript"
-    )
-    parser.add_argument(
-        "--beamwidth",
-        type=int,
-        help="The number of alternative decoding hypotheses" " to consider in parallel",
-        default=10,
-    )
-    parser.add_argument(
-        "--beamsearch",
-        action="store_true",
-        help="Whether or not to use beam search. If not, use" " max decoding.",
-    )
-
-    parser.add_argument(
-        "--baselogdir",
-        type=str,
-        default="./logs",
-        help="The base directory in which to save the logs",
-    )
-
-    parser.add_argument(
-        "--logname",
-        type=str,
-        default=None,
-        help="The name of the run used to define the logdir",
-    )
-
-    parser.add_argument(
-        "--wandb_project",
-        type=str,
-        default=None,
-        help="The wandb project on which to record logs",
-    )
-    parser.add_argument(
-        "--wandb_entity",
-        type=str,
-        default=None,
-        help="The wandb entity on which to record logs",
-    )
-    args = parser.parse_args()
-
-    if args.seed is not None:
-        deepcs.rng.seed_torch(args.seed)
-
-    eval(f"{args.command}(args)")
