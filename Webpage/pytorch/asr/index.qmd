@@ -454,6 +454,12 @@ The summary file of this run is given below. This model has been trained with Sp
 
 ## Extras
 
+### Metrics
+
+In this lab, we are definitely very restrictive on the metrics we evaluate, we should add many more. In particular, popular metrics are the Word-Error-Rate (WER) which in our case would be a Character-Error-Rate. See [Word error rate](https://en.wikipedia.org/wiki/Word_error_rate).
+
+If you ever implement it in the base code, feel free to make a PR on the code.
+
 ### ESP-Net
 
 If you are interested in automatic speech recognition, you might be interested in the [End-to-End speech processing toolkit](https://github.com/espnet/espnet).
