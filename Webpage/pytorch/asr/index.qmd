@@ -7,19 +7,13 @@ keywords: [PyTorch tutorial, Automatic Speech recognition, speech to text]
 
 <a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
 
-🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
-
-🚧🚧🚧🚧🚧🚧 **WARNING** Refactoring in progress 🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
-
-🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
-
 ## Objectives
 
-In this labwork, you will be experimenting with various recurrent neural networks for addressing the quite exciting problem of transcribing in text was is said in an audio file, a so called [Automatic Speech Recognition (ASR)](https://en.wikipedia.org/wiki/Speech_recognition) task.
+In this labwork, you will be experimenting with various recurrent neural networks for addressing the quite exciting problem of transcribing in text what is said in an audio file, a so called [Automatic Speech Recognition (ASR)](https://en.wikipedia.org/wiki/Speech_recognition) task.
 
-The data we will be using are collected within the [Mozilla common voice](https://commonvoice.mozilla.org/) which are multi-language datasets of audio recordings and unaligned text transcripts. At the time of writing, the v24 corpus contains 2750 hours in English and almost 1100 hours in French. You can contribute yourself by either recording or validating recordings. Although we will be using Common Voice, there are [several other datasets you might interested in](https://www.afcp-parole.org/ressources/corpus-et-outils/corpus/) if you work on ASR.
+The data we will be using are collected within the [Mozilla common voice](https://commonvoice.mozilla.org/) which are multi-language datasets of audio recordings and unaligned text transcripts. At the time of writing, the v24 corpus contains $2750$ hours in English 🇬🇧, almost $1100$ hours in French 🇫🇷 and $100$ hours in Ukrainian 🇺🇦. You can contribute yourself by either recording or validating recordings. Although we will be using Common Voice, there are [several other datasets you might be interested in](https://www.afcp-parole.org/ressources/corpus-et-outils/corpus/) if you work on ASR.
 
-You will be experimenting with the Connectionist Temporal Classification model (CTC) as introduced in [@Graves2014], which is the basis of the Deep Speech models (proposed by Baidu research[@Amodei2015] and also implemented by [Mozilla](https://github.com/mozilla/DeepSpeech)). Soon or later, this labwork might be extended to encompass Seq2Seq with attention as introduced in the Listen Attend and Spell [@Chan2016].
+You will be experimenting with the Connectionist Temporal Classification model (CTC) as introduced in [@Graves2014], which is the basis of the Deep Speech models (proposed by Baidu research[@Amodei2015] and also implemented by [Mozilla](https://github.com/mozilla/DeepSpeech)). Sooner or later, this labwork might be extended to encompass Seq2Seq with attention as introduced in the Listen Attend and Spell [@Chan2016].
 
 Throughout this labwork, you will also learn about dealing with the specific tensor representations of variable length sequences.
 
@@ -27,23 +21,48 @@ Throughout this labwork, you will also learn about dealing with the specific ten
 
 ### Starter code
 
-::: {.callout-warning}
+During this lab work, it is unreasonable to ask you to code everything from scratch. Therefore, we provide you with some starter code that is supposed to help you to work on the interesting parts. The base code is the [asrlab-kit.tar.gz](../../assets/asrlab-kit.tar.gz). To get and use that code:  
 
-**TO BE REFACTORED**
+```bash
+wget https://jeremyfix.github.io/deeplearning-lectures/assets/asrlab-kit.tar.gz
+tar -zxvf asrlab-kit.tar.gz
+```
 
-:::
+This code is organized as a Python library `asrlab` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
 
-During this lab work, it is unreasonable to ask you to code everything from scratch. Therefore, we provide you with some starter code that is supposed to help you to work on the interesting parts.
+To install the library, you should 1) create a virtual environment and 2) install it in developer mode.
 
-**Download** the starter codes below but do not spend too much time digging into them for now (we will discuss them step by step). All these files are expected to be placed in the same directory.
+**If you use the DCE of CentraleSupélec**, you can use pre-installed virtual environments that already ship several required packages:
 
-- [data.py](./labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
-- [models.py](./labs/02-pytorch-asr/models.py) : code defining the neural network architectures
-- [main_ctc.py](./labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
-- [train-v15.0-1-5.idx](train-v15.0-1-5.idx), [test-v15.0-1-5.idx](test-v15.0-1-5.idx), [dev-v15.0-1-5.idx](dev-v15.0-1-5.idx) : files with the indices of the CommonVoice **v5 fr** dataset filtered between 1s. and 5.
-- [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
+```bash
+/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
+```
 
+**Otherwise**, you need to create your own venv, for example using the built-in Python venv module:
 
+```bash
+python3 -m venv /tmp/venv
+source /tmp/venv/bin/activate
+```
+
+Then, to install the library in developer mode:
+
+``` bash
+python -m pip install -e asr
+```
+
+You can verify that the library is installed by running:
+
+``` bash
+python -c "import asrlab; print(f'Library available at {asrlab.__file__}')"
+```
+
+You are also provided index files which contain the duration of the audio clips of the v24 FR version of CommonVoice. These `idx` files must be placed where you execute your code.
+
+- [train-fr-v24.0.idx](train-fr-v24.0.idx), [dev-fr-v24.0.idx](dev-fr-v24.0.idx), [test-fr-v24.0.idx](test-fr-v24.0.idx)
+
+These index files can be used to quickly filter the samples, only considering some that have a specific duration. 
 
 ## Setting up the dataloaders
 
@@ -58,6 +77,7 @@ The data are therefore : a waveform as input and a sequence of characters for th
 
 And these signals need to be stacked in mini-batch tensors. For doing so, you will have to fill in code in the `asrlab/data` module. This module is more complex than what we did in the other labs. It is based on :
 
+- `dataset.py` which offers a function to load the CommonVoice dataset and to filter it based on the duration of the recordings,
 - `charmap.py` which deals with the encoding/decoding of the transcripts,
 - `waveform.py` which deals with the computation of the spectrogram from the waveform,
 - `dataloader.py` which sticks together the previous two elements in addition to deal with the sequences of varying length.
@@ -66,19 +86,13 @@ The end result of this module is still the `get_dataloaders` which, by making us
 
 ### Dataset exploration
 
-::: {.callout-warning}
-
-**TO BE REFACTORED**
-
-:::
-
 We begin by looking at the content of the data. The [Common Voice](https://docs.pytorch.org/audio/main/generated/torchaudio.datasets.COMMONVOICE.html) dataset is made of :
 
 - a waveform which is the audio recording,
 - the sampling rate (in Hz),
 - a dictionnary with metadata such as speaker ids, transcripts, etc...
 
-**Exercice** By completing the code in `data/dataset.py` in the `dataset_exploration` function, can you get one sample and :
+**Exercice** By completing the code in `data/dataset.py` in the `dataset_exploration` function, can you get one sample and:
 
 - display the transcripts of what is said by the speaker 
 - compute the duration, in seconds, of the sample ? (This may require to combine the length of the waveform and the sampling rate, isn't it ?)
@@ -99,7 +113,7 @@ An example waveform with its transcript and duration is shown below
 
 ### Integer representations of the transcripts
 
-The transcripts are encoded into integers and decoded from integers thanks to a vocabulary in the CharMap object, represented as the `char2idx` dictionnary and `idx2char` list. Let us play a little bit with this object.
+The transcripts are encoded into integers and decoded from integers thanks to a vocabulary in the CharMap object, represented as the `char2idx` dictionary and `idx2char` list. Let us play a little bit with this object.
 
 For this part, we will work on the `data/charmap.py` script. This submodule is responsible for encoding/decoding transcripts.  
 
@@ -132,7 +146,7 @@ vocab_size : 44
 "¶je vais m'eclater avec des rnns .|"
 -->
 
-As you may have notice in the functionning of the `CharMap` object, there are some design choices that have been made to limit the number of characters in our dataset : French accents, punctuation and case marks are removed.
+As you may have noticed in the functioning of the `CharMap` object, there are some design choices that have been made to limit the number of characters in our dataset : French accents, punctuation and case marks are removed.
 
 ### Transforming the waveforms into spectrograms
 
@@ -158,54 +172,20 @@ To validate your implementation, you are provided with a test function in the `d
 
 :::
 
-You can test your code with the following
 
-::: {.callout-warning}
+### Wrapping the spectrogram computation and transcript encoding
 
-**TO BE REFACTORED** : not in the `waveform.py` script anymore
+We can now combine the two previous steps to get a Mel spectrogram from the waveform as well as the encoding of the transcript. The function is already given to you in the `data/__main__.py` script that you can call with :
 
-:::
 
-```{.python}
-
-import matplotlib.pyplot as plt
-
-def test_spectro():
-    dataset = load_dataset("train",
-                           _DEFAULT_COMMONVOICE_ROOT,
-                           _DEFAULT_COMMONVOICE_VERSION)
-
-    # Take one of the waveforms 
-    idx = 10
-    waveform, rate, dictionary = dataset[idx]
-    waveform = waveform.transpose(0, 1)  # (B, T) to (T, B) as expected by WaveformProcessor
-
-    win_step = _DEFAULT_WIN_STEP*1e-3
-    trans_mel_spectro = WaveformProcessor(rate=rate,
-                                          win_length=_DEFAULT_WIN_LENGTH*1e-3,
-                                          win_step=win_step,
-                                          nmels=_DEFAULT_NUM_MELS,
-                                          augment=False,
-										  spectro_normalization=None)
-    mel_spectro = trans_mel_spectro(waveform).squeeze()  # (T, 1, N_MELS) to (T, N_MELS)
-
-    fig = plt.figure(figsize=(10, 2))
-    ax = fig.add_subplot()
-
-    im = ax.imshow(mel_spectro.T,
-                   extent=[0, mel_spectro.shape[0]*win_step,
-                           0, mel_spectro.shape[1]],
-                   aspect='auto',
-                   cmap='magma',
-                   origin='lower')
-    ax.set_ylabel('Mel scale')
-    ax.set_xlabel('TIme (s.)')
-    ax.set_title('Log mel spectrogram')
-    plt.colorbar(im)
-    plt.tight_layout()
-    plt.show()
-
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.data
 ```
+
+An example is shown below.
+
+![A sample of the dataset with the Spectrogram in logmel scale](./dataset_sample.png){width=85%}
+
 
 ### Collating variable size spectrograms and transcripts in minibatches
 
@@ -257,26 +237,44 @@ def ex_pack():
 
 Note that you may want to use usual "dense" tensors, padding at the end your tensors of variable size, but that is not a good idea because 1) the processing on the GPU can be limited to just the right amount if it knows the length of the sequences, 2) padding at the end is not a big deal with unidirectional RNNs but can possibly be a problem with bidirectional RNNs.
 
-**Exercice** Equipped with these new PackedSequence tools, you now have to work on the build up of the minibatches by filling in the missing code in the BatchCollate class. To validate your implementation, the dataloaders test in the `test_implementation.py` script should pass.
+Collating together samples is the business of the dataloader. The torch dataloader has a default function for sticking together samples into a minibatch, see [default_collate](https://docs.pytorch.org/docs/stable/data.html#torch.utils.data.default_collate). As we are dealing with sequences of varying length, we have some specific code to implement. We will therefore implement our own `collate_fn`
+
+**Exercice** Equipped with these new PackedSequence tools, you now have to work on the build up of the minibatches by filling in the missing code in the `BatchCollate` class in the `data/dataloader.py` script. You only have $5$ lines to write which is basically :
+
+- `pad` the waveforms, compute their spectrogram and `pack` them. The lengths of the unpadded spectrograms are given in the `spectro_lengths` list provided to you,
+- `pad` and `pack` the encoded transcripts.
+
+::: {.callout-warning}
+
+To validate your implementation, you are given a test function in the `data/dataloader.py` script that you can call with :
+
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.data.dataloader
+```
+
+:::
 
 
 After completion, write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) plot the spectrograms associated with their transcripts. For the plot part, you can make use of the `plot_spectro` function (in data.py).
 
 Below is an example expected output :
 
-![An example spectrogram in log-Mel scale of the validation set with its transcript](spectro_valid.png){width=75%}
+![An example spectrogram in log-Mel scale of the validation set with its transcript](spectro_valid.png){width=100%}
 
-### Final remarks about dataloading
+### Normalizing the spectrograms
 
-As a final note on the data loading part, you may notice that in the `get_dataloaders` function, the BatchCollate object are created with **normalization coefficients** of the spectrogram. I hard-coded the mean and variance. This is dirty, I agree, but that's speeding up your ability to experiment since otherwise it takes quite a while to compute these values. Nevertheless, keep this in mind that if you experiment with some other data, you may need to uncomment the code computing these normalization coefficients.
+As a final note on the data loading part, you may notice that in the `get_dataloaders` function, the BatchCollate object are created with **normalization coefficients** of the spectrogram. These can be given in the configuration dictionnary of the dataloaders under the `mean_spectro` and `std_spectro` keys. I already computed these values on the train fold of the v24 of the French dataset, these are :
 
-Also, please note that the train-v1.idx, dev-v1.idx and test-v1.idx files are precomputed to contain the list of the datasamples that have a duration between 1s. and 5s. In case you want to modify these timelengths in the get_dataloaders, you may need to remove these idx files so that they regenerated (see the DatasetFilter object).
+- `mean_spectro = -53`
+- `std_spectro = 29`
+
+You can provide these values in the configuration dictionnary. If you do not provide them, they will be recomputed if `normalize` is set to True. Computing these values can take up to $13$ minutes.
 
 ## Connectionist Temporal Classification (CTC)
 
 Now that our data are ready, it is time to setup our first model. The Connectionist Temporal Classification approach is based on a multi-layer recurrent neural network taking as input the successive frames of the spectrogram and outputting, at every time step, a probability distribution over the vocabulary to which we add a $\epsilon$ blank character. The CTC model is outputting one character at every iteration, therefore, it produces an output sequence of the same length of the input sequence, possibly with some $\epsilon$ blank characters and also some duplicated characters. The labeling, though, is constrained to be of length smaller than the input (the RNN transducer overcomes that possible constraint).
 
-![Illustration of the CTC model](ctc.png){width=80%}
+![Illustration of the CTC model](ctc.png){width=100%}
 
 It also uses a specific loss which estimates the likelihood of the transcript, conditioned on the spectrogram, by summing over the probabilities of all the possible alignments with the blank character. Given a spectrogram $x$ and a transcript $y$ (e.g. ['t','u','_', 'e', 's']), its probability is computed as :
 
@@ -423,7 +421,7 @@ These transforms can be implemented within the data.WaveformProcessor object. Ju
 
 Below is an example of the resulting spectrogram, masked in time for up to $0.5$ s. and the mel scale for up to $27$ scales.
 
-![An example log-Mel spectrogram with SpecAugment](spectro_train.png){width=75%}
+![An example log-Mel spectrogram with SpecAugment](spectro_train.png){width=100%}
 
 SpecAugment is already implemented in the `data.py` script. Have a look to the transform_augment attribute of WaveformProcessor. To use it, simply add the `--train_augment` argument when you call the main_ctc script.
 
@@ -433,24 +431,42 @@ In the DeepSpeech paper, the authors suggest to add dropout layers in the convol
 
 #### L1/L2 Regularization
 
-To add L1 or L2 regularization, you can add a `penalty()` method to your CTCModel class that should return your penalty. If such a method exists the training function from deepcs called in main_ctc will call it.
+To add L2 regularization, you can use the [AdamW](https://docs.pytorch.org/docs/stable/generated/torch.optim.AdamW.html) optimizer instead of Adam and specifies the `weight_decay` argument.
 
-### Testing on a new audioclip
+You could also implement a `penalty()` function in your CTCModel called from the training function.
 
-To test of an audio clip, you can record yourself as a mp3 and call main_ctc :
+## Testing on a new audioclip
+
+🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
+
+Refactoring in progress
+
+🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
+
+To test of an audio clip, you can record yourself as a mp3 and call the `asrlab` library with a path to the log directory and the path to the recording. In its current version, the model is saved as a `pt` file and therefore we need to recreate the model before loading its parameters. And to create the model, we need the parameters (number of layers, hidden units, ...) used to create it in the first place.
 
 ```bash
-mymachine:~:mylogin$ python3 main_ctc.py test --modelpath a/path/to/a/best_model.pt --audiofile myclip.mp3
+(venv) mymachine:~:mylogin$ python -m asrlab.main test logdir audiofile.mp3
 ```
 
-Beam search decoding can be activated adding the `--beamsearch` flag. By default, it will consider $10$ alternative decoding simultaneously.
+If you prefer to use a file provided by CommonVoice, you can pick one of the sample audioclip listed in the `test.tsv` file of the CommonVoice dataset. 
 
-If you used non default values for the other arguments (the ones for the model), you must provide them again. We need them in the test function for recreating the exact same model than the one used during training. Audio clips are provided in the test fold. You can check the list of the test audio clips with their transcripts in the `/mounts/Datasets4/CommonVoice/v15.0/fr/test.tsv` file.
+Inference is actually an approximate inference. Indeed, we would like in principle to get the output sequence of tokens that maximizes the loglikelihood which would require to evaluate a lot of possible sequences. For an output sequence of length $T$ and a vocabulary of size $V$, this is actually $V^T$ possibilities which is far too much. The base code provided to you allows to perform approximate inference in two ways : greedy or beam search. To know more about beam search, have a look to the [distill.pub/2017/ctc](https://distill.pub/2017/ctc/) blog post.
+
+With our code, you can specify beam search within the `config.yaml` file :
+
+```.yaml
+decoding:
+  beamwidth: 10
+  beamsearch: True
+```
+
+The beam width is the number of paths that are evaluated in parallel.
 
 If you do not have yet a trained model, you can download [the best_ctc_42077.pt](https://centralesupelec-my.sharepoint.com/:u:/g/personal/jeremy_fix_centralesupelec_fr/EScVCV_zdYZDpWXBlynPmMYBjCbXVDc0SkTuS6JRn43CSg?e=u7eUWF) checkpoint. This model can be tested with the command line below :
 
 ```bash
-mymachine:~:mylogin$ python main_ctc.py test --modelpath best_ctc_42077.pt --audiofile /mounts/Datasets4/CommonVoice/v15.0/fr/clips/common_voice_fr_37118026.mp3
+(venv) mymachine:~:mylogin$ python -m asrlab.main test logdir /mounts/datasets/datasets/CommonVoice/v24.0/fr/clips/common_voice_fr_37118026.mp3
 Log prob    Sequence
 7.82      ¶une contrefa❌on fut publiee en belgique.¦
 ```
@@ -458,39 +474,16 @@ Log prob    Sequence
 The summary file of this run is given below. This model has been trained with SpecAugment, Dropout(0.5), L2 regularization (0.0001), gradient norm clipping with all the available audio clips. The training was performed for almost 4 days.
 
 ```markdown
-## Summary of the model architecture
-=================================================================
-Layer (type:depth-idx)                   Param #
-=================================================================
-CTCModel                                 --
-├─Sequential: 1-1                        --
-│    └─Conv2d: 2-1                       14,464
-│    └─BatchNorm2d: 2-2                  64
-│    └─Hardtanh: 2-3                     --
-│    └─Dropout2d: 2-4                    --
-│    └─Conv2d: 2-5                       236,576
-│    └─BatchNorm2d: 2-6                  64
-│    └─Hardtanh: 2-7                     --
-│    └─Dropout2d: 2-8                    --
-├─GRU: 1-2                               64,929,792
-├─Sequential: 1-3                        --
-│    └─Linear: 2-9                       90,156
-=================================================================
-Total params: 65,271,116
-Trainable params: 65,271,116
-Non-trainable params: 0
-=================================================================
- Wandb run name : amber-galaxy-55
-
-## Executed command :
-main_ctc.py --logname ctc_42077_0 --batch_size 128 --num_epochs 100 --base_lr 0.0001 --min_duration 0.0 --max_duration 60.0 --nlayers_rnn 4 --nhidden_rnn 1024 --weight_decay 0.0001 --dropout 0.5 --grad_clip 20 --datasetversion v15.0 --seed 12345 --train_augment --scheduler train
-
-## Args : 
- Namespace(audiofile=None, base_lr=0.0001, batch_size=128, beamsearch=False, beamwidth=10, cell_type='GRU', command='train', datasetroot='/mounts/Datasets4/CommonVoice/', datasetversion='v15.0', debug=False, dropout=0.5, grad_clip=20.0
-, logname='ctc_42077_0', max_duration=60.0, min_duration=0.0, modelpath=None, nhidden_rnn=1024, nlayers_rnn=4, nmels=20, nthreads=6, num_epochs=100, scheduler=True, seed=12345, train_augment=True, weight_decay=0.0001)
+**TO BE UPDATED**
 ```
 
 ## Extras
+
+### Metrics
+
+In this lab, we are definitely very restrictive on the metrics we evaluate, we should add many more. In particular, popular metrics are the Word-Error-Rate (WER) which in our case would be a Character-Error-Rate. See [Word error rate](https://en.wikipedia.org/wiki/Word_error_rate).
+
+If you ever implement it in the base code, feel free to make a PR on the code.
 
 ### ESP-Net
 
@@ -544,7 +537,7 @@ def ex_ctc():
 
 ## A possible solution
 
-You will find a possible solution in the [LabsSolutions/02-pytorch-asr](https://github.com/jeremyfix/deeplearning-lectures/tree/master/LabsSolutions/02-pytorch-asr) directory.
+You will find a possible solution at [asrlab-sol.tar.gz](../../assets/asrlab-sol.tar.gz).
 
 ## References
 

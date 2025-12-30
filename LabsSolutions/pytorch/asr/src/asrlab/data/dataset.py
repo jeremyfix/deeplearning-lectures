@@ -51,6 +51,9 @@ def is_sample_in_timerange(i, ds, min_duration, max_duration):
         not max_duration or (w.squeeze().shape[0] / r) <= max_duration
     )
 
+def get_duration(i, ds):
+    (w, r, _) = ds[i]
+    return len(w.squeeze()) / r
 
 class DatasetFilter(object):
     """
@@ -77,10 +80,10 @@ class DatasetFilter(object):
 
         # At construction we build a list of indices
         # of valid samples from the original dataset
-        cachepath = cacheprefix + f"-{min_duration}-{max_duration}.idx"
+        cachepath = cacheprefix + ".idx"
         if os.path.exists(cachepath) and not overwrite_index:
             logging.info(f"Loading the pre-generated index file {cachepath}")
-            self.valid_indices = pickle.load(open(cachepath, "rb"))
+            durations = pickle.load(open(cachepath, "rb"))
         else:
             logging.info(f"Generating the index files, processing {len(ds)} files, saved in {cachepath}"
             )
@@ -94,20 +97,18 @@ class DatasetFilter(object):
             indices = list(range(len(ds)))
             t0 = time.time()
             with multiprocess.Pool(processes=None) as pool:
-                results = list(
+                durations = list(
                     pool.map(
-                        lambda idx, ds=ds, 
-                            min_duration=min_duration, 
-                            max_duration=max_duration: 
-                            is_sample_in_timerange(idx, ds, min_duration, max_duration),
+                        lambda idx, ds=ds:
+                            get_duration(idx, ds),
                         indices,
                     ),
                 )
             t1 = time.time()
             logging.info(f"Elapsed : {t1-t0} seconds")
-            self.valid_indices = [i for i, vi in results if vi]
+            pickle.dump(durations, open(cachepath, "wb"))
 
-            pickle.dump(self.valid_indices, open(cachepath, "wb"))
+        self.valid_indices = [i for i, di in enumerate(durations) if min_duration <= di <= max_duration]
         self.ds = ds
 
     def __getitem__(self, idx):
@@ -149,7 +150,6 @@ def dataset_statistics():
     dl = torch.utils.data.DataLoader(ds, batch_size=256, collate_fn=collate_durations)
     for dur_i in tqdm.tqdm(dl):
         durations.extend(dur_i)
-    print(durations)
 
     plt.figure()
     plt.ecdf(durations)
@@ -217,6 +217,7 @@ def dataset_exploration():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     dataset_exploration()
     # @SOL
     # check_votes()

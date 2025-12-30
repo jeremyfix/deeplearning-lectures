@@ -48,6 +48,19 @@ jobs:
           mkdir -p assets 
           cd LabsSolutions/pytorch/ 
           tar -zcvf ../../assets/semseg-sol.tar.gz segmentation
+        
+      # ASR
+      - name: Pytorch asrlab base code
+        run: |
+          mkdir -p assets 
+          cd StudentsCode/pytorch/ 
+          tar -zcvf ../../assets/asrlab-kit.tar.gz asr
+
+      - name: Pytorch asrlab solution code
+        run: |
+          mkdir -p assets 
+          cd LabsSolutions/pytorch/ 
+          tar -zcvf ../../assets/asrlab-sol.tar.gz asr
     
       # GAN
       - name: Pytorch ganlab base code

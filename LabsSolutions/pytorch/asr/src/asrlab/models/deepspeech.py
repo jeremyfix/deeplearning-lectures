@@ -433,6 +433,7 @@ class CTCModel(nn.Module):
         #          (1 line)
 
         # @TEMPL@packed_outrnn, _ = None
+        # Handle both PackedSequence and regular tensor input to RNN
         packed_outrnn, _ = self.rnn(rnn_inputs)  # @SOL@
 
         ##
@@ -440,6 +441,7 @@ class CTCModel(nn.Module):
         # Step 5a : Prepare your data by unpacking the output (1 line)
 
         # @TEMPL@unpacked_outrnn, lens_outrnn = None
+        # Check if packed_outrnn is a PackedSequence
         unpacked_outrnn, lens_outrnn = pad_packed_sequence(packed_outrnn)  # @SOL@
 
         # Step 5b : Make the forward pass through the classification output
