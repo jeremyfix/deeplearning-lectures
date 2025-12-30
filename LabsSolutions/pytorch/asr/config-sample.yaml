@@ -8,7 +8,7 @@ data:
   sampling_rate: 16000 
   win_length: 0.040
   win_step: 0.010
-  nmels: 20
+  nmels: 80
   normalize: True
   mean_spectro: -53.
   std_spectro: 29.
@@ -41,7 +41,7 @@ model:
     nlayers_rnn: 4
     cell_type: GRU
     dropout: 0.5
-    n_mels: 20 # TODO: must be the same as data["nmels"]
+    n_mels: 80 # TODO: must be the same as data["nmels"]
 
 decoding:
   beamwidth: 10

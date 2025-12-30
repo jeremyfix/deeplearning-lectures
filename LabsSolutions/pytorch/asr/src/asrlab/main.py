@@ -17,7 +17,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import torchaudio
 import matplotlib.pyplot as plt
 import deepcs.display
-from deepcs.training import train as ftrain, ModelCheckpoint
+from deepcs.training import train as ftrain
 from deepcs.testing import test as ftest
 import deepcs.rng
 import wandb
@@ -48,29 +48,6 @@ def wrap_ctc_args(packed_predictions, packed_targets):
     # )
 
     return unpacked_predictions, unpacked_targets, lens_predictions, lens_targets
-
-
-# def export_onnx(model, n_mels, device, filepath):
-#     # The input shape is (T, B, mels)
-#     # with T and B dynamic axes
-#     export_input_size = (5, 1, n_mels)
-#     dummy_input = torch.zeros(export_input_size, device=device)
-#     # Important: ensure the model is in eval mode before exporting !
-#     # the graph in train/test mode is not the same
-#     # Although onnx.export handles export in inference mode now
-#     model.eval()
-#     torch.onnx.export(
-#         model,
-#         dummy_input,
-#         filepath,
-#         input_names=["input"],
-#         output_names=["output"],
-#         dynamic_axes={
-#             "input": {0: "time", 1: "batch"},
-#             "output": {0: "time", 1: "batch"},
-#         },
-#     )
-
 
 def decode_samples(fdecode, loader, n, device, charmap):
     batch = next(iter(loader))
