@@ -15,7 +15,6 @@ def makejob(commit_id, configpath):
 #SBATCH --time=48:00:00
 #SBATCH --output=logslurms/slurm-%A_%a.out
 #SBATCH --error=logslurms/slurm-%A_%a.err
-#SBATCH --exclude=sh00,sh[10-19]
 
 current_dir=`pwd`
 export PATH=$PATH:~/.local/bin
