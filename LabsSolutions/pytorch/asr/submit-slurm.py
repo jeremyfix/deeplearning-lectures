@@ -12,7 +12,7 @@ def makejob(commit_id, configpath):
 #SBATCH --job-name=asrlab
 #SBATCH --nodes=1
 #SBATCH --partition=gpu_prod_long
-#SBATCH --time=48:00:00
+#SBATCH --time=2:00:00
 #SBATCH --output=logslurms/slurm-%A_%a.out
 #SBATCH --error=logslurms/slurm-%A_%a.err
 
