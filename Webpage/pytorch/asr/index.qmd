@@ -27,23 +27,48 @@ Throughout this labwork, you will also learn about dealing with the specific ten
 
 ### Starter code
 
-::: {.callout-warning}
+During this lab work, it is unreasonable to ask you to code everything from scratch. Therefore, we provide you with some starter code that is supposed to help you to work on the interesting parts. The base code is the [asrlab-kit.tar.gz](../../assets/asrlab-kit.tar.gz). To get and use that code:  
 
-**TO BE REFACTORED**
+```bash
+wget https://jeremyfix.github.io/deeplearning-lectures/assets/asrlab-kit.tar.gz
+tar -zxvf asrlab-kit.tar.gz
+```
 
-:::
+This code is organized as a Python library `asrlab` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
 
-During this lab work, it is unreasonable to ask you to code everything from scratch. Therefore, we provide you with some starter code that is supposed to help you to work on the interesting parts.
+To install the library, you should 1) create a virtual environment and 2) install it in developer mode.
 
-**Download** the starter codes below but do not spend too much time digging into them for now (we will discuss them step by step). All these files are expected to be placed in the same directory.
+**If you use the DCE of CentraleSupélec**, you can use pre-installed virtual environments that already ship several required packages:
 
-- [data.py](./labs/02-pytorch-asr/data.py) : code performing data loading and preprocessing
-- [models.py](./labs/02-pytorch-asr/models.py) : code defining the neural network architectures
-- [main_ctc.py](./labs/02-pytorch-asr/main_ctc.py) : code containing the training and testing functions
-- [train-v15.0-1-5.idx](train-v15.0-1-5.idx), [test-v15.0-1-5.idx](test-v15.0-1-5.idx), [dev-v15.0-1-5.idx](dev-v15.0-1-5.idx) : files with the indices of the CommonVoice **v5 fr** dataset filtered between 1s. and 5.
-- [test_implementation.py](./labs/02-pytorch-asr/test_implementation.py) : "unitary tests" for testing your answers to the exercices
+```bash
+/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
+```
 
+**Otherwise**, you need to create your own venv, for example using the built-in Python venv module:
 
+```bash
+python3 -m venv /tmp/venv
+source /tmp/venv/bin/activate
+```
+
+Then, to install the library in developer mode:
+
+``` bash
+python -m pip install -e asr
+```
+
+You can verify that the library is installed by running:
+
+``` bash
+python -c "import asrlab; print(f'Library available at {asrlab.__file__}')"
+```
+
+You are also provided index files which contain the duration of the audio clips of the v24 FR version of CommonVoice. These `idx` files must be placed where you execute your code.
+
+- [train-fr-v24.0.idx](train-fr-v24.0.idx), [dev-fr-v24.0.idx](dev-fr-v24.0.idx), [test-fr-v24.0.idx](test-fr-v24.0.idx)
+
+These index files can be used to quickly filter the samples, only considering some that have a specific duration. 
 
 ## Setting up the dataloaders
 
