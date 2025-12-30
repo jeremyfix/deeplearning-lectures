@@ -1,6 +1,9 @@
 name: Pytorch GAN lab test
 
-on: [push]
+on:
+  push:
+    paths:
+      - 'LabsSolutions/pytorch/gan/**'
 
 jobs:
   test-pytorch-GAN:

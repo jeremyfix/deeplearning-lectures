@@ -1,6 +1,9 @@
 name: Pytorch ASR lab test
 
-on: [push]
+on:
+  push:
+    paths:
+      - 'LabsSolutions/pytorch/asr/**'
 
 jobs:
 
