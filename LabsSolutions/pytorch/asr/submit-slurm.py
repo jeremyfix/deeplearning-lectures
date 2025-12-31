@@ -21,7 +21,7 @@ export PATH=$PATH:~/.local/bin
 
 echo "Session " ${{SLURM_JOB_ID}}
 
-echo "Running on " $(hostname)
+echo "Running on " $(hostname) " with {configpath}"
 
 echo "Copying the data"
 date
