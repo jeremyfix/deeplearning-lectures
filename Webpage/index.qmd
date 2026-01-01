@@ -13,6 +13,174 @@ generated with [quarto](https://quarto.org). The generation is performed using t
 
 These pages contain the subjects and codes for the labs in the deep learning lectures 3MD4040 taking place at CentraleSupélec. Most the work is done in pytorch although you will find one lab using Keras.
 
+## Labs
+
+<style>
+.labs-container {
+  margin: 2rem 0;
+}
+
+.labs-section {
+  margin: 2.5rem 0;
+}
+
+.labs-section h3 {
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 992px) {
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.lab-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  background: white;
+}
+
+.lab-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-decoration: none;
+}
+
+.lab-card-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  color: white;
+}
+
+.lab-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lab-card-content {
+  padding: 1rem;
+}
+
+.lab-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.lab-card-description {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.pytorch-card .lab-card-image {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.keras-card .lab-card-image {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+</style>
+
+<div class="labs-container">
+
+<h3>PyTorch Labs</h3>
+
+<div class="cards-grid">
+
+<a href="pytorch/fashionMNIST/" class="lab-card pytorch-card">
+<div class="lab-card-image"><img src="pytorch/fashionMNIST/fashionMNIST_samples_augment.png" alt="FashionMNIST" style="width: 100%; height: 100%; object-fit: cover;"></div>
+<div class="lab-card-content">
+<div class="lab-card-title">FashionMNIST Classification</div>
+<div class="lab-card-description">First steps in PyTorch: classifying fashion objects with neural networks</div>
+</div>
+</a>
+
+<a href="pytorch/object-detection/" class="lab-card pytorch-card">
+<div class="lab-card-image"><img src="pytorch/object-detection/multi_object_prediction.png" alt="Object detection" style="width: 100%; height: 100%; object-fit: cover;"></div>
+<div class="lab-card-content">
+<div class="lab-card-title">Object Detection</div>
+<div class="lab-card-description">Transfer learning and object detection on Pascal VOC dataset</div>
+</div>
+</a>
+
+<a href="pytorch/segmentation/" class="lab-card pytorch-card">
+<div class="lab-card-image"><img src="pytorch/segmentation/pascalVOC_samples_aug.png" alt="Semantic segmentation" style="width: 100%; height: 100%; object-fit: cover;"></div>
+<div class="lab-card-content">
+<div class="lab-card-title">Semantic Segmentation</div>
+<div class="lab-card-description">UNet and semantic segmentation on Pascal VOC with dense pixel labeling</div>
+</div>
+</a>
+
+
+<a href="pytorch/asr/" class="lab-card pytorch-card">
+<div class="lab-card-image"><img src="pytorch/asr/dataset_sample.png" alt="Speech recognition" style="width: 100%; height: 100%; object-fit: cover;"></div>
+<div class="lab-card-content">
+<div class="lab-card-title">Speech Recognition</div>
+<div class="lab-card-description">Automatic speech recognition on Mozilla Common Voice using CTC models</div>
+</div>
+</a>
+
+
+
+<a href="pytorch/gan/" class="lab-card pytorch-card">
+<div class="lab-card-image"><img src="pytorch/gan/svhn.gif" alt="GAN" style="width: 100%; height: 100%; object-fit: cover;"></div>
+<div class="lab-card-content">
+<div class="lab-card-title">Generative Networks (GAN)</div>
+<div class="lab-card-description">Deep convolutional generative adversarial networks for image generation</div>
+</div>
+</a>
+
+</div>
+
+<h3>Keras Labs</h3>
+
+<div class="cards-grid">
+
+<a href="keras/mnist/" class="lab-card keras-card">
+<div class="lab-card-image"><img src="keras/mnist/mnist_samples.png" alt="MNIST" style="width: 100%; height: 100%; object-fit: cover;"></div>
+<div class="lab-card-content">
+<div class="lab-card-title">MNIST Classification</div>
+<div class="lab-card-description">First steps in Keras: classifying handwritten digits with various architectures</div>
+</div>
+</a>
+
+<a href="keras/cifar/" class="lab-card keras-card">
+<div class="lab-card-image">🎤</div>
+<div class="lab-card-content">
+<div class="lab-card-title">CIFAR-100 Classification</div>
+<div class="lab-card-description"></div>
+</div>
+</a>
+
+
+</div>
+
+
 ## Additional ressources
 
 ### Practicals/Lectures
