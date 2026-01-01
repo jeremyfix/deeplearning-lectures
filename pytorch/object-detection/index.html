@@ -216,7 +216,7 @@ window.Quarto = {
  <span class="dropdown-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="../../keras/cifar.html">
+    <a class="dropdown-item" href="../../keras/cifar/index.html">
  <span class="dropdown-text">Keras CIFAR</span></a>
   </li>  
     </ul>
@@ -345,7 +345,7 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../keras/cifar.html" class="sidebar-item-text sidebar-link">
+  <a href="../../keras/cifar/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">A more ambitious image classification dataset : CIFAR-100</span></a>
   </div>
 </li>
@@ -378,7 +378,8 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#objectives" id="toc-objectives" class="nav-link active" data-scroll-target="#objectives">Objectives</a></li>
+  <li><a href="#refactoring-needed" id="toc-refactoring-needed" class="nav-link active" data-scroll-target="#refactoring-needed">🚧🚧🚧🚧🚧🚧🚧🚧 <strong>Refactoring needed</strong> 🚧🚧🚧🚧🚧🚧🚧🚧</a></li>
+  <li><a href="#objectives" id="toc-objectives" class="nav-link" data-scroll-target="#objectives">Objectives</a></li>
   <li><a href="#exploring-the-dataset" id="toc-exploring-the-dataset" class="nav-link" data-scroll-target="#exploring-the-dataset">Exploring the dataset</a></li>
   <li><a href="#largest-object-detection" id="toc-largest-object-detection" class="nav-link" data-scroll-target="#largest-object-detection">Largest object detection</a>
   <ul class="collapse">
@@ -446,6 +447,10 @@ window.Quarto = {
 
 
 <p><a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"></p>
+<section id="refactoring-needed" class="level2">
+<h2 class="anchored" data-anchor-id="refactoring-needed">🚧🚧🚧🚧🚧🚧🚧🚧 <strong>Refactoring needed</strong> 🚧🚧🚧🚧🚧🚧🚧🚧</h2>
+<p>This lab still needs to be refactored to match the style of the other labs, especially using an installable library we go through .</p>
+</section>
 <section id="objectives" class="level2">
 <h2 class="anchored" data-anchor-id="objectives">Objectives</h2>
 <p>In the previous practical, you trained feedforward neural networks for classifying images, i.e.&nbsp;assigning a <strong>single</strong> label to each image hopefully reaching a good accuracy on the test set. We now consider a second problem in computer vision : object detection. The task is here to find every occurrence of a set of classes of objects. Given an image, we want to output a set of bounding boxes for every object classes of interest.</p>
@@ -482,7 +487,7 @@ window.Quarto = {
 <li><code>{'target_mode':'all_bbox', 'image_transform_params': dict, 'num_cells': int}</code> : a mode you will implement in <a href="#preprocessing-the-targets-1">Multiple object detection/Preprocessing the targets</a></li>
 </ul></li>
 </ul>
-<div id="d4c02514" class="cell">
+<div id="79af732f" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> data</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torchvision.transforms <span class="im">as</span> transforms</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>

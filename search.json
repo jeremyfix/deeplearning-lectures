@@ -132,6 +132,18 @@
     ]
   },
   {
+    "objectID": "pytorch/object-detection/index.html#refactoring-needed",
+    "href": "pytorch/object-detection/index.html#refactoring-needed",
+    "title": "Transfer learning and Object detection",
+    "section": "🚧🚧🚧🚧🚧🚧🚧🚧 Refactoring needed 🚧🚧🚧🚧🚧🚧🚧🚧",
+    "text": "🚧🚧🚧🚧🚧🚧🚧🚧 Refactoring needed 🚧🚧🚧🚧🚧🚧🚧🚧\nThis lab still needs to be refactored to match the style of the other labs, especially using an installable library we go through .",
+    "crumbs": [
+      "Home",
+      "Pytorch",
+      "Transfer learning and Object detection"
+    ]
+  },
+  {
     "objectID": "pytorch/object-detection/index.html#objectives",
     "href": "pytorch/object-detection/index.html#objectives",
     "title": "Transfer learning and Object detection",
@@ -408,6 +420,18 @@
     ]
   },
   {
+    "objectID": "index.html#labs",
+    "href": "index.html#labs",
+    "title": "Home",
+    "section": "Labs",
+    "text": "Labs\n\n\n\nPyTorch Labs\n\n\n\n\n\n\n\n\nFashionMNIST Classification\n\n\nFirst steps in PyTorch: classifying fashion objects with neural networks\n\n\n\n\n\n\n\n\n\nObject Detection\n\n\nTransfer learning and object detection on Pascal VOC dataset\n\n\n\n\n\n\n\n\n\nSemantic Segmentation\n\n\nUNet and semantic segmentation on Pascal VOC with dense pixel labeling\n\n\n\n\n\n\n\n\n\nSpeech Recognition\n\n\nAutomatic speech recognition on Mozilla Common Voice using CTC models\n\n\n\n\n\n\n\n\n\nGenerative Networks (GAN)\n\n\nDeep convolutional generative adversarial networks for image generation\n\n\n\n\n\nKeras Labs\n\n\n\n\n\n\n\n\nMNIST Classification\n\n\nFirst steps in Keras: classifying handwritten digits with various architectures\n\n\n\n\n\n🎤\n\n\n\nCIFAR-100 Classification\n\n\n\n\n\n\n\n\nAdditional ressources\n\nPracticals/Lectures\n\nOxford’s CNN practicals\nNando de Freitas lectures and practicals\nStanford A. Karpathy practicals\nMaster Data Science Paris Saclay\nFast.ai, J. Howard\n\n\n\nBlog posts\n\nAn overview of gradient descent algorithms\nRevisiting sequence to sequence learning, with focus on implementation details\nThe unreasonnable effectivness of recurrent neural networks\nTheories of Deep learning",
+    "crumbs": [
+      "Home",
+      "Getting Started",
+      "Home"
+    ]
+  },
+  {
     "objectID": "index.html#additional-ressources",
     "href": "index.html#additional-ressources",
     "title": "Home",
@@ -528,8 +552,8 @@
     ]
   },
   {
-    "objectID": "keras/cifar.html",
-    "href": "keras/cifar.html",
+    "objectID": "keras/cifar/index.html",
+    "href": "keras/cifar/index.html",
     "title": "A more ambitious image classification dataset : CIFAR-100",
     "section": "",
     "text": "We now turn to a more difficult problem of classifying RBG images belonging to one of 100 classes with the CIFAR-100 dataset. The CIFAR-100 dataset consists of 60000 32x32 colour images in 100 classes, with 600 images per class. There are 50000 training images and 10000 test images. The 100 classes in the CIFAR-100 are grouped into 20 superclasses. Each image comes with a “fine” label (the class to which it belongs) and a “coarse” label (the superclass to which it belongs). To give you an idea of the coarse labels, you find fruits, fish, aquatic mammals, vehicles, … and the fine labels are for example seal, whale, orchids, bicycle, bus, … Keras provides functions to automatically get the CIFAR-100 dataset.\nClassical dataset augmentation in CIFAR-100 include :\n\nfeature wise standardization\nhorizontal flip\nzero padding of 4 pixels on each side, with random crops of 32x32.\n\nFor the last augmentation, you can make use of width_shift_range, height_shift_range, fill_mode=“constant” and cval=0.\nI now propose you a list of recent papers published on arxiv and I propose you to try reimplementing their architecture and training setup :\n\nMobileNet (Howard et al., 2017) MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Application\nSqueezeNet (Iandola et al., 2016) SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and 0.5M model size\nDenseNet (G. Huang, Liu, & Weinberger, 2016) Densely Connected Convolutional Networks\nWideResNet (Zagoruyko & Komodakis, 2016) Wide Residual Networks\nXception (Chollet, 2016) Xception: Deep Learning with Depthwise Separable Convolutions\nNASNet : (Zoph, Vasudevan, Shlens, & Le, 2017) Learning Transferable Architectures for Scalable Image Recognition\n\nThe following papers are trickier to implement :\n\nShuffleNet (Zhang, Zhou, Lin, & Sun, 2017) ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices\nResNet with Stochastic Depth (J. Huang et al., 2016) Deep networks with stochastic depth\nShake-Shake (Gastaldi, 2017) Shake-Shake regularization\n\nIf you wish to get an idea of the state of the art in 2015 on CIFAR-100, I invite you to visite the classification scores website.",
@@ -540,8 +564,8 @@
     ]
   },
   {
-    "objectID": "keras/cifar.html#objectives",
-    "href": "keras/cifar.html#objectives",
+    "objectID": "keras/cifar/index.html#objectives",
+    "href": "keras/cifar/index.html#objectives",
     "title": "A more ambitious image classification dataset : CIFAR-100",
     "section": "",
     "text": "We now turn to a more difficult problem of classifying RBG images belonging to one of 100 classes with the CIFAR-100 dataset. The CIFAR-100 dataset consists of 60000 32x32 colour images in 100 classes, with 600 images per class. There are 50000 training images and 10000 test images. The 100 classes in the CIFAR-100 are grouped into 20 superclasses. Each image comes with a “fine” label (the class to which it belongs) and a “coarse” label (the superclass to which it belongs). To give you an idea of the coarse labels, you find fruits, fish, aquatic mammals, vehicles, … and the fine labels are for example seal, whale, orchids, bicycle, bus, … Keras provides functions to automatically get the CIFAR-100 dataset.\nClassical dataset augmentation in CIFAR-100 include :\n\nfeature wise standardization\nhorizontal flip\nzero padding of 4 pixels on each side, with random crops of 32x32.\n\nFor the last augmentation, you can make use of width_shift_range, height_shift_range, fill_mode=“constant” and cval=0.\nI now propose you a list of recent papers published on arxiv and I propose you to try reimplementing their architecture and training setup :\n\nMobileNet (Howard et al., 2017) MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Application\nSqueezeNet (Iandola et al., 2016) SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and 0.5M model size\nDenseNet (G. Huang, Liu, & Weinberger, 2016) Densely Connected Convolutional Networks\nWideResNet (Zagoruyko & Komodakis, 2016) Wide Residual Networks\nXception (Chollet, 2016) Xception: Deep Learning with Depthwise Separable Convolutions\nNASNet : (Zoph, Vasudevan, Shlens, & Le, 2017) Learning Transferable Architectures for Scalable Image Recognition\n\nThe following papers are trickier to implement :\n\nShuffleNet (Zhang, Zhou, Lin, & Sun, 2017) ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices\nResNet with Stochastic Depth (J. Huang et al., 2016) Deep networks with stochastic depth\nShake-Shake (Gastaldi, 2017) Shake-Shake regularization\n\nIf you wish to get an idea of the state of the art in 2015 on CIFAR-100, I invite you to visite the classification scores website.",
@@ -569,6 +593,18 @@
     "title": "First steps in PyTorch : classifying fashion objects (FashionMNIST)",
     "section": "",
     "text": "Deep learning lectures © 2018 by Jeremy Fix is licensed under CC BY-NC-SA 4.0",
+    "crumbs": [
+      "Home",
+      "Pytorch",
+      "First steps in PyTorch : classifying fashion objects (FashionMNIST)"
+    ]
+  },
+  {
+    "objectID": "pytorch/fashionMNIST/index.html#refactoring-needed",
+    "href": "pytorch/fashionMNIST/index.html#refactoring-needed",
+    "title": "First steps in PyTorch : classifying fashion objects (FashionMNIST)",
+    "section": "🚧🚧🚧🚧🚧🚧🚧🚧 Refactoring needed 🚧🚧🚧🚧🚧🚧🚧🚧",
+    "text": "🚧🚧🚧🚧🚧🚧🚧🚧 Refactoring needed 🚧🚧🚧🚧🚧🚧🚧🚧\nThis lab still needs to be refactored to match the style of the other labs, especially using an installable library we go through .\nSee https://ia2vr.gitlabpages.inria.fr/iliar/pytorch_introduction.html",
     "crumbs": [
       "Home",
       "Pytorch",

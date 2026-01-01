@@ -132,7 +132,7 @@ ul.task-list li input[type="checkbox"] {
  <span class="dropdown-text">First steps in Keras: classifying handwritten digits(MNIST)</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./keras/cifar.html">
+    <a class="dropdown-item" href="./keras/cifar/index.html">
  <span class="dropdown-text">Keras CIFAR</span></a>
   </li>  
     </ul>
@@ -261,7 +261,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./keras/cifar.html" class="sidebar-item-text sidebar-link">
+  <a href="./keras/cifar/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">A more ambitious image classification dataset : CIFAR-100</span></a>
   </div>
 </li>
@@ -294,11 +294,7 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#additional-ressources" id="toc-additional-ressources" class="nav-link active" data-scroll-target="#additional-ressources">Additional ressources</a>
-  <ul class="collapse">
-  <li><a href="#practicalslectures" id="toc-practicalslectures" class="nav-link" data-scroll-target="#practicalslectures">Practicals/Lectures</a></li>
-  <li><a href="#blog-posts" id="toc-blog-posts" class="nav-link" data-scroll-target="#blog-posts">Blog posts</a></li>
-  </ul></li>
+  <li><a href="#labs" id="toc-labs" class="nav-link active" data-scroll-target="#labs">Labs</a></li>
   </ul>
 </nav>
     </div>
@@ -346,6 +342,200 @@ ul.task-list li input[type="checkbox"] {
 <p><a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"></p>
 <p><strong>Forewords</strong> These pages are written in markdown format and generated with <a href="https://quarto.org">quarto</a>. The generation is performed using the github workflows. Thank you all for these very helpful tools.</p>
 <p>These pages contain the subjects and codes for the labs in the deep learning lectures 3MD4040 taking place at CentraleSupélec. Most the work is done in pytorch although you will find one lab using Keras.</p>
+<section id="labs" class="level2">
+<h2 class="anchored" data-anchor-id="labs">Labs</h2>
+<style>
+.labs-container {
+  margin: 2rem 0;
+}
+
+.labs-section {
+  margin: 2.5rem 0;
+}
+
+.labs-section h3 {
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 992px) {
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.lab-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  background: white;
+}
+
+.lab-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-decoration: none;
+}
+
+.lab-card-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  color: white;
+}
+
+.lab-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lab-card-content {
+  padding: 1rem;
+}
+
+.lab-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.lab-card-description {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.4;
+}
+
+.pytorch-card .lab-card-image {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.keras-card .lab-card-image {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+</style>
+<div class="labs-container">
+<h3 class="anchored">
+PyTorch Labs
+</h3>
+<div class="cards-grid">
+<a href="pytorch/fashionMNIST/" class="lab-card pytorch-card">
+<div class="lab-card-image">
+<img src="pytorch/fashionMNIST/fashionMNIST_samples_augment.png" alt="FashionMNIST" style="width: 100%; height: 100%; object-fit: cover;">
+</div>
+<div class="lab-card-content">
+<div class="lab-card-title">
+FashionMNIST Classification
+</div>
+<div class="lab-card-description">
+First steps in PyTorch: classifying fashion objects with neural networks
+</div>
+</div>
+</a><p><a href="pytorch/fashionMNIST/" class="lab-card pytorch-card"></a></p>
+<a href="pytorch/object-detection/" class="lab-card pytorch-card">
+<div class="lab-card-image">
+<img src="pytorch/object-detection/multi_object_prediction.png" alt="Object detection" style="width: 100%; height: 100%; object-fit: cover;">
+</div>
+<div class="lab-card-content">
+<div class="lab-card-title">
+Object Detection
+</div>
+<div class="lab-card-description">
+Transfer learning and object detection on Pascal VOC dataset
+</div>
+</div>
+</a><p><a href="pytorch/object-detection/" class="lab-card pytorch-card"></a></p>
+<a href="pytorch/segmentation/" class="lab-card pytorch-card">
+<div class="lab-card-image">
+<img src="pytorch/segmentation/pascalVOC_samples_aug.png" alt="Semantic segmentation" style="width: 100%; height: 100%; object-fit: cover;">
+</div>
+<div class="lab-card-content">
+<div class="lab-card-title">
+Semantic Segmentation
+</div>
+<div class="lab-card-description">
+UNet and semantic segmentation on Pascal VOC with dense pixel labeling
+</div>
+</div>
+</a><p><a href="pytorch/segmentation/" class="lab-card pytorch-card"></a></p>
+<a href="pytorch/asr/" class="lab-card pytorch-card">
+<div class="lab-card-image">
+<img src="pytorch/asr/dataset_sample.png" alt="Speech recognition" style="width: 100%; height: 100%; object-fit: cover;">
+</div>
+<div class="lab-card-content">
+<div class="lab-card-title">
+Speech Recognition
+</div>
+<div class="lab-card-description">
+Automatic speech recognition on Mozilla Common Voice using CTC models
+</div>
+</div>
+</a><p><a href="pytorch/asr/" class="lab-card pytorch-card"></a></p>
+<a href="pytorch/gan/" class="lab-card pytorch-card">
+<div class="lab-card-image">
+<img src="pytorch/gan/svhn.gif" alt="GAN" style="width: 100%; height: 100%; object-fit: cover;">
+</div>
+<div class="lab-card-content">
+<div class="lab-card-title">
+Generative Networks (GAN)
+</div>
+<div class="lab-card-description">
+Deep convolutional generative adversarial networks for image generation
+</div>
+</div>
+</a><p><a href="pytorch/gan/" class="lab-card pytorch-card"></a></p>
+</div>
+<h3 class="anchored">
+Keras Labs
+</h3>
+<div class="cards-grid">
+<a href="keras/mnist/" class="lab-card keras-card">
+<div class="lab-card-image">
+<img src="keras/mnist/mnist_samples.png" alt="MNIST" style="width: 100%; height: 100%; object-fit: cover;">
+</div>
+<div class="lab-card-content">
+<div class="lab-card-title">
+MNIST Classification
+</div>
+<div class="lab-card-description">
+First steps in Keras: classifying handwritten digits with various architectures
+</div>
+</div>
+</a><p><a href="keras/mnist/" class="lab-card keras-card"></a></p>
+<a href="keras/cifar/" class="lab-card keras-card">
+<div class="lab-card-image">
+🎤
+</div>
+<div class="lab-card-content">
+<div class="lab-card-title">
+CIFAR-100 Classification
+</div>
+<div class="lab-card-description">
+
+</div>
+</div>
+</a><p><a href="keras/cifar/" class="lab-card keras-card"></a></p>
+</div>
 <section id="additional-ressources" class="level2">
 <h2 class="anchored" data-anchor-id="additional-ressources">Additional ressources</h2>
 <section id="practicalslectures" class="level3">
@@ -369,6 +559,8 @@ ul.task-list li input[type="checkbox"] {
 
 
 </section>
+</section>
+</div>
 </section>
 
 </main> <!-- /main -->
