@@ -857,9 +857,6 @@ The RNN must be defined as GRU(32 * n_mels//2, ...)
 </section>
 <section id="testing-on-a-new-audioclip" class="level2">
 <h2 class="anchored" data-anchor-id="testing-on-a-new-audioclip">Testing on a new audioclip</h2>
-<p>🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧</p>
-<p>Refactoring in progress</p>
-<p>🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧</p>
 <p>To test of an audio clip, you can record yourself as a mp3 and call the <code>asrlab</code> library with a path to the log directory and the path to the recording. In its current version, the model is saved as a <code>pt</code> file and therefore we need to recreate the model before loading its parameters. And to create the model, we need the parameters (number of layers, hidden units, …) used to create it in the first place.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-m</span> asrlab.main test logdir audiofile.mp3</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>If you prefer to use a file provided by CommonVoice, you can pick one of the sample audioclip listed in the <code>test.tsv</code> file of the CommonVoice dataset.</p>
@@ -869,12 +866,22 @@ The RNN must be defined as GRU(32 * n_mels//2, ...)
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">beamwidth</span><span class="kw">:</span><span class="at"> </span><span class="dv">10</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">beamsearch</span><span class="kw">:</span><span class="at"> </span><span class="ch">True</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The beam width is the number of paths that are evaluated in parallel.</p>
-<p>If you do not have yet a trained model, you can download <a href="https://centralesupelec-my.sharepoint.com/:u:/g/personal/jeremy_fix_centralesupelec_fr/EScVCV_zdYZDpWXBlynPmMYBjCbXVDc0SkTuS6JRn43CSg?e=u7eUWF">the best_ctc_42077.pt</a> checkpoint. This model can be tested with the command line below :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-m</span> asrlab.main test logdir /mounts/datasets/datasets/CommonVoice/v24.0/fr/clips/common_voice_fr_37118026.mp3</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Log</span> prob    Sequence</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ex">7.82</span>      ¶une contrefa❌on fut publiee en belgique.¦</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The summary file of this run is given below. This model has been trained with SpecAugment, Dropout(0.5), L2 regularization (0.0001), gradient norm clipping with all the available audio clips. The training was performed for almost 4 days.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>**TO BE UPDATED**</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>If you do not have yet a trained model, you can download a model I trained and release on github at <a href="https://github.com/jeremyfix/deeplearning-lectures/releases/tag/asr-v0">https://github.com/jeremyfix/deeplearning-lectures/releases/tag/asr-v0</a>. You can find all the details of the training hyperparameters in the provided files. The model has been trained with SpecAugment, L2 regularization, Dropout, gradient norm clipping and all the provided audio files. There, you will also find all the required files to perform an inference with the normalizing statistics and the parameters.</p>
+<p>If your log directory is <code>CTCModel_5</code>, the model can be tested with the command line below :</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">venv</span><span class="kw">)</span> <span class="ex">mymachine:~:mylogin$</span> python <span class="at">-m</span> asrlab.main test ./CTCModel_5 /path/to/common_voice_fr_27076965.mp3</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Testing</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Loading</span> CTCModel_5/config.yaml</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="ex">Building</span> the model</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Loading</span> and preprocessing the audio file</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="ex">torch.Size</span><span class="er">(</span><span class="ex">[904,</span> 1, 80]<span class="kw">)</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Plotting</span> the spectrogram</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="ex">Decoding</span> the spectrogram</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="ex">Using</span> beamsearch with beamwidth = 10</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="ex">100%</span><span class="kw">|</span><span class="ex">███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████</span><span class="kw">|</span> <span class="ex">226/226</span> [00:19<span class="op">&lt;</span>00:00, 11.39it/s]</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="ex">Log</span> prob    Sequence</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="ex">7.25</span>      ¶l<span class="st">'aversure moderne est une reconstitution a partir de fradment fran❌ais espagnol les portugais.¦</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The true transcript is <code>La version moderne est une reconstitution à partir de fragments français, espagnol et portugais.</code>.</p>
 </section>
 <section id="extras" class="level2">
 <h2 class="anchored" data-anchor-id="extras">Extras</h2>
@@ -890,44 +897,44 @@ The RNN must be defined as GRU(32 * n_mels//2, ...)
 <section id="ctcloss-example" class="level3">
 <h3 class="anchored" data-anchor-id="ctcloss-example">CTCLoss example</h3>
 <p>The CTC loss of pytorch accepts tensors of probabilities of shape <span class="math inline">\((T_x, Batch, vocab\_size)\)</span> and tensors of labels of shape <span class="math inline">\((batch, T_y)\)</span> with <span class="math inline">\(T_x\)</span> respectively the maximal sequence length of the spectrogram and <span class="math inline">\(T_y\)</span> the maximal length of the transcript. An example call is given below :</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ex_ctc():</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The size of our minibatches</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    batch_size <span class="op">=</span> <span class="dv">32</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The size of our vocabulary (including the blank character)</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    vocab_size <span class="op">=</span> <span class="dv">44</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The class id for the blank token (we take the default of the CTC loss)</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    blank_id <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    max_spectro_length <span class="op">=</span> <span class="dv">50</span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    min_transcript_length <span class="op">=</span> <span class="dv">10</span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    max_transcript_length <span class="op">=</span> <span class="dv">30</span></span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute a dummy vector of probabilities over the vocabulary (including the blank)</span></span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># log_probs is (Tx, Batch, vocab_size)</span></span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    log_probs <span class="op">=</span> torch.randn(max_spectro_length, batch_size, vocab_size).log_softmax(dim<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    spectro_lengths <span class="op">=</span> torch.randint(low<span class="op">=</span>max_transcript_length,</span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>                                    high<span class="op">=</span>max_spectro_length,</span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>                                    size<span class="op">=</span>(batch_size, ))</span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute some dummy transcripts</span></span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># longer than necessary. The true length of the transcripts is given</span></span>
-<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># in the target_lengths tensor</span></span>
-<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># targets is here (batch_size, Ty)</span></span>
-<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>    targets <span class="op">=</span> torch.randint(low<span class="op">=</span><span class="dv">0</span>, high<span class="op">=</span>vocab_size,  <span class="co"># include the blank character</span></span>
-<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>                            size<span class="op">=</span>(batch_size, max_transcript_length))</span>
-<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>    target_lengths <span class="op">=</span> torch.randint(low<span class="op">=</span>min_transcript_length,</span>
-<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>                                   high<span class="op">=</span>max_transcript_length,</span>
-<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>                                   size<span class="op">=</span>(batch_size, ))</span>
-<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> torch.nn.CTCLoss(blank<span class="op">=</span>blank_id)</span>
-<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The log_probs must be given as (Tx, Batch, vocab_size)</span></span>
-<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>    vloss <span class="op">=</span> loss(log_probs,</span>
-<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>                 targets,</span>
-<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>                 spectro_lengths,</span>
-<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>                 target_lengths)</span>
-<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Our dummy loss equals </span><span class="sc">{</span>vloss<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ex_ctc():</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The size of our minibatches</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    batch_size <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The size of our vocabulary (including the blank character)</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    vocab_size <span class="op">=</span> <span class="dv">44</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The class id for the blank token (we take the default of the CTC loss)</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    blank_id <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    max_spectro_length <span class="op">=</span> <span class="dv">50</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    min_transcript_length <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    max_transcript_length <span class="op">=</span> <span class="dv">30</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute a dummy vector of probabilities over the vocabulary (including the blank)</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># log_probs is (Tx, Batch, vocab_size)</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    log_probs <span class="op">=</span> torch.randn(max_spectro_length, batch_size, vocab_size).log_softmax(dim<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    spectro_lengths <span class="op">=</span> torch.randint(low<span class="op">=</span>max_transcript_length,</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>                                    high<span class="op">=</span>max_spectro_length,</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>                                    size<span class="op">=</span>(batch_size, ))</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compute some dummy transcripts</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># longer than necessary. The true length of the transcripts is given</span></span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># in the target_lengths tensor</span></span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># targets is here (batch_size, Ty)</span></span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a>    targets <span class="op">=</span> torch.randint(low<span class="op">=</span><span class="dv">0</span>, high<span class="op">=</span>vocab_size,  <span class="co"># include the blank character</span></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>                            size<span class="op">=</span>(batch_size, max_transcript_length))</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    target_lengths <span class="op">=</span> torch.randint(low<span class="op">=</span>min_transcript_length,</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>                                   high<span class="op">=</span>max_transcript_length,</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a>                                   size<span class="op">=</span>(batch_size, ))</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> torch.nn.CTCLoss(blank<span class="op">=</span>blank_id)</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The log_probs must be given as (Tx, Batch, vocab_size)</span></span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a>    vloss <span class="op">=</span> loss(log_probs,</span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a>                 targets,</span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a>                 spectro_lengths,</span>
+<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a>                 target_lengths)</span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Our dummy loss equals </span><span class="sc">{</span>vloss<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 </section>
 <section id="a-possible-solution" class="level2">
