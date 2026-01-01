@@ -1,8 +1,12 @@
 name: Pytorch semantic segmentation lab test
 
-on: [push]
+on:
+  push:
+    paths:
+      - 'LabsSolutions/pytorch/segmentation/**'
 
 jobs:
+
   test-pytorch-segmentation:
     runs-on: ubuntu-latest
     timeout-minutes: 15

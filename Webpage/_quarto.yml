@@ -33,7 +33,7 @@ website:
           - text: "First steps in Keras: classifying handwritten digits(MNIST)"
             file: keras/mnist/index.qmd
           - text: "Keras CIFAR"
-            file: keras/cifar.qmd
+            file: keras/cifar/index.qmd
       - text: "Resources"
         menu:
           - text: "Argparse"
@@ -55,7 +55,7 @@ website:
       - section: "Keras"
         contents:
           - keras/mnist/index.qmd
-          - keras/cifar.qmd
+          - keras/cifar/index.qmd
       - section: "Resources"
         contents:
           - argparse.qmd
