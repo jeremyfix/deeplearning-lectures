@@ -437,12 +437,6 @@ You could also implement a `penalty()` function in your CTCModel called from the
 
 ## Testing on a new audioclip
 
-🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
-
-Refactoring in progress
-
-🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧🚧
-
 To test of an audio clip, you can record yourself as a mp3 and call the `asrlab` library with a path to the log directory and the path to the recording. In its current version, the model is saved as a `pt` file and therefore we need to recreate the model before loading its parameters. And to create the model, we need the parameters (number of layers, hidden units, ...) used to create it in the first place.
 
 ```bash
@@ -463,19 +457,27 @@ decoding:
 
 The beam width is the number of paths that are evaluated in parallel.
 
-If you do not have yet a trained model, you can download [the best_ctc_42077.pt](https://centralesupelec-my.sharepoint.com/:u:/g/personal/jeremy_fix_centralesupelec_fr/EScVCV_zdYZDpWXBlynPmMYBjCbXVDc0SkTuS6JRn43CSg?e=u7eUWF) checkpoint. This model can be tested with the command line below :
+If you do not have yet a trained model, you can download a model I trained and release on github at [https://github.com/jeremyfix/deeplearning-lectures/releases/tag/asr-v0](https://github.com/jeremyfix/deeplearning-lectures/releases/tag/asr-v0). You can find all the details of the training hyperparameters in the provided files. The model has been trained with SpecAugment, L2 regularization, Dropout, gradient norm clipping and all the provided audio files. There, you will also find all the required files to perform an inference with the normalizing statistics and the parameters.
+
+If your log directory is `CTCModel_5`, the model can be tested with the command line below :
 
 ```bash
-(venv) mymachine:~:mylogin$ python -m asrlab.main test logdir /mounts/datasets/datasets/CommonVoice/v24.0/fr/clips/common_voice_fr_37118026.mp3
+(venv) mymachine:~:mylogin$ python -m asrlab.main test ./CTCModel_5 /path/to/common_voice_fr_27076965.mp3
+Testing
+Loading CTCModel_5/config.yaml
+Building the model
+Loading and preprocessing the audio file
+torch.Size([904, 1, 80])
+Plotting the spectrogram
+Decoding the spectrogram
+Using beamsearch with beamwidth = 10
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 226/226 [00:19<00:00, 11.39it/s]
 Log prob    Sequence
-7.82      ¶une contrefa❌on fut publiee en belgique.¦
+
+7.25      ¶l'aversure moderne est une reconstitution a partir de fradment fran❌ais espagnol les portugais.¦
 ```
 
-The summary file of this run is given below. This model has been trained with SpecAugment, Dropout(0.5), L2 regularization (0.0001), gradient norm clipping with all the available audio clips. The training was performed for almost 4 days.
-
-```markdown
-**TO BE UPDATED**
-```
+The true transcript is `La version moderne est une reconstitution à partir de fragments français, espagnol et portugais.`.
 
 ## Extras
 
