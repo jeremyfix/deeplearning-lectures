@@ -112,46 +112,10 @@ class ModelCheckpoint(object):
             # Export the pytorch parameters tensor
             torch.save(self.model.state_dict(), self.savepath_pt)
 
-            # # Save also the onnx
-            # # Create a wrapper that accepts unpacked tensors and unpacks the output
-            # # This is necessary because torch.onnx.export uses symbolic tracing
-            # # which doesn't support PackedSequence operations
-            # class ExportableWrapper(torch.nn.Module):
-            #     def __init__(self, model):
-            #         super().__init__()
-            #         self.model = model
-            #
-            #     def forward(self, x):
-            #         # x is a regular tensor of shape (T, B, features)
-            #         # we pack it to do a forward pass through the model
-            #         T = x.shape[0]
-            #         packed_x = pack_padded_sequence(x, lengths=[T]*x.shape[1])
-            #
-            #         packed_output = self.model(x)
-            #         unpacked_output, _ = pad_packed_sequence(packed_output)
-            #
-            #         return unpacked_output
-            #
-            # wrapper = ExportableWrapper(self.model)
-            #
-            # # Use lower-level API to avoid torch.export.export issues
-            # try:
-            #     torch.onnx.export(
-            #         wrapper,
-            #         self.dummy_inputs,
-            #         self.savepath_onnx,
-            #         input_names=["input"],
-            #         output_names=["output"],
-            #         dynamic_shapes=(
-            #             {0: "seq_len", 1: "batch"},
-            #             {0: "seq_len", 1: "batch"},
-            #         ),
-            #     )
-            # except Exception as e:
-            #     # If ONNX export fails, we can still continue training
-            #     # The model will be saved in PyTorch format
-            #     import warnings
-            #     warnings.warn(f"ONNX export failed: {e}. Continuing with PyTorch format only.")
+            # @SOL
+            # Try to export to ONNX format
+            self._export_onnx()
+            # SOL@
 
             self.best_score = score
 
@@ -160,6 +124,54 @@ class ModelCheckpoint(object):
 
             return True
         return False
+
+    # @SOL
+    def _export_onnx(self):
+        """
+        Export the model to ONNX format for maximum portability.
+        
+        ONNX models can be used with:
+        - ONNX Runtime (lightweight, no PyTorch needed)
+        - JavaScript/Node.js (via ONNX.js)
+        - C++, C#, Java and many other languages
+        - Any framework that supports ONNX
+        """
+        try:
+            # Import the wrapper class
+            from asrlab.models.deepspeech import CTCModelExportable
+            
+            # Create the exportable wrapper
+            exportable_model = CTCModelExportable(self.model)
+            exportable_model.eval()
+            
+            # Use JIT tracing first (more stable)
+            traced_model = torch.jit.trace(exportable_model, self.dummy_inputs)
+            
+            # Export the traced model to ONNX
+            torch.onnx.export(
+                traced_model,
+                self.dummy_inputs,
+                self.savepath_onnx,
+                input_names=["input"],
+                output_names=["output"],
+                opset_version=14,
+                do_constant_folding=True,
+                verbose=False,
+            )
+            info(f"Model successfully exported to ONNX: {self.savepath_onnx}")
+            
+        except Exception as e:
+            # If ONNX export fails, fall back to JIT/TorchScript
+            try:
+                savepath_jit = self.savepath_pt.parent / "best_model.jit"
+                traced_model = torch.jit.trace(exportable_model, self.dummy_inputs)
+                torch.jit.save(traced_model, savepath_jit)
+                info(f"Model exported to TorchScript: {savepath_jit}")
+            except Exception as e2:
+                # If both fail, continue training (model still saved as .pt)
+                import warnings
+                warnings.warn(f"Model export failed: {e}. Continuing with PyTorch format only.")
+    # SOL@
 
 # @SOL
 def test_export():

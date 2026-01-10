@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import annotations
 
 # Standard imports
 import collections
@@ -59,6 +60,52 @@ class LinearModel(nn.Module):
             outputs = self.forward(inputs)
         return decoder.beam_decode(outputs, beam_size, blank_id, self.charmap)
 
+
+# @SOL
+class CTCModelExportable(nn.Module):
+    """
+    Wrapper around CTCModel that accepts dense (unpacked) tensors instead of
+    PackedSequences. This allows the model to be exported to ONNX format.
+    
+    This class is designed for export purposes only and should not be used
+    for training. It accepts inputs of shape (T, B, n_mels) and returns
+    outputs of shape (T, B, vocab_size).
+    """
+
+    def __init__(self, model: CTCModel) -> None:
+        """
+        Args:
+            model: A trained CTCModel instance
+        """
+        super().__init__()
+        self.model = model
+        self.n_mels = model.n_mels
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass with dense tensors.
+        
+        Args:
+            inputs: Tensor of shape (T, B, n_mels)
+        
+        Returns:
+            Tensor of shape (T, B, vocab_size)
+        """
+        # Get the batch size and sequence length
+        T, B, _ = inputs.shape
+        
+        # Create a PackedSequence from the dense tensor
+        # Assume all sequences have full length T
+        packed_inputs = pack_padded_sequence(inputs, lengths=[T] * B)
+        
+        # Forward pass through the model
+        packed_output = self.model(packed_inputs)
+        
+        # Unpack the output to get dense tensor
+        unpacked_output, _ = pad_packed_sequence(packed_output)
+        
+        return unpacked_output
+# SOL@
 
 class CTCModel(nn.Module):
     """
@@ -299,3 +346,64 @@ class CTCModel(nn.Module):
         with torch.no_grad():
             outputs = self.forward(inputs)
         return decoder.beam_decode(outputs, beam_size, blank_id, self.charmap)
+
+# @SOL
+class CTCModelExportable(nn.Module):
+    """
+    Wrapper around CTCModel components for ONNX export that uses dense tensors
+    instead of PackedSequence. This class reconstructs the model architecture
+    without pack_padded_sequence/pad_packed_sequence operations which are not
+    supported by ONNX export.
+    
+    This class is designed for export purposes only and should not be used
+    for training. It accepts inputs of shape (T, B, n_mels) and returns
+    outputs of shape (T, B, vocab_size).
+    """
+
+    def __init__(self, model: "CTCModel") -> None:
+        """
+        Args:
+            model: A trained CTCModel instance
+        """
+        super().__init__()
+        # Copy the CNN layers
+        self.cnn = model.cnn
+        # Copy the RNN layers
+        self.rnn = model.rnn
+        # Copy the classification layers
+        self.charlin = model.charlin
+        self.n_mels = model.n_mels
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass with dense tensors (without PackedSequence).
+        
+        Args:
+            inputs: Tensor of shape (T, B, n_mels)
+        
+        Returns:
+            Tensor of shape (T_out, B, vocab_size) where T_out = T // 4
+        """
+        # Step 1: Unpack inputs and transform from (T, B, MELS) to (B, C=1, T, MELS)
+        unpacked_inputs = inputs.transpose(0, 1).unsqueeze(dim=1)
+
+        # Step 2: Pass through convolutional layers
+        out_cnn = self.cnn(unpacked_inputs)  # (B, C, To, W)
+
+        # Step 3: Transform from (B, C, To, W) to (To, B, C*W)
+        B = out_cnn.shape[0]
+        To = out_cnn.shape[2]  # This is the time dimension after downsampling
+        out_cnn = out_cnn.permute(2, 0, 1, 3).reshape(To, B, -1)
+
+        # Step 4: Pass through RNN layers
+        # Note: The RNN now operates on the downsampled sequence
+        # In the original model this happens implicitly when creating PackedSequence
+        rnn_output, _ = self.rnn(out_cnn)  # (To, B, num_hidden*2)
+
+        # Step 5: Pass through classification layers
+        print("Step 5")
+        out_lin = self.charlin(rnn_output)  # (To, B, vocab_size)
+        print("All done")
+        return out_lin
+# SOL@
+
