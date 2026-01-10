@@ -1,0 +1,51 @@
+---
+title:  'Implicit Neural Representations'
+author:
+- Jeremy Fix
+keywords: [PyTorch tutorial, NERF, PINNS]
+---
+
+<a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+
+## Objectives
+
+In this lab, we are going to explore Implicit Neural Representations through two exampls : Neural Radiance Fields (NERFs) and Physics-Informed Neural Networks (PINNs). In this field, there is no train time and test time, the representations learned by a a neural network are trained specifically on one sample. 
+
+## Neural Radiance Fields (NERFs)
+
+The concept of NERFs was introduced in 2020 [@Mildenhal2020] (see also [https://www.matthewtancik.com/nerf](https://www.matthewtancik.com/nerf)). As clearly illustrated on the webpage of the paper (see below), a NERF is a neural network representing a scene and optimised by backpropagating through a loss between ground truth observations and predicted observations. On the image below, the NERFs is used to encode the 3D scene and can be projected on the camera frames by integrating along rays. With the observed camera frames, we can compute a loss to optimize the parameters of the neural network.
+
+![The NERF encodes the scene and is optimised by computing the loss between the expected camera projections and the actual observatios](https://cdn.prod.website-files.com/51e0d73d83d06baa7a00000f/5e700ef6067b43821ed52768_pipeline_website-01-p-800.png)
+
+We are going to illustrate the use of NERFs on the giga pixel problem. The gigapixel aims to produce super resolution on an image but the approach considered by NERFs is trully original with respect to what was done before their introduction. In the traditional approach, you would train a neural network to upscale by a fixed factor your image. With the NERF approach, you fit a neural network to predict the pixel values at their integer coordinates and then can evaluate the neural network on arbitrary positions, in particular at subpixel positions.
+
+Let us apply this principle to update [Friant](https://en.wikipedia.org/wiki/%C3%89mile_Friant)'s paintings.
+
+## Physics Informed Neural Networks (PINNs)
+
+Another illustration of implicit neural representations is Physics-Informed-Neural-Networks (PINNs). There, the point is to approximate the solution of a differential equation with a neural network $f_\theta(x)$, where $x$ is to be considered as general coordinates (spatial, temporal, both). An example differential equation we may want to solve could be the Wave equation :
+
+$$
+\frac{\partial^2 u}{\partial t^2}(x, y, t) = c^2 (\frac{\partial^2 u}{\partial x^2}(x, y, t) + \frac{\partial^2 u}{\partial x^2}(x, y, t))
+$$
+
+You could basically reorganize the terms as :
+
+$$
+\frac{\partial^2 u}{\partial t^2}(x, y, t) - c^2 (\frac{\partial^2 u}{\partial x^2}(x, y, t) + \frac{\partial^2 u}{\partial x^2}(x, y, t)) = 0
+$$
+
+We suppose we observe a physical system at some position. Usually, when we deal with these equations, we are expected to provide boundary conditions. However, when we want to learn a solution of this equation, it is sufficient to consider that the solution is observed at some coordinates, without constraining these observations to lie on a full spatial or temporal slice. 
+
+To learn a solution to this equation with PINNs, we will consider two terms in the loss function fitting the following two objectives :
+
+- you want your approximate solution $f_\theta(x)$ to output the correct value where we observe them,
+- you want your approximate solution to follow the physics everywhere in your volume.
+
+For the first objective, it is not a big deal. We have observations and predictions and therefore we can compute a loss (say L2, Huber, or so). For the second one, we will sample the volume at some positions, according to a given strategy. To get the idea, consider you sample uniformely your coordinates. We call these points the **collocation points**. The collocations points are the point where we will compute a loss that will quantify if our solution does follow the physics. To follow the physics mean to verify the differential equation and this guaranteed if the equality above is satisfied. In the case of the wave equation, we can introduce a **residue**: 
+
+$$
+r(x, y, t) = \frac{\partial^2 f_\theta}{\partial t^2}(x, y, t) - c^2 (\frac{\partial^2 f_\theta}{\partial x^2}(x, y, t) + \frac{\partial^2 f_\theta}{\partial x^2}(x, y, t)) = 0
+$$
+
+Following the physics means we want $r(x, y, t)$ to exactly on the **collocation points**.
