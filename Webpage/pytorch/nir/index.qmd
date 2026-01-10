@@ -13,13 +13,22 @@ In this lab, we are going to explore Implicit Neural Representations through two
 
 ## Neural Radiance Fields (NERFs)
 
-The concept of NERFs was introduced in 2020 [@Mildenhal2020] (see also [https://www.matthewtancik.com/nerf](https://www.matthewtancik.com/nerf)). As clearly illustrated on the webpage of the paper (see below), a NERF is a neural network representing a scene and optimised by backpropagating through a loss between ground truth observations and predicted observations. On the image below, the NERFs is used to encode the 3D scene and can be projected on the camera frames by integrating along rays. With the observed camera frames, we can compute a loss to optimize the parameters of the neural network.
+The concept of NERFs was introduced in 2020 [@Mildenhal2020] (see also [https://www.matthewtancik.com/nerf](https://www.matthewtancik.com/nerf)). As clearly illustrated on the webpage of the paper (see below), a NERF is a neural network representing a scene and optimised by backpropagating through a loss between ground truth observations and predicted observations. On the image below, the NERFs is used to encode the 3D scene and can be projected on the camera frames by integrating along rays. With the observed camera frames, we can compute a loss to optimize the parameters of the neural network. 
 
 ![The NERF encodes the scene and is optimised by computing the loss between the expected camera projections and the actual observatios](https://cdn.prod.website-files.com/51e0d73d83d06baa7a00000f/5e700ef6067b43821ed52768_pipeline_website-01-p-800.png)
 
 We are going to illustrate the use of NERFs on the giga pixel problem. The gigapixel aims to produce super resolution on an image but the approach considered by NERFs is trully original with respect to what was done before their introduction. In the traditional approach, you would train a neural network to upscale by a fixed factor your image. With the NERF approach, you fit a neural network to predict the pixel values at their integer coordinates and then can evaluate the neural network on arbitrary positions, in particular at subpixel positions.
 
-Let us apply this principle to update [Friant](https://en.wikipedia.org/wiki/%C3%89mile_Friant)'s paintings.
+Let us apply this principle to upscale [Friant](https://en.wikipedia.org/wiki/%C3%89mile_Friant)'s paintings.
+
+### Data loading
+
+
+### Positional encoding
+
+NERFs were introduced in 2020 and triggered a lot of work. For example, in 2022, people at NVIDIA introduced Instant Neural Graphics Primitives (Instant-NGP) [@mueller2022instant] which introduced a Hash based positional encoding.
+
+...
 
 ## Physics Informed Neural Networks (PINNs)
 
