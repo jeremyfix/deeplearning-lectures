@@ -403,7 +403,7 @@ if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     # @TEMPL
     # plot_samples("/mounts/datasets/datasets/Pascal-VOC2012")
-    # test_dataloaders("/opt/datasets/Pascal-VOC2012")
+    # test_dataloaders("/mounts/datasets/datasets/Pascal-VOC2012")
     # TEMPL@
     # @SOL
     root_dir = "/opt/datasets/Pascal-VOC2012"
