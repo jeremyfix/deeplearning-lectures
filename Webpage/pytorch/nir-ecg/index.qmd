@@ -1,5 +1,5 @@
 ---
-title:  'Implicit Neural Representations'
+title:  'Implicit Neural Representations for ECG super resolution'
 author:
 - Jeremy Fix
 keywords: [PyTorch tutorial, NERF, PINNS]
@@ -9,7 +9,59 @@ keywords: [PyTorch tutorial, NERF, PINNS]
 
 ## Objectives
 
-In this lab, we are going to explore Implicit Neural Representations through two exampls : Neural Radiance Fields (NERFs) and Physics-Informed Neural Networks (PINNs). In this field, there is no train time and test time, the representations learned by a a neural network are trained specifically on one sample. 
+In this lab, we are going to explore Neural Implicit Representations (NIR) to perform super resolution of spatiotemporal data : temporal series of cardiac ECGs. This lab is based on the works of [@Hemidi2023] and [@Feng2024]. To explore NIR for ECGs, we will use the data provided for the [CMXRecon Cardiac MRI challenge of the MICCAI 2023 conference](https://cmrxrecon.github.io/Home.html).
+
+## Setup and predefined scripts
+
+For this lab, you are provided a base code to complete : [inrlab-kit.tar.gz](../../assets/ganlab-kit.tar.gz). To get and use that code :  
+
+```
+wget https://jeremyfix.github.io/deeplearning-lectures/assets/inrlab-kit.tar.gz
+tar -zxvf inrlab-kit.tar.gz
+```
+
+This code is orinrized as a python library `inrlab` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
+
+To install the library, you need to install it in 1) a virtual environment and 2) in developer mode.
+
+**If you use the DCE of CentraleSupélec**, you can use pre-installed virtual environments that already ship several required packages :
+
+```bash
+mymachine:~:mylogin$ /opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+mymachine:~:mylogin$ source $TMPDIR/venv/bin/activate
+```
+
+**otherwise**, you need to create your own venv, for example using the built-in python venv module :
+
+```bash
+mymachine:~:mylogin$ python3 -m venv /tmp/venv
+mymachine:~:mylogin$ source /tmp/venv/bin/activate
+```
+
+Then, to install the library in developer mode :
+
+``` bash
+(venv) mymachine:~:mylogin$ python -m pip install -e inr
+```
+
+You can verify that the library is installed by running :
+
+``` bash
+(venv) mymachine:~:mylogin$ python -c "import inrlab; print(f'Library available at {inrlab.__file__}')"
+```
+
+This basic code base offers you several modules that **we will cover step by step** :
+
+- data.py : data loading of the temporal ECGs,
+- models/ : contains our DCGAN implementation,
+- utils.py : contains several utility functions such as the training and test loops, saving the best models, etc..
+- main.py: the main script which will run training and testing.
+
+## Problem definition
+
+There are multiple dimensions we need to introduce to lay down the problem. First
+
+In MRI, data are acquired in the Fourier Domain, i.e. the spectral representation of the organ. It 
 
 ## Neural Radiance Fields (NERFs)
 
