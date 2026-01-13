@@ -1,6 +1,6 @@
 # coding: utf-8
 
-# This file originates from the torchcvnn python library
+# This file originates and is adapted from the torchcvnn python library
 # https://github.com/torchcvnn/torchcvnn
 
 # MIT License
@@ -56,6 +56,7 @@ def load_matlab_file(filename: str, key: str) -> np.ndarray:
     with h5py.File(filename, "r") as f:
         logging.debug(f"Got the keys {f.keys()} from {filename}")
         data = f[key][()]
+
     return data
 
 
@@ -121,6 +122,35 @@ def combine_coils_from_kspace(kspace: np.ndarray) -> np.ndarray:
     images = np.fft.ifft2(np.fft.ifftshift(kspace))
     return np.fft.fftshift(np.sqrt(np.sum(np.abs(images) ** 2, axis=0)))
 
+@torch.jit.script
+def IFFT(x):
+    return torch.fft.ifftshift(
+        torch.fft.ifft2(torch.fft.fftshift(x, dim=(0, 1)), dim=(0, 1)), dim=(0, 1)
+    )
+
+def combine_coils(kspace):
+    """
+    Combine the coils from the given k-space
+
+    Arguments:
+        kspace: Tensor of shape (nrows, ncols, ncoils)
+                     or (nrows, ncols, ncoils, nslices)
+                complex valued
+
+    Returns:
+        image: Tensor of shape (nrows, ncols)
+                    or (nrows, ncols, nslices)
+                magnitude only
+    """
+    if isinstance(kspace, np.ndarray):
+        kspace = torch.tensor(kspace, dtype=torch.complex64)
+
+    images = IFFT(kspace)
+
+    # Combine the coils in the image space with the RSS
+    coils_combined = (images.abs() ** 2).sum(axis=2).sqrt()
+
+    return coils_combined
 
 class MICCAI2023(Dataset):
     """
@@ -169,72 +199,6 @@ class MICCAI2023(Dataset):
     from the subsampled k-space. The acceleratation factor specifies the subsampling rate.
 
     There are also the Single-Coil data which is not yet considered by this implementation
-
-    Note:
-        An example usage :
-
-        .. code-block:: python
-
-            import torchcvnn
-            from torchcvnn.datasets.miccai2023 import MICCAI2023, CINEView, AccFactor
-
-            def process_kspace(kspace, coil_idx, slice_idx, frame_idx):
-                coil_kspace = kspace[:, :, coil_idx, slice_idx, frame_idx]
-                mod_kspace = np.log(np.abs(coil_kspace) + 1e-9)
-
-                img = kspace_to_image(coil_kspace)
-                img = np.abs(img)
-                img = img / img.max()
-
-                return mod_kspace, img
-
-            dataset = MICCAI2023(rootdir, view=CINEView.SAX, acc_factor=AccFactor.ACC8)
-            subsampled_kspace, subsampled_mask, full_kspace = dataset[0]
-
-            frame_idx = 5
-            slice_idx = 0
-            coil_idx = 9
-
-            mod_full, img_full = process_kspace(full_kspace, coil_idx, slice_idx, frame_idx)
-            mod_sub, img_sub = process_kspace(subsampled_kspace, coil_idx, slice_idx, frame_idx)
-
-            # Plot the above magnitudes
-            ...
-
-
-        Displayed below is an example patient with the SAX view and acceleration of 8:
-
-        .. figure:: ../assets/datasets/miccai2023_sax8.png
-           :alt: Example patient from the MICCAI2023 dataset with both the full sampled and under sampled k-space and images
-           :width: 100%
-           :align: center
-
-        Displayed below is an example patient with the LAX view and acceleration of 4:
-
-        .. figure:: ../assets/datasets/miccai2023_lax4.png
-           :alt: Example patient from the MICCAI2023 dataset with both the full sampled and under sampled k-space and images
-           :width: 100%
-           :align: center
-
-        You can combine the coils using the root sum of squares
-        to get a magnitude image (real valued) with all the
-        coil contributions.
-
-
-        Below are examples combining the coils for a given
-        frame and slice, for LAX (top) and SAX (bottom). It uses
-        the function :py:func:`torchcvnn.datasets.miccai2023.combine_coils_from_kspace`
-
-        .. figure:: ../assets/datasets/miccai2023_combined_lax.png
-           :alt: Example LAX, combining the coils
-           :width: 50%
-           :align: center
-
-        .. figure:: ../assets/datasets/miccai2023_combined_sax.png
-           :alt: Example SAX, combining the coils
-           :width: 50%
-           :align: center
-
     """
 
     def __init__(
