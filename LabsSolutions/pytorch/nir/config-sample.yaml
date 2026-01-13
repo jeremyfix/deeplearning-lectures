@@ -1,0 +1,27 @@
+data:
+  root_dir: '/mounts/datasets/datasets/MICCAIChallenge2023/MultiCoil/cine/TrainingSet/P001'
+  normalize: True
+
+optim:
+  algo: Adam
+  params:
+    lr: 0.001
+
+nepochs: 20
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+
+model:
+  class: "UNet"
+  num_blocks: 5
+  base_c: 32
+
+# model:
+#   class: "DeepLabV3Plus"
+#   parameters:
+#     encoder_name: "resnet18"
+#     encoder_weights: "imagenet"
