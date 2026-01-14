@@ -3,6 +3,7 @@ data:
   rootdir: "/opt/datasets/"
   debug: False
   batch_size: 256
+  nthreads: 32 # You may need to adapt this in case no GPU is available
 
 optim:
   base_lr: 0.0002

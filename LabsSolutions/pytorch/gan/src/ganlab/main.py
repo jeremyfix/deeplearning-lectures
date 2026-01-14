@@ -99,6 +99,20 @@ def train(config):
 
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
+    
+    # Configure CPU parallelism settings
+    if not use_cuda:
+        # Get the number of CPU threads on the system
+        cpu_threads = os.cpu_count()
+        logger.info(f"CPU mode: counted {cpu_threads} threads")
+        logger.info(f"CPU mode: using {nthreads} workers for data loading")
+        
+        # Set the number of threads for inter-op parallelism (parallel ops)
+        torch.set_num_threads(nthreads)
+
+        # Set the number of threads for intra-op parallelism (within ops like matrix mult)
+        torch.set_num_interop_threads(nthreads)
+
 
     # Dataloaders
     train_loader, valid_loader, img_shape = data.get_dataloaders(
@@ -121,10 +135,21 @@ def train(config):
         generator_base_c,
     )
     model.to(device)
+    
+    if not use_cuda:
+        # For CPU training with multiple cores
+        model = torch.nn.DataParallel(model)
+        logger.info(f"DataParallel enabled (processes threads internally)")
 
     # Optimizers
-    critic = model.discriminator
-    generator = model.generator
+    # Handle both wrapped and unwrapped models
+    if isinstance(model, torch.nn.DataParallel):
+        critic = model.module.discriminator
+        generator = model.module.generator
+    else:
+        critic = model.discriminator
+        generator = model.generator
+    
     ######################
     # START CODING HERE ##
     ######################
@@ -190,7 +215,7 @@ def train(config):
 
     # Generate few samples from the initial generator
     model.eval()
-    fake_images = model.generator(X=fixed_noise)
+    fake_images = generator(X=fixed_noise)
     fake_images = (fake_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
     grid = torchvision.utils.make_grid(fake_images, nrow=sample_nrows, normalize=True)
     tensorboard_writer.add_image("Generated", grid, 0)
@@ -402,7 +427,7 @@ def train(config):
 
         # Generate few samples from the generator
         model.eval()
-        fake_images = model.generator(X=fixed_noise)
+        fake_images = generator(X=fixed_noise)
         # Unscale the images
         fake_images = (fake_images * data._IMG_STD + data._IMG_MEAN).clamp(0, 1.0)
         grid = torchvision.utils.make_grid(fake_images, nrow=sample_nrows)
@@ -418,14 +443,14 @@ def train(config):
 
         # We save the generator
         logger.info(f"Generator saved at {save_path}")
-        torch.save(model.generator, save_path)
+        torch.save(generator, save_path)
 
         # Important: ensure the model is in eval mode before exporting !
         # the graph in train/test mode is not the same
         model.eval()
         dummy_input = torch.zeros((1, latent_size), device=device)
         torch.onnx.export(
-            model.generator,
+            generator,
             dummy_input,
             logdir + "/generator.onnx",
             verbose=False,
