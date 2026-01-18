@@ -15,6 +15,10 @@ def build_coordinate_2Dt(Nx, Ny, Nt, device=torch.device("cpu")):
     xyt = xyt.view(Nx, Ny, Nt, 3)
     return xyt
 
+def build_encoder(dim_input, cfg):
+    params = cfg["params"]
+    return eval(f"{cfg['class']}(dim_input, params)")
+
 class Positional(nn.Module):
     """
     This class implements the positional encoding as proposed in 
@@ -22,21 +26,21 @@ class Positional(nn.Module):
     """
 
     def __init__(self, 
-                 n_inputs: int, 
+                 dim_input: int, 
                  cfg: dict): 
         super().__init__()
         
-        self.n_inputs = n_inputs
+        self.dim_input = dim_input
         self.L = cfg["L"]
 
     def forward(self, X):
         """
         Given X as a collection of points on which to evaluate
-        the embedding with X : (K, n_inputs)
+        the embedding with X : (K, dim_input)
 
         We compute the positional encodings as a tensor of shape
 
-        (K, n_inputs * 2 * L)
+        (K, dim_input * 2 * L)
 
         with cos/sin embeddings of L frequencies for each coordinate
         """
@@ -57,15 +61,17 @@ class Positional(nn.Module):
 
 def test_positional_encoding():
     cfg = { "L" : 4}
-    n_inputs = 1
-    # Uniform sampling of the volume [-1, 1]^n_inputs
+    dim_input = 1
+    # Uniform sampling of the volume [-1, 1]^dim_input
     npoints = 1000
-    enc = Positional(n_inputs=n_inputs, cfg=cfg)
+    cfg = {"class": "Positional", "params": {"L": 4}}
 
-    # X = -1. + 2.0 * torch.rand(npoints, n_inputs)
-    # The reshape can be usefull when n_inputs = 1 to introduce that
+    enc = build_encoder(dim_input=dim_input, cfg=cfg)
+
+    # X = -1. + 2.0 * torch.rand(npoints, dim_input)
+    # The reshape can be usefull when dim_input = 1 to introduce that
     # dimension
-    X = torch.linspace(-1., 1., npoints).reshape(npoints, n_inputs)
+    X = torch.linspace(-1., 1., npoints).reshape(npoints, dim_input)
 
     print(X.shape)
     encodings = enc(X)

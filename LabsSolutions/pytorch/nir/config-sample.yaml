@@ -16,12 +16,11 @@ logging:
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
 
 model:
-  class: "UNet"
-  num_blocks: 5
-  base_c: 32
-
-# model:
-#   class: "DeepLabV3Plus"
-#   parameters:
-#     encoder_name: "resnet18"
-#     encoder_weights: "imagenet"
+  class: "RealNGP"
+  params:
+    n_hidden_units: 32
+    n_hidden_layers: 4
+    pos_encoding:
+      class: "Positional"
+      params: 
+        L: 10
