@@ -32,42 +32,6 @@ from nirlab import utils
 from nirlab import metrics
 
 
-def plot_results(normalizing_stats, imgs, preds, gts):
-    mean, std = normalizing_stats["mean"], normalizing_stats["std"]
-
-    fig, axes = plt.subplots(
-        figsize=(6, 18), facecolor="w", nrows=imgs.shape[0], ncols=3
-    )
-    cmap = data.color_map()
-
-    for i in range(imgs.shape[0]):
-        input_i = imgs[i].permute(1, 2, 0).cpu().numpy()
-        input_i = ((input_i * std) + mean).clip(0.0, 1.0)
-        pred_i = preds[i].squeeze().cpu().numpy()
-        gt_i = gts[i].squeeze().cpu().numpy()
-
-        overlaid_pred = data.overlay(cmap, input_i, pred_i)
-        overlaid_gt = data.overlay(cmap, input_i, gt_i)
-
-        ax = axes[i, 0]
-        ax.imshow(input_i)
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-
-        ax = axes[i, 1]
-        ax.imshow(overlaid_gt)
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-
-        ax = axes[i, 2]
-        ax.imshow(overlaid_pred)
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-
-    plt.subplots_adjust(wspace=0.1, hspace=0.1)
-    return fig
-
-
 def train(configpath):
 
     logging.info(f"Loading {configpath}")
@@ -92,21 +56,25 @@ def train(configpath):
     (
         train_loader,
         valid_loader,
-        input_size,
-        num_classes,
-        normalizing_stats,
-        train_transforms,
+        dim_input,
+        dim_output,
+        normalizing_stats
     ) = data.get_dataloaders(data_config, use_cuda)
+
+    # Request the first minibatch to get the dimensionalities of the input/output
+    x0, y0 = next(iter(train_loader))
+    dim_input = x0.shape[1]
+    dim_output = y0.shape[1]
 
     # Build the model
     logging.info("= Model")
     model_config = config["model"]
-    model = models.build_model(model_config, input_size, num_classes)
+    model = models.build_model(dim_input, dim_output, model_config)
     model.to(device)
 
     # Build the loss
     logging.info("= Loss")
-    loss = optim.FocalLoss(ignore_index=255)
+    loss = nn.MSELoss()
 
     # Build the optimizer
     logging.info("= Optimizer")
@@ -124,17 +92,11 @@ def train(configpath):
 
     # Build the metrics
     train_fmetrics = {
-        "focal": deepcs.metrics.GenericBatchMetric(loss),
-        "accuracy": BatchAccuracy(),
-        # "confusion_matrix": metrics.BinaryConfusionMatrixMetric(),
+        "mse": deepcs.metrics.GenericBatchMetric(loss),
     }
     test_fmetrics = {
-        "focal": deepcs.metrics.GenericBatchMetric(loss),
-        "accuracy": BatchAccuracy(),
-        # "confusion_matrix": metrics.BinaryConfusionMatrixMetric(),
+        "mse": deepcs.metrics.GenericBatchMetric(loss),
     }
-    train_fmetrics["F1"] = BatchF1()
-    test_fmetrics["F1"] = BatchF1()
 
     # Copy the config file into the logdir
     logdir = pathlib.Path(logdir)
@@ -146,7 +108,7 @@ def train(configpath):
         yaml.dump(normalizing_stats, file)
 
     # Make a summary script of the experiment
-    x0, _ = next(iter(train_loader))
+
     # x0 is a list of tensors
     input_size = (1,) + x0[0].shape
     logging.info(f"Input size : {input_size}")

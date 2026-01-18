@@ -1,6 +1,11 @@
 data:
-  root_dir: '/mounts/datasets/datasets/MICCAIChallenge2023/MultiCoil/cine/TrainingSet/P001'
+  batch_size: 32
   normalize: True
+  valid_ratio: 0.2
+  num_workers: 4
+  class: "MICCAI"
+  params:
+    root_dir: '/mounts/datasets/datasets/MICCAIChallenge2023/MultiCoil/cine/TrainingSet/P001'
 
 optim:
   algo: Adam

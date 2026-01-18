@@ -9,10 +9,6 @@ import sys
 
 # External imports
 import torch
-import torchvision
-import torchvision.transforms as transforms
-from torchvision.transforms import v2
-from torchvision.utils import draw_segmentation_masks
 import numpy as np
 import tqdm
 import PIL
