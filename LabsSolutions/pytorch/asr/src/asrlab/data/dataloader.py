@@ -376,7 +376,7 @@ def test_dataloaders():
     utils.head("Testing the dataloaders")
 
     cfg = {
-        "root_dir": "/opt/datasets/CommonVoice",
+        "root_dir": "/mounts/datasets/datasets/CommonVoice",
         "version": "v24.0",
         "lang": "fr",
         "batch_size": 10,

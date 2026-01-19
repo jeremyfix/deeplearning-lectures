@@ -16,7 +16,7 @@ from .waveform import WaveformProcessor
 
 def test_dataset():
     fold = "train"
-    root = "/opt/datasets/CommonVoice"
+    root = "/mounts/datasets/datasets/CommonVoice"
     version = "v24.0"
     lang = "fr"
     dataset = load_dataset(fold, root=root, version=version, lang=lang)
