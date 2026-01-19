@@ -1,11 +1,11 @@
 data:
   batch_size: 32
-  normalize: True
+  normalize: False
   valid_ratio: 0.2
   num_workers: 4
-  class: "MICCAI"
+  class: "ImageDataset"
   params:
-    root_dir: '/mounts/datasets/datasets/MICCAIChallenge2023/MultiCoil/cine/TrainingSet/P001'
+    root_dir: '.'
 
 optim:
   algo: Adam
@@ -23,8 +23,8 @@ logging:
 model:
   class: "RealNGP"
   params:
-    n_hidden_units: 32
-    n_hidden_layers: 4
+    n_hidden_units: 128
+    n_hidden_layers: 6
     pos_encoding:
       class: "Positional"
       params: 
