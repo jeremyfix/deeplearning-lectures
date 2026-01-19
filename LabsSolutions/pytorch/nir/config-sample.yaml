@@ -1,16 +1,16 @@
 data:
   batch_size: 32
-  normalize: False
+  normalize: True
   valid_ratio: 0.2
   num_workers: 4
   class: "ImageDataset"
   params:
-    root_dir: '.'
+    root_dir: './images'
 
 optim:
   algo: Adam
   params:
-    lr: 0.001
+    lr: 0.01
 
 nepochs: 20
 
@@ -23,8 +23,8 @@ logging:
 model:
   class: "RealNGP"
   params:
-    n_hidden_units: 128
-    n_hidden_layers: 6
+    n_hidden_units: 64
+    n_hidden_layers: 2
     pos_encoding:
       class: "Positional"
       params: 

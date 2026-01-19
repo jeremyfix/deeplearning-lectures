@@ -21,26 +21,6 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
 
-class WrappedDataset(torch.utils.data.dataset.Dataset):
-    def __init__(self, dataset, tfs):
-        super().__init__()
-        self.dataset = dataset
-        self.transforms = tfs
-
-    def __getitem__(self, idx):
-        X, mask = self.dataset[idx]
-        if isinstance(X, PIL.Image.Image):
-            X = np.array(X)
-        if isinstance(mask, PIL.Image.Image):
-            mask = np.array(mask)
-        transformed_data = self.transforms(image=X, mask=mask)
-        return transformed_data["image"], transformed_data["mask"]
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}(dataset={self.dataset}, transform={self.transforms})"
-
-    def __len__(self):
-        return len(self.dataset)
 
 
 

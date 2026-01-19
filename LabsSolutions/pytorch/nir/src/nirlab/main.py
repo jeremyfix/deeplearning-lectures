@@ -31,6 +31,31 @@ from nirlab import optim
 from nirlab import utils
 from nirlab import metrics
 
+def generate_sample(model, device, normalizing_stats, height=100, width=250, depth=None):
+    prev_training = model.training
+    model.eval()
+    with torch.no_grad():
+        X0 = torch.tensor([0, 0], dtype=torch.float32).unsqueeze(0).to(device)
+        out0 = model(X0)
+        d = out0.shape[-1]
+        if depth is None:
+            depth = d
+
+        img = np.zeros((height, width, depth), np.float32)
+        for i in range(height):
+            for j in range(width):
+                X = torch.tensor([i, j], dtype=torch.float32).unsqueeze(0).to(device)
+                out_pixel = model(X)
+                img[i, j, :] = out_pixel.detach().cpu().numpy()
+
+        # Denormalize
+        img = img * normalizing_stats[1] + normalizing_stats[0]
+
+        # Clip to [0, 255], and cast to uint8
+        img = np.clip(img, 0, 255).astype(np.uint8)
+    if prev_training:
+        model.train()
+    return img
 
 def train(configpath):
 
@@ -164,6 +189,28 @@ def train(configpath):
         checkpoint_metric = valid_metrics[checkpoint_metric_name]
 
         updated = model_checkpoint.update(checkpoint_metric)
+        try:
+            sample = generate_sample(
+                model,
+                device,
+                normalizing_stats,
+                height=100,
+                width=250,
+                depth=dim_output,
+            )
+            print(sample)
+            print(sample.min(), sample.max())
+            save_arr = sample
+            if save_arr.ndim == 3 and save_arr.shape[2] == 1:
+                save_arr = save_arr[:, :, 0]
+            if updated:
+                tag = "_better"
+            else:
+                tag = ""
+            Image.fromarray(save_arr).save(logdir / f"sample_epoch_{e}{tag}.png")
+            logging.info(f"Saved sample image to {logdir / f'sample_epoch_{e}{tag}.png'}")
+        except Exception as ex:
+            logging.warning(f"Failed to generate/save sample image: {ex}")
 
         # Display the metrics
         metrics_msg = "- Train : \n  "
