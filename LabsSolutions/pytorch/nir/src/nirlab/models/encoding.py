@@ -46,7 +46,7 @@ class Positional(nn.Module):
         """
         # Compute the pulsations as 
         # 2**i pi  with i in [0, L-1]
-        w = 2**(torch.arange(self.L)) * torch.pi # (L, )
+        w = 2**(torch.arange(self.L, device=X.device)) * torch.pi # (L, )
         ww = torch.cat((w, w))
 
         # We then compute exp(i w c) for every coordinate
