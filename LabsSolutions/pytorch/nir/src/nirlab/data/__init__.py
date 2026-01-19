@@ -5,12 +5,30 @@ import random
 
 # External imports
 import torch
+import tqdm
+import numpy as np
 
 # Local imports
 from .image import ImageDataset
 
 def build_dataset(cls, params):
     return eval(f"{cls}(**params)")
+
+class NormalizedDataset(torch.utils.data.dataset.Dataset):
+    def __init__(self, dataset, normalizing_stats):
+        super().__init__()
+        self.dataset = dataset
+        self.mu, self.std = normalizing_stats
+
+    def __getitem__(self, idx):
+        x, y = self.dataset[idx]
+        return x, (y - self.mu)/self.std
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(dataset={self.dataset}, mu={self.mu}, std={self.std})"
+
+    def __len__(self):
+        return len(self.dataset)
 
 def compute_mean_std(loader):
     # Compute the mean over minibatches
@@ -21,9 +39,9 @@ def compute_mean_std(loader):
         mean_pix += imgs.mean() / num_minibatches
         mean2_pix += (imgs**2).mean() / num_minibatches
 
-    std_pix = mean2_pix - mean_pix**2
+    std_pix = np.sqrt(mean2_pix - mean_pix**2)
 
-    return mean_pix, std_pix
+    return mean_pix.item(), std_pix.item()
 
 def get_dataloaders(config: dict, use_cuda):
     batch_size = config["batch_size"]
@@ -47,12 +65,27 @@ def get_dataloaders(config: dict, use_cuda):
     train_indices = indices[:nb_train]
     valid_indices = indices[nb_train:]
 
-    train_dataset = torch.utils.data.Subset(train_valid_dataset, train_indices)
-    valid_dataset = torch.utils.data.Subset(train_valid_dataset, valid_indices)
+    train_dataset = torch.utils.data.Subset(train_valid_dataset, 
+                                            train_indices)
+    valid_dataset = torch.utils.data.Subset(train_valid_dataset, 
+                                            valid_indices)
 
-    # TBD: normalization
-    assert not normalize, "Normalization is not yet handled"
-    normalizing_stats = (0.0, 1.0)
+    if normalize:
+        normalizing_loader = torch.utils.data.DataLoader(
+            dataset=train_dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            pin_memory=True,
+            num_workers=num_workers,
+        )
+        normalizing_stats = compute_mean_std(normalizing_loader)
+
+        # When we are requested to normalize the data, 
+        # we wrap the dataset with this normalization
+        train_dataset = NormalizedDataset(train_dataset,
+                                          normalizing_stats)
+        valid_dataset = NormalizedDataset(valid_dataset,
+                                          normalizing_stats)
 
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
