@@ -5,6 +5,7 @@ import sys
 
 # External imports
 import torch
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 # Local imports
 from asrlab import data, models, utils
@@ -98,8 +99,39 @@ def test_model_out():
     else:
         utils.fail(f"was expecting {expected_shape}")
 
+def test_model():
+    utils.head("Testing the complete model")
+
+    cfg = {
+        'class': "CTCModel",
+        'params':
+        {
+            'n_mels': 80,
+            'nhidden_rnn': 185,
+            'nlayers_rnn': 3,
+            'cell_type': "GRU",
+            'dropout': 0.1
+        }
+    }
+
+    T, B = 124, 10
+    charmap = data.CharMap()
+    model = models.build_model(charmap, cfg)
+
+    inputs = torch.randn((T, B, model.n_mels))
+    inputs = pack_padded_sequence(inputs, lengths=[T]*B)
+    outputs = model(inputs)
+    out_model, _ = pad_packed_sequence(outputs)
+
+    utils.info(f"Got an output of shape {out_model.shape}")
+    expected_shape = [T // 4, 10, 44]
+    if list(out_model.shape) == expected_shape:
+        utils.succeed()
+    else:
+        utils.fail(f"was expecting {expected_shape}")
 
 if __name__ == "__main__":
     test_model_cnn()
     test_model_rnn()
     test_model_out()
+    test_model()
