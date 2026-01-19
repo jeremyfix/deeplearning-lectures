@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 # Local imports
 from .miccai2023 import MICCAI2023, CINEView, AccFactor, combine_coils
+from . import get_dataloaders
 
 def plot_sample(rootdir):
     view = CINEView.SAX
@@ -61,6 +62,26 @@ def plot_sample(rootdir):
         plt.savefig(f"sample_{slice_idx}.png", bbox_inches='tight')
         plt.close(fig)
 
+def test_image_dataloaders():
+    logging.info("Testing image dataloaders")
+    config = {
+        "class": "ImageDataset",
+        "params": {
+            "root_dir": "."
+        },
+        "batch_size": 32,
+        "normalize": False,
+        "valid_ratio": 0.2,
+        "num_workers": 4
+    }
+
+    use_cuda = False
+
+    train_loader, valid_loader = get_dataloaders(config, use_cuda)
+
+    logging.info(f"Number of training batches: {len(train_loader)}")
+    logging.info(f"Number of validation batches: {len(valid_loader)}")
+
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     # @SOL 
@@ -69,4 +90,5 @@ if __name__ == "__main__":
     # @TEMPL
     # root_dir = "/mounts/datasets/datasets/MICCAIChallenge2023"
     # TEMPL@
-    plot_sample(root_dir)
+    # plot_sample(root_dir)
+    test_image_dataloaders()

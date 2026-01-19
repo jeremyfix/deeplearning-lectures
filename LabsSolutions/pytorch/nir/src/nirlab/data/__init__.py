@@ -6,8 +6,11 @@ import random
 # External imports
 import torch
 
-def build_dataset():
-    pass
+# Local imports
+from .image import ImageDataset
+
+def build_dataset(cls, params):
+    return eval(f"{cls}(**params)")
 
 def compute_mean_std(loader):
     # Compute the mean over minibatches
