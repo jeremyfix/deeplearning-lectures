@@ -70,11 +70,10 @@ def train(configpath):
     logging.info("= Model")
     model_config = config["model"]
     model = models.build_model(dim_input, dim_output, model_config)
-    model.to(device)
 
     # Build the loss
     logging.info("= Loss")
-    loss = nn.MSELoss()
+    loss = torch.nn.MSELoss()
 
     # Build the optimizer
     logging.info("= Optimizer")
@@ -112,6 +111,8 @@ def train(configpath):
     # x0 is a list of tensors
     input_size = (1,) + x0[0].shape
     logging.info(f"Input size : {input_size}")
+    print(next(model.parameters()).device)
+
     summary_text = (
         f"Logdir : {logdir}\n"
         + "## Command \n"
@@ -141,7 +142,7 @@ def train(configpath):
 
     # Define the early stopping callback
     model_checkpoint = utils.ModelCheckpoint(
-        model, logdir, input_size, device, min_is_best=False
+        model, logdir, input_size, device, min_is_best=True
     )
 
     for e in range(config["nepochs"]):
@@ -152,18 +153,14 @@ def train(configpath):
             model, train_loader, loss, optimizer, device, train_fmetrics
         )
         logging.info("Training epoch done")
-        train_macro_F1 = sum(train_metrics["F1"]) / num_classes
-        train_metrics["macro_F1"] = train_macro_F1
 
         # Test
-        valid_metrics = utils.test(model, valid_loader, device, test_fmetrics)
+        valid_metrics = utils.test(
+            model, valid_loader, device, test_fmetrics
+        )
         logging.info("Validation done")
 
-        # Compute the macro F1 for early stopping
-        valid_macro_F1 = sum(valid_metrics["F1"]) / num_classes
-        valid_metrics["macro_F1"] = valid_macro_F1
-
-        checkpoint_metric_name = "macro_F1"
+        checkpoint_metric_name = "mse"
         checkpoint_metric = valid_metrics[checkpoint_metric_name]
 
         updated = model_checkpoint.update(checkpoint_metric)
@@ -182,23 +179,11 @@ def train(configpath):
         )
         logging.info(metrics_msg)
 
-        # Perform some inferences on the validation set
-        x, y = next(iter(valid_loader))
-        x = x.to(device)
-        model.eval()
-        y_pred = model(x)
-        y_pred = torch.argmax(y_pred, dim=1)
-
         # Update the tensorboard
         for bname, bm in train_fmetrics.items():
             bm.tensorboard_write(tensorboard_writer, f"metrics/train_{bname}", e)
         for bname, bm in test_fmetrics.items():
             bm.tensorboard_write(tensorboard_writer, f"metrics/valid_{bname}", e)
-        fig = plot_results(normalizing_stats, x, y_pred, y)
-        tensorboard_writer.add_figure(
-            "Sample predictions on the validation fold", fig, global_step=e
-        )
-
         # Update the dashboard
         if wandb_log is not None:
             logging.info("Logging on wandb")
@@ -209,19 +194,6 @@ def train(configpath):
             for m_name, m_value in valid_metrics.items():
                 data_to_log[f"valid_{m_name}"] = m_value
 
-            # Log some images with their ground truth and predictions
-
-            images = [
-                wandb.Image(
-                    x.cpu().numpy(),
-                    masks={
-                        "prediction": {"mask_data": y_pred.cpu().numpy()},
-                        "ground_truth": {"mask_data": y.cpu().numpy()},
-                    },
-                )
-                for x, y_pred, y in zip(x, y_pred, y)
-            ]
-            data_to_log["validation_sample"] = images
             wandb.log(data_to_log)
 
         logging.info(f" Epoch {e} done")
@@ -248,40 +220,7 @@ def test(logdir, img_path):
     mean = stats["mean"]
     std = stats["std"]
 
-    orig_img = np.array(Image.open(img_path))
-
-    # Pad to the next power of 2
-    # This is to guarantee that pooling with stride 2 and 
-    # upsamping by a factor 2 end up with the same shapes
-    h, w = orig_img.shape[:2]
-    padded_height = int(2**(np.ceil(np.log2(h))))
-    padded_width = int(2**(np.ceil(np.log2(w))))
-    logging.info(f"Original image of shape {h, w} is padded to size {padded_height, padded_width} before being processed")
-    
-    # Normalize our input
-    img = np.zeros((padded_height, padded_width, 3), dtype=np.float32)
-    img[:h, :w, :] = ((orig_img - mean * 255.0) / (std * 255.0)).astype(np.float32)
-
-    #  Convert the image to (C, H, W) then (B, C, H, W)
-    img = np.transpose(img, (2, 0, 1))[np.newaxis, ...]
-
-
-    pred = inference_session.run(None, {"scan": img})[0]
-    mask = pred.squeeze().argmax(axis=0)
-    mask = mask[:h, :w]
-    cmap = data.color_map()
-    overlaid = data.overlay(cmap, orig_img/255., mask)
-
-    # Plot the results
-    plt.figure(dpi=300)
-    plt.imshow(overlaid)
-    plt.title("Predictions")
-    plt.axis("off")
-
-    plt.tight_layout()
-    plt.savefig("prediction.png")
-    # plt.show()
-    print("Prediction saved in prediction.png")
+    raise NotImplemented("Not yet implemented")
 
 
 if __name__ == "__main__":
