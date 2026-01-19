@@ -255,7 +255,7 @@ To validate your implementation, you are given a test function in the `data/data
 :::
 
 
-After completion, write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) plot the spectrograms associated with their transcripts. For the plot part, you can make use of the `plot_spectro` function (in data.py).
+After completion, write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) unpack both the spectrograms and transcripts 3) plot the spectrograms associated with their transcripts. For the plot part, you can make use of the `plot_spectro` function (in `data/__init__.py`).
 
 Below is an example expected output :
 
@@ -312,8 +312,11 @@ because the time downsampling is 4 and the frequency downsampling is 2.
 
 -->
 
-**Exercice** Define in the constructor the *cnn* attribute. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
+**Exercice** Define in the constructor the *cnn* attribute. Test your implementation by calling the `test_model_cnn` function of the `models` submodule. As usual with :
 
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.models
+```
 
 #### The recurrent stage
 
@@ -324,7 +327,11 @@ I propose you to use the implement the following architecture :
 
 Note that, as usual, when you instantiate the RNN module, you need to provide the size of the its inputs. In the case of recurrent layers, even thought the input tensors do contain a temporal dimension, you do not count it when specifying the size of the input to the RNN. In other words, if your input tensors are $(B, T, C)$, the RNN constructor expects the input_size $C$.
 
-**Exercice** Define in the constructor the *rnn* attribute. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
+**Exercice** Define in the constructor the *rnn* attribute. Test your implementation by calling `test_model_rnn` function of the `models` submodule :
+
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.models
+```
 
 <!--
 
@@ -341,8 +348,11 @@ I propose you to use the implement the following architecture :
 
 You also need to properly specify the input_size of the linear layer. Remember that you have bidirectional RNN layers. Note also that if the output tensor of the RNN is $(B, T, C)$, the expected input_size of the linear layer is $C$ since a prediction is produced at every time step.
 
-**Exercice** Define in the constructor the *char_lin* attribute. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
+**Exercice** Define in the constructor the *char_lin* attribute. Test your implementation by calling `test_model_out` function of the `models` submodule :
 
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.models
+```
 
 ### Forward propagation through the model
 
@@ -423,7 +433,8 @@ Below is an example of the resulting spectrogram, masked in time for up to $0.5$
 
 ![An example log-Mel spectrogram with SpecAugment](spectro_train.png){width=100%}
 
-SpecAugment is already implemented in the `data.py` script. Have a look to the transform_augment attribute of WaveformProcessor. To use it, simply add the `--train_augment` argument when you call the main_ctc script.
+SpecAugment is already implemented in the `WaveformProcessor` object in the `data/waveform.py` script. Have a look to the transform_augment attribute of WaveformProcessor. To use it, simply add the `train_augment: True` argument in the `data` section of the yaml script you use for running a simulation. This data section is the one transfered to the `get_dataloaders` function which will then request the `WaveformProcessor` to perform both frequency and time masking.
+
 
 #### Dropout
 
