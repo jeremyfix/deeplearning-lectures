@@ -26,10 +26,10 @@ class ImageDataset(Dataset):
         if len(self.images) == 0:
             raise ValueError(f"No images found in {root_dir} with extensions {img_extensions}")
         
-        self.image = Image.open(self.images[0])
+        self.image = np.array(Image.open(self.images[0])).astype(np.float32) / 255.0
 
     @property
-    def input_dim(self) -> int:
+    def dim_input(self) -> int:
         """
         Returns the dimension of the input, i.e. the 2 coordinates
         to index a pixel
@@ -37,39 +37,39 @@ class ImageDataset(Dataset):
         return 2
     
     @property
-    def output_dim(self) -> int:
+    def dim_output(self) -> int:
         """
         Returns the dimension of the output, i.e. 3 for a RGB image
         and 1 for a grayscale image
         """
-        return len(self.image.getbands())
+        return self.image.shape[-1]
 
     def __len__(self) -> int:
         """
         Return the size of the dataset. Here, the total number of pixels
         in the image
         """
-        return self.image.size[0] * self.image.size[1]
+        return self.image.shape[0] * self.image.shape[1]
 
     def __getitem__(self, idx: int) -> np.ndarray:
         """
         Return the pixel value at the given index
         """
-        width, height = self.image.size
-        x = idx % width
-        y = idx // width
-        pixel_value = self.image.getpixel((x, y))
-        return np.array(pixel_value)
+        height, width = self.image.shape[:2]
+        j = idx % width
+        i = idx // width
+        pixel_value = self.image[i, j]
+        return np.array([i, j], dtype=np.float32), pixel_value
 
 
 def test_image_dataset(rootdir):
     dataset = ImageDataset(rootdir)
-    logging.info(f"Dataset input dimension: {dataset.input_dim}")
-    logging.info(f"Dataset output dimension: {dataset.output_dim}")
+    logging.info(f"Dataset input dimension: {dataset.dim_input}")
+    logging.info(f"Dataset output dimension: {dataset.dim_output}")
     logging.info(f"Dataset size: {len(dataset)}")
 
     logging.info("Trying to index the datset...")
-    for i in range(5):
+    for i in range(len(dataset)):
         pixel_value = dataset[i]
         logging.info(f"Pixel {i} value: {pixel_value}")
 

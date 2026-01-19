@@ -36,6 +36,8 @@ def get_dataloaders(config: dict, use_cuda):
         config["class"],
         config["params"]
     )
+    dim_input = train_valid_dataset.dim_input
+    dim_output = train_valid_dataset.dim_output
 
     # Split the data into a train and valid fold
     nb_train = int((1.0 - valid_ratio) * len(train_valid_dataset))
@@ -50,6 +52,7 @@ def get_dataloaders(config: dict, use_cuda):
 
     # TBD: normalization
     assert not normalize, "Normalization is not yet handled"
+    normalizing_stats = (0.0, 1.0)
 
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
@@ -67,4 +70,4 @@ def get_dataloaders(config: dict, use_cuda):
         num_workers=num_workers,
     )
 
-    return train_loader, valid_loader
+    return train_loader, valid_loader, dim_input, dim_output, normalizing_stats
