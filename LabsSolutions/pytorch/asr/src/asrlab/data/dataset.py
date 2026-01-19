@@ -122,7 +122,7 @@ class DatasetFilter(object):
 def dataset_statistics():
 
     fold = "train"
-    root = "/opt/datasets/CommonVoice"
+    root = "/mounts/datasets/datasets/CommonVoice"
     version = "v24.0"
     lang = "fr"
 
@@ -160,7 +160,7 @@ def dataset_statistics():
 
 def check_votes():
     fold = "train"
-    root = "/opt/datasets/CommonVoice"
+    root = "/mounts/datasets/datasets/CommonVoice"
     version = "v24.0"
     lang = "fr"
 
@@ -182,7 +182,7 @@ def check_votes():
 
 def dataset_exploration():
     fold = "train"
-    root = "/opt/datasets/CommonVoice"
+    root = "/mounts/datasets/datasets/CommonVoice"
     version = "v24.0"
     lang = "fr"
 

@@ -255,7 +255,7 @@ To validate your implementation, you are given a test function in the `data/data
 :::
 
 
-After completion, write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) plot the spectrograms associated with their transcripts. For the plot part, you can make use of the `plot_spectro` function (in data.py).
+After completion, write a little piece for testing which should : 1) access a minibatch of one of your dataloader, 2) unpack both the spectrograms and transcripts 3) plot the spectrograms associated with their transcripts. For the plot part, you can make use of the `plot_spectro` function (in `data/__init__.py`).
 
 Below is an example expected output :
 
@@ -312,8 +312,11 @@ because the time downsampling is 4 and the frequency downsampling is 2.
 
 -->
 
-**Exercice** Define in the constructor the *cnn* attribute. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
+**Exercice** Define in the constructor the *cnn* attribute. Test your implementation by calling the `test_model_cnn` function of the `models` submodule. As usual with :
 
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.models
+```
 
 #### The recurrent stage
 
@@ -324,7 +327,11 @@ I propose you to use the implement the following architecture :
 
 Note that, as usual, when you instantiate the RNN module, you need to provide the size of the its inputs. In the case of recurrent layers, even thought the input tensors do contain a temporal dimension, you do not count it when specifying the size of the input to the RNN. In other words, if your input tensors are $(B, T, C)$, the RNN constructor expects the input_size $C$.
 
-**Exercice** Define in the constructor the *rnn* attribute. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
+**Exercice** Define in the constructor the *rnn* attribute. Test your implementation by calling `test_model_rnn` function of the `models` submodule :
+
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.models
+```
 
 <!--
 
@@ -341,8 +348,11 @@ I propose you to use the implement the following architecture :
 
 You also need to properly specify the input_size of the linear layer. Remember that you have bidirectional RNN layers. Note also that if the output tensor of the RNN is $(B, T, C)$, the expected input_size of the linear layer is $C$ since a prediction is produced at every time step.
 
-**Exercice** Define in the constructor the *char_lin* attribute. Test your implementation by calling `test_implementation.py`, the corresponding test should pass.
+**Exercice** Define in the constructor the *char_lin* attribute. Test your implementation by calling `test_model_out` function of the `models` submodule :
 
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.models
+```
 
 ### Forward propagation through the model
 
@@ -356,11 +366,11 @@ Now that the different parts of the model are defined, we need to handle the for
 
 ### Instantiating the model and defining the optimizer
 
-All right, we now move on the `main_ctc.py` script. This script will allow you to train and test your networks. You can open, read and run this script. It provides : 
+All right, we now move on the `main.py` script. This script will allow you to train and test your networks. You can open, read and run this script. It provides : 
 
-- a training function for training a network with possibly customized parameters
-- a testing function for testing a pretrained network on a waveform
-- a main function handling the parameters
+- a training function for training a network with possibly customized parameters,
+- a testing function for testing a pretrained network on a waveform,
+- a main function handling the parameters, at the very of the script.
 
 The script is almost complete, three steps remain to be done :
 
@@ -369,7 +379,25 @@ The script is almost complete, three steps remain to be done :
 
 The other code should be already familiar. 
 
-**Exercice** Instantiate the model and define the optimizer in the `train` function of the `main_ctc.py` script. For the parameters, have a look at the beggining of the `train` function.
+**Exercice** Instantiate the model and define the optimizer in the `train` function of the `main.py` script. For the parameters of the optimizer and model, see the dedicated part in the `config-sample.yaml` file :
+
+```yaml
+optim:
+  base_lr: 0.0001
+  weight_decay: 0.0001
+  grad_clip: 20
+
+model:
+  class: CTCModel
+  params:
+    nhidden_rnn: 1024
+    nlayers_rnn: 4
+    cell_type: GRU
+    dropout: 0.5
+    n_mels: 80 # TODO: must be the same as data["nmels"]
+
+```
+
 
 ## Experimentation with the CTC model
 
@@ -385,10 +413,20 @@ These three steps are described in the next subsections.
 
 ### Overfitting a single minibatch
 
-In order to ensure you do not have bugs in your implementation, a sanity check is to check you can overfit a single minibatch of your training set. If you are unable to fit a single minibatch, you are guaranteed to have an issue in your code. To just load one single minibatch, you can pass in the `--debug` argument when calling `main_ctc.py` :
+In order to ensure you do not have bugs in your implementation, a sanity check is to check you can overfit a single minibatch of your training set. If you are unable to fit a single minibatch, you are guaranteed to have an issue in your code. To just load one single minibatch, you can limit the number of samples considered for training, by specifying the `num_samples` parameter in the `data` section of the yaml configuration.
 
 ```bash
-mymachine:~:mylogin$ python3 main_ctc.py train --debug --batch_size 16
+(venv) mymachine:~:mylogin$ python -m asrlab.main train config.yaml
+```
+
+with the following part in your `config.yaml` :
+
+```yaml
+data: 
+  ...
+  batch_size: 10
+  num_samples: 10
+  ...
 ```
 
 You should pretty "quickly" see a null loss on the training set with a perfect decoding. Note that it still takes 2s. per minibatch and a hundred epochs for overfitting.
@@ -400,10 +438,10 @@ You should pretty "quickly" see a null loss on the training set with a perfect d
 The next step is to design a sufficiently rich architecture to overfit the training set when any sort of regularization is disabled (L2/L1, dropout, data augmentation, ...) :
 
 ```bash
-mymachine:~:mylogin$ python3 main_ctc.py train --scheduler
+(venv) mymachine:~:mylogin$ python -m asrlab.main train config-overfit.yaml
 ```
 
-It takes approximately 11 minutes per epoch. The `--scheduler` activates the learning rate scheduling policy. It was disabled for the previous experiment, when overfitting a single minibatch, as it was decreasing the learning rate too quickly. The learning rate scheduler is applied every epoch, hance for every minibatch in the experiment of the previous section. Here, for overfitting the training set, it turns out it is necessary to activate the learning rate policy.
+It takes approximately 11 minutes per epoch. 
 
 You should be able to get a null loss on the training set. Have a look on the tensorboard to observe overfitting. See below an example run.
 
@@ -423,7 +461,8 @@ Below is an example of the resulting spectrogram, masked in time for up to $0.5$
 
 ![An example log-Mel spectrogram with SpecAugment](spectro_train.png){width=100%}
 
-SpecAugment is already implemented in the `data.py` script. Have a look to the transform_augment attribute of WaveformProcessor. To use it, simply add the `--train_augment` argument when you call the main_ctc script.
+SpecAugment is already implemented in the `WaveformProcessor` object in the `data/waveform.py` script. Have a look to the transform_augment attribute of WaveformProcessor. To use it, simply add the `train_augment: True` argument in the `data` section of the yaml script you use for running a simulation. This data section is the one transfered to the `get_dataloaders` function which will then request the `WaveformProcessor` to perform both frequency and time masking.
+
 
 #### Dropout
 
@@ -434,6 +473,20 @@ In the DeepSpeech paper, the authors suggest to add dropout layers in the convol
 To add L2 regularization, you can use the [AdamW](https://docs.pytorch.org/docs/stable/generated/torch.optim.AdamW.html) optimizer instead of Adam and specifies the `weight_decay` argument.
 
 You could also implement a `penalty()` function in your CTCModel called from the training function.
+
+
+### Full configuration
+
+You can run a training with a reasonnable default configuration : 
+
+```bash
+(venv) mymachine:~:mylogin$ python -m asrlab.main train config-sample.yaml
+```
+
+This configuration adds a `scheduler` on the learning rate. It was disabled for the previous experiments, when overfitting a single minibatch, as it was decreasing the learning rate too quickly. 
+
+In the provided configuration, you may also notice the Dropout was raised from $0.0$ to $0.5$. 
+
 
 ## Testing on a new audioclip
 

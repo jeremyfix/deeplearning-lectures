@@ -90,7 +90,7 @@ def test_charmap():
     charmap = CharMap()
 
     # Get the vocabulary size
-    # @TEMPL@ vocab_size = 0
+    # @TEMPL@vocab_size = 0
     # @SOL
     vocab_size = charmap.vocab_size
     # SOL@
@@ -98,12 +98,12 @@ def test_charmap():
 
     # Experiment with the encoding of a sentence
     utterance = "Je vais m'éclater avec des RNNs !"
-    # @TEMPL@ encoded = []
+    # @TEMPL@encoded = []
     encoded = charmap.encode(utterance) # @SOL@
     logging.info(f"The encoding of '{utterance}' is : {encoded}")
 
     # Decode the encoded sentence. Is it ok for you ?
-    # @TEMPL@ decoded = ""
+    # @TEMPL@decoded = ""
     decoded = charmap.decode(encoded) # @SOL@
     charmap.encode(utterance)
     logging.info(f"The decoding of the encoded sentence is '{decoded}'")
