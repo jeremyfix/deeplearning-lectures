@@ -12,17 +12,14 @@ import wandb
 import torch
 import torchinfo.torchinfo as torchinfo
 from torch.utils.tensorboard import SummaryWriter
+from torch.optim import lr_scheduler
 import onnxruntime as ort
 from PIL import Image
 
-import matplotlib.pyplot as plt
 import numpy as np
-import tqdm
 
-# from torchmetrics.segmentation import MeanIoU
 import deepcs.metrics
 import deepcs.display
-from deepcs.metrics import BatchAccuracy, BatchF1
 
 # Local imports
 from nirlab import data
@@ -111,6 +108,9 @@ def train(configpath):
     logging.info("= Optimizer")
     optim_config = config["optim"]
     optimizer = optim.get_optimizer(optim_config, model.parameters())
+    scheduler = lr_scheduler.StepLR(optimizer, 
+                                    step_size=10, 
+                                    gamma=0.5)
 
     # Build the callbacks
     logging_config = config["logging"]
@@ -135,8 +135,10 @@ def train(configpath):
         yaml.dump(config, file)
 
     # Save the normalizing statistics
-    with open(logdir / "normalizing_stats.yaml", "w") as file:
-        yaml.dump(normalizing_stats, file)
+    with open(logdir / "normalizing.stats", "w") as file:
+        (mean_x, std_x), (mean_y, std_y) = normalizing_stats
+        for values in [mean_x, std_x, mean_y, std_y]:
+            file.write(",".join(map(str, values)) + "\n")
 
     # Make a summary script of the experiment
 
@@ -195,26 +197,6 @@ def train(configpath):
         checkpoint_metric = valid_metrics[checkpoint_metric_name]
 
         updated = model_checkpoint.update(checkpoint_metric)
-        try:
-            sample = generate_sample(
-                model,
-                device,
-                normalizing_stats,
-                height=100,
-                width=250,
-                depth=dim_output,
-            )
-            save_arr = sample
-            if save_arr.ndim == 3 and save_arr.shape[2] == 1:
-                save_arr = save_arr[:, :, 0]
-            if updated:
-                tag = "_better"
-            else:
-                tag = ""
-            Image.fromarray(save_arr).save(logdir / f"sample_epoch_{e}{tag}.png")
-            logging.info(f"Saved sample image to {logdir / f'sample_epoch_{e}{tag}.png'}")
-        except Exception as ex:
-            logging.warning(f"Failed to generate/save sample image: {ex}")
 
         # Display the metrics
         metrics_msg = "- Train : \n  "
@@ -247,10 +229,34 @@ def train(configpath):
 
             wandb.log(data_to_log)
 
+        scheduler.step()
         logging.info(f" Epoch {e} done")
 
+    # At the end, reload the best model and generate the image
+    model.load_state_dict(torch.load(model_checkpoint.savepath_pt, 
+                                     weights_only=True))
+    try:
+        sample = generate_sample(
+            model,
+            device,
+            normalizing_stats,
+            height=100,
+            width=250,
+            depth=dim_output,
+        )
+        save_arr = sample
+        if save_arr.ndim == 3 and save_arr.shape[2] == 1:
+            save_arr = save_arr[:, :, 0]
+        if updated:
+            tag = "_better"
+        else:
+            tag = ""
+        Image.fromarray(save_arr).save(logdir / f"sample_epoch_{e}{tag}.png")
+        logging.info(f"Saved sample image to {logdir / f'sample_epoch_{e}{tag}.png'}")
+    except Exception as ex:
+        logging.warning(f"Failed to generate/save sample image: {ex}")
 
-def test(logdir, img_path):
+def test(logdir):
     logging.info(f"Loading model from {logdir}")
 
     logdir = pathlib.Path(logdir)
@@ -267,11 +273,41 @@ def test(logdir, img_path):
     )
 
     # Load our normalizing statistics
-    stats = yaml.safe_load(open(str(logdir / "normalizing_stats.yaml"), "r"))
-    mean = stats["mean"]
-    std = stats["std"]
+    with open(str(logdir / "normalizing.stats"), "r") as fh:
+        fields = fh.readlines()
+        def parse_array(s):
+            return np.array(list(map(float, s.rstrip().split(","))))
 
-    raise NotImplemented("Not yet implemented")
+        mean_x = parse_array(fields[0])
+        std_x = parse_array(fields[1])
+        mean_y = parse_array(fields[2])
+        std_y = parse_array(fields[3])
+
+    # Generate the coordinates on which to evaluate the model
+
+    height = 100
+    width = 100
+    depth = mean_y.size
+
+    scale = 2
+    img = np.zeros((scale * height, scale * width, depth), np.float32)
+    for i in range(height):
+        for j in range(width):
+            for si in range(scale):
+                for sj in range(scale):
+                    coords = np.array([[i + si/scale, j + sj/scale]])
+                    coords = ((coords - mean_x) / std_x).astype(np.float32)
+                    out0 = inference_session.run(None, {"inputs": coords})[0]
+
+                    # Denormalize
+                    out_pixel = out0 * std_y + mean_y
+                    img[scale*i + si, scale*j + sj, :] = out_pixel
+
+    # Clip to [0, 255], and cast to uint8
+    img = np.clip(img, 0, 255).astype(np.uint8)
+    pil_img = Image.fromarray(img)
+    pil_img.show()
+    #.save(logdir / f"sample_epoch_{e}{tag}.png")
 
 
 if __name__ == "__main__":
@@ -290,8 +326,8 @@ if __name__ == "__main__":
             logging.error(f"Usage : {sys.argv[0]} train <config.yaml>")
             sys.exit(-1)
     elif command == "test":
-        if len(args) != 2:
-            logging.error(f"Usage : {sys.argv[0]} test logdir img_path")
+        if len(args) != 1:
+            logging.error(f"Usage : {sys.argv[0]} test logdir")
             sys.exit(-1)
     else:
         logging.error(f"Unknown command {command}")
