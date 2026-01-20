@@ -74,12 +74,8 @@ class ModelCheckpoint(object):
                 self.model,
                 self.dummy_inputs,
                 self.savepath_onnx,
-                input_names=["scan"],
-                output_names=["output"],
-                dynamic_axes={
-                    "scan": {0: "batch", 2: "height", 3: "width"},
-                    "output": {0: "batch", 2: "height", 3: "width"},
-                },
+                input_names=["inputs"],
+                output_names=["outputs"],
             )
 
             self.best_score = score
