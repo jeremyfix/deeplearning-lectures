@@ -26,7 +26,7 @@ class ImageDataset(Dataset):
         if len(self.images) == 0:
             raise ValueError(f"No images found in {root_dir} with extensions {img_extensions}")
         
-        self.image = np.array(Image.open(self.images[0])).astype(np.float32) / 255.0
+        self.image = np.array(Image.open(self.images[0])).astype(np.float32)
 
     @property
     def dim_input(self) -> int:

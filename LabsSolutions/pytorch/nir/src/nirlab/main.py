@@ -34,6 +34,13 @@ from nirlab import metrics
 def generate_sample(model, device, normalizing_stats, height=100, width=250, depth=None):
     prev_training = model.training
     model.eval()
+
+    (mu_x, std_x), (mu_y, std_y) = normalizing_stats
+    mu_x = torch.tensor(mu_x).to(device)
+    std_x = torch.tensor(std_x).to(device)
+    mu_y = torch.tensor(mu_y).to(device)
+    std_y = torch.tensor(std_y).to(device)
+
     with torch.no_grad():
         X0 = torch.tensor([0, 0], dtype=torch.float32).unsqueeze(0).to(device)
         out0 = model(X0)
@@ -45,11 +52,11 @@ def generate_sample(model, device, normalizing_stats, height=100, width=250, dep
         for i in range(height):
             for j in range(width):
                 X = torch.tensor([i, j], dtype=torch.float32).unsqueeze(0).to(device)
-                out_pixel = model(X)
-                img[i, j, :] = out_pixel.detach().cpu().numpy()
+                out_pixel = model((X - mu_x)/std_x)
 
-        # Denormalize
-        img = img * normalizing_stats[1] + normalizing_stats[0]
+                # Denormalize
+                out_pixel = out_pixel * std_y + mu_y
+                img[i, j, :] = out_pixel.detach().cpu().numpy()
 
         # Clip to [0, 255], and cast to uint8
         img = np.clip(img, 0, 255).astype(np.uint8)
@@ -136,7 +143,6 @@ def train(configpath):
     # x0 is a list of tensors
     input_size = (1,) + x0[0].shape
     logging.info(f"Input size : {input_size}")
-    print(next(model.parameters()).device)
 
     summary_text = (
         f"Logdir : {logdir}\n"
@@ -198,8 +204,6 @@ def train(configpath):
                 width=250,
                 depth=dim_output,
             )
-            print(sample)
-            print(sample.min(), sample.max())
             save_arr = sample
             if save_arr.ndim == 3 and save_arr.shape[2] == 1:
                 save_arr = save_arr[:, :, 0]

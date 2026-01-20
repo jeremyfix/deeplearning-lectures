@@ -1,6 +1,7 @@
 # coding: utf-8
 
 # Standard imports
+from enum import nonmember
 import random
 
 # External imports
@@ -18,30 +19,42 @@ class NormalizedDataset(torch.utils.data.dataset.Dataset):
     def __init__(self, dataset, normalizing_stats):
         super().__init__()
         self.dataset = dataset
-        self.mu, self.std = normalizing_stats
+        (self.mu_x, self.std_x), (self.mu_y, self.std_y) = normalizing_stats
 
     def __getitem__(self, idx):
         x, y = self.dataset[idx]
-        return x, (y - self.mu)/self.std
+        return (x - self.mu_x)/self.std_x, (y - self.mu_y)/self.std_y
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(dataset={self.dataset}, mu={self.mu}, std={self.std})"
+        return f"{self.__class__.__name__}(dataset={self.dataset}, mu_x={self.mu_x}, std_x={self.std_x}, mu_y={self.mu_y}, std_y={self.std_y})"
 
     def __len__(self):
         return len(self.dataset)
 
 def compute_mean_std(loader):
     # Compute the mean over minibatches
-    mean_pix = 0
-    mean2_pix = 0
+    mean_x = None
+    mean2_x = None
+    mean_y = None
+    mean2_y = None
     num_minibatches = len(loader) # approximation
-    for imgs, _ in tqdm.tqdm(loader):
-        mean_pix += imgs.mean() / num_minibatches
-        mean2_pix += (imgs**2).mean() / num_minibatches
+    for X, y in tqdm.tqdm(loader):
+        if mean_x is None:
+            mean_x = torch.zeros(X.shape[1])
+            mean2_x = torch.zeros(X.shape[1])
+        if mean_y is None:
+            mean_y = torch.zeros(y.shape[1])
+            mean2_y = torch.zeros(y.shape[1])
 
-    std_pix = np.sqrt(mean2_pix - mean_pix**2)
+        mean_x += X.mean(axis=0) / num_minibatches 
+        mean2_x += (X**2).mean(axis=0) / num_minibatches 
+        mean_y += y.mean(axis=0) / num_minibatches 
+        mean2_y += (y**2).mean(axis=0) / num_minibatches 
 
-    return mean_pix.item(), std_pix.item()
+    std_x = torch.sqrt(mean2_x - mean_x**2)
+    std_y = torch.sqrt(mean2_y - mean_y**2)
+
+    return (mean_x.numpy(), std_x.numpy()), (mean_y.numpy(), std_y.numpy())
 
 def get_dataloaders(config: dict, use_cuda):
     batch_size = config["batch_size"]

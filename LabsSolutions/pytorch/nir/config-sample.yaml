@@ -12,7 +12,7 @@ optim:
   params:
     lr: 0.01
 
-nepochs: 20
+nepochs: 200
 
 logging:
   # wandb: 
@@ -24,7 +24,7 @@ model:
   class: "RealNGP"
   params:
     n_hidden_units: 64
-    n_hidden_layers: 2
+    n_hidden_layers: 4
     pos_encoding:
       class: "Positional"
       params: 
