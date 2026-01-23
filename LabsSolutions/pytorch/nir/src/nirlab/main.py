@@ -28,7 +28,10 @@ from nirlab import optim
 from nirlab import utils
 from nirlab import metrics
 
-def generate_sample(model, device, normalizing_stats, height=100, width=250, depth=None):
+def generate_sample(model, 
+                    device, 
+                    normalizing_stats, 
+                    height=100, width=250):
     prev_training = model.training
     model.eval()
 
@@ -41,9 +44,7 @@ def generate_sample(model, device, normalizing_stats, height=100, width=250, dep
     with torch.no_grad():
         X0 = torch.tensor([0, 0], dtype=torch.float32).unsqueeze(0).to(device)
         out0 = model(X0)
-        d = out0.shape[-1]
-        if depth is None:
-            depth = d
+        depth = out0.shape[-1]
 
         img = np.zeros((height, width, depth), np.float32)
         for i in range(height):
@@ -60,6 +61,20 @@ def generate_sample(model, device, normalizing_stats, height=100, width=250, dep
     if prev_training:
         model.train()
     return img
+
+def sample_image(model, device, normalizing_stats, filename):
+    sample = generate_sample(
+        model,
+        device,
+        normalizing_stats,
+        height=100,
+        width=250,
+    )
+    save_arr = sample
+    if save_arr.ndim == 3 and save_arr.shape[2] == 1:
+        save_arr = save_arr[:, :, 0]
+    Image.fromarray(save_arr).save(filename)
+    logging.info(f"Saved sample image to {filename}.png")
 
 def train(configpath):
 
@@ -102,15 +117,16 @@ def train(configpath):
 
     # Build the loss
     logging.info("= Loss")
-    loss = torch.nn.MSELoss()
+    # loss = torch.nn.MSELoss()
+    loss = optim.RelativeMSE()
 
     # Build the optimizer
     logging.info("= Optimizer")
     optim_config = config["optim"]
     optimizer = optim.get_optimizer(optim_config, model.parameters())
-    scheduler = lr_scheduler.StepLR(optimizer, 
-                                    step_size=10, 
-                                    gamma=0.5)
+    # scheduler = lr_scheduler.StepLR(optimizer, 
+    #                                 step_size=10, 
+    #                                 gamma=0.5)
 
     # Build the callbacks
     logging_config = config["logging"]
@@ -229,32 +245,16 @@ def train(configpath):
 
             wandb.log(data_to_log)
 
-        scheduler.step()
+        if e % config["logging"]["imgfreq"] == 0:
+            filename = logdir / f"sample_epoch_{e}.png"
+            sample_image(model, 
+                         device, 
+                         normalizing_stats, filename)
+
+        # scheduler.step()
         logging.info(f" Epoch {e} done")
 
     # At the end, reload the best model and generate the image
-    model.load_state_dict(torch.load(model_checkpoint.savepath_pt, 
-                                     weights_only=True))
-    try:
-        sample = generate_sample(
-            model,
-            device,
-            normalizing_stats,
-            height=100,
-            width=250,
-            depth=dim_output,
-        )
-        save_arr = sample
-        if save_arr.ndim == 3 and save_arr.shape[2] == 1:
-            save_arr = save_arr[:, :, 0]
-        if updated:
-            tag = "_better"
-        else:
-            tag = ""
-        Image.fromarray(save_arr).save(logdir / f"sample_epoch_{e}{tag}.png")
-        logging.info(f"Saved sample image to {logdir / f'sample_epoch_{e}{tag}.png'}")
-    except Exception as ex:
-        logging.warning(f"Failed to generate/save sample image: {ex}")
 
 def test(logdir):
     logging.info(f"Loading model from {logdir}")
