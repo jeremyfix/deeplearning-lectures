@@ -1,9 +1,28 @@
 # coding: utf-8
 
+# Standard imports
+import sys
+import logging
+
 # External imports
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
+
+try:
+    import tinycudann as tcnn
+except ImportError:
+    print("tiny-cuda-nn module not available")
+    print("You will not be able to use the Hash encoding")
+    sys.exit()
+
+def build_coordinate_2D(Nx, Ny, device=torch.device("cpu")):
+    x = torch.linspace(-1, 1, Nx, device=device)
+    y = torch.linspace(-1, 1, Ny, device=device)
+
+    x, y = torch.meshgrid(x, y, indexing="ij")
+    xy = torch.stack([x, y], -1).view(-1, 2)
+    return xy
 
 def build_coordinate_2Dt(Nx, Ny, Nt, device=torch.device("cpu")):
     x = torch.linspace(-1, 1, Nx, device=device)
@@ -12,7 +31,6 @@ def build_coordinate_2Dt(Nx, Ny, Nt, device=torch.device("cpu")):
 
     x, y, t = torch.meshgrid(x, y, t, indexing="ij")
     xyt = torch.stack([x, y, t], -1).view(-1, 3)
-    xyt = xyt.view(Nx, Ny, Nt, 3)
     return xyt
 
 def build_encoder(dim_input, cfg):
@@ -92,6 +110,54 @@ def test_positional_encoding():
     plt.legend()
     plt.show()
 
+
+def Hash(dim_input: int, cfg: dict):
+    """
+    This function wraps the tiny-cuda-nn implementation of the Hash
+    encoding
+    """
+    return tcnn.Encoding(n_input_dims = dim_input,
+                         encoding_config = cfg)
+
+def test_hash_encoding():
+    cfg = {
+        "class": "Hash", 
+        "params": {
+            "otype": "HashGrid",
+            "n_levels": 16,
+            "n_features_per_level": 2,
+            "log2_hashmap_size": 15,
+            "base_resolution": 16,
+            "per_level_scale": 1.5,
+            "fixed_point_pos": False
+        }
+    }
+
+    dim_input = 2
+
+    # Uniform sampling of the volume [-1, 1]^dim_input
+    npoints = 100
+    enc = build_encoder(dim_input=dim_input, cfg=cfg)
+    xy = build_coordinate_2D(npoints, npoints)
+
+    if torch.accelerator.is_available():
+        device = torch.accelerator.current_accelerator()
+    else:
+        device = torch.device('cpu')
+
+    encodings = enc(xy.to(device))
+  
+    xy = xy.detach().cpu()
+    encodings = encodings.detach().cpu()
+
+    logging.info(f"From points of shape {xy.shape}, the encoding produced an embedding of shape {encodings.shape}")
+
+    plt.figure()
+    plt.imshow(encodings[:, 4].reshape((npoints, npoints)))
+    plt.show()
+
 if __name__ == "__main__":
-    test_positional_encoding()
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
+    # test_positional_encoding()
+    test_hash_encoding()
 
