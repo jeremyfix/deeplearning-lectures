@@ -25,8 +25,9 @@ class ImageDataset(Dataset):
         # And take ONE of these images for our dataset
         if len(self.images) == 0:
             raise ValueError(f"No images found in {root_dir} with extensions {img_extensions}")
-        
-        self.image = np.array(Image.open(self.images[0])).astype(np.float32)
+       
+        self.filename = self.images[0]
+        self.image = np.array(Image.open(self.filename)).astype(np.float32)
 
     @property
     def dim_input(self) -> int:
@@ -61,6 +62,8 @@ class ImageDataset(Dataset):
         pixel_value = self.image[i, j]
         return np.array([i, j], dtype=np.float32), pixel_value
 
+    def __repr__(self):
+        return f"ImageDataset(N={self.__len__()}, dim_input={dim_input}, dim_output={dim_output}, filename={self.filename})"
 
 def test_image_dataset(rootdir):
     dataset = ImageDataset(rootdir)
