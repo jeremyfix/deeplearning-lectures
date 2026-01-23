@@ -150,7 +150,7 @@ def test_hash_encoding():
     xy = xy.detach().cpu()
     encodings = encodings.detach().cpu()
 
-    logging.info(f"From points of shape {xy.shape}, the encoding produced an embedding of shape {encodings.shape}")
+    logging.info(f"From points of shape {xy.shape}, {xy.dtype} the encoding produced an embedding of shape {encodings.shape}, {encodings.dtype}")
 
     plt.figure()
     plt.imshow(encodings[:, 4].reshape((npoints, npoints)))
@@ -158,6 +158,6 @@ def test_hash_encoding():
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
-    # test_positional_encoding()
+    test_positional_encoding()
     test_hash_encoding()
 
