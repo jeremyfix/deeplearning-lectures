@@ -147,3 +147,10 @@ class TinyCudaNGP(nn.Module):
 
         return x
 
+def FullTinyCudaNGP(dim_input, dim_output, cfg):
+    assert cfg["pos_encoding"]["class"] == "Hash"
+    encoding_config = cfg["pos_encoding"]["params"]
+    network_config = cfg["network"]
+    model = tcnn.NetworkWithInputEncoding(n_input_dims=dim_input, n_output_dims=dim_output, encoding_config=encoding_config, network_config=network_config)
+    return model
+

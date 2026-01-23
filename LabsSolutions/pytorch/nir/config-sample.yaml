@@ -38,7 +38,7 @@ logging:
 #         per_level_scale: 1.5
 #         fixed_point_pos: False
 model:
-  class: "TinyCudaNGP"
+  class: "FullTinyCudaNGP"
   params:
     pos_encoding:
       class: "Hash"

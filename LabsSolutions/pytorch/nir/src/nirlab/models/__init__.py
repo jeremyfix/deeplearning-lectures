@@ -4,7 +4,7 @@
 import torch
 
 # Local imports
-from .ngp import RealNGP, TinyCudaNGP
+from .ngp import RealNGP, TinyCudaNGP, FullTinyCudaNGP
 
 def build_model(dim_input, dim_output, cfg):
     if "params" in cfg:
