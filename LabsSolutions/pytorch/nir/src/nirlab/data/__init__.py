@@ -92,6 +92,11 @@ def get_dataloaders(config: dict, use_cuda):
             num_workers=num_workers,
         )
         normalizing_stats = compute_mean_std(normalizing_loader)
+        # HACK : fix output normalizing statistics
+        # just to scale in [0, 1]
+        print(normalizing_stats)
+        normalizing_stats = (normalizing_stats[0], ([0., 0.0, 0.], [255., 255., 255.]))
+        print(normalizing_stats)
 
         # When we are requested to normalize the data, 
         # we wrap the dataset with this normalization

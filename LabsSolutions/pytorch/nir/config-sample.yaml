@@ -8,9 +8,10 @@ data:
     root_dir: './images'
 
 optim:
-  algo: Adam
+  algo: AdamW
   params:
     lr: 0.01
+    weight_decay: 0.001
 
 nepochs: 200
 
@@ -21,11 +22,24 @@ logging:
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
   imgfreq: 10
 
+# model:
+#   class: "RealNGP"
+#   params:
+#     n_hidden_units: 64
+#     n_hidden_layers: 2
+#     pos_encoding:
+#       class: "Hash"
+#       params: 
+#         otype: "HashGrid"
+#         n_levels: 16
+#         n_features_per_level: 2
+#         log2_hashmap_size: 15
+#         base_resolution: 16
+#         per_level_scale: 1.5
+#         fixed_point_pos: False
 model:
-  class: "RealNGP"
+  class: "TinyCudaNGP"
   params:
-    n_hidden_units: 64
-    n_hidden_layers: 2
     pos_encoding:
       class: "Hash"
       params: 
@@ -36,3 +50,9 @@ model:
         base_resolution: 16
         per_level_scale: 1.5
         fixed_point_pos: False
+    network:
+      otype: "FullyFusedMLP"
+      activation: "ReLU"
+      output_activation: "None"
+      n_neurons: 64
+      n_hidden_layers: 2

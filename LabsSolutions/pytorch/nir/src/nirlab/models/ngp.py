@@ -1,8 +1,18 @@
 # coding: utf-8
 
+# Standard imports
+import sys
+
 # External imports
 import torch
 import torch.nn as nn
+
+try:
+    import tinycudann as tcnn
+except ImportError:
+    print("tiny-cuda-nn module not available")
+    print("You will not be able to use the Hash encoding")
+    sys.exit()
 
 # Local imports
 from . import encoding
@@ -79,6 +89,60 @@ class RealNGP(nn.Module):
         # we make the FFNN float16 as well ? 
         # Instead of converting the output of the encoding in float32 ?
         x = x.float()
+        x = self.ffnn(x)
+
+        return x
+
+
+class TinyCudaNGP(nn.Module):
+    """
+    Real valued Neural Graphic Primitive using the 
+    tcnn implementation
+
+    The first layer involves an Encoding then followed
+    by dense layers to get the value of the function at the provided
+    input coordinates.
+
+    Arguments:
+        dim_input (int): Number of input coordinates (e.g. 3 for x, y, t)
+        dim_output (int): Number of output values (e.g. 1 for a scalar field)
+        cfg (dict): Configuration for the encoding and MLP
+    """
+
+    def __init__(self, 
+                 dim_input: int, 
+                 dim_output: int, 
+                 cfg: dict):
+        super().__init__()
+
+        # The input layer uses a hash encoding
+        self.encoder = encoding.build_encoder(dim_input=dim_input, cfg=cfg["pos_encoding"])
+
+        # Determine the dimensions of the embedding by doing a forward pass
+        # through the encoder
+        fake_input_size = (1, dim_input)
+        fake_input = torch.zeros(*fake_input_size)
+        output_encoding = self.encoder(fake_input) 
+        output_encoding_size = output_encoding.shape[1] 
+
+        self.ffnn = tcnn.Network(n_input_dims=output_encoding_size, n_output_dims=dim_output, network_config=cfg["network"])
+
+    def forward(self, x, skip_encoding=False):
+        """
+        Do a forward pass through the NIR. 
+
+        Arguments:
+            x (torch.Tensor): (K, d_in) tensor of coordinates
+                where to evaluate the representation, where d_in is the dimensionality
+                of the input and K is the number to points to be evaluated
+                or of shape (K, output_encoding_size) if skip_encoding is True.
+        """
+    
+        # We may skip the encoding
+        # for example, when these have been pre-computed
+        if not skip_encoding:
+            x = self.encoder(x)
+    
         x = self.ffnn(x)
 
         return x
