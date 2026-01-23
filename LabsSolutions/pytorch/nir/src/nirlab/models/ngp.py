@@ -74,7 +74,11 @@ class RealNGP(nn.Module):
         # for example, when these have been pre-computed
         if not skip_encoding:
             x = self.encoder(x)
-
+    
+        # Hash Encoding can output in float16. Shall
+        # we make the FFNN float16 as well ? 
+        # Instead of converting the output of the encoding in float32 ?
+        x = x.float()
         x = self.ffnn(x)
 
         return x
