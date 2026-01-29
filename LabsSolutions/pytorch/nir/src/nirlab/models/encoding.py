@@ -11,27 +11,21 @@ import matplotlib.pyplot as plt
 
 try:
     import tinycudann as tcnn
+    tcnn_available = True
 except ImportError:
     print("tiny-cuda-nn module not available")
     print("You will not be able to use the Hash encoding")
-    sys.exit()
+    tcnn_available = False
 
-def build_coordinate_2D(Nx, Ny, device=torch.device("cpu")):
-    x = torch.linspace(-1, 1, Nx, device=device)
-    y = torch.linspace(-1, 1, Ny, device=device)
+def build_coordinate_Nd(*Ns, device=torch.device("cpu")):
+    coords_lin = [torch.linspace(-1, 1, Ni, device=device) for Ni in Ns]
+    coords_mesh = torch.meshgrid(*coords_lin, indexing="ij")
+    stacked = torch.stack(coords_mesh, -1).view(-1, len(Ns))
+    return stacked
 
-    x, y = torch.meshgrid(x, y, indexing="ij")
-    xy = torch.stack([x, y], -1).view(-1, 2)
-    return xy
-
-def build_coordinate_2Dt(Nx, Ny, Nt, device=torch.device("cpu")):
-    x = torch.linspace(-1, 1, Nx, device=device)
-    y = torch.linspace(-1, 1, Ny, device=device)
-    t = torch.linspace(-1, 1, Nt, device=device)
-
-    x, y, t = torch.meshgrid(x, y, t, indexing="ij")
-    xyt = torch.stack([x, y, t], -1).view(-1, 3)
-    return xyt
+def test_coords():
+    coords = build_coordinate_Nd(3, 4, 5, 6)
+    print(coords.shape)
 
 def build_encoder(dim_input, cfg):
     params = cfg["params"]
@@ -110,12 +104,12 @@ def test_positional_encoding():
     plt.legend()
     plt.show()
 
-
 def Hash(dim_input: int, cfg: dict):
     """
     This function wraps the tiny-cuda-nn implementation of the Hash
     encoding
     """
+    assert tcnn_available
     return tcnn.Encoding(n_input_dims = dim_input,
                          encoding_config = cfg)
 
@@ -138,7 +132,7 @@ def test_hash_encoding():
     # Uniform sampling of the volume [-1, 1]^dim_input
     npoints = 100
     enc = build_encoder(dim_input=dim_input, cfg=cfg)
-    xy = build_coordinate_2D(npoints, npoints)
+    xy = build_coordinate_Nd(npoints, npoints)
 
     if torch.accelerator.is_available():
         device = torch.accelerator.current_accelerator()
@@ -158,6 +152,8 @@ def test_hash_encoding():
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
+    test_coords()
     test_positional_encoding()
-    test_hash_encoding()
+    if tcnn_available:
+        test_hash_encoding()
 

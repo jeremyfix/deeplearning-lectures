@@ -6,6 +6,13 @@ import sys
 
 # External imports
 import torch
+try:
+    import tinycudann as tcnn
+    tcnn_available = True
+except ImportError:
+    print("tiny-cuda-nn module not available")
+    print("You will not be able to use the Hash encoding")
+    tcnn_available = False
 
 # Local imports
 from . import build_model
@@ -81,4 +88,5 @@ def test_real_hash_NGP():
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     test_real_NGP()
-    test_real_hash_NGP()
+    if tcnn_available:
+        test_real_hash_NGP()

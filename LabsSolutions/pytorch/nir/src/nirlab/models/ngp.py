@@ -9,10 +9,11 @@ import torch.nn as nn
 
 try:
     import tinycudann as tcnn
+    tcnn_available = True
 except ImportError:
     print("tiny-cuda-nn module not available")
     print("You will not be able to use the Hash encoding")
-    sys.exit()
+    tcnn_available = False
 
 # Local imports
 from . import encoding
@@ -93,7 +94,6 @@ class RealNGP(nn.Module):
 
         return x
 
-
 class TinyCudaNGP(nn.Module):
     """
     Real valued Neural Graphic Primitive using the 
@@ -114,6 +114,7 @@ class TinyCudaNGP(nn.Module):
                  dim_output: int, 
                  cfg: dict):
         super().__init__()
+        assert tcnn_available
 
         # The input layer uses a hash encoding
         self.encoder = encoding.build_encoder(dim_input=dim_input, cfg=cfg["pos_encoding"])
@@ -148,6 +149,7 @@ class TinyCudaNGP(nn.Module):
         return x
 
 def FullTinyCudaNGP(dim_input, dim_output, cfg):
+    assert tcnn_available
     assert cfg["pos_encoding"]["class"] == "Hash"
     encoding_config = cfg["pos_encoding"]["params"]
     network_config = cfg["network"]
