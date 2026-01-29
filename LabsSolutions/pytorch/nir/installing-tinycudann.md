@@ -7,6 +7,7 @@ source /tmp/venvtiny
 uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 
 # Then install tiny-cuda-nn
+uv pip install setuptools
 uv pip install --no-build-isolation --no-cache-dir git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 
 # And test 
