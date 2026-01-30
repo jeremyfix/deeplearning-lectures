@@ -500,14 +500,14 @@ Important
 </figure>
 </div>
 <p>To import the MNIST dataset in Keras, you can do the following:</p>
-<div id="afbece46" class="cell">
+<div id="3f6bbb63" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.datasets <span class="im">import</span> mnist</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.utils <span class="im">import</span> to_categorical</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>(X_train, y_train), (X_test, y_test) <span class="op">=</span> mnist.load_data()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>X_train and y_train are numpy arrays of respective shape (60000, 28, 28) and (60000,). X_test and y_test are numpy arrays of respective shape (10000, 28, 28) and (10000, ). X_train and X_test contain the images and y_train and y_test contain the labels. For a linear classifier (or in fact Dense Layers as well as we shall see in a moment and this is different from convolutional layers we will see later on) expect to get vectors in their input and not images, i.e. 1-dimensional and not 2-dimensional objects. So we need to reshape the loaded numpy arrays</p>
-<div id="5b720b3d" class="cell">
+<div id="d031b8a5" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>num_train  <span class="op">=</span> X_train.shape[<span class="dv">0</span>]</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>num_test   <span class="op">=</span> X_test.shape[<span class="dv">0</span>]</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -518,12 +518,12 @@ Important
 </div>
 <p>Now, the shape of X_train and X_test are (60000, 784) and (10000, 784) respectively.</p>
 <p>The networks we are going to train output, for each input image, a probability distribution over the labels. We therefore need to convert the labels into their one-hot encoding. Keras provides the to_categorical function to do that.</p>
-<div id="5139ffba" class="cell">
+<div id="2d492a4d" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>y_train <span class="op">=</span> to_categorical(y_train, num_classes<span class="op">=</span><span class="dv">10</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>y_test <span class="op">=</span> to_categorical(y_test, num_classes<span class="op">=</span><span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now, the shape of y_train and y_test is (60000, 10) and (10000, 10) respectively and the first 10 entries of y_train are:</p>
-<div id="55a4356a" class="cell">
+<div id="7ea86c95" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>[ <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">1.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>  <span class="fl">0.</span>]</span>
@@ -548,7 +548,7 @@ Important
 <p>In keras, a model can be specified with the <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Sequential">Sequential</a> or <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Model/">Functional</a> API. We here make use of the functional API which is more flexible than the Sequential API. Also, while one could incorporate the activation within the dense layers, we will be using linear dense layers so that we can visualize what is going on after each operation.</p>
 </blockquote>
 <p>In Python, this can be written as :</p>
-<div id="df8ecfcd" class="cell">
+<div id="f236103e" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras <span class="im">import</span> Input</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> Dense, Activation</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.models <span class="im">import</span> Model</span>
@@ -567,7 +567,7 @@ Important
 <h3 class="anchored" data-anchor-id="compiling-and-training">Compiling and training</h3>
 <p>The next step is, in the terminology of Keras, to <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile">compile</a> the model by providing the loss function to be minimized, the optimizer and the metrics to monitor. For this classification problem, an appropriate loss is the crossentropy loss. In Keras, among all the <a href="https://www.tensorflow.org/api_docs/python/tf/keras/losses">Losses</a>, we will use the <strong>categorical_crossentropy</strong> loss. For the optimizer, several <a href="https://www.tensorflow.org/api_docs/python/tf/keras/optimizers">Optimizers</a> are available and we will use <strong>adam</strong>. For the metrics, you can use some <a href="https://www.tensorflow.org/api_docs/python/tf/keras/metrics">predefined metrics</a> or define your own. Here, we will use the <strong>accuracy</strong> which makes sense because the dataset is balanced.</p>
 <p>In Python, this can be written as</p>
-<div id="0853925b" class="cell">
+<div id="425349c3" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>model.<span class="bu">compile</span>(loss<span class="op">=</span><span class="st">'categorical_crossentropy'</span>, </span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>              optimizer<span class="op">=</span><span class="st">'adam'</span>,  </span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>              metrics<span class="op">=</span>[<span class="st">'accuracy'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -577,7 +577,7 @@ Important
 <p>Metrics, losses and optimizers can be specified in two ways in the call of the compile function. It can be either specified by a string or by passing a function for the loss, a list of functions for the metrics and an Optimizer object for the optimizer.</p>
 </blockquote>
 <p>We are now ready for training our linear classifier, by calling the <a href="https://www.tensorflow.org/api_docs/python/tf/keras/Model#fit">fit function</a>.</p>
-<div id="8aeac361" class="cell">
+<div id="e16befcb" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>model.fit(X_train, y_train,</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>          batch_size<span class="op">=</span><span class="dv">128</span>,</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>          epochs<span class="op">=</span><span class="dv">20</span>,</span>
@@ -604,7 +604,7 @@ Important
 <li>a <a href="https://www.tensorflow.org/api_docs/python/tf/keras/callbacks/ModelCheckpoint">ModelCheckpoint</a> callback which saves the best model with respect to a provided metric</li>
 </ul>
 <p>For both these callbacks, we need to specify a path to which data will be logged. I propose you the following utility function which generates a unique path:</p>
-<div id="9bdf6e11" class="cell">
+<div id="82db4847" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate_unique_logpath(logdir, raw_run_name):</span>
@@ -618,7 +618,7 @@ Important
 </div>
 <p>Note that this function will create a unique directory for storing all the things to need to store for one experiment. We will store there the history of the metrics during training, the best model we found, etc…</p>
 <p>For defining a TensorBoard callback, you need to add its import, instantiate it by specifying a directory in which the callback will log the progress and then modify the call to fit to specify the callback.</p>
-<div id="60a6cd5c" class="cell">
+<div id="834715a2" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.callbacks <span class="im">import</span> TensorBoard</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>run_name <span class="op">=</span> <span class="st">"linear"</span></span>
@@ -639,7 +639,7 @@ Important
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="kw">(</span><span class="ex">Press</span> CTRL+C to quit<span class="kw">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>And then start a browser and log to <a href="http://localhost:6006" class="uri">http://localhost:6006</a> . Once this is done, you will be able to monitor your metrics in the browser while the training are running.</p>
 <p>The second callback we define is a ModelCheckpoint callback which will save the best model based on a provided metric, e.g.&nbsp;the validation loss.</p>
-<div id="80199bcd" class="cell">
+<div id="dd823201" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.callbacks <span class="im">import</span> ModelCheckpoint</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>run_name <span class="op">=</span> <span class="st">"linear"</span></span>
@@ -667,7 +667,7 @@ Important
 <h3 class="anchored" data-anchor-id="loading-a-model">Loading a model</h3>
 <p>In the previous paragraph, we regularly saved the best model (with the ModelCheckpoint callback) with respect to the validation loss. You may want to load this best model, for example for estimating its test set performance at the end of your training script.</p>
 <p>At the time of writing this practical, there is <a href="https://github.com/fchollet/keras/issues/4044">an issue in the “h5” file saved by Keras</a> and some of its elements must be removed in order to be able to reload the model :</p>
-<div id="768d2dc9" class="cell">
+<div id="15111849" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.models <span class="im">import</span> load_model</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
@@ -694,7 +694,7 @@ X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1
 \hat{X} = (X - X_\mu)/X_\sigma
 \]</span></p>
 <p>How do we introduce normalization in a Keras model ? One way is to create a dataset that is normalized and use this dataset for training and testing. Another possibility is to embed normalization in the network by introducing a <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Lambda">Lambda layer</a> right after the Input layer. For example, introducing standardization in our linear model could be done the following way :</p>
-<div id="b1deec84" class="cell">
+<div id="7087118f" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> Lambda</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>xi <span class="op">=</span> Input(shape<span class="op">=</span>(img_height<span class="op">*</span>img_width,), name<span class="op">=</span><span class="st">"input"</span>)</span>
@@ -721,7 +721,7 @@ X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1
 <section id="basics" class="level3">
 <h3 class="anchored" data-anchor-id="basics">Basics</h3>
 <p>Let us change the network to build a 2 hidden layers feedforward network. This is simply about adding dense layers with appropriate activations in between the input and the output layer. Basically, the only thing you need to change compared to the linear model is when you build up the model. A simple 2 layers MLP would be defined as :</p>
-<div id="1efa49bc" class="cell">
+<div id="e4b135f1" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>xi <span class="op">=</span> Input(shape<span class="op">=</span>input_shape)</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Lambda(....)(xi)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Dense(nhidden1)(x)</span>
@@ -739,7 +739,7 @@ X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1
 <h3 class="anchored" data-anchor-id="regularization">Regularization</h3>
 <p>There are various <a href="https://www.tensorflow.org/api_docs/python/tf/keras/regularizers">Regularizers</a> provided by Keras. Some typical regularizers are <a href="https://www.tensorflow.org/api_docs/python/tf/keras/regularizers/L1L2">L1/L2 penalties</a> or also <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dropout">Dropout</a> layers.</p>
 <p>L2 regularization (or weight decay) is usually applied to the kernel only and not the bias. It adds a term in the loss function to be minimized of the form <span class="math inline">\(\lambda \sum_i w_i^2\)</span>. The parameter <span class="math inline">\(\lambda\)</span> has to be experimentally determined (by monitoring the performances on the validation set) and usually quite small, e.g.&nbsp;values around <span class="math inline">\(10^{-5}\)</span> or so. If you wish to experiment with L2 penalty, you can directly specify it when you create the Dense layer :</p>
-<div id="839c33ad" class="cell">
+<div id="5f987a94" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras <span class="im">import</span> regularizers</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating a dense layer with L2 penalty on the weights (not biases)</span></span>
@@ -747,7 +747,7 @@ X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1
 <span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Dense(hidden1, kernel_regularizer<span class="op">=</span>regularizers.l2(l2_reg))(x)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Another more recently introduced regularization technique is called Dropout <span class="citation" data-cites="Srivastava2014">(<a href="#ref-Srivastava2014" role="doc-biblioref">Srivastava, Hinton, Krizhevsky, Sutskever, &amp; Salakhutdinov, 2014</a>)</span>. It consists in setting to 0 the activations of a certain fraction of the units in a layer. In their original paper, the authors of dropout suggest for example <em>Dropping out 20% of the input units and 50% of the hidden units was often found to be optimal</em>. A dropout mask is generated for every training sample. At test time, an ensemble of dropped out networks are combined to compute the output (see also <a href="http://cs231n.github.io/neural-networks-2/#reg">CS231n regularizers</a>). In Keras, we simply need to introduce <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Dropout">Dropout layers</a> specifying the rate at which to drop units. Below we create a Dense(relu) layer followed by dropout where <span class="math inline">\(50\%\)</span> of the output are set to 0. Learning a neural network with dropout is usually slower than without dropout so that you may need to consider increasing the number of epochs.</p>
-<div id="43fb62f8" class="cell">
+<div id="8443cb2d" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> Dropout</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Dense(hidden1)(x)</span>
@@ -762,7 +762,7 @@ X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1
 <p>In order to write our script from training CNN, compared to the script for training a linear or multilayer fully connected model, we need to change the input_shape and also introduce new layers: <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D">Convolutional layers</a>, <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/MaxPool2D">Pooling layers</a> and a <a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/Flatten">Flatten layer</a>.</p>
 <p>The tensors for convolutional layers are 4D which include batch_size, image width, image height, number of channels. The ordering is framework dependent. In tensorflow, it is channels_last, in which case, the tensors are (batch_size, image height, image width, number of channels).</p>
 <p>The first thing to do is to ensure the data arrays are in the appropriate format. Remember, before, we reshaped the training and test numpy arrays as (60000, 784) and (10000, 784) respectively. Now, with convolutional neural networks, the input data topology is exploited and we shall keep the data as images.</p>
-<div id="785acbb0" class="cell">
+<div id="71dd5e16" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>num_train  <span class="op">=</span> X_train.shape[<span class="dv">0</span>]</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>num_test   <span class="op">=</span> X_test.shape[<span class="dv">0</span>]</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -772,11 +772,11 @@ X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1
 <span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>X_test  <span class="op">=</span> X_test.reshape((num_test, img_height, img_width))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Then, the input_shape variable, used for defining the shape of the Input layer, must also be adapted :</p>
-<div id="5a6463c4" class="cell">
+<div id="f0a5908c" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>input_shape <span class="op">=</span> (img_rows, img_cols, <span class="dv">1</span>)      </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>The next step is to define our model. We here consider stacking Conv-Relu-MaxPool layers. One block with 64 5x5 stride 1 filters and 2x2 stride 2 max pooling would be defined with the following syntax :</p>
-<div id="9206ee96" class="cell">
+<div id="85198f10" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> Conv2D</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.layers <span class="im">import</span> MaxPooling2D</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="op">---</span></span>
@@ -789,7 +789,7 @@ X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1
 <p>The “padding=‘same’” parameter induces that the convolutional layers will not decrease the size of the representation. We let this as the job of the max-pooling operation. Indeed, the max pooling layer has a stride 2 which effectively downscale the representation by a size of 2.</p>
 <p>How do you set up the architecture ? the size of the filters ? the number of blocks ? the stride ? the padding ? well, this is all the magic. Actually, we begin to see a small part of the large number of degrees of freedom on which we can play to define a convolutional neural network.</p>
 <p>The last thing we need to speek about is the Flatten Layer. Usually (but this is not always the case), there are some final fully connected (dense) layers at the end of the architecture. When you go from the Conv/MaxPooling layers to the final fully connected layers, you need to flatten your feature maps. This means converting the 4D Tensors to 2D Tensors. For example, the code below illustrates the connection between some convolutional/max-pooling layers to the output layer with a 10-class classification:</p>
-<div id="9f4df1ba" class="cell">
+<div id="e6bfe01d" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> Conv2D(filters<span class="op">=</span><span class="dv">64</span>,</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>       kernel_size<span class="op">=</span><span class="dv">5</span>, strides<span class="op">=</span><span class="dv">1</span></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>           padding<span class="op">=</span><span class="st">'same'</span>)(x)      </span>
@@ -862,7 +862,7 @@ X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1
 </figure>
 </div>
 <p>Now, the idea is to produce a stream (actually infinite if you allow continuous perturbations) of training samples generated from your finite set of training samples. With Keras, you can augment your image datasets using an <a href="https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image">ImageDataGenerator</a>. Here is a snippet to create the generator that produced the images above :</p>
-<div id="c4d50d19" class="cell">
+<div id="2ead73a3" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tensorflow.keras.preprocessing.image <span class="im">import</span> ImageDataGenerator</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>datagen <span class="op">=</span> ImageDataGenerator(shear_range<span class="op">=</span><span class="fl">0.3</span>,</span>
@@ -871,7 +871,7 @@ X_\sigma = \sqrt{\frac{1}{N} \sum_{i=0}^{N-1} (X_i - X_\mu)^T (X_i - X_\mu)} + 1
 </div>
 <p>As a note, for some of the transformations ImageDataGenerator performs, it is necessary to invoke the <strong>fit</strong> method (e.g. featurewise_std_normalization).</p>
 <p>Now, in order to make use of the generator, we need to slightly adjust our split into training/validation sets, as well as our optimization of the model which we did so far calling the <strong>model.fit</strong> method.</p>
-<div id="b2cd2845" class="cell">
+<div id="4866a7c8" class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> split(X, y, test_size):</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>     idx <span class="op">=</span> np.arange(X.shape[<span class="dv">0</span>])</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>     np.random.shuffle(idx)</span>
