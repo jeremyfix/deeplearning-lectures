@@ -13,7 +13,7 @@ import torch.nn as nn
 
 def conv_leakyrelu(in_channels, out_channels):
     """
-    Conv(3x3, same) - BN - LeakyRelu(0.2)
+    Conv(3x3, same) - LeakyRelu(0.2)
     """
     ks = 3
     return [
@@ -30,9 +30,8 @@ def conv_leakyrelu(in_channels, out_channels):
 
 def conv_leakyrelu_bn(in_channels, out_channels, ks=3):
     """
-    Conv(3x3, same) - BN - LeakyRelu(0.2)
+    Conv(3x3, same) - LeakyRelu(0.2) - BN
     """
-    print(f"conv leaky relu with out = {out_channels}")
     return [
         nn.Conv2d(
             in_channels,
@@ -67,7 +66,7 @@ def conv_bn_leakyrelu(in_channels, out_channels):
 
 def conv_downsampling(in_channels, out_channels):
     """
-    Conv(3x3, s2) - LeakyRelu(0.2)
+    Conv(3x3, s2) - LeakyRelu(0.2) - BN
     """
     ks = 3
     return [
