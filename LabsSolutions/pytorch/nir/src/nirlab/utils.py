@@ -100,7 +100,7 @@ def train(model, loader, f_loss, optimizer, device, batch_metrics):
     for inputs, targets in tqdm.tqdm(loader):
         inputs = inputs.to(device)
 
-        if isinstance(targets, tuple):
+        if isinstance(targets, tuple) or isinstance(targets, list):
             # For the MRI dataset, we have multiple targets
             targets = tuple(t.to(device) for t in targets)
         else:
