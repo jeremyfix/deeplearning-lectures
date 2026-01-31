@@ -26,7 +26,7 @@ from nirlab import models
 from nirlab import optim
 from nirlab import utils
 from nirlab import metrics
-from nirlab.samplers.image import sample_image
+from nirlab import samplers 
 
 def train(configpath):
 
@@ -182,14 +182,11 @@ def train(configpath):
             wandb.log(data_to_log)
 
         if e % config["logging"]["imgfreq"] == 0:
-            filename = logdir / f"sample_epoch_{e}.png"
-            sample_image(model, 
-                         filename)
+            #samplers.sample_image(model, logdir, e)
+            samplers.sample_mri(model, logdir, e)
 
         scheduler.step()
         logging.info(f" Epoch {e} done")
-
-    # At the end, reload the best model and generate the image
 
 def test(logdir):
     logging.info(f"Loading model from {logdir}")
