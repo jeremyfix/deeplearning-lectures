@@ -212,7 +212,9 @@ class MICCAI2023(Dataset):
         view: CINEView = CINEView.SAX,
         acc_factor: AccFactor = AccFactor.ACC4,
         patient_idx: int = 0,
-        train: bool = True
+        train: bool = True,
+        slice_idx: int = 0,
+        valid_frames: list = [],
     ):
         self.rootdir = pathlib.Path(rootdir)
 
@@ -235,6 +237,10 @@ class MICCAI2023(Dataset):
         )
         self.subsampled_key = f"kspace_sub{acc_factor.value:02d}"
         self.mask_key = f"mask{acc_factor.value:02d}"
+
+        self.train = train
+        self.slice_idx = slice_idx
+        self.valid_frames = valid_frames
 
         logging.info(f"Loading data from {self.subsampled_rootdir}")
 
@@ -265,6 +271,8 @@ class MICCAI2023(Dataset):
         logging.debug(
             f"I found {len(self.patients)} patient(s) : {[p.name for p in self.patients]}"
         )
+
+        # Load the requested patient
         self.load_patient(patient_idx)
 
     def load_patient(self, patient_idx: int):
@@ -309,15 +317,39 @@ class MICCAI2023(Dataset):
         fullsampled_data = torch.tensor(fullsampled_data)
         # kx, ky, sc, sz, t
         # e.g. (246, 512, 10, 10, 12)   
-            
+        
+        # Precompute the coordinates
+        nrows, ncols, ncoils, nslices, nframes = subsampled_data.shape
+        logging.info(f"Number of rows {nrows}, cols {ncols}, coils {ncoils}, slices {nslices}, frames {nframes}")
+
+        # Only keep the requested slices
+        logging.info(f"Only keeping the slice index {self.slice_idx}")
+        subsampled_data = subsampled_data[:, :, :, self.slice_idx, :] # (kx, ky, sc, t)
+        fullsampled_data = fullsampled_data[:, :, :, self.slice_idx, :] # (kx, ky, sc, t)
+
+        frames_to_keep = []
+        if self.train:
+            for t in range(nframes):
+                if t not in self.valid_frames:
+                    frames_to_keep.append(t)
+        else:
+            frames_to_keep = self.valid_frames
+
+        logging.info(f"Keeping frames {frames_to_keep}")
+        subsampled_data = subsampled_data[:, :, :, frames_to_keep] # (kx, ky, sc, t)
+        fullsampled_data = fullsampled_data[:, :, :, frames_to_keep]
+
         # View the complex data as real for processing them with real valued networks
         self.subsampled_data = torch.view_as_real(subsampled_data)
         self.subsampled_mask = subsampled_mask
         self.fullsampled_data = torch.view_as_real(fullsampled_data)
 
-        # Precompute the coordinates
-        nrows, ncols, ncoils, nslices, nframes, _ = self.subsampled_data.shape # _ is 2 for real/imag
-        self.coords = utils.build_coordinate_Nd(nrows, ncols, nframes)
+        # Also filter the coordinates given the frames to keep
+        row_lin = torch.linspace(0, 1, nrows)
+        col_lin = torch.linspace(0, 1, ncols)
+        time_lin = torch.linspace(0, 1, nframes)[frames_to_keep]
+        coords_mesh = torch.meshgrid(row_lin, col_lin, time_lin, indexing="ij")
+        self.coords = torch.stack(coords_mesh, -1).view(-1, 3)
 
     def __len__(self):
         return 1 # Handles only one patient at a time
@@ -326,7 +358,7 @@ class MICCAI2023(Dataset):
         """
         Returns the subsampled k-space data, the mask and the fully sampled k-space data
         """
-        return self.coords, self.subsampled_data, self.subsampled_mask, self.fullsampled_data
+        return self.coords, (self.subsampled_data, self.subsampled_mask, self.fullsampled_data)
 
 def plot_sample(subsampled_data, subsampled_mask, fullsampled_data): 
     """
@@ -334,39 +366,37 @@ def plot_sample(subsampled_data, subsampled_mask, fullsampled_data):
 
     It shows the mask in k-space, the combined sub-sampled image and the combined fully sampled image
     """    
-    # Subsampled_data and fullsampled_data are (kx, ky, sc, sz, t)
+    # Subsampled_data and fullsampled_data are (kx, ky, sc, t)
     (kx, ky) = subsampled_data.shape[:2]
     n_coils = subsampled_data.shape[2]
-    n_slices = subsampled_data.shape[3]
-    n_frames = subsampled_data.shape[4]
-
+    n_slices = 1
+    n_frames = subsampled_data.shape[3]
     ti= 0
 
     # See the tensors as complex valued
     subsampled_data = torch.view_as_complex(subsampled_data)
     fullsampled_data = torch.view_as_complex(fullsampled_data)
 
-    combined_subimage = combine_coils(subsampled_data[:, :, :, :, ti])
-    combined_image = combine_coils(fullsampled_data[:, :, :, :, ti])
+    combined_subimage = combine_coils(subsampled_data[:, :, :, ti])
+    combined_image = combine_coils(fullsampled_data[:, :, :, ti])
 
     logging.info(f"There are {n_coils} coils, with {kx}x{ky} frequencies, {n_slices} slices and {n_frames} time steps")
 
-    for slice_idx in range(n_slices):
-        fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 4))
+    fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 4))
 
-        axes[0].imshow(subsampled_mask, cmap="gray")
-        axes[0].set_title("Mask in the Fourier space", fontsize=10, pad=10)
-        axes[0].axis("off")
+    axes[0].imshow(subsampled_mask, cmap="gray")
+    axes[0].set_title("Mask in the Fourier space", fontsize=10, pad=10)
+    axes[0].axis("off")
 
-        axes[1].imshow(combined_subimage[:, :, slice_idx], cmap="gray")
-        axes[1].set_title(f"Combined sub-image at slice {slice_idx}", fontsize=10, pad=10) 
-        axes[1].axis("off")
+    axes[1].imshow(combined_subimage, cmap="gray")
+    axes[1].set_title("Combined sub-image", fontsize=10, pad=10) 
+    axes[1].axis("off")
 
-        axes[2].imshow(combined_image[:, :, slice_idx], cmap="gray")
-        axes[2].set_title(f"Combined image at slice {slice_idx}", fontsize=10, pad=10) 
-        axes[2].axis("off")
+    axes[2].imshow(combined_image, cmap="gray")
+    axes[2].set_title("Combined image", fontsize=10, pad=10) 
+    axes[2].axis("off")
 
-        plt.tight_layout()
-        plt.savefig(f"slice_{slice_idx}.png", bbox_inches='tight', dpi=100)
-        logging.info(f"Saved figure slice_{slice_idx}.png")
-        plt.close(fig)
+    plt.tight_layout()
+    plt.savefig(f"slice.png", bbox_inches='tight', dpi=100)
+    logging.info(f"Saved figure slice.png")
+    plt.close(fig)

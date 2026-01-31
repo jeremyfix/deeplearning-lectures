@@ -55,11 +55,11 @@ def test_miccai_dataset(rootdir):
 
     view = CINEView.SAX
     acc = AccFactor.ACC10
-    dataset = MICCAI2023(rootdir=rootdir, view=view, acc_factor=acc)
+    dataset = MICCAI2023(rootdir=rootdir, view=view, acc_factor=acc, slice_idx=0, train=True, valid_frames=[4, 6])
 
     # Access one element
     idx = 0
-    coords, subsampled_data, subsampled_mask, fullsampled_data = dataset[idx]
+    coords, (subsampled_data, subsampled_mask, fullsampled_data) = dataset[idx]
 
     logging.info(f"I found {len(dataset)} samples in the dataset")
     logging.info(f"Took the sample {idx}")
@@ -68,12 +68,11 @@ def test_miccai_dataset(rootdir):
     # indicating if the values have been observed for frequency (fi, fj))
     logging.info(f"The boolean mask is of shape {subsampled_mask.shape}")
     
-    (kx, ky, sc, sz, t, _) = subsampled_data.shape # _ is 2
-    # (kx, ky, sc, sz, t, _) = fullsampled_data.shape # _ is 2
+    (kx, ky, sc, t, _) = subsampled_data.shape # _ is 2
+    # (kx, ky, sc, t, _) = fullsampled_data.shape # _ is 2
 
     logging.info(f"(kx, ky) = {kx, ky}")
     logging.info(f"Number of coils: {sc}")
-    logging.info(f"Number of slices: {sz}")
     logging.info(f"Number of time frames: {t}")
 
     plot_sample(subsampled_data, subsampled_mask, fullsampled_data)
