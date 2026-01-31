@@ -107,7 +107,7 @@ def TcnnHash(dim_input: int, cfg: dict):
     return tcnn.Encoding(n_input_dims = dim_input,
                          encoding_config = cfg)
 
-def test_hash_encoding():
+def test_tcnn_hash_encoding():
     cfg = {
         "class": "TcnnHash",
         "params": {
@@ -144,9 +144,112 @@ def test_hash_encoding():
     plt.imshow(encodings[:, 4].reshape((npoints, npoints)))
     plt.show()
 
+
+# @SOL
+class Hash(nn.Module):
+    """
+    This class implements the Hash encoding as proposed in 
+    the instant NGP paper Müller et al.(2022)
+    """
+
+    def __init__(self, 
+                 dim_input: int, 
+                 cfg: dict): 
+        super().__init__()
+        
+        assert dim_input in [2, 3], "Only 2D and 3D are supported by the Hash encoding"
+
+        self.dim_input = dim_input
+        self.n_levels = cfg["n_levels"] # L
+        self.n_features_per_level = cfg["n_features_per_level"] # F
+        self.log2_hashmap_size = cfg["log2_hashmap_size"]  # log_2(T)
+        self.base_resolution = cfg["base_resolution"] # Nmin
+        self.per_level_scale = cfg["per_level_scale"] # b
+
+        # The unique large prime numbers considered in the paper for the hash function
+        self.pi1 = 1
+        self.pi2 = 2_654_435_761
+        self.pi3 = 805_459_861
+
+        # Define the parameters of the encoding
+        self.lookup_tables = nn.ParameterList(nn.Parameter(torch.empty(2**self.log2_hashmap_size, self.n_features_per_level)) for _ in range(self.n_levels))
+
+        # Initialize the parameters
+        self.reset_parameters()
+
+    def reset_parameters(self) -> None:
+        """
+        Initialization of the hash table entries. 
+        From the paper p 6.:
+        "We initialize the hash table entries using the uniform distribution U (-1e-4, 1e-4)"
+        """
+        for table in self.lookup_tables:
+            nn.init.uniform_(table, a=-1e-4, b=1e-4)
+
+    def hash(self, x):
+        a = x * self.pi1
+        b = x * self.pi2
+        c = x * self.pi3
+        # Computes the hash as the xor, then modulo T
+        h_x = torch.bitwise_xor(torch.bitwise_xor(a, b), c)
+        # The modulo T is done with a bitmasking operation on the last log_2(T) bits
+        h_x = torch.remainder(h_x, 2**self.log2_hashmap_size)
+
+    def forward(self, X):
+        """
+        Given X as a collection of points on which to evaluate
+        the embedding with X : (K, dim_input)
+
+        We compute the positional encodings as a tensor of shape
+
+        (K, L * F)
+
+        where L x F is the number of levels times the number of features per level
+        """        
+        raise NotImplementedError("The Hash encoding is not implemented yet.")
+
+def test_hash_encoding():
+    cfg = {
+        "class": "Hash",
+        "params": {
+            "n_levels": 16,
+            "n_features_per_level": 2,
+            "log2_hashmap_size": 15,
+            "base_resolution": 16,
+            "per_level_scale": 1.5,
+        }
+    }
+
+    dim_input = 2
+
+    # Uniform sampling of the volume [-1, 1]^dim_input
+    npoints = 100
+    enc = build_encoder(dim_input=dim_input, cfg=cfg)
+    xy = utils.build_coordinate_Nd(npoints, npoints)
+
+    if torch.accelerator.is_available():
+        device = torch.accelerator.current_accelerator()
+    else:
+        device = torch.device('cpu')
+
+    encodings = enc(xy.to(device))
+  
+    xy = xy.detach().cpu()
+    encodings = encodings.detach().cpu()
+
+    logging.info(f"From points of shape {xy.shape}, {xy.dtype} the encoding produced an embedding of shape {encodings.shape}, {encodings.dtype}")
+
+    plt.figure()
+    plt.imshow(encodings[:, 4].reshape((npoints, npoints)))
+    plt.show()
+# SOL@
+
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     test_positional_encoding()
     if tcnn_available:
-        test_hash_encoding()
+        test_tcnn_hash_encoding()
+    # @SOL
+    test_hash_encoding()
+    # SOL@
 
