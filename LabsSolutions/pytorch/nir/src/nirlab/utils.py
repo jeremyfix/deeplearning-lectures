@@ -76,7 +76,7 @@ class ModelCheckpoint(object):
         return False
 
 
-def train(model, loader, f_loss, f_penalty, optimizer, device, batch_metrics):
+def train(model, loader, f_loss, optimizer, device, batch_metrics):
     """
     Train a model for one epoch, iterating over the loader
     using the f_loss to compute the loss and the optimizer
@@ -98,16 +98,22 @@ def train(model, loader, f_loss, f_penalty, optimizer, device, batch_metrics):
         bm.reset()
 
     for inputs, targets in tqdm.tqdm(loader):
-        inputs, targets = inputs.to(device), targets.to(device)
+        inputs = inputs.to(device)
+
+        if isinstance(targets, tuple):
+            # For the MRI dataset, we have multiple targets
+            targets = tuple(t.to(device) for t in targets)
+        else:
+            targets = targets.to(device)
 
         # Compute the forward propagation
         outputs = model(inputs)
 
-        loss = f_loss(outputs, targets)
-        penalty = f_penalty()
-        
-        # Combine loss and penalty in a single backward pass
-        total_loss = loss + penalty
+        total_loss = f_loss(outputs, targets)
+  
+        if hasattr(model, "penalty"):
+            # Combine loss and penalty in a single backward pass
+            total_loss += model.penalty()
 
         # Backward and optimize
         optimizer.zero_grad()
