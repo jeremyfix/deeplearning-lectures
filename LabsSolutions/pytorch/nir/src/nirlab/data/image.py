@@ -14,7 +14,7 @@ img_extensions = ["*.jpg", "*.png", "*.ppm"]
 
 class BaseImageDataset(Dataset):
 
-    def __init__(self, root_dir) -> None:
+    def __init__(self, root_dir, img_idx=0) -> None:
         super().__init__()
 
         # List all the images in root_dir
@@ -25,8 +25,8 @@ class BaseImageDataset(Dataset):
         # And take ONE of these images for our dataset
         if len(self.images) == 0:
             raise ValueError(f"No images found in {root_dir} with extensions {img_extensions}")
-       
-        self.filename = self.images[0]
+        logging.info(f"Using the image file {self.images[img_idx]} for the dataset")
+        self.filename = self.images[img_idx]
 
         # Load image, normalize in [0, 1], square pad
         im = np.array(Image.open(self.filename)).astype(np.float32) / 255.0
