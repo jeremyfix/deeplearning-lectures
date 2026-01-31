@@ -6,6 +6,8 @@ import sys
 
 # External imports
 import torch
+
+from nirlab import utils
 try:
     import tinycudann as tcnn
     tcnn_available = True
@@ -19,9 +21,14 @@ from . import build_model
 from . import encoding
 
 def test_real_NGP():
+    dim_input = 3
+    dim_output = 4
+
     cfg = {
         "class": "RealNGP",
         "params": {
+            "dim_input": dim_input,
+            "dim_output": dim_output,
             "pos_encoding": {
                 "class": "Positional",
                 "params": {
@@ -33,10 +40,7 @@ def test_real_NGP():
         }
     }
 
-    dim_input = 3
-    dim_output = 4
-
-    nir = build_model(dim_input, dim_output, cfg)
+    nir = build_model(cfg)
 
     K = 123
     X = torch.rand(K, dim_input)
@@ -52,11 +56,16 @@ def test_real_hash_NGP():
     else:
         device = torch.device('cpu')
 
+    dim_input = 2
+    dim_output = 4
+
     cfg = {
         "class": "RealNGP",
         "params": {
+            "dim_input": dim_input,
+            "dim_output": dim_output,            
             "pos_encoding": {
-                "class": "Hash",
+                "class": "TcnnHash",
                 "params": {
                     "otype": "HashGrid",
                     "n_levels": 16,
@@ -72,14 +81,11 @@ def test_real_hash_NGP():
         }
     }
 
-    dim_input = 2
-    dim_output = 4
-
-    nir = build_model(dim_input, dim_output, cfg).to(device)
+    nir = build_model(cfg).to(device)
 
     K = 123
     X = torch.rand(K, dim_input).to(device)
-    XY = encoding.build_coordinate_2D(10, 10).to(device)
+    XY = utils.build_coordinate_Nd(10, 10).to(device)
     y = nir(X)
     
     assert( y.shape == torch.Size((K, dim_output)))

@@ -1,12 +1,11 @@
 data:
   batch_size: 40960
-  valid_ratio: 0.2
   num_workers: 4
-  class: "ImageDataset"  # Use bilinear interpolation for smoother learning
+  class: "BilinearImageDataset"  # Use bilinear interpolation for smoother learning
   params:
     root_dir: './images'
     img_idx: 0
-
+    valid_ratio: 0.2
 
 optim:
   algo: Adam
@@ -26,15 +25,14 @@ tvloss:
 nepochs: 200
 
 logging:
-  # wandb: 
-  #   project: sample_project
-  #   entity: sample_entity
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
   imgfreq: 10
 
 model:
   class: "RealNGP"
-  params:
+  params:  
+    dim_input: 2
+    dim_output: 3
     n_hidden_units: 64
     n_hidden_layers: 2
     pos_encoding:
@@ -50,11 +48,12 @@ model:
         base_resolution: 16
         per_level_scale: 1.5
         fixed_point_pos: False
+
 # model:
 #   class: "FullTinyCudaNGP"
 #   params:
 #     pos_encoding:
-#       class: "Hash"
+#       class: "TcnnHash"
 #       params: 
 #         otype: "HashGrid"
 #         n_levels: 16

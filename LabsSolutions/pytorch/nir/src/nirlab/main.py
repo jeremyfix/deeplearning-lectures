@@ -53,26 +53,20 @@ def train(configpath):
     (
         train_loader,
         valid_loader,
-        dim_input,
-        dim_output,
-    ) = data.get_dataloaders(data_config, use_cuda)
-
-    # Request the first minibatch to get the dimensionalities of the input/output
-    x0, y0 = next(iter(train_loader))
-    dim_input = x0.shape[1]
-    dim_output = y0.shape[1]
+     ) = data.get_dataloaders(data_config, use_cuda)
 
     # Build the model
     logging.info("= Model")
     model_config = config["model"]
-    model = models.build_model(dim_input, dim_output, model_config)
+    model = models.build_model(model_config)
+    model = model.to(device)
 
     # Build the loss
     logging.info("= Loss")
     loss = optim.RelativeMSE()
 
     tv_config = config["tvloss"]
-    penalty = optim.TVLoss(model, dim_input, delta=tv_config["delta"], lbd=tv_config["lbd"], N=tv_config["N"])
+    penalty = optim.TVLoss(model, delta=tv_config["delta"], lbd=tv_config["lbd"], N=tv_config["N"])
 
     # Build the optimizer
     logging.info("= Optimizer")
@@ -86,7 +80,7 @@ def train(configpath):
 
     # Build the callbacks
     logging_config = config["logging"]
-    # Let us use as base logname the class name of the modek
+    # Let us use as base logname the class name of the model
     logname = model_config["class"]
     logdir = utils.generate_unique_logpath(logging_config["logdir"], logname)
     if not os.path.isdir(logdir):
@@ -104,17 +98,9 @@ def train(configpath):
     # Copy the config file into the logdir
     logdir = pathlib.Path(logdir)
     with open(logdir / "config.yaml", "w") as file:
-        # Record the dimensions in the config file
-        config["data"]["dim_input"] = dim_input
-        config["data"]["dim_output"] = dim_output
         yaml.dump(config, file)
 
     # Make a summary script of the experiment
-
-    # x0 is a list of tensors
-    input_size = (1,) + x0[0].shape
-    logging.info(f"Input size : {input_size}")
-
     summary_text = (
         f"Logdir : {logdir}\n"
         + "## Command \n"
@@ -123,7 +109,7 @@ def train(configpath):
         + f" Config : {config} \n\n"
         + (f" Wandb run name : {wandb.run.name}\n\n" if wandb_log is not None else "")
         + "## Summary of the model architecture\n"
-        + f"{torchinfo.summary(model, input_size=input_size, verbose=0)}\n\n"
+        + f"{torchinfo.summary(model, verbose=0)}\n\n"
         + "## Loss\n\n"
         + f"{loss}\n\n"
         + "## Datasets : \n\n"
@@ -144,7 +130,7 @@ def train(configpath):
 
     # Define the early stopping callback
     model_checkpoint = utils.ModelCheckpoint(
-        model, logdir, input_size, device, min_is_best=True
+        model, logdir, min_is_best=True
     )
 
     for e in range(config["nepochs"]):
@@ -217,10 +203,8 @@ def test(logdir):
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
-    dim_input = config["data"]["dim_input"]
-    dim_output = config["data"]["dim_output"]
     model_config = config["model"]
-    model = models.build_model(dim_input, dim_output, model_config).to(device)
+    model = models.build_model(model_config).to(device)
     model.load_state_dict(torch.load(logdir / "best_model.pt", map_location=device))
     model.eval()
 

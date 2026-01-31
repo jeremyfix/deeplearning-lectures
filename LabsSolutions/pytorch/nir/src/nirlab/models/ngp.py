@@ -33,17 +33,17 @@ class RealNGP(nn.Module):
     """
 
     def __init__(self, 
-                 dim_input: int, 
-                 dim_output: int, 
                  cfg: dict):
         super().__init__()
 
-        # The input layer uses a hash encoding
-        self.encoder = encoding.build_encoder(dim_input=dim_input, cfg=cfg["pos_encoding"])
+        self.dim_input = cfg["dim_input"]
+        self.dim_output = cfg["dim_output"]
 
+        # The input layer uses a hash encoding
+        self.encoder = encoding.build_encoder(dim_input=self.dim_input, cfg=cfg["pos_encoding"])
         # Determine the dimensions of the embedding by doing a forward pass
         # through the encoder
-        fake_input_size = (1, dim_input)
+        fake_input_size = (1, self.dim_input)
         fake_input = torch.zeros(*fake_input_size)
         output_encoding = self.encoder(fake_input) 
         output_encoding_size = output_encoding.shape[1] 
@@ -62,7 +62,7 @@ class RealNGP(nn.Module):
             input_dim = n_hidden_units
 
         # The last dense layer projects onto the output space
-        layers.append(nn.Linear(input_dim, dim_output))
+        layers.append(nn.Linear(input_dim, self.dim_output))
 
         self.ffnn = nn.Sequential(*layers)
 
@@ -110,23 +110,23 @@ class TinyCudaNGP(nn.Module):
     """
 
     def __init__(self, 
-                 dim_input: int, 
-                 dim_output: int, 
                  cfg: dict):
         super().__init__()
         assert tcnn_available
 
-        # The input layer uses a hash encoding
-        self.encoder = encoding.build_encoder(dim_input=dim_input, cfg=cfg["pos_encoding"])
+        self.dim_input = cfg["dim_input"]
+        self.dim_output = cfg["dim_output"]
 
+        # The input layer uses a hash encoding
+        self.encoder = encoding.build_encoder(dim_input=self.dim_input, cfg=cfg["pos_encoding"])
         # Determine the dimensions of the embedding by doing a forward pass
         # through the encoder
-        fake_input_size = (1, dim_input)
+        fake_input_size = (1, self.dim_input)
         fake_input = torch.zeros(*fake_input_size)
         output_encoding = self.encoder(fake_input) 
         output_encoding_size = output_encoding.shape[1] 
 
-        self.ffnn = tcnn.Network(n_input_dims=output_encoding_size, n_output_dims=dim_output, network_config=cfg["network"])
+        self.ffnn = tcnn.Network(n_input_dims=output_encoding_size, n_output_dims=self.dim_output, network_config=cfg["network"])
 
     def forward(self, x, skip_encoding=False):
         """
@@ -148,11 +148,16 @@ class TinyCudaNGP(nn.Module):
 
         return x
 
-def FullTinyCudaNGP(dim_input, dim_output, cfg):
+def FullTinyCudaNGP(cfg):
     assert tcnn_available
     assert cfg["pos_encoding"]["class"] == "Hash"
     encoding_config = cfg["pos_encoding"]["params"]
     network_config = cfg["network"]
-    model = tcnn.NetworkWithInputEncoding(n_input_dims=dim_input, n_output_dims=dim_output, encoding_config=encoding_config, network_config=network_config)
+    dim_input = cfg["dim_input"]
+    dim_output = cfg["dim_output"]
+    model = tcnn.NetworkWithInputEncoding(n_input_dims=dim_input, 
+                                          n_output_dims=dim_output, 
+                                          encoding_config=encoding_config, 
+                                          network_config=network_config)
     return model
 

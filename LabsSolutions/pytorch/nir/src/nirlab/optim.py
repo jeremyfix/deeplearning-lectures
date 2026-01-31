@@ -38,14 +38,13 @@ class TVLoss(nn.Module):
 
     def __init__(self, 
                  model, 
-                 dim_input, 
                  lbd, 
                  N,
                  delta=0.005,
                  coord_bounds=(0, 1)):
         super().__init__()
         self.model = model
-        self.dim_input = dim_input
+        self.dim_input = model.dim_input
         self.lbd = lbd
         self.delta = delta
         self.N = N

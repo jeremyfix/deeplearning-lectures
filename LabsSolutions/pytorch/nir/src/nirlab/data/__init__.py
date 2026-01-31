@@ -11,35 +11,43 @@ import numpy as np
 
 # Local imports
 from .image import ImageDataset, BilinearImageDataset
+from .scene import SceneDataset
+from .miccai2023 import MICCAI2023
 
 def build_dataset(cls, params):
-    return eval(f"{cls}(**params)")
+    if cls in ["ImageDataset", "BilinearImageDataset"]:
+        valid_ratio = params.pop("valid_ratio", 0.2)
+        train_valid_dataset = eval(f"{cls}(**params)")        
+
+        # Split the data into a train and valid fold
+        nb_train = int((1.0 - valid_ratio) * len(train_valid_dataset))
+        # nb_valid = int(valid_ratio * len(train_valid_dataset))
+        indices = list(range(len(train_valid_dataset)))
+        random.shuffle(indices)
+        train_indices = indices[:nb_train]
+        valid_indices = indices[nb_train:]
+
+        train_dataset = torch.utils.data.Subset(train_valid_dataset, 
+                                                train_indices)
+        valid_dataset = torch.utils.data.Subset(train_valid_dataset, 
+                                                valid_indices)
+        return train_dataset, valid_dataset
+    else:
+        train_dataset = eval(f"{cls}(**params, train=True)")
+        valid_dataset = eval(f"{cls}(**params, train=False)")
+
+        return train_dataset, valid_dataset
+
 
 def get_dataloaders(config: dict, use_cuda):
     batch_size = config["batch_size"]
-    valid_ratio = config["valid_ratio"]
     num_workers = config["num_workers"]
 
     # We load the dataset used for training
-    train_valid_dataset = build_dataset(
+    train_dataset, valid_dataset = build_dataset(
         config["class"],
         config["params"]
     )
-    dim_input = train_valid_dataset.dim_input
-    dim_output = train_valid_dataset.dim_output
-
-    # Split the data into a train and valid fold
-    nb_train = int((1.0 - valid_ratio) * len(train_valid_dataset))
-    # nb_valid = int(valid_ratio * len(train_valid_dataset))
-    indices = list(range(len(train_valid_dataset)))
-    random.shuffle(indices)
-    train_indices = indices[:nb_train]
-    valid_indices = indices[nb_train:]
-
-    train_dataset = torch.utils.data.Subset(train_valid_dataset, 
-                                            train_indices)
-    valid_dataset = torch.utils.data.Subset(train_valid_dataset, 
-                                            valid_indices)
 
     train_loader = torch.utils.data.DataLoader(
         dataset=train_dataset,
@@ -57,4 +65,4 @@ def get_dataloaders(config: dict, use_cuda):
         num_workers=num_workers,
     )
 
-    return train_loader, valid_loader, dim_input, dim_output
+    return train_loader, valid_loader

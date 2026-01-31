@@ -30,12 +30,14 @@ from enum import Enum
 import pathlib
 import logging
 from typing import Union
+import random
 
 # External imports
 import torch
 from torch.utils.data import Dataset
 import h5py  # Required because the data are matlab v7.3 files
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class CINEView(Enum):
@@ -206,6 +208,7 @@ class MICCAI2023(Dataset):
         rootdir: str,
         view: CINEView = CINEView.SAX,
         acc_factor: AccFactor = AccFactor.ACC4,
+        train: bool = True
     ):
         self.rootdir = pathlib.Path(rootdir)
 
@@ -259,6 +262,9 @@ class MICCAI2023(Dataset):
             f"I found {len(self.patients)} patient(s) : {[p.name for p in self.patients]}"
         )
 
+        self.dim_input = 3
+        self.dim_output = 1
+
     def __len__(self):
         return len(self.patients)
 
@@ -278,6 +284,7 @@ class MICCAI2023(Dataset):
             patient / self.input_filename, self.subsampled_key
         ).transpose(3, 4, 2, 1, 0)
         subsampled_data = subsampled_data["real"] + 1j * subsampled_data["imag"]
+        subsampled_data = torch.tensor(subsampled_data)
         # (kx, ky, sc, sz, t) for multi-coil data
         # e.g. (246, 512, 10, 10, 12)
 
@@ -285,6 +292,7 @@ class MICCAI2023(Dataset):
         subsampled_mask = load_matlab_file(
             patient / self.mask_filename, self.mask_key
         ).transpose(0, 1)
+        subsampled_mask = torch.tensor(subsampled_mask)
         # (kx, ky)
         # e.g. (246, 512)
 
@@ -296,7 +304,55 @@ class MICCAI2023(Dataset):
             self.fullsampled_key,
         ).transpose(3, 4, 2, 1, 0)
         fullsampled_data = fullsampled_data["real"] + 1j * fullsampled_data["imag"]
+        fullsampled_data = torch.tensor(fullsampled_data)
         # kx, ky, sc, sz, t
         # e.g. (246, 512, 10, 10, 12)
 
+        # View the complex data as real for processing them with real valued networks
+        subsampled_data = torch.view_as_real(subsampled_data)
+        fullsampled_data = torch.view_as_real(fullsampled_data)
+
         return subsampled_data, subsampled_mask, fullsampled_data
+
+def plot_sample(subsampled_data, subsampled_mask, fullsampled_data): 
+    """
+    Plot a sample of the MICCAI2023 dataset
+
+    It shows the mask in k-space, the combined sub-sampled image and the combined fully sampled image
+    """    
+    # Subsampled_data and fullsampled_data are (kx, ky, sc, sz, t)
+    (kx, ky) = subsampled_data.shape[:2]
+    n_coils = subsampled_data.shape[2]
+    n_slices = subsampled_data.shape[3]
+    n_frames = subsampled_data.shape[4]
+
+    ti= 0
+
+    # See the tensors as complex valued
+    subsampled_data = torch.view_as_complex(subsampled_data)
+    fullsampled_data = torch.view_as_complex(fullsampled_data)
+
+    combined_subimage = combine_coils(subsampled_data[:, :, :, :, ti])
+    combined_image = combine_coils(fullsampled_data[:, :, :, :, ti])
+
+    logging.info(f"There are {n_coils} coils, with {kx}x{ky} frequencies, {n_slices} slices and {n_frames} time steps")
+
+    for slice_idx in range(n_slices):
+        fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 4))
+
+        axes[0].imshow(subsampled_mask, cmap="gray")
+        axes[0].set_title("Mask in the Fourier space", fontsize=10, pad=10)
+        axes[0].axis("off")
+
+        axes[1].imshow(combined_subimage[:, :, slice_idx], cmap="gray")
+        axes[1].set_title(f"Combined sub-image at slice {slice_idx}", fontsize=10, pad=10) 
+        axes[1].axis("off")
+
+        axes[2].imshow(combined_image[:, :, slice_idx], cmap="gray")
+        axes[2].set_title(f"Combined image at slice {slice_idx}", fontsize=10, pad=10) 
+        axes[2].axis("off")
+
+        plt.tight_layout()
+        plt.savefig(f"slice_{slice_idx}.png", bbox_inches='tight', dpi=100)
+        logging.info(f"Saved figure slice_{slice_idx}.png")
+        plt.close(fig)

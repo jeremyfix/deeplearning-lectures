@@ -4,6 +4,7 @@
 import os
 import logging
 import sys
+import pathlib
 
 # External imports
 import torch
@@ -38,15 +39,11 @@ class ModelCheckpoint(object):
     def __init__(
         self,
         model: torch.nn.Module,
-        savepath,
-        input_size,
-        device,
+        savepath: pathlib.Path,
         min_is_best: bool = True,
     ) -> None:
         self.model = model
         self.savepath_pt = savepath / "best_model.pt"
-        # self.savepath_onnx = savepath / "best_model.onnx"
-        self.dummy_inputs = torch.zeros(input_size, device=device)
         self.best_score = None
         if min_is_best:
             self.is_better = self.lower_is_better
@@ -69,15 +66,6 @@ class ModelCheckpoint(object):
 
             # Export the pytorch parameters tensor
             torch.save(self.model.state_dict(), self.savepath_pt)
-
-            # Save also the onnx
-            # torch.onnx.export(
-            #     self.model,
-            #     self.dummy_inputs,
-            #     self.savepath_onnx,
-            #     input_names=["inputs"],
-            #     output_names=["outputs"],
-            # )
 
             self.best_score = score
 

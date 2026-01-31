@@ -12,6 +12,10 @@ from torch.utils.data import Dataset
 
 img_extensions = ["*.jpg", "*.png", "*.ppm"]
 
+def build_image_dataset(root_dir, valid_ratio, *params):    
+    dataset = ImageDataset(root_dir, *params)
+    return dataset
+
 class BaseImageDataset(Dataset):
 
     def __init__(self, root_dir, img_idx=0) -> None:
