@@ -7,6 +7,8 @@ data:
     img_idx: 0
     valid_ratio: 0.2
 
+loss: RelativeMSE
+
 optim:
   algo: Adam
   params:
@@ -16,11 +18,6 @@ optim:
 scheduler:
   step_size: 50
   gamma: 0.5
-
-tvloss:
-  delta: 0.01  # Step size for finite differences (in normalized coords)
-  lbd: 0.0     # Set to 0 to disable TV loss when using bilinear interpolation
-  N: 128       # Number of random points to sample
 
 nepochs: 200
 

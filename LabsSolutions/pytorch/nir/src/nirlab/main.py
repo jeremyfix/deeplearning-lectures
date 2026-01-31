@@ -49,11 +49,11 @@ def train(configpath):
     # Build the dataloaders
     logging.info("= Building the dataloaders")
     data_config = config["data"]
-
+    
     (
         train_loader,
         valid_loader,
-     ) = data.get_dataloaders(data_config, use_cuda)
+    ) = data.get_dataloaders(data_config, use_cuda)
 
     # Build the model
     logging.info("= Model")
@@ -63,10 +63,7 @@ def train(configpath):
 
     # Build the loss
     logging.info("= Loss")
-    loss = optim.RelativeMSE()
-
-    tv_config = config["tvloss"]
-    penalty = optim.TVLoss(model, delta=tv_config["delta"], lbd=tv_config["lbd"], N=tv_config["N"])
+    loss = eval(f"optim.{config['loss']}()")
 
     # Build the optimizer
     logging.info("= Optimizer")
@@ -113,8 +110,8 @@ def train(configpath):
         + "## Loss\n\n"
         + f"{loss}\n\n"
         + "## Datasets : \n\n"
-        + f"Train : {train_loader.dataset.dataset}\n"
-        + f"Validation : {valid_loader.dataset.dataset}"
+        + f"Train : {train_loader.dataset}\n"
+        + f"Validation : {valid_loader.dataset}"
     )
     with open(logdir / "summary.txt", "w") as f:
         f.write(summary_text)
@@ -138,7 +135,7 @@ def train(configpath):
 
         # Train 1 epoch
         train_metrics = utils.train(
-            model, train_loader, loss, penalty, optimizer, device, train_fmetrics
+            model, train_loader, loss, optimizer, device, train_fmetrics
         )
         logging.info("Training epoch done")
 
