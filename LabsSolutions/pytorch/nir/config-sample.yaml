@@ -41,7 +41,7 @@ model:
       # class: "Positional"
       # params:
       #   "L": 10
-      class: "Hash"
+      class: "TcnnHash"
       params: 
         otype: "HashGrid"
         n_levels: 16

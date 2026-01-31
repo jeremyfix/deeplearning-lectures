@@ -97,7 +97,7 @@ def test_positional_encoding():
     plt.legend()
     plt.show()
 
-def Hash(dim_input: int, cfg: dict):
+def TcnnHash(dim_input: int, cfg: dict):
     """
     This function wraps the tiny-cuda-nn implementation of the Hash
     encoding
