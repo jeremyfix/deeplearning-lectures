@@ -27,54 +27,7 @@ from nirlab import models
 from nirlab import optim
 from nirlab import utils
 from nirlab import metrics
-
-def generate_sample(model, 
-                    device, 
-                    normalizing_stats, 
-                    height=100, width=250):
-    prev_training = model.training
-    model.eval()
-
-    (mu_x, std_x), (mu_y, std_y) = normalizing_stats
-    mu_x = torch.tensor(mu_x).to(device)
-    std_x = torch.tensor(std_x).to(device)
-    mu_y = torch.tensor(mu_y).to(device)
-    std_y = torch.tensor(std_y).to(device)
-
-    with torch.no_grad():
-        X0 = torch.tensor([0, 0], dtype=torch.float32).unsqueeze(0).to(device)
-        out0 = model(X0)
-        depth = out0.shape[-1]
-
-        img = np.zeros((height, width, depth), np.float32)
-        for i in range(height):
-            for j in range(width):
-                X = torch.tensor([i, j], dtype=torch.float32).unsqueeze(0).to(device)
-                out_pixel = model((X - mu_x)/std_x)
-
-                # Denormalize
-                out_pixel = out_pixel * std_y + mu_y
-                img[i, j, :] = out_pixel.detach().cpu().numpy()
-
-        # Clip to [0, 255], and cast to uint8
-        img = np.clip(img, 0, 255).astype(np.uint8)
-    if prev_training:
-        model.train()
-    return img
-
-def sample_image(model, device, normalizing_stats, filename):
-    sample = generate_sample(
-        model,
-        device,
-        normalizing_stats,
-        height=100,
-        width=250,
-    )
-    save_arr = sample
-    if save_arr.ndim == 3 and save_arr.shape[2] == 1:
-        save_arr = save_arr[:, :, 0]
-    Image.fromarray(save_arr).save(filename)
-    logging.info(f"Saved sample image to {filename}.png")
+from nirlab.samplers.image import sample_image
 
 def train(configpath):
 
@@ -102,7 +55,6 @@ def train(configpath):
         valid_loader,
         dim_input,
         dim_output,
-        normalizing_stats
     ) = data.get_dataloaders(data_config, use_cuda)
 
     # Request the first minibatch to get the dimensionalities of the input/output
@@ -117,16 +69,20 @@ def train(configpath):
 
     # Build the loss
     logging.info("= Loss")
-    # loss = torch.nn.MSELoss()
     loss = optim.RelativeMSE()
+
+    tv_config = config["tvloss"]
+    penalty = optim.TVLoss(model, dim_input, delta=tv_config["delta"], lbd=tv_config["lbd"], N=tv_config["N"])
 
     # Build the optimizer
     logging.info("= Optimizer")
     optim_config = config["optim"]
     optimizer = optim.get_optimizer(optim_config, model.parameters())
-    # scheduler = lr_scheduler.StepLR(optimizer, 
-    #                                 step_size=10, 
-    #                                 gamma=0.5)
+
+    scheduler_config = config["scheduler"]
+    scheduler = lr_scheduler.StepLR(optimizer, 
+                                    step_size=scheduler_config["step_size"], 
+                                    gamma=scheduler_config["gamma"])
 
     # Build the callbacks
     logging_config = config["logging"]
@@ -148,13 +104,10 @@ def train(configpath):
     # Copy the config file into the logdir
     logdir = pathlib.Path(logdir)
     with open(logdir / "config.yaml", "w") as file:
+        # Record the dimensions in the config file
+        config["data"]["dim_input"] = dim_input
+        config["data"]["dim_output"] = dim_output
         yaml.dump(config, file)
-
-    # Save the normalizing statistics
-    with open(logdir / "normalizing.stats", "w") as file:
-        (mean_x, std_x), (mean_y, std_y) = normalizing_stats
-        for values in [mean_x, std_x, mean_y, std_y]:
-            file.write(",".join(map(str, values)) + "\n")
 
     # Make a summary script of the experiment
 
@@ -174,8 +127,8 @@ def train(configpath):
         + "## Loss\n\n"
         + f"{loss}\n\n"
         + "## Datasets : \n\n"
-        + f"Train : {train_loader.dataset}\n"
-        + f"Validation : {valid_loader.dataset}"
+        + f"Train : {train_loader.dataset.dataset}\n"
+        + f"Validation : {valid_loader.dataset.dataset}"
     )
     with open(logdir / "summary.txt", "w") as f:
         f.write(summary_text)
@@ -199,7 +152,7 @@ def train(configpath):
 
         # Train 1 epoch
         train_metrics = utils.train(
-            model, train_loader, loss, optimizer, device, train_fmetrics
+            model, train_loader, loss, penalty, optimizer, device, train_fmetrics
         )
         logging.info("Training epoch done")
 
@@ -248,10 +201,9 @@ def train(configpath):
         if e % config["logging"]["imgfreq"] == 0:
             filename = logdir / f"sample_epoch_{e}.png"
             sample_image(model, 
-                         device, 
-                         normalizing_stats, filename)
+                         filename)
 
-        # scheduler.step()
+        scheduler.step()
         logging.info(f" Epoch {e} done")
 
     # At the end, reload the best model and generate the image
@@ -260,53 +212,30 @@ def test(logdir):
     logging.info(f"Loading model from {logdir}")
 
     logdir = pathlib.Path(logdir)
+    config = yaml.safe_load(open(logdir / "config.yaml", "r"))
 
-    providers = []
-    use_cuda = True
+    use_cuda = torch.cuda.is_available()
+    device = torch.device("cuda") if use_cuda else torch.device("cpu")
 
-    if use_cuda:
-        providers.append("CUDAExecutionProvider")
-    providers.append("CPUExecutionProvider")
-
-    inference_session = ort.InferenceSession(
-        str(logdir / "best_model.onnx"), providers=providers
-    )
-
-    # Load our normalizing statistics
-    with open(str(logdir / "normalizing.stats"), "r") as fh:
-        fields = fh.readlines()
-        def parse_array(s):
-            return np.array(list(map(float, s.rstrip().split(","))))
-
-        mean_x = parse_array(fields[0])
-        std_x = parse_array(fields[1])
-        mean_y = parse_array(fields[2])
-        std_y = parse_array(fields[3])
+    dim_input = config["data"]["dim_input"]
+    dim_output = config["data"]["dim_output"]
+    model_config = config["model"]
+    model = models.build_model(dim_input, dim_output, model_config).to(device)
+    model.load_state_dict(torch.load(logdir / "best_model.pt", map_location=device))
+    model.eval()
 
     # Generate the coordinates on which to evaluate the model
+    height = 2500
+    width = 2500
 
-    height = 100
-    width = 100
-    depth = mean_y.size
+    img = sample_image(
+        model, 
+        filename=str(logdir / "sample.png"),
+        batch_size=40960,
+        height=height, 
+        width=width)    
 
-    scale = 2
-    img = np.zeros((scale * height, scale * width, depth), np.float32)
-    for i in range(height):
-        for j in range(width):
-            for si in range(scale):
-                for sj in range(scale):
-                    coords = np.array([[i + si/scale, j + sj/scale]])
-                    coords = ((coords - mean_x) / std_x).astype(np.float32)
-                    out0 = inference_session.run(None, {"inputs": coords})[0]
-
-                    # Denormalize
-                    out_pixel = out0 * std_y + mean_y
-                    img[scale*i + si, scale*j + sj, :] = out_pixel
-
-    # Clip to [0, 255], and cast to uint8
-    img = np.clip(img, 0, 255).astype(np.uint8)
-    pil_img = Image.fromarray(img)
-    pil_img.show()
+    logging.info(f"Sample image generated")
     #.save(logdir / f"sample_epoch_{e}{tag}.png")
 
 
