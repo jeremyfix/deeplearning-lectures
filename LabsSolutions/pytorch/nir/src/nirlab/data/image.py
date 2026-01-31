@@ -204,21 +204,3 @@ class BilinearImageDataset(BaseImageDataset):
         )
         
         return value
-
-
-def test_image_dataset(rootdir):
-    dataset = BilinearImageDataset(rootdir)
-    logging.info(f"Dataset input dimension: {dataset.dim_input}")
-    logging.info(f"Dataset output dimension: {dataset.dim_output}")
-    logging.info(f"Dataset size: {len(dataset)}")
-
-    logging.info("Trying to index the datset...")
-    for i in range(len(dataset)):
-        pixel_value = dataset[i]
-        logging.info(f"Pixel {i} value: {pixel_value}")
-
-
-if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
-    rootdir = "./images"
-    test_image_dataset(rootdir)

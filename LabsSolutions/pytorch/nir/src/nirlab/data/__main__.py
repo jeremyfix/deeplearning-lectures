@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 # Local imports
 from .miccai2023 import MICCAI2023, CINEView, AccFactor, combine_coils
 from . import get_dataloaders
+from .image import BilinearImageDataset
 
 def plot_sample(rootdir):
     view = CINEView.SAX
@@ -62,7 +63,23 @@ def plot_sample(rootdir):
         plt.savefig(f"sample_{slice_idx}.png", bbox_inches='tight')
         plt.close(fig)
 
+
+def test_image_dataset(rootdir):
+    logging.info("="*80)
+    logging.info("Testing image dataset")
+    dataset = BilinearImageDataset(rootdir)
+    logging.info(f"Dataset input dimension: {dataset.dim_input}")
+    logging.info(f"Dataset output dimension: {dataset.dim_output}")
+    logging.info(f"Dataset size: {len(dataset)}")
+
+    logging.info("Trying to index the dataset...")
+    idx = random.randint(0, len(dataset)-1)
+    pos, value = dataset[idx]
+    logging.info(f"Dataset {idx} : at position {pos}, value is {value}")
+
+
 def test_image_dataloaders():
+    logging.info("="*80)
     logging.info("Testing image dataloaders")
     config = {
         "class": "ImageDataset",
@@ -77,10 +94,13 @@ def test_image_dataloaders():
 
     use_cuda = False
 
-    train_loader, valid_loader = get_dataloaders(config, use_cuda)
+    train_loader, valid_loader, dim_input, dim_output = get_dataloaders(config, use_cuda)
 
+    logging.info(f"Input dimension: {dim_input}")
+    logging.info(f"Output dimension: {dim_output}") 
     logging.info(f"Number of training batches: {len(train_loader)}")
     logging.info(f"Number of validation batches: {len(valid_loader)}")
+
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
@@ -91,4 +111,7 @@ if __name__ == "__main__":
     # root_dir = "/mounts/datasets/datasets/MICCAIChallenge2023"
     # TEMPL@
     # plot_sample(root_dir)
+
+    rootdir = "./images"
+    test_image_dataset(rootdir)
     test_image_dataloaders()
