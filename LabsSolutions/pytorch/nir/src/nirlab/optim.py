@@ -20,6 +20,18 @@ class RelativeMSE(nn.Module):
         relative_mse = (outputs - targets)**2 / (outputs.detach()**2 + epsilon)
         return relative_mse.mean()
 
+class KSpaceLoss(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, outputs, targets):
+        pre_intensity, csm = outputs
+        subsampled_data, subsampled_mask, fullsampled_data = targets
+
+        
+
+
 class TVLoss(nn.Module):
     """
     Total Variation Loss for 2D spatial smoothness.
