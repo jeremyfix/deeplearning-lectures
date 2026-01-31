@@ -10,6 +10,8 @@ import torch.nn as nn
 import numpy as np
 from PIL import Image
 import tqdm
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 # Local imports

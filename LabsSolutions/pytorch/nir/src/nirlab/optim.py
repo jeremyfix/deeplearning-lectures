@@ -25,10 +25,11 @@ class RelativeMSE(nn.Module):
 
 class KSpaceLoss(nn.Module):
 
-    def __init__(self):
+    def __init__(self, lbd=4.0):
         super().__init__()
 
         self.reconstruction_loss = nn.HuberLoss()
+        self.lbd = lbd
 
     def forward(self, outputs, targets):
         """
@@ -49,7 +50,6 @@ class KSpaceLoss(nn.Module):
         subsampled_mask = subsampled_mask.squeeze(0)  # (kx, ky, sc, t)
         fullsampled_data = fullsampled_data.squeeze(0)  # (kx, ky, sc, t)
 
-
         # subsampled_data (kx, ky, sc, t)
         Nrows, Ncols, Ncoils, Nframes = subsampled_data.shape
         pre_intensity = pre_intensity.view(Nrows, Ncols, Nframes, 1)  # (Nrows, Ncols, Nframes, 1)
@@ -67,7 +67,12 @@ class KSpaceLoss(nn.Module):
 
         loss_reconstruction = self.reconstruction_loss(masked_pred_kspace, masked_kspace)
 
-        return loss_reconstruction
+        # Regularization on the pre-intensity
+        diff_rows = pre_intensity[1:, :, ...] - pre_intensity[:-1, :, ...]
+        diff_cols = pre_intensity[:, 1:, ...] - pre_intensity[:, :-1, ...]
+        tv = torch.mean(torch.abs(diff_rows) ** 2) + torch.mean(torch.abs(diff_cols) ** 2)
+
+        return loss_reconstruction + self.lbd * tv
 
 class TVLoss(nn.Module):
     """

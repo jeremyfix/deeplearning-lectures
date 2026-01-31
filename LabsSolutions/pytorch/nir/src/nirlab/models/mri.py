@@ -40,13 +40,13 @@ class MRINerf(nn.Module):
         assert X.shape[0] == 1, "Batch size must be 1 for MRINerf"
         X = X.squeeze(0) # Remove the batch index, now X is (K, 3)
 
-        pre_intensity = torch.view_as_complex(self.image_model(X))  # (K, ) 
-        
+        self.pre_intensity = torch.view_as_complex(self.image_model(X))  # (K, ) 
+
         csm = self.csm_model(X).view(X.shape[0], -1, 2)   # (K, ncoils, 2)
         csm = torch.view_as_complex(csm)  # (K, ncoils)
 
         # Compute the RSS over the coils
         csm_norm = torch.abs(csm).sum(axis=-1) + 1e-12
-        csm = csm / csm_norm.unsqueeze(-1) # (K, ncoils)
+        csm = csm / csm_norm.detach().unsqueeze(-1) # (K, ncoils)
 
-        return pre_intensity, csm
+        return self.pre_intensity, csm
