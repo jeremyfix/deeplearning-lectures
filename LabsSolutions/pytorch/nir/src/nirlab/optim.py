@@ -4,6 +4,9 @@
 import torch
 import torch.nn as nn
 
+# Local imports
+from nirlab.utils import FFT
+
 def get_optimizer(cfg, params):
     params_dict = cfg["params"]
     return eval(f"torch.optim.{cfg['algo']}(params, **params_dict)")
@@ -19,15 +22,6 @@ class RelativeMSE(nn.Module):
         """
         relative_mse = (outputs - targets)**2 / (outputs.detach()**2 + epsilon)
         return relative_mse.mean()
-
-
-@torch.jit.script
-def FFT(x):
-    return torch.fft.fftshift(
-            torch.fft.fft2(
-                torch.fft.ifftshift(x, dim=(0, 1)), 
-                dim=(0, 1)), 
-            dim=(0, 1))
 
 class KSpaceLoss(nn.Module):
 
@@ -55,7 +49,7 @@ class KSpaceLoss(nn.Module):
         subsampled_mask = subsampled_mask.squeeze(0)  # (kx, ky, sc, t)
         fullsampled_data = fullsampled_data.squeeze(0)  # (kx, ky, sc, t)
 
-        print(subsampled_data.shape)
+
         # subsampled_data (kx, ky, sc, t)
         Nrows, Ncols, Ncoils, Nframes = subsampled_data.shape
         pre_intensity = pre_intensity.view(Nrows, Ncols, Nframes, 1)  # (Nrows, Ncols, Nframes, 1)

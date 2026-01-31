@@ -173,6 +173,24 @@ def test(model, loader, device, batch_metrics):
 
     return tot_metrics
 
+
+@torch.jit.script
+def FFT(x):
+    return torch.fft.fftshift(
+            torch.fft.fft2(
+                torch.fft.ifftshift(x, dim=(0, 1)), 
+                dim=(0, 1)), 
+            dim=(0, 1))
+
+@torch.jit.script
+def IFFT(x):
+    return torch.fft.ifftshift(
+            torch.fft.ifft2(
+                torch.fft.fftshift(x, dim=(0, 1)), 
+                dim=(0, 1)), 
+            dim=(0, 1))
+
+
 def build_coordinate_Nd(*Ns, device=torch.device("cpu")):
     coords_lin = [torch.linspace(0, 1, Ni, device=device) for Ni in Ns]
     coords_mesh = torch.meshgrid(*coords_lin, indexing="ij")
