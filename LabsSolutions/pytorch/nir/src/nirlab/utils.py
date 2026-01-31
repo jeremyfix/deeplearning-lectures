@@ -87,7 +87,7 @@ class ModelCheckpoint(object):
         return False
 
 
-def train(model, loader, f_loss, optimizer, device, batch_metrics):
+def train(model, loader, f_loss, f_penalty, optimizer, device, batch_metrics):
     """
     Train a model for one epoch, iterating over the loader
     using the f_loss to compute the loss and the optimizer
@@ -115,10 +115,14 @@ def train(model, loader, f_loss, optimizer, device, batch_metrics):
         outputs = model(inputs)
 
         loss = f_loss(outputs, targets)
+        penalty = f_penalty()
+        
+        # Combine loss and penalty in a single backward pass
+        total_loss = loss + penalty
 
         # Backward and optimize
         optimizer.zero_grad()
-        loss.backward()
+        total_loss.backward()
         optimizer.step()
 
         # Update the metrics
