@@ -20,17 +20,60 @@ class RelativeMSE(nn.Module):
         relative_mse = (outputs - targets)**2 / (outputs.detach()**2 + epsilon)
         return relative_mse.mean()
 
+
+@torch.jit.script
+def FFT(x):
+    return torch.fft.fftshift(
+            torch.fft.fft2(
+                torch.fft.ifftshift(x, dim=(0, 1)), 
+                dim=(0, 1)), 
+            dim=(0, 1))
+
 class KSpaceLoss(nn.Module):
 
     def __init__(self):
         super().__init__()
 
+        self.reconstruction_loss = nn.HuberLoss()
+
     def forward(self, outputs, targets):
-        pre_intensity, csm = outputs
+        """
+        Compute the loss in the K space
+
+        Both outputs and targets are expected to be Complex valued
+        tensors
+        """
+        pre_intensity, csm = outputs 
+        # pre_intensity : (K, )
+        # csm : (K, ncoils)
+
         subsampled_data, subsampled_mask, fullsampled_data = targets
 
-        
+        # All the targets are expected to be of batch size = 1 because we process a full volume 
+        assert subsampled_data.shape[0] == 1, "Batch size must be 1 for KSpaceLoss"
+        subsampled_data = subsampled_data.squeeze(0)  # (kx, ky, sc, t)
+        subsampled_mask = subsampled_mask.squeeze(0)  # (kx, ky, sc, t)
+        fullsampled_data = fullsampled_data.squeeze(0)  # (kx, ky, sc, t)
 
+        print(subsampled_data.shape)
+        # subsampled_data (kx, ky, sc, t)
+        Nrows, Ncols, Ncoils, Nframes = subsampled_data.shape
+        pre_intensity = pre_intensity.view(Nrows, Ncols, Nframes, 1)  # (Nrows, Ncols, Nframes, 1)
+        csm = csm.view(Nrows, Ncols, Nframes, Ncoils)  # (Nrows, Ncols, Nframes, Ncoils)
+
+        # Apply the same pre-instensity through every coil specific sensitivity
+        fft_pre_intensity = FFT(pre_intensity * csm).transpose(3, 2)  # (Nrows, Ncols, Ncoils, Nframes)
+        
+        # Compute the loss with the reconstruction loss
+        # and the regularization loss
+        observation_mask = subsampled_mask == 1
+
+        masked_pred_kspace = torch.view_as_real(fft_pre_intensity[observation_mask])
+        masked_kspace = torch.view_as_real(subsampled_data[observation_mask])
+
+        loss_reconstruction = self.reconstruction_loss(masked_pred_kspace, masked_kspace)
+
+        return loss_reconstruction
 
 class TVLoss(nn.Module):
     """
