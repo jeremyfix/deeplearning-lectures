@@ -65,10 +65,11 @@ def generate_sample(model,
     return img
 
 def sample_image(model, 
-                 filename, 
+                 logdir, epoch, 
                  batch_size=32,
                  height=100, 
                  width=100):
+    filename = logdir / f"sample_epoch_{epoch}.png"
     sample = generate_sample(
         model,
         batch_size=batch_size,
