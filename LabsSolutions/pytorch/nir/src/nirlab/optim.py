@@ -14,7 +14,8 @@ class RelativeMSE(nn.Module):
         """
         Computes the relatise MSE
 
-        Hey, they detached the normalization factor ?
+        In tiny-cuda-nn , they do the relative MSE normalization with 
+        respect to outputs.detach()**2
         """
         relative_mse = (outputs - targets)**2 / (outputs.detach()**2 + epsilon)
         return relative_mse.mean()
