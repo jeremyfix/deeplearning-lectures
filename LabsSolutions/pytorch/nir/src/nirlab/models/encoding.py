@@ -17,15 +17,8 @@ except ImportError:
     print("You will not be able to use the Hash encoding")
     tcnn_available = False
 
-def build_coordinate_Nd(*Ns, device=torch.device("cpu")):
-    coords_lin = [torch.linspace(-1, 1, Ni, device=device) for Ni in Ns]
-    coords_mesh = torch.meshgrid(*coords_lin, indexing="ij")
-    stacked = torch.stack(coords_mesh, -1).view(-1, len(Ns))
-    return stacked
-
-def test_coords():
-    coords = build_coordinate_Nd(3, 4, 5, 6)
-    print(coords.shape)
+# Local imports
+import nirlab.utils as utils
 
 def build_encoder(dim_input, cfg):
     params = cfg["params"]
@@ -132,7 +125,7 @@ def test_hash_encoding():
     # Uniform sampling of the volume [-1, 1]^dim_input
     npoints = 100
     enc = build_encoder(dim_input=dim_input, cfg=cfg)
-    xy = build_coordinate_Nd(npoints, npoints)
+    xy = utils.build_coordinate_Nd(npoints, npoints)
 
     if torch.accelerator.is_available():
         device = torch.accelerator.current_accelerator()
@@ -152,7 +145,6 @@ def test_hash_encoding():
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
-    test_coords()
     test_positional_encoding()
     if tcnn_available:
         test_hash_encoding()

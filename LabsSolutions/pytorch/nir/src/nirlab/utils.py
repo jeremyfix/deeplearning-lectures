@@ -3,6 +3,7 @@
 # Standard imports
 import os
 import logging
+import sys
 
 # External imports
 import torch
@@ -172,3 +173,18 @@ def test(model, loader, device, batch_metrics):
         tot_metrics[bname] = bm.get_value()
 
     return tot_metrics
+
+def build_coordinate_Nd(*Ns, device=torch.device("cpu")):
+    coords_lin = [torch.linspace(0, 1, Ni, device=device) for Ni in Ns]
+    coords_mesh = torch.meshgrid(*coords_lin, indexing="ij")
+    stacked = torch.stack(coords_mesh, -1).view(-1, len(Ns))
+    return stacked
+
+def test_coords():
+    coords = build_coordinate_Nd(3, 4, 5, 6)
+    print(coords.shape)
+    print(coords)
+
+if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
+    test_coords()
