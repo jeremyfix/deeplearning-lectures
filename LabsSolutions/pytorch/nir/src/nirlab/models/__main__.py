@@ -145,8 +145,8 @@ def test_MRINerf():
     }
     nir = build_model(cfg).to(device)
 
-    Ny, Nx, Nt = 12, 12, 8
-    xyt = utils.build_coordinate_Nd(Ny, Nx, Nt).to(device)  # (K, 3)
+    Nrows, Ncols, Nt = 12, 12, 8
+    xyt = utils.build_coordinate_Nd(Nrows, Ncols, Nt).to(device)  # (K, 3)
 
     y = nir(xyt)
 
