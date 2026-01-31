@@ -151,8 +151,13 @@ def test(model, loader, device, batch_metrics):
         bm.reset()
 
     for inputs, targets in tqdm.tqdm(loader):
+        inputs = inputs.to(device)
 
-        inputs, targets = inputs.to(device), targets.to(device)
+        if isinstance(targets, tuple) or isinstance(targets, list):
+            # For the MRI dataset, we have multiple targets
+            targets = tuple(t.to(device) for t in targets)
+        else:
+            targets = targets.to(device)
 
         # Compute the forward propagation
         outputs = model(inputs)

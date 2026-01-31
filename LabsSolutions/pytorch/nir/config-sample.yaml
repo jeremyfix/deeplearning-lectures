@@ -8,6 +8,8 @@ data:
     valid_ratio: 0.2
 
 loss: RelativeMSE
+metrics: 
+  mse: BatchRelativeMSE
 
 optim:
   algo: Adam
@@ -20,6 +22,8 @@ scheduler:
   gamma: 0.5
 
 nepochs: 200
+
+checkpoint_metric: "mse"
 
 logging:
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster

@@ -18,7 +18,6 @@ from PIL import Image
 
 import numpy as np
 
-import deepcs.metrics
 import deepcs.display
 
 # Local imports
@@ -85,12 +84,13 @@ def train(configpath):
     logging.info(f"Will be logging into {logdir}")
 
     # Build the metrics
-    train_fmetrics = {
-        "mse": deepcs.metrics.GenericBatchMetric(loss),
-    }
-    test_fmetrics = {
-        "mse": deepcs.metrics.GenericBatchMetric(loss),
-    }
+    for mname, mfun in config["metrics"].items():
+        train_fmetrics = {
+            mname: eval(f"metrics.{mfun}()"),
+        }
+        test_fmetrics = {
+            mname: eval(f"metrics.{mfun}()"),
+        }
 
     # Copy the config file into the logdir
     logdir = pathlib.Path(logdir)
@@ -145,7 +145,7 @@ def train(configpath):
         )
         logging.info("Validation done")
 
-        checkpoint_metric_name = "mse"
+        checkpoint_metric_name = config["checkpoint_metric"]
         checkpoint_metric = valid_metrics[checkpoint_metric_name]
 
         updated = model_checkpoint.update(checkpoint_metric)
