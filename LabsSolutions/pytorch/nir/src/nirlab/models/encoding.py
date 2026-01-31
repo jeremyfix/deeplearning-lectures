@@ -102,13 +102,14 @@ def TcnnHash(dim_input: int, cfg: dict):
     This function wraps the tiny-cuda-nn implementation of the Hash
     encoding
     """
-    assert tcnn_available
+    assert tcnn_available, "tiny-cuda-nn is not available"
+    assert dim_input in [2, 3], "Only 2D and 3D are supported by TCNN"
     return tcnn.Encoding(n_input_dims = dim_input,
                          encoding_config = cfg)
 
 def test_hash_encoding():
     cfg = {
-        "class": "Hash", 
+        "class": "TcnnHash",
         "params": {
             "otype": "HashGrid",
             "n_levels": 16,
