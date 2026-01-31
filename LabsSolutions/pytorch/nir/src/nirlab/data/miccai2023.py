@@ -339,10 +339,10 @@ class MICCAI2023(Dataset):
         subsampled_data = subsampled_data[:, :, :, frames_to_keep] # (kx, ky, sc, t)
         fullsampled_data = fullsampled_data[:, :, :, frames_to_keep]
 
-        # View the complex data as real for processing them with real valued networks
-        self.subsampled_data = torch.view_as_real(subsampled_data)
+        # Assign these data to the instance members
+        self.subsampled_data = subsampled_data
         self.subsampled_mask = subsampled_mask
-        self.fullsampled_data = torch.view_as_real(fullsampled_data)
+        self.fullsampled_data = fullsampled_data
 
         # Also filter the coordinates given the frames to keep
         row_lin = torch.linspace(0, 1, nrows)
@@ -367,15 +367,9 @@ def plot_sample(subsampled_data, subsampled_mask, fullsampled_data):
     It shows the mask in k-space, the combined sub-sampled image and the combined fully sampled image
     """    
     # Subsampled_data and fullsampled_data are (kx, ky, sc, t)
-    (kx, ky) = subsampled_data.shape[:2]
-    n_coils = subsampled_data.shape[2]
+    kx, ky, n_coils, n_frames = subsampled_data.shape
     n_slices = 1
-    n_frames = subsampled_data.shape[3]
     ti= 0
-
-    # See the tensors as complex valued
-    subsampled_data = torch.view_as_complex(subsampled_data)
-    fullsampled_data = torch.view_as_complex(fullsampled_data)
 
     combined_subimage = combine_coils(subsampled_data[:, :, :, ti])
     combined_image = combine_coils(fullsampled_data[:, :, :, ti])

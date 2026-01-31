@@ -68,8 +68,8 @@ def test_miccai_dataset(rootdir):
     # indicating if the values have been observed for frequency (fi, fj))
     logging.info(f"The boolean mask is of shape {subsampled_mask.shape}")
     
-    (kx, ky, sc, t, _) = subsampled_data.shape # _ is 2
-    # (kx, ky, sc, t, _) = fullsampled_data.shape # _ is 2
+    kx, ky, sc, t = subsampled_data.shape 
+    # kx, ky, sc, t = fullsampled_data.shape
 
     logging.info(f"(kx, ky) = {kx, ky}")
     logging.info(f"Number of coils: {sc}")
