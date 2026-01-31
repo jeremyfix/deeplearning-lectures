@@ -205,7 +205,12 @@ class Hash(nn.Module):
         (K, L * F)
 
         where L x F is the number of levels times the number of features per level
-        """        
+        """     
+
+        # Do Bilinear interpolation in 2d
+        # Do Trilinear interpolation in 3d
+        # Or better apply the recursive formula as given on https://en.wikipedia.org/wiki/Bilinear_interpolation#Computation
+        # to generalize the bilinear/trilinear interpolation to higher dimensions if needed
         raise NotImplementedError("The Hash encoding is not implemented yet.")
 
 def test_hash_encoding():
