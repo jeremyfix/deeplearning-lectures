@@ -39,6 +39,9 @@ import h5py  # Required because the data are matlab v7.3 files
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Local imports
+from nirlab import utils
+
 
 class CINEView(Enum):
     SAX = 1
@@ -208,6 +211,7 @@ class MICCAI2023(Dataset):
         rootdir: str,
         view: CINEView = CINEView.SAX,
         acc_factor: AccFactor = AccFactor.ACC4,
+        patient_idx: int = 0,
         train: bool = True
     ):
         self.rootdir = pathlib.Path(rootdir)
@@ -261,22 +265,18 @@ class MICCAI2023(Dataset):
         logging.debug(
             f"I found {len(self.patients)} patient(s) : {[p.name for p in self.patients]}"
         )
+        self.load_patient(patient_idx)
 
-        self.dim_input = 3
-        self.dim_output = 1
-
-    def __len__(self):
-        return len(self.patients)
-
-    def __getitem__(self, idx):
+    def load_patient(self, patient_idx: int):
         """
-        Returns the subsampled k-space data, the mask and the fully sampled k-space data
-        """
-        patient = self.patients[idx]
+        Load all the data for a given patient index
 
-        subsampled_data = None
-        subsampled_mask = None
-        fullsampled_data = None
+        Arguments:
+            patient_idx: Index of the patient to load
+        """
+        assert 0 <= patient_idx < len(self.patients), f"patient_idx should be in [0, {len(self.patients)-1}]"
+
+        patient = self.patients[patient_idx]
 
         # Load the subsampled data
         logging.info(f"Loading {patient / self.input_filename}")
@@ -286,16 +286,18 @@ class MICCAI2023(Dataset):
         subsampled_data = subsampled_data["real"] + 1j * subsampled_data["imag"]
         subsampled_data = torch.tensor(subsampled_data)
         # (kx, ky, sc, sz, t) for multi-coil data
-        # e.g. (246, 512, 10, 10, 12)
+        # e.g. (246, 512, 10, 10, 12)    
 
+        # Loading the mask    
         logging.info(f"Loading {patient / self.mask_filename}")
         subsampled_mask = load_matlab_file(
             patient / self.mask_filename, self.mask_key
         ).transpose(0, 1)
         subsampled_mask = torch.tensor(subsampled_mask)
         # (kx, ky)
-        # e.g. (246, 512)
-
+        # e.g. (246, 512)   
+            
+        # Load the fully sampled data
         logging.info(
             f"Loading {self.fullsampled_rootdir / patient.name / self.input_filename}"
         )
@@ -306,13 +308,25 @@ class MICCAI2023(Dataset):
         fullsampled_data = fullsampled_data["real"] + 1j * fullsampled_data["imag"]
         fullsampled_data = torch.tensor(fullsampled_data)
         # kx, ky, sc, sz, t
-        # e.g. (246, 512, 10, 10, 12)
-
+        # e.g. (246, 512, 10, 10, 12)   
+            
         # View the complex data as real for processing them with real valued networks
-        subsampled_data = torch.view_as_real(subsampled_data)
-        fullsampled_data = torch.view_as_real(fullsampled_data)
+        self.subsampled_data = torch.view_as_real(subsampled_data)
+        self.subsampled_mask = subsampled_mask
+        self.fullsampled_data = torch.view_as_real(fullsampled_data)
 
-        return subsampled_data, subsampled_mask, fullsampled_data
+        # Precompute the coordinates
+        nrows, ncols, ncoils, nslices, nframes, _ = self.subsampled_data.shape # _ is 2 for real/imag
+        self.coords = utils.build_coordinate_Nd(nrows, ncols, nframes)
+
+    def __len__(self):
+        return 1 # Handles only one patient at a time
+
+    def __getitem__(self, idx):
+        """
+        Returns the subsampled k-space data, the mask and the fully sampled k-space data
+        """
+        return self.coords, self.subsampled_data, self.subsampled_mask, self.fullsampled_data
 
 def plot_sample(subsampled_data, subsampled_mask, fullsampled_data): 
     """

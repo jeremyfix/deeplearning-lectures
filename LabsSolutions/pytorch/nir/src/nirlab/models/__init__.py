@@ -5,6 +5,7 @@ import torch
 
 # Local imports
 from .ngp import RealNGP, TinyCudaNGP, FullTinyCudaNGP
+from .mri import MRINerf
 
 def build_model(cfg):
     if "params" in cfg:

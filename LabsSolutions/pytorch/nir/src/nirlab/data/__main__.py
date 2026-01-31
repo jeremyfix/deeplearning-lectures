@@ -44,10 +44,8 @@ def test_image_dataloaders():
 
     use_cuda = False
 
-    train_loader, valid_loader, dim_input, dim_output = get_dataloaders(config, use_cuda)
+    train_loader, valid_loader = get_dataloaders(config, use_cuda)
 
-    logging.info(f"Input dimension: {dim_input}")
-    logging.info(f"Output dimension: {dim_output}") 
     logging.info(f"Number of training batches: {len(train_loader)}")
     logging.info(f"Number of validation batches: {len(valid_loader)}")
 
@@ -60,8 +58,8 @@ def test_miccai_dataset(rootdir):
     dataset = MICCAI2023(rootdir=rootdir, view=view, acc_factor=acc)
 
     # Access one element
-    idx = random.randint(0, len(dataset)-1)
-    subsampled_data, subsampled_mask, fullsampled_data = dataset[idx]
+    idx = 0
+    coords, subsampled_data, subsampled_mask, fullsampled_data = dataset[idx]
 
     logging.info(f"I found {len(dataset)} samples in the dataset")
     logging.info(f"Took the sample {idx}")
@@ -72,6 +70,11 @@ def test_miccai_dataset(rootdir):
     
     (kx, ky, sc, sz, t, _) = subsampled_data.shape # _ is 2
     # (kx, ky, sc, sz, t, _) = fullsampled_data.shape # _ is 2
+
+    logging.info(f"(kx, ky) = {kx, ky}")
+    logging.info(f"Number of coils: {sc}")
+    logging.info(f"Number of slices: {sz}")
+    logging.info(f"Number of time frames: {t}")
 
     plot_sample(subsampled_data, subsampled_mask, fullsampled_data)
 

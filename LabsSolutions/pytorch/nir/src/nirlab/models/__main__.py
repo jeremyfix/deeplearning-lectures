@@ -90,9 +90,69 @@ def test_real_hash_NGP():
     
     assert( y.shape == torch.Size((K, dim_output)))
     
+def test_MRINerf():
+    logging.info("Testing the MRINerf with Hash encoding")
+    if torch.accelerator.is_available():
+        device = torch.accelerator.current_accelerator()
+    else:
+        device = torch.device('cpu')
+    
+    (kx, ky) = (204, 512)
+    Nc = 10
+    Nt = 12
+
+
+    cfg = {
+        "class": "MRINerf",
+        "params": {
+            "image": {
+                "dim_input": 3, # x,y,t
+                "dim_output": 2,
+                "n_hidden_units": 32,
+                "n_hidden_layers": 4,
+                "pos_encoding": {
+                    "class": "TcnnHash",
+                    "params": {
+                        "otype": "HashGrid",
+                        "n_levels": 16,
+                        "n_features_per_level": 2,
+                        "log2_hashmap_size": 19,
+                        "base_resolution": 16,
+                        "per_level_scale": 2,
+                        "fixed_point_pos": False
+                    }
+                }
+            },
+            "csm": {
+                "dim_input": 3, # x,y,t
+                "dim_output": 2*Nc,
+                "n_hidden_units": 32,
+                "n_hidden_layers": 4,
+                "pos_encoding": {
+                    "class": "TcnnHash",
+                    "params": {
+                        "otype": "HashGrid",
+                        "n_levels": 4,
+                        "n_features_per_level": 8,
+                        "log2_hashmap_size": 19,
+                        "base_resolution": 2,
+                        "per_level_scale": 1.1,
+                        "fixed_point_pos": False
+                    }
+                }
+            }
+        }
+    }
+    nir = build_model(cfg).to(device)
+
+    Ny, Nx, Nt = 12, 12, 8
+    xyt = utils.build_coordinate_Nd(Ny, Nx, Nt).to(device)  # (K, 3)
+
+    y = nir(xyt)
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     test_real_NGP()
     if tcnn_available:
         test_real_hash_NGP()
+        test_MRINerf()
