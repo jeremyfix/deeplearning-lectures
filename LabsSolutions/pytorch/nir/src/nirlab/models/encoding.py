@@ -42,11 +42,11 @@ class Positional(nn.Module):
     def forward(self, X):
         """
         Given X as a collection of points on which to evaluate
-        the embedding with X : (K, dim_input)
+        the embedding with X : (N, dim_input)
 
         We compute the positional encodings as a tensor of shape
 
-        (K, dim_input * 2 * L)
+        (N, dim_input * 2 * L)
 
         with cos/sin embeddings of L frequencies for each coordinate
         """
@@ -56,14 +56,39 @@ class Positional(nn.Module):
         ww = torch.cat((w, w))
 
         # We then compute exp(i w c) for every coordinate
-        # X is (K, n),  w is (2 * L, )
-        # we broadcast with (K, n, 1) and (1, 1, 2 * L)
-        # to get the (K, n, 2L) frequencies
+        # X is (N, d),  w is (2 * L, )
+
+        ######################
+        # START CODING HERE ##
+        ######################
+        # 4 lines of code
+
+        # Step 1
+        # we can broadcast X as (N, d,     1) 
+        #              and w as (1, 1, 2 * L)
+        # so that the product of both will compute the 2^l \pi x_i for every
+        # component i and frequency l
+        # to get the (N, d, 2L) frequencies
+
+        # Step 2
+        # Once these terms are computed, it remains to apply the cos/sin functions on their
+        # respective part of the third dimension
+
+        # Step 3
+        # Finally, we flatten the (N, d, 2L) as a (N, d * 2L) tensor
+
         f = X[:, :, torch.newaxis] * ww[torch.newaxis, torch.newaxis, :]
         f[:, :, :self.L] = f[:, :, :self.L].cos()
         f[:, :, self.L:] = f[:, :, self.L:].sin()
 
         return torch.flatten(f, start_dim=1)
+        # SOL@
+        # @TEMPL
+        # return torch.zeros((X.shape[0], self.dim_input * 2.0 * self.L))
+        # TEMPL@
+        ####################
+        # END CODING HERE ##
+        ####################
 
 def test_positional_encoding():
     cfg = { "L" : 4}
@@ -77,26 +102,38 @@ def test_positional_encoding():
     # X = -1. + 2.0 * torch.rand(npoints, dim_input)
     # The reshape can be usefull when dim_input = 1 to introduce that
     # dimension
-    X = torch.linspace(-1., 1., npoints).reshape(npoints, dim_input)
+    X = torch.linspace(0, 1., npoints).reshape(npoints, dim_input)
 
     print(X.shape)
     encodings = enc(X)
     print(encodings.shape)
    
     plt.figure()
+    ncos = encodings.shape[1] // 2
     for n_enc in range(encodings.shape[1]):
+        if n_enc < ncos:
+            nl = n_enc
+            color = "tab:red"
+            label = f"cos(L={nl})"
+            linewidth = 3./(1+2*nl)
+        else:
+            nl = n_enc - ncos
+            color = "tab:blue"
+            label = f"sin(L={nl})"
+            linewidth = 3./(1+2*nl)
         plt.plot(X[:, 0], encodings[:, n_enc], 
-                 color="k", 
-                 linewidth=3./(1+2*n_enc), 
-                 label=f"L={n_enc}")
+                 color=color, 
+                 linewidth=linewidth, 
+                 label=label)
     # Show an x value and the encoding by blue dots on each curve
     x = 0.425
     enc_x = enc(torch.tensor([[x]]))
     for n_enc in range(encodings.shape[1]):
-        plt.scatter(x, enc_x[0, n_enc], c='b', marker='o') 
-    plt.vlines([x], ymin=-1, ymax=1)
+        plt.scatter(x, enc_x[0, n_enc], c='k', marker='x', zorder=10) 
+    plt.vlines([x], ymin=-1, ymax=1, color='k')
     plt.legend()
-    plt.show()
+    plt.savefig("positional_encoding.png")
+    # plt.show()
 
 def TcnnHash(dim_input: int, cfg: dict):
     """
@@ -253,8 +290,8 @@ def test_hash_encoding():
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     test_positional_encoding()
-    if tcnn_available:
-        test_tcnn_hash_encoding()
+    # if tcnn_available:
+    #     test_tcnn_hash_encoding()
     # @SOL
     test_hash_encoding()
     # SOL@

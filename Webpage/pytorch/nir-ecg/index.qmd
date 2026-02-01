@@ -105,9 +105,28 @@ In `data/image.py`, you are provided with a base class `BaseImageDataset` from w
 
 ### Positional encoding
 
-If we were to train a neural network $f_\theta(x, y)$, we could use these $(x, y)$ inputs to a feedforward neural network. However, it turns out this is not working very well, as indicated by [@Mildenhall2020]. Can you find in the paper [https://arxiv.org/abs/2003.08934](https://arxiv.org/abs/2003.08934) where this is indicated ? (maybe around section 5).
+If we were to train a neural network $f_\theta(x, y)$, we could use these $(x, y)$ inputs to a feedforward neural network. However, it turns out this is not working very well, as indicated by [@Mildenhall2020]. Can you find in the paper [https://arxiv.org/abs/2003.08934](https://arxiv.org/abs/2003.08934) where this is indicated ? (maybe around section 5). The positional encoding used by [@Mildenhall2020] is similar to the one used in Transformers using sine/cosine of different frequencies. These functions are used to map $\mathbb{R}^2$ to $\mathbb{R}^{2L}$ where $L$ defines the number of frequencies to consider.
 
-...
+In math, given a point $x \in \mathbb{R}^d$, we compute an embedding $E(x)$ of size $d \times 2 \times L$ where we have $2$ harmonic functions (cos/sin) for $L$ frequencies for each of the $d$ components of $x$ :
+
+$$
+\forall i \in [0, d-1], E(x)_{[|i 2 L:(i+1)2L|]} = [\cos(2^0 \pi x_i), \cos(2^1 \pi x_i), \cdots \cos(2^{L-1} \pi x_i), \sin(2^0 \pi x_i), \sin(2^1 \pi x_i), \cdots \sin(2^{L-1} \pi x_i)]
+$$
+
+The above formula clearly states that we have a slice of the embedding for each component of our point $x$. So far we discussed the case $d=2$ for an image but the positional encoding can be written in a very generic way, for arbitrary input dimension $d$.
+
+**Exercice** Implement the position encoding. This is only $4$ lines of code and you have hints in the code. This must be implement in the `Positional` class in `nirlab/models/encoding.py`. You can test your code with the `test_positional_encoding` function you can invoke with :
+
+``` bash
+(venv) mymachine:~:mylogin$ python -m nirlab.models.encoding
+```
+
+The expected output is given below. On this image, the encoding of $x=0.425$ is shown with the black markers.
+
+![Position encoding on a scale coordinate ($d=1$) with $L=4$](positional_encoding.png)
+
+### Building the Neural Implicit model
+
 
 ### Hash encoding
 
