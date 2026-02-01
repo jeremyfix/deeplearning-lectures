@@ -7,6 +7,7 @@ import sys
 import torch
 import torch.nn as nn
 
+# @SOL
 try:
     import tinycudann as tcnn
     tcnn_available = True
@@ -14,6 +15,7 @@ except ImportError:
     print("tiny-cuda-nn module not available")
     print("You will not be able to use the Hash encoding")
     tcnn_available = False
+# SOL@
 
 # Local imports
 from . import encoding
@@ -41,6 +43,7 @@ class RealNGP(nn.Module):
 
         # The input layer uses a hash encoding
         self.encoder = encoding.build_encoder(dim_input=self.dim_input, cfg=cfg["pos_encoding"])
+
         # Determine the dimensions of the embedding by doing a forward pass
         # through the encoder
         fake_input_size = (1, self.dim_input)
@@ -54,7 +57,14 @@ class RealNGP(nn.Module):
         n_hidden_layers = cfg["n_hidden_layers"]
         hidden_activation = nn.ReLU
 
+        ######################
+        # START CODING HERE ##
+        ######################
+
+        # Fill in the layers a FFNN made of n_hidden_layers linear
+        # layers, followed by the activation function
         layers = []
+        # @SOL
         input_dim = output_encoding_size
         for _ in range(n_hidden_layers - 1):
             layers.append(nn.Linear(input_dim, n_hidden_units))
@@ -63,14 +73,13 @@ class RealNGP(nn.Module):
 
         # The last dense layer projects onto the output space
         layers.append(nn.Linear(input_dim, self.dim_output))
-
+        # SOL@
         self.ffnn = nn.Sequential(*layers)
+        ####################
+        # END CODING HERE ##
+        ####################
 
-        # We could cascade the two steps
-        # But we don't because we may want to skip the encoding
-        # self.model = nn.Sequential(self.encoder, self.ffnn)
-
-    def forward(self, x, skip_encoding=False):
+    def forward(self, x):
         """
         Do a forward pass through the NIR. 
 
@@ -81,19 +90,20 @@ class RealNGP(nn.Module):
                 or of shape (K, output_encoding_size) if skip_encoding is True.
         """
     
-        # We may skip the encoding
-        # for example, when these have been pre-computed
-        if not skip_encoding:
-            x = self.encoder(x)
+        # Computes the embedding of the points
+        x = self.encoder(x) 
     
         # Hash Encoding can output in float16. Shall
         # we make the FFNN float16 as well ? 
         # Instead of converting the output of the encoding in float32 ?
         x = x.float()
+
+        # Then go through the FFNN
         x = self.ffnn(x)
 
         return x
 
+# @SOL
 class TinyCudaNGP(nn.Module):
     """
     Real valued Neural Graphic Primitive using the 
@@ -160,4 +170,4 @@ def FullTinyCudaNGP(cfg):
                                           encoding_config=encoding_config, 
                                           network_config=network_config)
     return model
-
+# SOL@

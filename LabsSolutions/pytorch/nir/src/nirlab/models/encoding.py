@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
+# @SOL
 try:
     import tinycudann as tcnn
     tcnn_available = True
@@ -16,6 +17,7 @@ except ImportError:
     print("tiny-cuda-nn module not available")
     print("You will not be able to use the Hash encoding")
     tcnn_available = False
+# SOL@
 
 # Local imports
 import nirlab.utils as utils
@@ -76,7 +78,8 @@ class Positional(nn.Module):
 
         # Step 3
         # Finally, we flatten the (N, d, 2L) as a (N, d * 2L) tensor
-
+    
+        # @SOL
         f = X[:, :, torch.newaxis] * ww[torch.newaxis, torch.newaxis, :]
         f[:, :, :self.L] = f[:, :, :self.L].cos()
         f[:, :, self.L:] = f[:, :, self.L:].sin()
@@ -84,7 +87,7 @@ class Positional(nn.Module):
         return torch.flatten(f, start_dim=1)
         # SOL@
         # @TEMPL
-        # return torch.zeros((X.shape[0], self.dim_input * 2.0 * self.L))
+        # return torch.zeros(X.shape[0], self.dim_input * 2 * self.L)
         # TEMPL@
         ####################
         # END CODING HERE ##
@@ -135,6 +138,7 @@ def test_positional_encoding():
     plt.savefig("positional_encoding.png")
     # plt.show()
 
+# @SOL
 def TcnnHash(dim_input: int, cfg: dict):
     """
     This function wraps the tiny-cuda-nn implementation of the Hash
@@ -183,7 +187,6 @@ def test_tcnn_hash_encoding():
     plt.show()
 
 
-# @SOL
 class Hash(nn.Module):
     """
     This class implements the Hash encoding as proposed in 
@@ -290,9 +293,9 @@ def test_hash_encoding():
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     test_positional_encoding()
+    # @SOL
     # if tcnn_available:
     #     test_tcnn_hash_encoding()
-    # @SOL
     test_hash_encoding()
     # SOL@
 

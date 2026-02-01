@@ -110,10 +110,19 @@ If we were to train a neural network $f_\theta(x, y)$, we could use these $(x, y
 In math, given a point $x \in \mathbb{R}^d$, we compute an embedding $E(x)$ of size $d \times 2 \times L$ where we have $2$ harmonic functions (cos/sin) for $L$ frequencies for each of the $d$ components of $x$ :
 
 $$
-\forall i \in [0, d-1], E(x)_{[|i 2 L:(i+1)2L|]} = [\cos(2^0 \pi x_i), \cos(2^1 \pi x_i), \cdots \cos(2^{L-1} \pi x_i), \sin(2^0 \pi x_i), \sin(2^1 \pi x_i), \cdots \sin(2^{L-1} \pi x_i)]
+\begin{array}
+\forall i \in [0, d-1], E(x)_{[|i 2 L:(i+1)2L|]} = [&\cos(2^0 \pi x_i),\\
+&\cos(2^1 \pi x_i), \\
+&\cdots \\
+&\cos(2^{L-1} \pi x_i), \\
+&\sin(2^0 \pi x_i), \\
+&\sin(2^1 \pi x_i), \\
+&\cdots,\\
+&\sin(2^{L-1} \pi x_i)]
+\end{array}
 $$
 
-The above formula clearly states that we have a slice of the embedding for each component of our point $x$. So far we discussed the case $d=2$ for an image but the positional encoding can be written in a very generic way, for arbitrary input dimension $d$.
+The above formula states the slice of the embedding for one of the components of our point $x$. So far we discussed the case $d=2$ for an image but the positional encoding can be written in a very generic way, for arbitrary input dimension $d$.
 
 **Exercice** Implement the position encoding. This is only $4$ lines of code and you have hints in the code. This must be implement in the `Positional` class in `nirlab/models/encoding.py`. You can test your code with the `test_positional_encoding` function you can invoke with :
 
@@ -121,7 +130,7 @@ The above formula clearly states that we have a slice of the embedding for each 
 (venv) mymachine:~:mylogin$ python -m nirlab.models.encoding
 ```
 
-The expected output is given below. On this image, the encoding of $x=0.425$ is shown with the black markers.
+The expected output is given below. On this image, we set $L=4$ and the encoding of $x=0.425$ is shown with the $2 \times L = 8$ black markers.
 
 ![Position encoding on a scale coordinate ($d=1$) with $L=4$](positional_encoding.png)
 
@@ -146,31 +155,31 @@ It remains to be tested and adapted but the Hash encoding provided by `nirlab` s
 :::
 
 
-## Physics Informed Neural Networks (PINNs)
-
-Another illustration of implicit neural representations is Physics-Informed-Neural-Networks (PINNs). There, the point is to approximate the solution of a differential equation with a neural network $f_\theta(x)$, where $x$ is to be considered as general coordinates (spatial, temporal, both). An example differential equation we may want to solve could be the Wave equation :
-
-$$
-\frac{\partial^2 u}{\partial t^2}(x, y, t) = c^2 (\frac{\partial^2 u}{\partial x^2}(x, y, t) + \frac{\partial^2 u}{\partial x^2}(x, y, t))
-$$
-
-You could basically reorganize the terms as :
-
-$$
-\frac{\partial^2 u}{\partial t^2}(x, y, t) - c^2 (\frac{\partial^2 u}{\partial x^2}(x, y, t) + \frac{\partial^2 u}{\partial x^2}(x, y, t)) = 0
-$$
-
-We suppose we observe a physical system at some position. Usually, when we deal with these equations, we are expected to provide boundary conditions. However, when we want to learn a solution of this equation, it is sufficient to consider that the solution is observed at some coordinates, without constraining these observations to lie on a full spatial or temporal slice. 
-
-To learn a solution to this equation with PINNs, we will consider two terms in the loss function fitting the following two objectives :
-
-- you want your approximate solution $f_\theta(x)$ to output the correct value where we observe them,
-- you want your approximate solution to follow the physics everywhere in your volume.
-
-For the first objective, it is not a big deal. We have observations and predictions and therefore we can compute a loss (say L2, Huber, or so). For the second one, we will sample the volume at some positions, according to a given strategy. To get the idea, consider you sample uniformely your coordinates. We call these points the **collocation points**. The collocations points are the point where we will compute a loss that will quantify if our solution does follow the physics. To follow the physics mean to verify the differential equation and this guaranteed if the equality above is satisfied. In the case of the wave equation, we can introduce a **residue**: 
-
-$$
-r(x, y, t) = \frac{\partial^2 f_\theta}{\partial t^2}(x, y, t) - c^2 (\frac{\partial^2 f_\theta}{\partial x^2}(x, y, t) + \frac{\partial^2 f_\theta}{\partial x^2}(x, y, t)) = 0
-$$
-
-Following the physics means we want $r(x, y, t)$ to exactly on the **collocation points**.
+<!-- ## Physics Informed Neural Networks (PINNs) -->
+<!---->
+<!-- Another illustration of implicit neural representations is Physics-Informed-Neural-Networks (PINNs). There, the point is to approximate the solution of a differential equation with a neural network $f_\theta(x)$, where $x$ is to be considered as general coordinates (spatial, temporal, both). An example differential equation we may want to solve could be the Wave equation : -->
+<!---->
+<!-- $$ -->
+<!-- \frac{\partial^2 u}{\partial t^2}(x, y, t) = c^2 (\frac{\partial^2 u}{\partial x^2}(x, y, t) + \frac{\partial^2 u}{\partial x^2}(x, y, t)) -->
+<!-- $$ -->
+<!---->
+<!-- You could basically reorganize the terms as : -->
+<!---->
+<!-- $$ -->
+<!-- \frac{\partial^2 u}{\partial t^2}(x, y, t) - c^2 (\frac{\partial^2 u}{\partial x^2}(x, y, t) + \frac{\partial^2 u}{\partial x^2}(x, y, t)) = 0 -->
+<!-- $$ -->
+<!---->
+<!-- We suppose we observe a physical system at some position. Usually, when we deal with these equations, we are expected to provide boundary conditions. However, when we want to learn a solution of this equation, it is sufficient to consider that the solution is observed at some coordinates, without constraining these observations to lie on a full spatial or temporal slice.  -->
+<!---->
+<!-- To learn a solution to this equation with PINNs, we will consider two terms in the loss function fitting the following two objectives : -->
+<!---->
+<!-- - you want your approximate solution $f_\theta(x)$ to output the correct value where we observe them, -->
+<!-- - you want your approximate solution to follow the physics everywhere in your volume. -->
+<!---->
+<!-- For the first objective, it is not a big deal. We have observations and predictions and therefore we can compute a loss (say L2, Huber, or so). For the second one, we will sample the volume at some positions, according to a given strategy. To get the idea, consider you sample uniformely your coordinates. We call these points the **collocation points**. The collocations points are the point where we will compute a loss that will quantify if our solution does follow the physics. To follow the physics mean to verify the differential equation and this guaranteed if the equality above is satisfied. In the case of the wave equation, we can introduce a **residue**:  -->
+<!---->
+<!-- $$ -->
+<!-- r(x, y, t) = \frac{\partial^2 f_\theta}{\partial t^2}(x, y, t) - c^2 (\frac{\partial^2 f_\theta}{\partial x^2}(x, y, t) + \frac{\partial^2 f_\theta}{\partial x^2}(x, y, t)) = 0 -->
+<!-- $$ -->
+<!---->
+<!-- Following the physics means we want $r(x, y, t)$ to exactly on the **collocation points**. -->

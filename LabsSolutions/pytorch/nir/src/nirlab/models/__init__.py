@@ -4,7 +4,10 @@
 import torch
 
 # Local imports
-from .ngp import RealNGP, TinyCudaNGP, FullTinyCudaNGP
+from .ngp import RealNGP
+# @SOL
+from .ngp import TinyCudaNGP, FullTinyCudaNGP
+# SOL@
 from .mri import MRINerf
 
 def build_model(cfg):

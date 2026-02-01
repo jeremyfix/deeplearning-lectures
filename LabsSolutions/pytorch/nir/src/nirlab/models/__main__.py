@@ -4,10 +4,14 @@
 import logging
 import sys
 
+from matplotlib.axis import XAxis
+
 # External imports
 import torch
 
 from nirlab import utils
+
+# @SOL
 try:
     import tinycudann as tcnn
     tcnn_available = True
@@ -15,6 +19,7 @@ except ImportError:
     print("tiny-cuda-nn module not available")
     print("You will not be able to use the Hash encoding")
     tcnn_available = False
+# SOL@
 
 # Local imports
 from . import build_model
@@ -46,7 +51,7 @@ def test_real_NGP():
     X = torch.rand(K, dim_input)
     y = nir(X)
     
-    assert( y.shape == torch.Size((K, dim_output)))
+    assert( y.shape == torch.Size((K, dim_output))), f"Got an output of size {y.shape}, expected {(K, dim_output)}"
     
 def test_real_hash_NGP():
     logging.info("Testing the NGP with Hash encoding")
@@ -141,7 +146,6 @@ def test_MRINerf():
     Nc = 10
     Nt = 12
 
-
     cfg = {
         "class": "MRINerf",
         "params": {
@@ -151,15 +155,13 @@ def test_MRINerf():
                 "n_hidden_units": 32,
                 "n_hidden_layers": 4,
                 "pos_encoding": {
-                    "class": "TcnnHash",
+                    "class": "HashEmbedder",
                     "params": {
-                        "otype": "HashGrid",
-                        "n_levels": 16,
+                        "n_levels": 14,
                         "n_features_per_level": 2,
-                        "log2_hashmap_size": 19,
+                        "log2_hashmap_size": 17,
                         "base_resolution": 16,
-                        "per_level_scale": 2,
-                        "fixed_point_pos": False
+                        "finest_resolution": 512
                     }
                 }
             },
@@ -169,15 +171,13 @@ def test_MRINerf():
                 "n_hidden_units": 32,
                 "n_hidden_layers": 4,
                 "pos_encoding": {
-                    "class": "TcnnHash",
+                    "class": "HashEmbedder",
                     "params": {
-                        "otype": "HashGrid",
                         "n_levels": 4,
                         "n_features_per_level": 8,
-                        "log2_hashmap_size": 19,
+                        "log2_hashmap_size": 16,
                         "base_resolution": 2,
-                        "per_level_scale": 1.1,
-                        "fixed_point_pos": False
+                        "finest_resolution": 64
                     }
                 }
             }
@@ -193,7 +193,9 @@ def test_MRINerf():
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
     test_real_NGP()
+    # @SOL
     if tcnn_available:
         test_real_hash_NGP()
-        test_MRINerf()
+    # SOL@
     test_real_hashEmbedder_NGP()
+    test_MRINerf()
