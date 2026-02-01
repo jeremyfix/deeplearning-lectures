@@ -28,6 +28,8 @@ website:
             file: pytorch/asr/index.qmd
           - text: "Deep Convolutional Generative Adversarial Networks"
             file: pytorch/gan/index.qmd
+          - text: "Neural Implicit Representations"
+            file: pytorch/nir-ecg/index.qmd
       - text: "Keras"
         menu:
           - text: "First steps in Keras: classifying handwritten digits(MNIST)"
@@ -52,6 +54,7 @@ website:
           - pytorch/segmentation/index.qmd
           - pytorch/asr/index.qmd
           - pytorch/gan/index.qmd
+          - pytorch/nir-ecg/index.qmd
       - section: "Keras"
         contents:
           - keras/mnist/index.qmd
