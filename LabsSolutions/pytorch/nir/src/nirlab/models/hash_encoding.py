@@ -66,7 +66,7 @@ class HashEmbedder(nn.Module):
     def __init__(self, dim_input: int, cfg:dict):
         super(HashEmbedder, self).__init__()
         
-        assert dim_input in [2,3], "Only 2D and 3D Hash embedding are supported"
+        assert dim_input in [2,3,4], "Only 2D, 3D and 4D Hash embedding are supported"
 
         self.dim_input = dim_input
         self.bounding_box = torch.tensor([[0.0]*dim_input, [1.0]*dim_input])
@@ -84,7 +84,35 @@ class HashEmbedder(nn.Module):
         for i in range(self.n_levels):
             nn.init.uniform_(self.embeddings[i].weight, a=-0.0001, b=0.0001)
             # self.embeddings[i].weight.data.zero_()
-        
+
+    def bilinear_interp(self, x, voxel_min_vertex, voxel_max_vertex, voxel_embedds):
+        '''
+        x: B x 2
+        voxel_min_vertex: B x 2
+        voxel_max_vertex: B x 2
+        voxel_embedds: B x 4 x 2
+        '''
+        # source: https://en.wikipedia.org/wiki/Bilinear_interpolation
+        weights = (x - voxel_min_vertex)/(voxel_max_vertex-voxel_min_vertex) # B x 2
+
+        # corner ordering for 2D (dim_input=2):
+        # 0->00, 1->01, 2->10, 3->11
+        wx = weights[:,0][:,None]
+        wy = weights[:,1][:,None]
+
+        c00 = voxel_embedds[:,0]  # (0,0)
+        c01 = voxel_embedds[:,1]  # (0,1)
+        c10 = voxel_embedds[:,2]  # (1,0)
+        c11 = voxel_embedds[:,3]  # (1,1)
+
+        # interpolate along x
+        c0 = c00*(1-wx) + c10*wx
+        c1 = c01*(1-wx) + c11*wx
+
+        # interpolate along y
+        c = c0*(1-wy) + c1*wy
+
+        return c
 
     def trilinear_interp(self, x, voxel_min_vertex, voxel_max_vertex, voxel_embedds):
         '''
@@ -112,32 +140,41 @@ class HashEmbedder(nn.Module):
 
         return c
 
-
-    def bilinear_interp(self, x, voxel_min_vertex, voxel_max_vertex, voxel_embedds):
+    def quadrilinear_interp(self, x, voxel_min_vertex, voxel_max_vertex, voxel_embedds):
         '''
-        x: B x 2
-        voxel_min_vertex: B x 2
-        voxel_max_vertex: B x 2
-        voxel_embedds: B x 4 x 2
+        x: B x 4
+        voxel_min_vertex: B x 4
+        voxel_max_vertex: B x 4
+        voxel_embedds: B x 16 x 2
         '''
-        # source: https://en.wikipedia.org/wiki/Bilinear_interpolation
-        weights = (x - voxel_min_vertex)/(voxel_max_vertex-voxel_min_vertex) # B x 2
-        # corner ordering for 2D (dim_input=2):
-        # 0->00, 1->01, 2->10, 3->11
-        wx = weights[:,0][:,None]
-        wy = weights[:,1][:,None]
+        # source: extension of trilinear interpolation to 4D
+        weights = (x - voxel_min_vertex)/(voxel_max_vertex-voxel_min_vertex) # B x 4
 
-        c00 = voxel_embedds[:,0]  # (0,0)
-        c01 = voxel_embedds[:,1]  # (0,1)
-        c10 = voxel_embedds[:,2]  # (1,0)
-        c11 = voxel_embedds[:,3]  # (1,1)
+        # step 1: interpolate along first dimension (x)
+        # corner ordering for 4D (dim_input=4):
+        # 0->0000, 1->0001, 2->0010, 3->0011, 4->0100, 5->0101, 6->0110, 7->0111,
+        # 8->1000, 9->1001, 10->1010, 11->1011, 12->1100, 13->1101, 14->1110, 15->1111
+        c000 = voxel_embedds[:,0]*(1-weights[:,0][:,None]) + voxel_embedds[:,8]*weights[:,0][:,None]
+        c001 = voxel_embedds[:,1]*(1-weights[:,0][:,None]) + voxel_embedds[:,9]*weights[:,0][:,None]
+        c010 = voxel_embedds[:,2]*(1-weights[:,0][:,None]) + voxel_embedds[:,10]*weights[:,0][:,None]
+        c011 = voxel_embedds[:,3]*(1-weights[:,0][:,None]) + voxel_embedds[:,11]*weights[:,0][:,None]
+        c100 = voxel_embedds[:,4]*(1-weights[:,0][:,None]) + voxel_embedds[:,12]*weights[:,0][:,None]
+        c101 = voxel_embedds[:,5]*(1-weights[:,0][:,None]) + voxel_embedds[:,13]*weights[:,0][:,None]
+        c110 = voxel_embedds[:,6]*(1-weights[:,0][:,None]) + voxel_embedds[:,14]*weights[:,0][:,None]
+        c111 = voxel_embedds[:,7]*(1-weights[:,0][:,None]) + voxel_embedds[:,15]*weights[:,0][:,None]
 
-        # interpolate along x
-        c0 = c00*(1-wx) + c10*wx
-        c1 = c01*(1-wx) + c11*wx
+        # step 2: interpolate along second dimension (y)
+        c00 = c000*(1-weights[:,1][:,None]) + c100*weights[:,1][:,None]
+        c01 = c001*(1-weights[:,1][:,None]) + c101*weights[:,1][:,None]
+        c10 = c010*(1-weights[:,1][:,None]) + c110*weights[:,1][:,None]
+        c11 = c011*(1-weights[:,1][:,None]) + c111*weights[:,1][:,None]
 
-        # interpolate along y
-        c = c0*(1-wy) + c1*wy
+        # step 3: interpolate along third dimension (z)
+        c0 = c00*(1-weights[:,2][:,None]) + c10*weights[:,2][:,None]
+        c1 = c01*(1-weights[:,2][:,None]) + c11*weights[:,2][:,None]
+
+        # step 4: interpolate along fourth dimension (w)
+        c = c0*(1-weights[:,3][:,None]) + c1*weights[:,3][:,None]
 
         return c
 
@@ -175,12 +212,6 @@ def test_hash_encoding():
         "base_resolution": base_resolution,
         "finest_resolution": finest_resolution
     }
-    dim_input = 3
-    enc = HashEmbedder(dim_input, cfg)
-    logging.info(torchinfo.summary(enc, verbose=0))
-    X = torch.rand((1000, dim_input))
-    encodings = enc(X)
-    print(encodings.shape)
 
     dim_input = 2
     enc = HashEmbedder(dim_input, cfg)
@@ -189,6 +220,19 @@ def test_hash_encoding():
     encodings = enc(X)
     print(encodings.shape)
 
+    dim_input = 3
+    enc = HashEmbedder(dim_input, cfg)
+    logging.info(torchinfo.summary(enc, verbose=0))
+    X = torch.rand((1000, dim_input))
+    encodings = enc(X)
+    print(encodings.shape)
+
+    dim_input = 4
+    enc = HashEmbedder(dim_input, cfg)
+    logging.info(torchinfo.summary(enc, verbose=0))
+    X = torch.rand((1000, dim_input))
+    encodings = enc(X)
+    print(encodings.shape)
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")

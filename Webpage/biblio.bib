@@ -536,4 +536,22 @@ doi="10.1007/978-3-319-24574-4_28"
   keywords={Magnetic resonance imaging;Sensitivity;Image reconstruction;Training;Imaging;Estimation;Encoding;Implicit neural representation;MRI acceleration;neural networks;parallel imaging;scan-specific},
   doi={10.1109/TMI.2023.3342156}}
 
-
+@article{Martel2021,
+author = {Martel, Julien N. P. and Lindell, David B. and Lin, Connor Z. and Chan, Eric R. and Monteiro, Marco and Wetzstein, Gordon},
+title = {Acorn: adaptive coordinate networks for neural scene representation},
+year = {2021},
+issue_date = {August 2021},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {40},
+number = {4},
+issn = {0730-0301},
+url = {https://doi.org/10.1145/3450626.3459785},
+doi = {10.1145/3450626.3459785},
+abstract = {Neural representations have emerged as a new paradigm for applications in rendering, imaging, geometric modeling, and simulation. Compared to traditional representations such as meshes, point clouds, or volumes they can be flexibly incorporated into differentiable learning-based pipelines. While recent improvements to neural representations now make it possible to represent signals with fine details at moderate resolutions (e.g., for images and 3D shapes), adequately representing large-scale or complex scenes has proven a challenge. Current neural representations fail to accurately represent images at resolutions greater than a megapixel or 3D scenes with more than a few hundred thousand polygons. Here, we introduce a new hybrid implicit-explicit network architecture and training strategy that adaptively allocates resources during training and inference based on the local complexity of a signal of interest. Our approach uses a multiscale block-coordinate decomposition, similar to a quadtree or octree, that is optimized during training. The network architecture operates in two stages: using the bulk of the network parameters, a coordinate encoder generates a feature grid in a single forward pass. Then, hundreds or thousands of samples within each block can be efficiently evaluated using a lightweight feature decoder. With this hybrid implicit-explicit network architecture, we demonstrate the first experiments that fit gigapixel images to nearly 40 dB peak signal-to-noise ratio. Notably this represents an increase in scale of over 1000X compared to the resolution of previously demonstrated image-fitting experiments. Moreover, our approach is able to represent 3D shapes significantly faster and better than previous techniques; it reduces training times from days to hours or minutes and memory requirements by over an order of magnitude.},
+journal = {ACM Trans. Graph.},
+month = jul,
+articleno = {58},
+numpages = {13},
+keywords = {neural signal representation}
+}

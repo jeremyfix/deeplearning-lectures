@@ -1,5 +1,11 @@
 # coding: utf-8
 
+# @TEMPL
+# # Empty script.
+# TEMPL@
+
+# @SOL
+
 # Standard imports
 # External imports
 import torch
@@ -64,3 +70,5 @@ def render_rays(nerf_model, ray_origins, ray_directions, hn=0, hf=0.5, nb_bins=1
     c = (weights * colors).sum(dim=1)
     weight_sum = weights.sum(-1).sum(-1)  # Regularization for white background 
     return c + 1 - weight_sum.unsqueeze(-1)
+
+# SOL@

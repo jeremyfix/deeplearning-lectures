@@ -7,25 +7,50 @@ import sys
 
 # External imports
 import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
 
 # Local imports
 from .miccai2023 import MICCAI2023, CINEView, AccFactor, plot_sample
 from . import get_dataloaders
-from .image import BilinearImageDataset
+from .image import ImageDataset, BilinearImageDataset
 
 
 def test_image_dataset(rootdir):
     logging.info("="*80)
+    scale_factor = 4
+
+    logging.info("Testing image dataset")
+    dataset = ImageDataset(rootdir)
+
+    height = dataset.height * scale_factor
+    width = dataset.width * scale_factor
+    sampled_image = np.zeros((height, width, 3), dtype=np.float32)
+    for i in range(height):
+        for j in range(width):
+            sampled_image[i, j] = dataset.sample([j/width, i/height])
+    sampled_image *= 255
+    sampled_image = sampled_image.astype(np.uint8)
+    PIL_image = Image.fromarray(sampled_image)
+    PIL_image.save("sampled_image.png")
+    logging.info("Saved sampled image as sampled_image.png")
+
+    # Let us now use the Bilinear sampler
+    logging.info("="*80)
     logging.info("Testing image dataset")
     dataset = BilinearImageDataset(rootdir)
-    logging.info(f"Dataset input dimension: {dataset.dim_input}")
-    logging.info(f"Dataset output dimension: {dataset.dim_output}")
-    logging.info(f"Dataset size: {len(dataset)}")
-
-    logging.info("Trying to index the dataset...")
-    idx = random.randint(0, len(dataset)-1)
-    pos, value = dataset[idx]
-    logging.info(f"Dataset {idx} : at position {pos}, value is {value}")
+    
+    height = dataset.height * scale_factor
+    width = dataset.width * scale_factor
+    sampled_image = np.zeros((height, width, 3), dtype=np.float32)
+    for i in range(height):
+        for j in range(width):
+            sampled_image[i, j] = dataset.sample([j/width, i/height])
+    sampled_image *= 255
+    sampled_image = sampled_image.astype(np.uint8)
+    PIL_image = Image.fromarray(sampled_image)
+    PIL_image.save("sampled_bilinear_image.png")
+    logging.info("Saved sampled image as sampled_bilinear_image.png")
 
 
 def test_image_dataloaders():
@@ -81,7 +106,7 @@ if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
 
     # Image dataset
-    rootdir = "./images"
+    rootdir = "./toyimages"
     test_image_dataset(rootdir)
     test_image_dataloaders()
 

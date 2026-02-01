@@ -10,7 +10,9 @@ import numpy as np
 
 # Local imports
 from .image import ImageDataset, BilinearImageDataset
+# @SOL
 from .scene import SceneDataset
+# SOL@
 from .miccai2023 import MICCAI2023
 
 def build_dataset(cls, params):

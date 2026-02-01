@@ -42,7 +42,6 @@ class BaseImageDataset(Dataset):
         self.height = size
         self.width = size
 
-
     @property
     def dim_input(self) -> int:
         """
@@ -112,12 +111,23 @@ class ImageDataset(BaseImageDataset):
         """
         height, width = self.height, self.width
 
-        # Scale from [0, 1] to pixel coordinates
-        # xs is in [0, 1], we scale to [0, width] and [0, height]
+        ######################
+        # START CODING HERE ##
+        ######################
+        # We perform sampling of the numpy array self.image which is (height, width, 3)
+        # using nearest neighbour interpolation
+        # @SOL
         x = int(np.floor(xs[0] * (width - 1.)))
         y = int(np.floor(xs[1] * (height - 1.)))
 
         return self.image[y, x]
+        # SOL@
+        # @TEMPL
+        # return np.array([np.random.random(), np.random.random(), np.random.random()])
+        # TEMPL@
+        ####################
+        # END CODING HERE ##
+        ####################
 
 class BilinearImageDataset(BaseImageDataset):
     """
@@ -195,6 +205,13 @@ class BilinearImageDataset(BaseImageDataset):
         # (3) = lerp_x * (1-lerp_y)
         # (4) = (1-lerp_x)*(1-lerp_y)
         # with (1) + (2) + (3) + (4) = 1
+
+        ######################
+        # START CODING HERE ##
+        ######################
+        # We perform sampling of the numpy array self.image which is (height, width, 3)
+        # using bilinear interpolation
+        # @SOL
         a1 = lerp_x * lerp_y
         a2 = (1.0-lerp_x)*lerp_y
         a3 = lerp_x * (1.0-lerp_y)
@@ -208,3 +225,10 @@ class BilinearImageDataset(BaseImageDataset):
         )
         
         return value
+        # SOL@
+        # @TEMPL
+        # return np.array([np.random.random(), np.random.random(), np.random.random()])
+        # TEMPL@
+        ####################
+        # END CODING HERE ##
+        ####################

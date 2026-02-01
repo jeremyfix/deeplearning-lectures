@@ -1,5 +1,11 @@
 # coding: utf-8
 
+# @TEMPL
+# # Empty script.
+# TEMPL@
+
+# @SOL
+
 # Standard imports
 import os
 
@@ -49,3 +55,5 @@ def test_scene(root_dir):
 if __name__ == "__main__":
     root_dir = "/opt/datasets/NERF/Synth_Vandegar"
     test_scene(root_dir)
+
+# SOL@
