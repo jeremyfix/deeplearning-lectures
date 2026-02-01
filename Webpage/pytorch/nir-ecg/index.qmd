@@ -136,16 +136,119 @@ The expected output is given below. On this image, we set $L=4$ and the encoding
 
 ### Building the Neural Implicit model
 
+It is now time to stick together the positional encoding with the feedforward neural network. 
+
+**Exercice** Finish the implementation of the neural network structure in the `RealNGP` class in the `nirlab/models/ngp.py`. As you will see, the embedder is instantiated but you still need to code the feedforward neural network. 
+
+You can test your implementation by running :
+
+```bash
+(venv) mymachine:~:mylogin$ python -m nirlab.models
+```
+
+This will run the functions in `nirlab/models/__main__.py`, in particular `test_real_NGP`. 
+
+### Training your model 
+
+You now have all the building blocks for training your first model. If you look into the `main.py` script, you will recognize the same structure as for the other labs. The loss function we use is the relative mean square error loss, as in the [tiny-cuda-nn](https://github.com/NVlabs/tiny-cuda-nn/blob/2e757bbe781db59c4980d389d7dccbf5edc09669/samples/mlp_learning_an_image_pytorch.py#L171C3-L171C20) implementation. It is implemented in the `optim.py` script and created in the `main.py` script.
+
+```bash
+(venv) mymachine:~:mylogin$ python -m nirlab.main train config.yaml
+```
+
+An example config file is given below, with a FFNN using $8$ layers of $256$ units and a positional encoding with $L=10$ frequencies. You may want to adjust some hyperparameters, e.g. the learning rate if you wish to stick to the parameters of [@Mildenhall2020].
+
+```yaml
+data:
+  batch_size: 40960
+  num_workers: 4
+  class: "ImageDataset"  # Use bilinear interpolation for smoother learning
+  params:
+    root_dir: './images'
+    img_idx: 0
+    valid_ratio: 0.2
+
+loss: RelativeMSE
+metrics: 
+  mse: BatchRelativeMSE
+
+optim:
+  algo: Adam
+  params:
+    lr: 0.01
+
+scheduler:
+  step_size: 50
+  gamma: 0.5
+
+nepochs: 200
+
+checkpoint_metric: "mse"
+
+sampler: sample_image
+
+logging:
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+  imgfreq: 10
+
+model:
+  class: "RealNGP"
+  params:  
+    dim_input: 2
+    dim_output: 3
+    n_hidden_units: 256
+    n_hidden_layers: 8
+    pos_encoding:
+       class: "Positional"
+       params:
+         "L": 10
+```
+
+During training, the model is sampled over a $1000 \times 1000$ grid and the resulting image is saved in the logdir of your run.
+
+**Exercice** It is your turn to perform experiments. You can try using either the `ImageDataset` or `BilinearImageDataset`.
+
+![Learning "Les Amoureux", E. Friant with a NIR using a positional encoding. One image every ten epochs, trained for $200$ epochs.](nir_positional.gif)
 
 ### Hash encoding
 
-NERFs were introduced in 2020 and triggered a lot of work. For example, in 2022, people at NVIDIA introduced Instant Neural Graphics Primitives (Instant-NGP) [@mueller2022instant] which introduced a Hash based positional encoding.
+NERFs were introduced in 2020 and triggered a lot of work. For example, in 2022, people at NVIDIA introduced Instant Neural Graphics Primitives (Instant-NGP) [@mueller2022instant] which introduced a Hash based positional encoding. The [tiny-cuda-nn](https://www.github.com/NVlabs/tiny-cuda-nn) offers a highly efficient C++/Cuda implementation of Hash encoding, with a python wrapper.
 
+The Hash encoding of Instant NGP is described in [the paper](https://nvlabs.github.io/instant-ngp/assets/mueller2022instant.pdf) and considers a multi-resolution grid of your coordinates range, say $[0, 1]^d$, as shown on Fig. 3 of the paper. The paper considers $L$ levels of increasing resolution. For each level, each vertex of the grid has some trainable features, say of dimension $F$. Now, to compute the features assigned at a point $x$, you get the corner vertices surrounding $x$ and computes a linear interpolation of the features of these corner vertices.
 
-## 3D+t encoding of Cardiac MRI
+Let us put some numbers to fix the ideas. The resolution of a level $l$ is denoted $N_l$. For example, the coarsest resolution in the paper is $N_0 = 16$ which means the $[0, 1]^2$ square (for an image) is split into $16 \times 16$ smaller squares. There are $17 \times 17 = 289$ vertices (in general $(N_l+1)\times(N_l+1)$. The number of features per vertex considered in the paper is $F=2$ which leads to $289 \times 2 = 578$ features for the coarsest resolution. What about the finest resolution ? In the paper they consider up to $N = 524.288$ which leads to $524.888 \times 524.888 \times F$ features 😱. So, there is a trick. This trick is a hash function which goes beyond the scope of my understanding for now. The hash function is there to limit the number of possible vertex embedding to a fixed number $T$ where $T \in [2^{14}, 2^{24}]$. The largest value is about $16M$ or so. This is large but far lower than $524.888^2$. To illustrate the idea (the hash function , a simple hash function is $h(v) = v \mod T$ where $v$ is the linear index of a vertex.
+
+Now, let us talk about implementation.
+
+It can be quite tricky to install tiny-cuda-nn, you may need the latest cuda installation. For this lab, I prefer to rely on a pure python implementation to avoid the possible installation issues. The implementation in `nirlab` is provided in `nirlab/models/hash_encoding.py` and is based on [the work of Yash Sanjay Bhalgat](https://www.github.com/yashbhalgat/HashNeRF-pytorch/), extended for 2D, 3D and 4D coordinates.
+
+You can test the hash embedding
+
+```bash
+(venv) mymachine:~:mylogin$ python -m nirlab.models.hash_encoding
+```
+
+**Exercice** Modify your configuration file to use the multiresolution hash encoding. You can for example consider the parameters below. For the FFFN, as explained in the paper [@mueller2022instant], a much smaller network can be considered. 
+
+```yaml
+n_levels: 16
+n_features_per_level: 2
+log2_hashmap_size: 15
+base_resolution: 16
+finest_resolution: 7000
+```
+
+Using $2$ layers with $64$ units, the networks trains much faster 
+
+![Learning "Les Amoureux", E. Friant with a NIR using a hash encoding. One image every ten epochs, trained for $200$ epochs.](nir_hash.gif)
+
+### Sampling function
+
+**Exercice** Taking inspiration from the sampling function provided in `nirlab/samplers/image.py`, reproduce the Gigapixel animation as shown on the [webpage of Instant NGP](https://nvlabs.github.io/instant-ngp/). As the coordinates lie in the $[0, 1]^2$ domain, you can progressively zoom in by sampling a grid of a given size on a smaller and smaller domain.
+
+## 3D+t encoding of Cardiac MRI (soon)
 
 We now turn our attention on the use of NERF for encoding structure of a higher dimension than a 2D image, namely a 3D+t, hence 4D, data. 
-
 
 ::: {.callout-warning}
 
@@ -153,6 +256,12 @@ In the following, we will stick to the proposal of [@Hemidi2023] using only 2D+t
 
 It remains to be tested and adapted but the Hash encoding provided by `nirlab` supports 2D, 3D and 4D coordinates. In principle, it should be possible to learn the representation in 3D+t. If you do so, just let me know ;).
 :::
+
+**This part is not yet released**. The code was initially written using the tiny-cuda-nn hash encoding, only supporting up to $3D$ coordinates. This is not completly satisfactory. Indeed, with the pure python Hash embedder, you could reimplement the full $3D+t$ model.
+
+In any case, below is an example of what can be produced with the code base, trained on the MICCAI data.
+
+![Sampled NRI using a Hash encoding on cardiac MRI data, after $100$ epochs. The data used are SAX with an acceleration factor of $4$.](nir_mri.gif){width=100%}
 
 
 <!-- ## Physics Informed Neural Networks (PINNs) -->

@@ -4,12 +4,10 @@
 import logging
 import sys
 
-from matplotlib.axis import XAxis
-
 # External imports
+from matplotlib.axis import XAxis
 import torch
-
-from nirlab import utils
+import torchinfo
 
 # @SOL
 try:
@@ -24,8 +22,11 @@ except ImportError:
 # Local imports
 from . import build_model
 from . import encoding
+from nirlab import utils
 
 def test_real_NGP():
+    logging.info("="*80)
+    logging.info("Testing the real NGP with positional encoding")
     dim_input = 3
     dim_output = 4
 
@@ -46,14 +47,17 @@ def test_real_NGP():
     }
 
     nir = build_model(cfg)
+    logging.info(f"Summary of the model : \n{torchinfo.summary(nir, verbose=0)}\n\n")
 
     K = 123
     X = torch.rand(K, dim_input)
     y = nir(X)
     
     assert( y.shape == torch.Size((K, dim_output))), f"Got an output of size {y.shape}, expected {(K, dim_output)}"
-    
+   
+# @SOL
 def test_real_hash_NGP():
+    logging.info("="*80)
     logging.info("Testing the NGP with Hash encoding")
 
     if torch.accelerator.is_available():
@@ -94,8 +98,10 @@ def test_real_hash_NGP():
     y = nir(X)
     
     assert( y.shape == torch.Size((K, dim_output)))
-    
+# SOL@
+
 def test_real_hashEmbedder_NGP():
+    logging.info("="*80)
     logging.info("Testing the NGP with HashEmbedder encoding")
 
     if torch.accelerator.is_available():
@@ -131,11 +137,13 @@ def test_real_hashEmbedder_NGP():
     K = 123
     X = torch.rand(K, dim_input).to(device)
     y = nir(X)
+    logging.info(f"Summary of the model : \n{torchinfo.summary(nir, verbose=0)}\n\n")
     
-    assert( y.shape == torch.Size((K, dim_output)))
+    assert( y.shape == torch.Size((K, dim_output))), f"Got an output of size {y.shape}, expected {(K, dim_output)}"
 
 
 def test_MRINerf():
+    logging.info("="*80)
     logging.info("Testing the MRINerf with Hash encoding")
     if torch.accelerator.is_available():
         device = torch.accelerator.current_accelerator()
@@ -184,6 +192,7 @@ def test_MRINerf():
         }
     }
     nir = build_model(cfg).to(device)
+    logging.info(f"Summary of the model : \n{torchinfo.summary(nir, verbose=0)}\n\n")
 
     Nrows, Ncols, Nt = 12, 12, 8
     xyt = utils.build_coordinate_Nd(Nrows, Ncols, Nt).to(device).unsqueeze(dim=0)  # (K, 3)
@@ -197,5 +206,11 @@ if __name__ == "__main__":
     if tcnn_available:
         test_real_hash_NGP()
     # SOL@
+    # @SOL
     test_real_hashEmbedder_NGP()
     test_MRINerf()
+    # SOL@
+    # @TEMPL
+    # # test_real_hashEmbedder_NGP()
+    # # test_MRINerf()
+    # TEMPL@

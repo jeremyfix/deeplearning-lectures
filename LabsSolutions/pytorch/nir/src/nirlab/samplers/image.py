@@ -68,9 +68,9 @@ def sample_image(model,
                  logdir, 
                  epoch, 
                  train_loader,
-                 batch_size=32,
-                 height=100, 
-                 width=100):
+                 batch_size=40960,
+                 height=1000, 
+                 width=1000):
     filename = logdir / f"sample_epoch_{epoch}.png"
     sample = generate_sample(
         model,

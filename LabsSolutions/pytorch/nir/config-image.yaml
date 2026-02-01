@@ -1,7 +1,7 @@
 data:
   batch_size: 40960
   num_workers: 4
-  class: "BilinearImageDataset"  # Use bilinear interpolation for smoother learning
+  class: "ImageDataset"  # Use bilinear interpolation for smoother learning
   params:
     root_dir: './images'
     img_idx: 0
@@ -35,13 +35,19 @@ model:
   params:  
     dim_input: 2
     dim_output: 3
-    n_hidden_units: 64
-    n_hidden_layers: 2
+    n_hidden_units: 256
+    n_hidden_layers: 8
     pos_encoding:
-      class: "HashEmbedder"
-      params: 
-        n_levels: 16
-        n_features_per_level: 2
-        log2_hashmap_size: 15
-        base_resolution: 16
-        finest_resolution: 7000
+       class: "Positional"
+       params:
+         L: 10
+    #n_hidden_units: 64
+    #n_hidden_layers: 2
+    #pos_encoding:
+    #  class: "HashEmbedder"
+    #  params: 
+    #    n_levels: 16
+    #    n_features_per_level: 2
+    #    log2_hashmap_size: 15
+    #    base_resolution: 16
+    #    finest_resolution: 7000
