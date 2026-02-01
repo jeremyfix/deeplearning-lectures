@@ -1,26 +1,32 @@
 ---
-title:  'Implicit Neural Representations for ECG super resolution'
+title:  'Implicit Neural Representations for super resolution'
 author:
 - Jeremy Fix
-keywords: [PyTorch tutorial, NERF, PINNS]
+keywords: [PyTorch tutorial, NERF, MRI]
 ---
 
 <a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
 
 ## Objectives
 
-In this lab, we are going to explore Neural Implicit Representations (NIR) to perform super resolution of spatiotemporal data : temporal series of cardiac ECGs. This lab is based on the works of [@Hemidi2023] and [@Feng2024]. To explore NIR for ECGs, we will use the data provided for the [CMXRecon Cardiac MRI challenge of the MICCAI 2023 conference](https://cmrxrecon.github.io/Home.html). One of the objectives of this challenge was to accelerate the acquisition. 
+In this lab, we are going to explore Neural Implicit Representations (NIR) through the encoding of an image (a 2D structure) and of a cardiac MRI recording which is 3D+t representation. This lab is based on several papers : 
+
+- [@Mildenhall2020] which introduced Neural Radiance Fields, 
+- [@mueller2022instant] who introduced Instant NGP mainly a NERF with a better encoding of the input coordinates and led to the developpement of tiny-cuda-nn, a highly optimized implementation of NERFs,
+- [@Hemidi2023] and [@Feng2024] for the application of NERFs to Cardiac MRI. 
+
+To explore NIR for ECGs, we will use the data provided for the [CMXRecon Cardiac MRI challenge of the MICCAI 2023 conference](https://cmrxrecon.github.io/Home.html). One of the objectives of this challenge was to accelerate the acquisition. 
 
 ## Setup and predefined scripts
 
-For this lab, you are provided a base code to complete : [inrlab-kit.tar.gz](../../assets/ganlab-kit.tar.gz). To get and use that code :  
+For this lab, you are provided a base code to complete : [nirlab-kit.tar.gz](../../assets/nirlab-kit.tar.gz). To get and use that code :  
 
 ```
-wget https://jeremyfix.github.io/deeplearning-lectures/assets/inrlab-kit.tar.gz
-tar -zxvf inrlab-kit.tar.gz
+wget https://jeremyfix.github.io/deeplearning-lectures/assets/nirlab-kit.tar.gz
+tar -zxvf nirlab-kit.tar.gz
 ```
 
-This code is orinrized as a python library `inrlab` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
+This code is orinrized as a python library `nirlab` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
 
 To install the library, you need to install it in 1) a virtual environment and 2) in developer mode.
 
@@ -47,7 +53,7 @@ Then, to install the library in developer mode :
 You can verify that the library is installed by running :
 
 ``` bash
-(venv) mymachine:~:mylogin$ python -c "import inrlab; print(f'Library available at {inrlab.__file__}')"
+(venv) mymachine:~:mylogin$ python -c "import nirlab; print(f'Library available at {nirlab.__file__}')"
 ```
 
 This basic code base offers you several modules that **we will cover step by step** :

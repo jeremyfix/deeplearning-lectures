@@ -159,7 +159,7 @@ These pages contain the subjects and codes for the labs in the deep learning lec
 <div class="lab-card-image"><img src="pytorch/nir-ecg/amoureux.gif" alt="NIR" style="width: 100%; height: 100%; object-fit: cover;"></div>
 <div class="lab-card-content">
 <div class="lab-card-title">Neural Implicit Representations</div>
-        <div class="lab-card-description">Using Neural Networks for implicitly encoding data : images and spatio temporal cardiac MRI</div>
+<div class="lab-card-description">Using Neural Networks for implicitly encoding data : images and spatio temporal cardiac MRI</div>
 </div>
 </a>
 

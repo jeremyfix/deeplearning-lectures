@@ -75,6 +75,19 @@ jobs:
           cd LabsSolutions/pytorch/ 
           tar -zcvf ../../assets/ganlab-sol.tar.gz gan
 
+      # NIR
+      - name: Pytorch nirlab base code
+        run: |
+          mkdir -p assets 
+          cd StudentsCode/pytorch/ 
+          tar -zcvf ../../assets/nirlab-kit.tar.gz nir
+
+      - name: Pytorch nirlab solution code
+        run: |
+          mkdir -p assets 
+          cd LabsSolutions/pytorch/ 
+          tar -zcvf ../../assets/nirlab-sol.tar.gz nir
+
       # Upload
       - name: Upload the assets
         uses: actions/upload-artifact@v4
