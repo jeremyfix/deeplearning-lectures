@@ -15,7 +15,6 @@ optim:
   algo: Adam
   params:
     lr: 0.01
-    # weight_decay: 0.001
 
 scheduler:
   step_size: 50
@@ -39,6 +38,10 @@ model:
     n_hidden_units: 64
     n_hidden_layers: 2
     pos_encoding:
-       class: "Positional"
-       params:
-         "L": 10
+      class: "HashEmbedder"
+      params: 
+        n_levels: 16
+        n_features_per_level: 2
+        log2_hashmap_size: 15
+        base_resolution: 16
+        finest_resolution: 7000

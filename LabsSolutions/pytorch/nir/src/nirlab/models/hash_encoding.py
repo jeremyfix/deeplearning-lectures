@@ -12,8 +12,6 @@ import torchinfo
 import torch.nn as nn
 import torch.nn.functional as F
 
-BOX_OFFSETS = torch.tensor([[[i,j,k] for i in [0, 1] for j in [0, 1] for k in [0, 1]]])
-
 def hash(coords, log2_hashmap_size):
     '''
     coords: this function can process upto 7 dim coordinates
@@ -33,6 +31,7 @@ def get_voxel_vertices(xyz, bounding_box, resolution, log2_hashmap_size):
     bounding_box: min and max x,y,z coordinates of object bbox
     resolution: number of voxels per axis
     '''
+    dim_input = xyz.shape[-1]
     device = xyz.device
     box_min, box_max = bounding_box
 
@@ -47,9 +46,16 @@ def get_voxel_vertices(xyz, bounding_box, resolution, log2_hashmap_size):
     
     bottom_left_idx = torch.floor((xyz-box_min)/grid_size).int()
     voxel_min_vertex = bottom_left_idx*grid_size + box_min
-    voxel_max_vertex = voxel_min_vertex + torch.tensor([1.0,1.0,1.0], device=device)*grid_size
+    voxel_max_vertex = voxel_min_vertex + torch.tensor([1.0]*dim_input, device=device)*grid_size
 
-    voxel_indices = bottom_left_idx.unsqueeze(1) + BOX_OFFSETS.to(device)
+    box_offsets = torch.zeros((2**dim_input, dim_input), dtype=torch.int32, device=device)
+    for i in range(2**dim_input):
+        for d in range(dim_input):
+            if (i>>(dim_input - d -1)) & 1:
+                box_offsets[i, d] = 1
+
+
+    voxel_indices = bottom_left_idx.unsqueeze(1) + box_offsets
     hashed_voxel_indices = hash(voxel_indices, log2_hashmap_size)
 
     return voxel_min_vertex, voxel_max_vertex, hashed_voxel_indices, keep_mask
@@ -60,11 +66,10 @@ class HashEmbedder(nn.Module):
     def __init__(self, dim_input: int, cfg:dict):
         super(HashEmbedder, self).__init__()
         
-        assert dim_input == 3
+        assert dim_input in [2,3], "Only 2D and 3D Hash embedding are supported"
 
-        bounding_box = torch.tensor([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]])
-            
-        self.bounding_box = torch.tensor([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]])
+        self.dim_input = dim_input
+        self.bounding_box = torch.tensor([[0.0]*dim_input, [1.0]*dim_input])
         self.n_levels = cfg["n_levels"]
         self.n_features_per_level = cfg["n_features_per_level"]
         self.log2_hashmap_size = cfg["log2_hashmap_size"]
@@ -107,6 +112,36 @@ class HashEmbedder(nn.Module):
 
         return c
 
+
+    def bilinear_interp(self, x, voxel_min_vertex, voxel_max_vertex, voxel_embedds):
+        '''
+        x: B x 2
+        voxel_min_vertex: B x 2
+        voxel_max_vertex: B x 2
+        voxel_embedds: B x 4 x 2
+        '''
+        # source: https://en.wikipedia.org/wiki/Bilinear_interpolation
+        weights = (x - voxel_min_vertex)/(voxel_max_vertex-voxel_min_vertex) # B x 2
+        # corner ordering for 2D (dim_input=2):
+        # 0->00, 1->01, 2->10, 3->11
+        wx = weights[:,0][:,None]
+        wy = weights[:,1][:,None]
+
+        c00 = voxel_embedds[:,0]  # (0,0)
+        c01 = voxel_embedds[:,1]  # (0,1)
+        c10 = voxel_embedds[:,2]  # (1,0)
+        c11 = voxel_embedds[:,3]  # (1,1)
+
+        # interpolate along x
+        c0 = c00*(1-wx) + c10*wx
+        c1 = c01*(1-wx) + c11*wx
+
+        # interpolate along y
+        c = c0*(1-wy) + c1*wy
+
+        return c
+
+
     def forward(self, x):
         # x is 3D point position: B x 3
         x_embedded_all = []
@@ -118,7 +153,10 @@ class HashEmbedder(nn.Module):
             
             voxel_embedds = self.embeddings[i](hashed_voxel_indices)
 
-            x_embedded = self.trilinear_interp(x, voxel_min_vertex, voxel_max_vertex, voxel_embedds)
+            if self.dim_input == 2:
+                x_embedded = self.bilinear_interp(x, voxel_min_vertex, voxel_max_vertex, voxel_embedds)
+            else:
+                x_embedded = self.trilinear_interp(x, voxel_min_vertex, voxel_max_vertex, voxel_embedds)
             x_embedded_all.append(x_embedded)
 
         #keep_mask = keep_mask.sum(dim=-1)==keep_mask.shape[-1]
@@ -137,13 +175,20 @@ def test_hash_encoding():
         "base_resolution": base_resolution,
         "finest_resolution": finest_resolution
     }
-    enc = HashEmbedder(3, cfg)
+    dim_input = 3
+    enc = HashEmbedder(dim_input, cfg)
     logging.info(torchinfo.summary(enc, verbose=0))
-    X = torch.rand((1000, 3))
-
-
+    X = torch.rand((1000, dim_input))
     encodings = enc(X)
     print(encodings.shape)
+
+    dim_input = 2
+    enc = HashEmbedder(dim_input, cfg)
+    logging.info(torchinfo.summary(enc, verbose=0))
+    X = torch.rand((1000, dim_input))
+    encodings = enc(X)
+    print(encodings.shape)
+
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
