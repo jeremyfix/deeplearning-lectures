@@ -5,16 +5,17 @@ data:
   params:
     rootdir: '/opt/datasets/MICCAI/ChallengeData'
     valid_frames: [5]
-    slice_idx: 0
+    slice_idx: 5
 
 loss: KSpaceLoss
 metrics: 
   kspace: KSpaceMetric
 
 optim:
-  algo: Adam
+  algo: AdamW
   params:
     lr: 0.01
+    weight_decay: 0.001
 
 scheduler:
   step_size: 500

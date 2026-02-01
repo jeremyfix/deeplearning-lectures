@@ -183,7 +183,9 @@ def train(configpath):
 
         if e % config["logging"]["imgfreq"] == 0:
             #samplers.sample_image(model, logdir, e)
-            samplers.sample_mri(model, logdir, e)
+            samplers.sample_mri(model, logdir, e, train_loader)
+            # For the test function ? 
+            # samplers.oversample_mri(model, logdir, e, train_loader, oversampling_factor=2)
 
         scheduler.step()
         logging.info(f" Epoch {e} done")

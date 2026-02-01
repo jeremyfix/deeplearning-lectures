@@ -322,6 +322,12 @@ class MICCAI2023(Dataset):
         nrows, ncols, ncoils, nslices, nframes = subsampled_data.shape
         logging.info(f"Number of rows {nrows}, cols {ncols}, coils {ncoils}, slices {nslices}, frames {nframes}")
 
+        # Normalize the data for this slice
+        # This step is super important for the training to work properly !!!!
+        coils_combined = combine_coils(subsampled_data)
+        norm_factor = coils_combined.max()
+        logging.info(f"Normalizing the data with factor {norm_factor.item():.6f}")
+
         # Only keep the requested slices
         logging.info(f"Only keeping the slice index {self.slice_idx}")
         subsampled_data = subsampled_data[:, :, :, self.slice_idx, :] # (kx, ky, sc, t)
@@ -341,8 +347,8 @@ class MICCAI2023(Dataset):
 
         # Normalize the data for this slice
         # This step is super important for the training to work properly !!!!
-        coils_combined = combine_coils(subsampled_data)
-        norm_factor = coils_combined.max()
+        #coils_combined = combine_coils(subsampled_data)
+        #norm_factor = coils_combined.max()
         subsampled_data = subsampled_data / norm_factor.item()
         # And use the same factor for the fully sampled data
         fullsampled_data = fullsampled_data / norm_factor.item()
