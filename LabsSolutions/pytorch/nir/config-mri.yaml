@@ -1,0 +1,67 @@
+data:
+  batch_size: 1 # we process one full volume at a time otherwise, it is going to be very long
+  num_workers: 4
+  class: "MICCAI2023"  # Use bilinear interpolation for smoother learning
+  params:
+    rootdir: '/opt/datasets/MICCAI/ChallengeData'
+    valid_frames: [5]
+    slice_idx: 5
+
+loss: KSpaceLoss
+metrics: 
+  kspace: KSpaceMetric
+
+optim:
+  algo: AdamW
+  params:
+    lr: 0.01
+    weight_decay: 0.001
+
+scheduler:
+  step_size: 500
+  gamma: 0.5
+
+nepochs: 500
+
+checkpoint_metric: "kspace"
+
+sampler: oversample_mri
+# test_sampler: oversample_mri
+
+logging:
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+  imgfreq: 50
+
+model:
+  class: "MRINerf"
+  params:
+    image:
+      dim_input: 3
+      dim_output: 2
+      n_hidden_units: 32
+      n_hidden_layers: 4
+      pos_encoding:
+         class: "TcnnHash"
+         params: 
+           otype: "HashGrid"
+           n_levels: 16
+           n_features_per_level: 2
+           log2_hashmap_size: 19
+           base_resolution: 16
+           per_level_scale: 2
+           fixed_point_pos: False
+    csm:
+      dim_input: 3
+      dim_output: 20 # 2 x ncoils
+      n_hidden_units: 32
+      n_hidden_layers: 4
+      pos_encoding:
+         class: "TcnnHash"
+         params: 
+           otype: "HashGrid"
+           n_levels: 4
+           n_features_per_level: 8
+           log2_hashmap_size: 19
+           base_resolution: 2
+           per_level_scale: 1.1
+           fixed_point_pos: False

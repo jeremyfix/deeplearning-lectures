@@ -491,3 +491,67 @@ doi="10.1007/978-3-319-24574-4_28"
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
 
+@article{mueller2022instant,
+    author = {Thomas M\"uller and Alex Evans and Christoph Schied and Alexander Keller},
+    title = {Instant Neural Graphics Primitives with a Multiresolution Hash Encoding},
+    journal = {ACM Trans. Graph.},
+    issue_date = {July 2022},
+    volume = {41},
+    number = {4},
+    month = jul,
+    year = {2022},
+    pages = {102:1--102:15},
+    articleno = {102},
+    numpages = {15},
+    url = {https://doi.org/10.1145/3528223.3530127},
+    doi = {10.1145/3528223.3530127},
+    publisher = {ACM},
+    address = {New York, NY, USA},
+}
+
+@inproceedings{Mildenhall2020,
+ title={NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis},
+ author={Ben Mildenhall and Pratul P. Srinivasan and Matthew Tancik and Jonathan T. Barron and Ravi Ramamoorthi and Ren Ng},
+ year={2020},
+ booktitle={ECCV},
+}
+
+@inproceedings{Hemidi2023,
+  title={CineJENSE: Simultaneous Cine MRI Image Reconstruction and Sensitivity Map Estimation Using Neural Representations},
+  author={Al-Haj Hemidi, Ziad and Vogt, Nora and Quillien, Lucile and Weihsbach, Christian and Heinrich, Mattias P and Oster, Julien},
+  booktitle={International Workshop on Statistical Atlases and Computational Models of the Heart},
+  pages={467--478},
+  year={2023},
+  organization={Springer}
+}  
+
+@ARTICLE{Feng2024,
+  author={Feng, Ruimin and Wu, Qing and Feng, Jie and She, Huajun and Liu, Chunlei and Zhang, Yuyao and Wei, Hongjiang},
+  journal={IEEE Transactions on Medical Imaging}, 
+  title={IMJENSE: Scan-Specific Implicit Representation for Joint Coil Sensitivity and Image Estimation in Parallel MRI}, 
+  year={2024},
+  volume={43},
+  number={4},
+  pages={1539-1553},
+  keywords={Magnetic resonance imaging;Sensitivity;Image reconstruction;Training;Imaging;Estimation;Encoding;Implicit neural representation;MRI acceleration;neural networks;parallel imaging;scan-specific},
+  doi={10.1109/TMI.2023.3342156}}
+
+@article{Martel2021,
+author = {Martel, Julien N. P. and Lindell, David B. and Lin, Connor Z. and Chan, Eric R. and Monteiro, Marco and Wetzstein, Gordon},
+title = {Acorn: adaptive coordinate networks for neural scene representation},
+year = {2021},
+issue_date = {August 2021},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {40},
+number = {4},
+issn = {0730-0301},
+url = {https://doi.org/10.1145/3450626.3459785},
+doi = {10.1145/3450626.3459785},
+abstract = {Neural representations have emerged as a new paradigm for applications in rendering, imaging, geometric modeling, and simulation. Compared to traditional representations such as meshes, point clouds, or volumes they can be flexibly incorporated into differentiable learning-based pipelines. While recent improvements to neural representations now make it possible to represent signals with fine details at moderate resolutions (e.g., for images and 3D shapes), adequately representing large-scale or complex scenes has proven a challenge. Current neural representations fail to accurately represent images at resolutions greater than a megapixel or 3D scenes with more than a few hundred thousand polygons. Here, we introduce a new hybrid implicit-explicit network architecture and training strategy that adaptively allocates resources during training and inference based on the local complexity of a signal of interest. Our approach uses a multiscale block-coordinate decomposition, similar to a quadtree or octree, that is optimized during training. The network architecture operates in two stages: using the bulk of the network parameters, a coordinate encoder generates a feature grid in a single forward pass. Then, hundreds or thousands of samples within each block can be efficiently evaluated using a lightweight feature decoder. With this hybrid implicit-explicit network architecture, we demonstrate the first experiments that fit gigapixel images to nearly 40 dB peak signal-to-noise ratio. Notably this represents an increase in scale of over 1000X compared to the resolution of previously demonstrated image-fitting experiments. Moreover, our approach is able to represent 3D shapes significantly faster and better than previous techniques; it reduces training times from days to hours or minutes and memory requirements by over an order of magnitude.},
+journal = {ACM Trans. Graph.},
+month = jul,
+articleno = {58},
+numpages = {13},
+keywords = {neural signal representation}
+}

@@ -1,0 +1,44 @@
+data:
+  batch_size: 40960
+  num_workers: 4
+  class: "BilinearImageDataset"  # Use bilinear interpolation for smoother learning
+  params:
+    root_dir: './images'
+    img_idx: 0
+    valid_ratio: 0.2
+
+loss: RelativeMSE
+metrics: 
+  mse: BatchRelativeMSE
+
+optim:
+  algo: Adam
+  params:
+    lr: 0.01
+    # weight_decay: 0.001
+
+scheduler:
+  step_size: 50
+  gamma: 0.5
+
+nepochs: 200
+
+checkpoint_metric: "mse"
+
+sampler: sample_image
+
+logging:
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+  imgfreq: 10
+
+model:
+  class: "RealNGP"
+  params:  
+    dim_input: 2
+    dim_output: 3
+    n_hidden_units: 64
+    n_hidden_layers: 2
+    pos_encoding:
+       class: "Positional"
+       params:
+         "L": 10
