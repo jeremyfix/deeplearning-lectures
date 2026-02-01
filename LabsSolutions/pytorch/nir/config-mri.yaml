@@ -25,6 +25,9 @@ nepochs: 500
 
 checkpoint_metric: "kspace"
 
+sampler: oversample_mri
+# test_sampler: oversample_mri
+
 logging:
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
   imgfreq: 50

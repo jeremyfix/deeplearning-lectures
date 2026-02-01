@@ -130,6 +130,8 @@ def train(configpath):
         model, logdir, min_is_best=True
     )
 
+    sampling_function = eval(f"samplers.{config['sampler']}")
+
     for e in range(config["nepochs"]):
         logging.info(f"\n\nEpoch {e}/{config['nepochs']} starting")
 
@@ -183,9 +185,10 @@ def train(configpath):
 
         if e % config["logging"]["imgfreq"] == 0:
             #samplers.sample_image(model, logdir, e)
-            samplers.sample_mri(model, logdir, e, train_loader)
+            # samplers.sample_mri(model, logdir, e, train_loader)
             # For the test function ? 
-            # samplers.oversample_mri(model, logdir, e, train_loader, oversampling_factor=2)
+            samplers.oversample_mri(model, logdir, e, train_loader, oversampling_factor=2)
+            sampling_function(model, logdir, e, train_loader)
 
         scheduler.step()
         logging.info(f" Epoch {e} done")
@@ -216,8 +219,6 @@ def test(logdir):
         width=width)    
 
     logging.info(f"Sample image generated")
-    #.save(logdir / f"sample_epoch_{e}{tag}.png")
-
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")

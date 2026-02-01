@@ -25,6 +25,8 @@ nepochs: 200
 
 checkpoint_metric: "mse"
 
+sampler: sample_image
+
 logging:
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
   imgfreq: 10
