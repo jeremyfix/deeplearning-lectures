@@ -46,7 +46,7 @@ class MRINerf(nn.Module):
         csm = torch.view_as_complex(csm)  # (K, ncoils)
 
         # Compute the RSS over the coils
-        csm_norm = torch.abs(csm).sum(axis=-1) + 1e-12
-        csm = csm / csm_norm.detach().unsqueeze(-1) # (K, ncoils)
+        csm_norm = torch.sqrt((csm.conj() * csm).sum(axis=-1)) + 1e-12
+        csm = csm / csm_norm.unsqueeze(-1) # (K, ncoils)
 
         return self.pre_intensity, csm

@@ -339,6 +339,14 @@ class MICCAI2023(Dataset):
         subsampled_data = subsampled_data[:, :, :, frames_to_keep] # (kx, ky, sc, t)
         fullsampled_data = fullsampled_data[:, :, :, frames_to_keep]
 
+        # Normalize the data for this slice
+        # This step is super important for the training to work properly !!!!
+        coils_combined = combine_coils(subsampled_data)
+        norm_factor = coils_combined.max()
+        subsampled_data = subsampled_data / norm_factor.item()
+        # And use the same factor for the fully sampled data
+        fullsampled_data = fullsampled_data / norm_factor.item()
+
         # Assign these data to the instance members
         self.subsampled_data = subsampled_data
         self.subsampled_mask = subsampled_mask

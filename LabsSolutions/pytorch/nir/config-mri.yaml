@@ -4,7 +4,7 @@ data:
   class: "MICCAI2023"  # Use bilinear interpolation for smoother learning
   params:
     rootdir: '/opt/datasets/MICCAI/ChallengeData'
-    valid_frames: [4, 6]
+    valid_frames: [5]
     slice_idx: 0
 
 loss: KSpaceLoss
@@ -26,7 +26,7 @@ checkpoint_metric: "kspace"
 
 logging:
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
-  imgfreq: 10
+  imgfreq: 50
 
 model:
   class: "MRINerf"
