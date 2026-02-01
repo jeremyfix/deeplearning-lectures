@@ -187,7 +187,7 @@ def train(configpath):
             #samplers.sample_image(model, logdir, e)
             # samplers.sample_mri(model, logdir, e, train_loader)
             # For the test function ? 
-            samplers.oversample_mri(model, logdir, e, train_loader, oversampling_factor=2)
+            # samplers.oversample_mri(model, logdir, e, train_loader, oversampling_factor=2)
             sampling_function(model, logdir, e, train_loader)
 
         scheduler.step()
