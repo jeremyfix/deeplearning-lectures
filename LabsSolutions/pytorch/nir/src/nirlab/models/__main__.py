@@ -90,6 +90,46 @@ def test_real_hash_NGP():
     
     assert( y.shape == torch.Size((K, dim_output)))
     
+def test_real_hashEmbedder_NGP():
+    logging.info("Testing the NGP with HashEmbedder encoding")
+
+    if torch.accelerator.is_available():
+        device = torch.accelerator.current_accelerator()
+    else:
+        device = torch.device('cpu')
+
+    dim_input = 3
+    dim_output = 4
+
+    cfg = {
+        "class": "RealNGP",
+        "params": {
+            "dim_input": dim_input,
+            "dim_output": dim_output,            
+            "pos_encoding": {
+                "class": "HashEmbedder",
+                "params": {
+                    "n_levels": 16,
+                    "n_features_per_level": 2,
+                    "log2_hashmap_size": 19,
+                    "base_resolution": 16,
+                    "finest_resolution": 512
+                }
+            },
+            "n_hidden_units": 4,
+            "n_hidden_layers": 5
+        }
+    }
+
+    nir = build_model(cfg).to(device)
+
+    K = 123
+    X = torch.rand(K, dim_input).to(device)
+    y = nir(X)
+    
+    assert( y.shape == torch.Size((K, dim_output)))
+
+
 def test_MRINerf():
     logging.info("Testing the MRINerf with Hash encoding")
     if torch.accelerator.is_available():
@@ -146,7 +186,7 @@ def test_MRINerf():
     nir = build_model(cfg).to(device)
 
     Nrows, Ncols, Nt = 12, 12, 8
-    xyt = utils.build_coordinate_Nd(Nrows, Ncols, Nt).to(device)  # (K, 3)
+    xyt = utils.build_coordinate_Nd(Nrows, Ncols, Nt).to(device).unsqueeze(dim=0)  # (K, 3)
 
     y = nir(xyt)
 
@@ -156,3 +196,4 @@ if __name__ == "__main__":
     if tcnn_available:
         test_real_hash_NGP()
         test_MRINerf()
+    test_real_hashEmbedder_NGP()

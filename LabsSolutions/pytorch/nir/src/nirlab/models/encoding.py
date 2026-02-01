@@ -19,6 +19,7 @@ except ImportError:
 
 # Local imports
 import nirlab.utils as utils
+from nirlab.models.hash_encoding import HashEmbedder
 
 def build_encoder(dim_input, cfg):
     params = cfg["params"]

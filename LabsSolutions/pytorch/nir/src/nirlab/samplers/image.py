@@ -65,7 +65,9 @@ def generate_sample(model,
     return img
 
 def sample_image(model, 
-                 logdir, epoch, 
+                 logdir, 
+                 epoch, 
+                 train_loader,
                  batch_size=32,
                  height=100, 
                  width=100):

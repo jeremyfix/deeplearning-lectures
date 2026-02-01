@@ -1,7 +1,6 @@
 # coding: utf-8
 
 # Standard imports
-from enum import nonmember
 import random
 
 # External imports

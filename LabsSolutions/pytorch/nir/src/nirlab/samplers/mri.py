@@ -30,7 +30,7 @@ def oversample_mri(model, logdir, epoch, train_loader, oversampling_factor=1.5, 
 
     Nrows, Ncols, Ncoils, Nframes = subsampled_data.shape
 
-    coords = utils.build_coordinate_Nd(Nrows*oversampling_factor, Ncols*oversampling_factor, Nframes*oversampling_factor, device=device) # (Npoints, 3)
+    coords = utils.build_coordinate_Nd(Nrows*oversampling_factor, Ncols*oversampling_factor, Nframes, device=device) # (Npoints, 3)
     coords = coords.to(device)
 
     coord_ds = torch.utils.data.TensorDataset(coords)
