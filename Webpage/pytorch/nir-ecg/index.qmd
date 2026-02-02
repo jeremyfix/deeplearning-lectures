@@ -12,7 +12,7 @@ keywords: [PyTorch tutorial, NERF, MRI]
 In this lab, we are going to explore Neural Implicit Representations (NIR) through the encoding of an image (a 2D structure) and of a cardiac MRI recording which is 3D+t representation. This lab is based on several papers : 
 
 - [@Mildenhall2020] which introduced Neural Radiance Fields, 
-- [@mueller2022instant] who introduced Instant NGP mainly a NERF with a better encoding of the input coordinates and led to the developpement of tiny-cuda-nn, a highly optimized implementation of NERFs,
+- [@mueller2022instant] who introduced Instant NGP mainly a NERF with a better encoding of the input coordinates and led to the development of tiny-cuda-nn, a highly optimized implementation of NERFs,
 - [@Hemidi2023] and [@Feng2024] for the application of NERFs to Cardiac MRI. 
 
 To explore NIR for ECGs, we will use the data provided for the [CMXRecon Cardiac MRI challenge of the MICCAI 2023 conference](https://cmrxrecon.github.io/Home.html). One of the objectives of this challenge was to accelerate the acquisition. 
@@ -79,9 +79,9 @@ This basic code base offers you several modules :
 
 The concept of NERFs was introduced in 2020 [@Mildenhall2020] (see also [https://www.matthewtancik.com/nerf](https://www.matthewtancik.com/nerf)). As clearly illustrated on the webpage of the paper (see below), a NERF is a neural network representing a scene and optimised by backpropagating through a loss between ground truth observations and predicted observations. On the image below, the NERFs is used to encode the 3D scene and can be projected on the camera frames by integrating along rays. With the observed camera frames, we can compute a loss to optimize the parameters of the neural network. 
 
-![The NERF encodes the scene and is optimised by computing the loss between the expected camera projections and the actual observatios](https://cdn.prod.website-files.com/51e0d73d83d06baa7a00000f/5e700ef6067b43821ed52768_pipeline_website-01-p-800.png)
+![The NERF encodes the scene and is optimised by computing the loss between the expected camera projections and the actual observations](https://cdn.prod.website-files.com/51e0d73d83d06baa7a00000f/5e700ef6067b43821ed52768_pipeline_website-01-p-800.png)
 
-We are going to illustrate the use of NERFs on the giga pixel problem. The gigapixel aims to produce super resolution on an image but the approach considered by NERFs is trully original with respect to what was done before their introduction. In the traditional approach, you would train a neural network to upscale by a fixed factor your image. With the NERF approach, you fit a neural network to predict the pixel values at their integer coordinates and then can evaluate the neural network on arbitrary positions, in particular at subpixel positions.
+We are going to illustrate the use of NERFs on the giga pixel problem. The gigapixel aims to produce super resolution on an image but the approach considered by NERFs is truly original with respect to what was done before their introduction. In the traditional approach, you would train a neural network to upscale by a fixed factor your image. With the NERF approach, you fit a neural network to predict the pixel values at their integer coordinates and then can evaluate the neural network on arbitrary positions, in particular at subpixel positions.
 
 With NERFs, we train a neural network specifically on one sample, e.g. on an image. We aim at learning a parametric function $f_\theta(x, y) : \mathbb{R}^2 \mapsto \mathbb{R}^3$ which maps pixel coordinates onto RGB values. The pixel coordinates of an image are integer values, right. But with NERFs, in order to obtain super resolution, we learn a function that can be queried with sub-pixels coordinates. The output also belongs to a finite space with values in $[0, 255]$ (unsigned int 8) that will be converted to floating points values in $[0, 1]$.
 
@@ -95,9 +95,9 @@ This image is already provided to you in the `nirlab/images` directory.
 
 Data loading involves, as usual, providing the datasets objects feeding the dataloaders. These are implemented in `data/image.py` for the datasets and `data/__init__.py` for the dataloaders. For training our neural network on image encoding, we will sample random points in $[0, 1] \times [0, 1]$ for the coordinates and assigned it a ground truth pixel with either **nearest neighbour** interpolation or, **bilinear interpolation** as used in ACORN [@Martel2021] (see "4.1 Image Fitting Task" in the paper) and [tiny-cuda-nn](https://github.com/NVlabs/tiny-cuda-nn/blob/2e757bbe781db59c4980d389d7dccbf5edc09669/samples/mlp_learning_an_image_pytorch.py#L57-L85).
 
-In `data/image.py`, you are provided with a base class `BaseImageDataset` from which `ImageDataset` and `BilinearImageDateset` inherits. These two child classes just have to overload the `sample` method which takes as input floating point coordinates in $[0, 1]\times [0, 1]$ and must return a pixel value in $[0, 1]^3$. The base class already loads an image in the `image` instance attribute.
+In `data/image.py`, you are provided with a base class `BaseImageDataset` from which `ImageDataset` and `BilinearImageDataset` inherits. These two child classes just have to overload the `sample` method which takes as input floating point coordinates in $[0, 1]\times [0, 1]$ and must return a pixel value in $[0, 1]^3$. The base class already loads an image in the `image` instance attribute.
 
-**Exercice** Implement the `sample` method of both `ImageDataset` and `BilinearImageDataset`. For testing your implementation, you are provided with a test function `test_image_dataset` in `nirlab/data/__main__.py`. If you know what to expect when running this test function, it remains to write the code to make it work :).
+**Exercise** Implement the `sample` method of both `ImageDataset` and `BilinearImageDataset`. For testing your implementation, you are provided with a test function `test_image_dataset` in `nirlab/data/__main__.py`. If you know what to expect when running this test function, it remains to write the code to make it work :).
 
 ``` bash
 (venv) mymachine:~:mylogin$ python -m nirlab.data
@@ -124,7 +124,7 @@ $$
 
 The above formula states the slice of the embedding for one of the components of our point $x$. So far we discussed the case $d=2$ for an image but the positional encoding can be written in a very generic way, for arbitrary input dimension $d$.
 
-**Exercice** Implement the position encoding. This is only $4$ lines of code and you have hints in the code. This must be implement in the `Positional` class in `nirlab/models/encoding.py`. You can test your code with the `test_positional_encoding` function you can invoke with :
+**Exercise** Implement the position encoding. This is only $4$ lines of code and you have hints in the code. This must be implement in the `Positional` class in `nirlab/models/encoding.py`. You can test your code with the `test_positional_encoding` function you can invoke with :
 
 ``` bash
 (venv) mymachine:~:mylogin$ python -m nirlab.models.encoding
@@ -138,7 +138,7 @@ The expected output is given below. On this image, we set $L=4$ and the encoding
 
 It is now time to stick together the positional encoding with the feedforward neural network. 
 
-**Exercice** Finish the implementation of the neural network structure in the `RealNGP` class in the `nirlab/models/ngp.py`. As you will see, the embedder is instantiated but you still need to code the feedforward neural network. 
+**Exercise** Finish the implementation of the neural network structure in the `RealNGP` class in the `nirlab/models/ngp.py`. As you will see, the embedder is instantiated but you still need to code the feedforward neural network. 
 
 You can test your implementation by running :
 
@@ -206,7 +206,7 @@ model:
 
 During training, the model is sampled over a $1000 \times 1000$ grid and the resulting image is saved in the logdir of your run.
 
-**Exercice** It is your turn to perform experiments. You can try using either the `ImageDataset` or `BilinearImageDataset`.
+**Exercise** It is your turn to perform experiments. You can try using either the `ImageDataset` or `BilinearImageDataset`.
 
 ![Learning "Les Amoureux", E. Friant with a NIR using a positional encoding. One image every ten epochs, trained for $200$ epochs.](nir_positional.gif)
 
@@ -228,7 +228,7 @@ You can test the hash embedding
 (venv) mymachine:~:mylogin$ python -m nirlab.models.hash_encoding
 ```
 
-**Exercice** Modify your configuration file to use the multiresolution hash encoding. You can for example consider the parameters below. For the FFFN, as explained in the paper [@mueller2022instant], a much smaller network can be considered. 
+**Exercise** Modify your configuration file to use the multiresolution hash encoding. You can for example consider the parameters below. For the FFFN, as explained in the paper [@mueller2022instant], a much smaller network can be considered. 
 
 ```yaml
 n_levels: 16
@@ -244,7 +244,7 @@ Using $2$ layers with $64$ units, the networks trains much faster
 
 ### Sampling function
 
-**Exercice** Taking inspiration from the sampling function provided in `nirlab/samplers/image.py`, reproduce the Gigapixel animation as shown on the [webpage of Instant NGP](https://nvlabs.github.io/instant-ngp/). As the coordinates lie in the $[0, 1]^2$ domain, you can progressively zoom in by sampling a grid of a given size on a smaller and smaller domain.
+**Exercise** Taking inspiration from the sampling function provided in `nirlab/samplers/image.py`, reproduce the Gigapixel animation as shown on the [webpage of Instant NGP](https://nvlabs.github.io/instant-ngp/). As the coordinates lie in the $[0, 1]^2$ domain, you can progressively zoom in by sampling a grid of a given size on a smaller and smaller domain.
 
 ## 3D+t encoding of Cardiac MRI (soon)
 
@@ -252,12 +252,12 @@ We now turn our attention on the use of NERF for encoding structure of a higher 
 
 ::: {.callout-warning}
 
-In the following, we will stick to the proposal of [@Hemidi2023] using only 2D+t. The main reason behind that choice is that tiny-cuda-nn, which is the library used in the paper to get the Hash encoding is "only" supporting 2D and 3D coordinates. 
+In the following, we will stick to the proposal of [@Hemidi2023] using only 2D+t. The main reason behind that choice is that tiny-cuda-nn, which is the library used in the paper to get the Hash encoding, is "only" supporting 2D and 3D coordinates. 
 
 It remains to be tested and adapted but the Hash encoding provided by `nirlab` supports 2D, 3D and 4D coordinates. In principle, it should be possible to learn the representation in 3D+t. If you do so, just let me know ;).
 :::
 
-**This part is not yet released**. The code was initially written using the tiny-cuda-nn hash encoding, only supporting up to $3D$ coordinates. This is not completly satisfactory. Indeed, with the pure python Hash embedder, you could reimplement the full $3D+t$ model.
+**This part is not yet released**. The code was initially written using the tiny-cuda-nn hash encoding, only supporting up to $3D$ coordinates. This is not completely satisfactory. Indeed, with the pure python Hash embedder, you could reimplement the full $3D+t$ model.
 
 In any case, below is an example of what can be produced with the code base, trained on the MICCAI data.
 
