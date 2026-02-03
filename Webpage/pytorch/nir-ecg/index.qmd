@@ -47,7 +47,7 @@ mymachine:~:mylogin$ source /tmp/venv/bin/activate
 Then, to install the library in developer mode :
 
 ``` bash
-(venv) mymachine:~:mylogin$ python -m pip install -e inr
+(venv) mymachine:~:mylogin$ python -m pip install -e nir
 ```
 
 You can verify that the library is installed by running :

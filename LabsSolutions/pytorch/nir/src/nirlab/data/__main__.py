@@ -115,7 +115,7 @@ if __name__ == "__main__":
     root_dir = "/opt/datasets/MICCAI/ChallengeData"
     # SOL@
     # @TEMPL
-    # root_dir = "/mounts/datasets/datasets/MICCAIChallenge2023"
+    # root_dir = "/mounts/datasets/datasets/MICCAIChallenge2023/ChallengeData"
     # TEMPL@
     test_miccai_dataset(root_dir)
 
