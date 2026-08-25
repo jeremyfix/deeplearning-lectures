@@ -1,0 +1,45 @@
+---
+title:  'First steps in PyTorch : classifying fashion objects (FashionMNIST)'
+author:
+- Jeremy Fix
+keywords: [PyTorch tutorial, FashionMNIST]
+---
+
+<a href="https://jeremyfix.github.io/deeplearning-lectures/">Deep learning lectures</a> © 2018 by <a href="https://jeremyfix.github.io">Jeremy Fix</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+
+## Objectives
+
+In this practical, we will make our first steps with PyTorch and train our first models for classifying the [fashion dataset of zalando](https://github.com/zalandoresearch/fashion-mnist) which is made of :
+
+- $60000$ $28\times28$ grayscale images in the training set
+- $10000$ $28\times28$ grayscale images in the test set
+- belonging to 10 classes (Tshirt, Trouser, Pullover, Dress, Coat, Sandal, Shift, Sneaker, Bag, Ankle boot)
+
+Some samples of the dataset are represented below :
+
+![Samples of the fahsion MNIST dataset](fashionMNIST_samples.png){.bordered width="100%"}
+
+It should be noted that this dataset has been devised in order to replace the traditional MNIST dataset which is by far too easy now (a simple CNN can reach a test accuracy higher than $99.5\%$). We may have used MNIST for this introductory practical but well ... let us have fun with fashion, why not ?!
+
+As you enter the universe of Pytorch, you might be interested in looking at [dedicated pytorch tutorials](https://pytorch.org/tutorials/).
+
+The models you will train are :
+
+- a linear classifier (logistic regression)
+- a fully connected neural network with two hidden layers
+- a vanilla convolutional neural network (i.e. a LeNet like convnet)
+- some fancier architectures (e.g. ConvNets without fully connected layers)
+
+As we progress within this tutorial, you will also see some syntactic
+elements of PyTorch to :
+
+- load the datasets,
+- define the architecture, loss, optimizer,
+- save/load a model and evaluate its performances
+- monitor the training progress by interfacing with a dedicated web server
+
+::: {.callout-important}
+**VERY VERY Important**: Below, we see together step by step how to set up our training script. While reading the following lines you will progressively fill in python script. We also see the modules to be imported only when these are required for the presentation. But obviously, it is clearer to put these imports at the beginning of your scripts. So the following python codes **should not be strictly copy-pasted** on the fly.
+:::
+
+## Modular code base
