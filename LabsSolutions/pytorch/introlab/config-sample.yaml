@@ -1,0 +1,25 @@
+data:
+  trainpath: '/opt/Datasets/'
+  # testpath: '/dummy/path/to/test'
+  batch_size: 256
+  num_workers: 4
+  valid_ratio: 0.2
+
+optim:
+  algo: SGD
+  params:
+    lr: 0.01
+
+nepochs: 20
+loss: "CrossEntropyLoss"
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+# model:
+#   class: Linear
+model:
+  class: VanillaCNN
+  num_layers : 4
