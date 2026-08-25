@@ -19,7 +19,7 @@ website:
       - text: "Pytorch"
         menu:
           - text: "First steps in PyTorch : classifying fashion objects (FashionMNIST)"
-            file: pytorch/fashionMNIST/index.qmd
+            file: pytorch/intro/index.qmd
           - text: "Transfer learning and Object detection"
             file: pytorch/object-detection/index.qmd
           - text: "Semantic segmentation on Pascal VOC"
@@ -49,7 +49,7 @@ website:
           - index.qmd
       - section: "Pytorch"
         contents:
-          - pytorch/fashionMNIST/index.qmd
+          - pytorch/intro/index.qmd
           - pytorch/object-detection/index.qmd
           - pytorch/segmentation/index.qmd
           - pytorch/asr/index.qmd
