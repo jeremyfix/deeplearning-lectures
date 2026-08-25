@@ -44,14 +44,14 @@ elements of PyTorch to :
 
 ## Setup and predefined scripts
 
-For this lab, you are provided base code to complete: [fashionmnit-kit.tar.gz](../../assets/fashionmnit-kit.tar.gz). To get and use that code:  
+For this lab, you are provided base code to complete: [fashionmnit-kit.tar.gz](../../assets/introlab-kit.tar.gz). To get and use that code: 
 
 ```bash
-wget https://jeremyfix.github.io/deeplearning-lectures/assets/fashionmnist-kit.tar.gz
-tar -zxvf fashionmnist-kit.tar.gz
+wget https://jeremyfix.github.io/deeplearning-lectures/assets/introlab-kit.tar.gz
+tar -zxvf introlab-kit.tar.gz
 ```
 
-This code is organized as a Python library `fashionmnist` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
+This code is organized as a Python library `introlab` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
 
 To install the library, you should 1) create a virtual environment and 2) install it in developer mode.
 
@@ -72,22 +72,139 @@ source /tmp/venv/bin/activate
 Then, to install the library in developer mode:
 
 ``` bash
-python -m pip install -e fashionMNIST
+python -m pip install -e introlab
 ```
 
 You can verify that the library is installed by running:
 
 ``` bash
-python -c "import fashionmnist; print(f'Library available at {fashionmnist.__file__}')"
+python -c "import introlab; print(f'Library available at {introlab.__file__}')"
 ```
 
 This basic code base offers you several modules that **we will cover step by step**:
 
 - data.py: deals with data loading,
-- models.py: contains our neural networks,
+- models: submodule containing our neural networks,
 - utils.py: contains several utility functions such as the training and test loops, saving the best models, etc.
 - main.py: the main script which will run training and testing.
 
 ## Data loading
 
 ### Minimal test definition
+
+Our objective, in this part on the data, is to offer a function `get_dataloaders` which returns the dataloaders for training, validation, the dimensionality of the input and target as well as some other usefull things such as the classes names. That's the contract. In order to ensure that contract is fullfilled, we define a minimal test function.
+
+In the `data.py` script, **write** the following test :
+
+```python 
+
+def test_dataloaders():
+    data_config = {
+        "root_dir": "./data",
+        "valid_ratio": 0.2,
+        "batch_size": 32,
+        "num_workers": 0,
+    }
+    use_cuda = torch.cuda.is_available()
+
+    train_loader, valid_loader, input_size, num_classes, classes = get_dataloaders(
+        data_config, use_cuda
+    )
+
+    X, y = next(iter(train_loader))
+    grid = make_grid(X, nrow=8)
+    show(grid)
+    plt.tight_layout()
+    plt.savefig("fashionMNIST_grid.png", bbox_inches='tight')
+
+```
+
+We want this local test to be called when invoking `python -m introlab.data`. For this to happen, we need the following lines at the end of the `data.py` script :
+
+```python
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    test_dataloaders()
+```
+
+Now, in the next sections, we explain how to write the `get_dataloaders` function. Anytime you want to test it, you just need to the data submodule : `python -m introlab.data`.
+
+### Construction of the datasets for training and validation
+
+In the `data.py` submodule, the function `get_dataloaders` has to build and return the dataloaders for training and validation as well as some additional info. To do so, we first need a data. 
+
+**Complete** the construction of the dataset :
+
+```python
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# TODO: Create the FashionMNIST dataset
+#       The variable rootdir is useful
+base_dataset = None
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```
+
+so that `base_dataset` is an instance of the [torchvision.datasets.FashionMNIST](https://pytorch.org/vision/main/generated/torchvision.datasets.FashionMNIST.html) dataset. Pay attention to the beginning of the function, some variables might be useful, such as the `root_dir`.
+
+Once done, we proceed by splitting the dataset into two folds : one for validation, a fraction `valid_ratio` of the total number of samples, and one for training.
+
+**Build** the two folds for training and validation. For this, you need to complete the code below. Pytorch offer you the [torch.utils.data.Subset](https://docs.pytorch.org/docs/stable/data.html#torch.utils.data.Subset) dataset class. 
+
+```python
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# TODO : Create the train and valid splits. The torch.utils.data.Subset
+#        class is useful for this purpose
+train_dataset = None
+valid_dataset = None
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```
+
+::: {.callout-note}
+Just after building the splits, some transforms are declared in the code. We do not detail that part of the code for now. We will go back to that sections once we will discuss augmentation transforms. Still, you may take a minute or two understanding this simple pipeline which reduces to :
+
+
+```python
+preprocess_transforms = [
+    v2.ToImage(),
+    v2.ToDtype(torch.float32, scale=True),
+]
+train_transforms = v2.Compose(preprocess_transforms)
+train_dataset = WrappedDataset(train_dataset, train_transforms)
+
+valid_transforms = v2.Compose(preprocess_transforms)
+valid_dataset = WrappedDataset(valid_dataset, valid_transforms)
+```
+
+`ToImage` transforms the PIL image into a torchvision Image tensor (C, H, W), converts the int8 values to floating points values, scaling $[0, 255]$ to $[0.0, 1.0]$.
+
+The use of `WrappedDataset` is to keep a degree of freedom to apply different transform pipelines for the train and valid folds, e.g. the augmentations.
+
+:::
+
+### The dataloaders
+
+We are almost done. Now that we have our dataset objects, it is straightforward to construct dataloaders using the [torch.utils.data.DataLoader](https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader) functions.
+
+**Proceed by completing** the construction of the dataloaders :
+
+```python
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+# TODO: Create the train and valid dataloaders
+# from their respective datasets
+train_loader = None
+valid_loader = None
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```
+
+### Running the test
+
+If you correctly filled in the functions in the previous sections, you should be able to run the minimal test with the command :
+
+```bash
+python -m introlab.data
+```
+
+which is expected to produce an image with some samples of the FashionMNIST dataset in `fashionMNIST_grid.png` as below.
+
+![FashionMNIST sample grid as obtained from querying the dataloader](fashionMNIST_grid.png){width=50% .lightbox}
+
+If you notice weird pixels, like oversaturated ones, you should probably consider **temporarily** remove the normalization of the pixels. This normalization brings your pixels from $[0.0, 1.0]$ to $[-1.0, 1.0]$ which matplotlib clips to $[0.0, 1.0]$, hence the loss of information.

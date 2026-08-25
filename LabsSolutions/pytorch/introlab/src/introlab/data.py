@@ -19,8 +19,6 @@ import PIL
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
-
-
 def show(imgs):
     if not isinstance(imgs, list):
         imgs = [imgs]
@@ -37,25 +35,6 @@ def show_image(X):
     plt.figure()
     plt.imshow(X[0] if num_c == 1 else X.permute(1, 2, 0))
     plt.show()
-
-
-class GrayToRGB(torch.nn.Module):
-    def forward(self, img):
-        """
-        Args:
-            img (Tensor): Image to be converted to RGB if necessary
-                          if Tensor, expected to be (C, H, W)
-
-        Returns:
-            PIL Image or Tensor: RGB image
-        """
-        if isinstance(img, torch.Tensor):
-            if img.shape[0] == 1:
-                img = img.repeat(3, 1, 1)
-        else:
-            raise TypeError(f"Expected Tensor, got {type(img)}")
-        return img
-
 
 class WrappedDataset(torch.utils.data.dataset.Dataset):
     def __init__(self, dataset, transform):
@@ -232,7 +211,6 @@ def test_dataloaders():
     )
 
     X, y = next(iter(train_loader))
-    print(X.min(), X.max())
     grid = make_grid(X, nrow=8)
     show(grid)
     plt.tight_layout()
