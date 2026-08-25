@@ -42,4 +42,52 @@ elements of PyTorch to :
 **VERY VERY Important**: Below, we see together step by step how to set up our training script. While reading the following lines you will progressively fill in python script. We also see the modules to be imported only when these are required for the presentation. But obviously, it is clearer to put these imports at the beginning of your scripts. So the following python codes **should not be strictly copy-pasted** on the fly.
 :::
 
-## Modular code base
+## Setup and predefined scripts
+
+For this lab, you are provided base code to complete: [fashionmnit-kit.tar.gz](../../assets/fashionmnit-kit.tar.gz). To get and use that code:  
+
+```bash
+wget https://jeremyfix.github.io/deeplearning-lectures/assets/fashionmnist-kit.tar.gz
+tar -zxvf fashionmnist-kit.tar.gz
+```
+
+This code is organized as a Python library `fashionmnist` to be installed and used out of source. It contains all the required modules for running your experiments. If you want to add a feature, you need to modify that library.
+
+To install the library, you should 1) create a virtual environment and 2) install it in developer mode.
+
+**If you use the DCE of CentraleSupélec**, you can use pre-installed virtual environments that already ship several required packages:
+
+```bash
+/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+source $TMPDIR/venv/bin/activate
+```
+
+**Otherwise**, you need to create your own venv, for example using the built-in Python venv module:
+
+```bash
+python3 -m venv /tmp/venv
+source /tmp/venv/bin/activate
+```
+
+Then, to install the library in developer mode:
+
+``` bash
+python -m pip install -e fashionMNIST
+```
+
+You can verify that the library is installed by running:
+
+``` bash
+python -c "import fashionmnist; print(f'Library available at {fashionmnist.__file__}')"
+```
+
+This basic code base offers you several modules that **we will cover step by step**:
+
+- data.py: deals with data loading,
+- models.py: contains our neural networks,
+- utils.py: contains several utility functions such as the training and test loops, saving the best models, etc.
+- main.py: the main script which will run training and testing.
+
+## Data loading
+
+### Minimal test definition
