@@ -35,6 +35,19 @@ jobs:
 
       - name: Template code generation and solution code copy
         run: easylabwork LabsSolutions StudentsCode
+        
+      # Intro pytorch
+      - name: Pytorch intro lab base code
+        run: |
+          mkdir -p assets 
+          cd StudentsCode/pytorch/ 
+          tar -zcvf ../../assets/introlab-kit.tar.gz introlab
+
+      - name: Pytorch introlab solution code
+        run: |
+          mkdir -p assets 
+          cd LabsSolutions/pytorch/ 
+          tar -zcvf ../../assets/introlab-sol.tar.gz introlab
 
       # Semantic segmentation
       - name: Pytorch Semseg base code
