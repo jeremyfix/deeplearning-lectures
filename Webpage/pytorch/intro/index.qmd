@@ -637,9 +637,104 @@ If you dig into the pytorch implementation, you will notice it does not implemen
 
 ### Data augmentation
 
+The final category of regularization techniques we will consider is data augmentation. Data augmentation are transforms of your inputs for which you can predict the impact on the target. For this, you can use dedicated libraries such as [albumentations](https://albumentations.ai/) but we will here stick to the pytorch ecosystem with the [torchvision v2 transforms](https://pytorch.org/vision/main/auto_examples/transforms/plot_transforms_getting_started.html). 
+
+For a problem such as classifying fashion furnitures, we can consider transforms that leave invariant the class such as :
+
+- rotations
+- translations
+- symmetries
+- zoom
+- luminosity, contrast, .. alterations
+
+These augmentations are performed *on the fly*, no need to precompute a transformed dataset. The data augmentation transforms are added in the data pipeline, hence in the `data.py` submodule. For now, you only have : 
+
+```python
+preprocess_transforms = [
+    v2.ToImage(),
+    v2.ToDtype(torch.float32, scale=True)
+]
+if normalize:
+    preprocess_transforms.append(v2.Normalize(mean=[0.2860], std=[0.2750]))
+
+augmentation_transforms = [
+]
+
+train_transforms = v2.Compose(preprocess_transforms + augmentation_transforms)
+train_dataset = WrappedDataset(train_dataset, train_transforms)
+```
+
+The `augmentation_transforms` is expected to host the augmentation transforms.
+
+::: {.callout-tip}
+**Add** transforms in the `augmentation_transforms` list. Several possibilities can be considered, see the [documentation](https://pytorch.org/vision/main/transforms.html#v2-api-reference-recommended).
+
+You may also want to try augmentation poliices such as AutoAugment, RandAugment, etc.. , see [Auto-Augmentation](https://pytorch.org/vision/main/transforms.html#auto-augmentation).
+:::
+
+::: {.callout-tip}
+**Experiment** training with data augmentation. For your experiments, you need a model with sufficient capacity to be able to overfit, otherwise, you will not see the impact of data augmentation. For example, a multilayer feedforward network with $5$ hidden layers of size $128$.
+:::
+
+::: {.callout-note}
+I advise you to calibrate your augmentation pipeline, writting a function in `data.py` that will display augmented samples. That's a very first approach to define this pipeline. At the end of the day, it's your real risk that will gear you toward the appropriate augmentations.
+:::
+
+![Augmented samples of the class "bag"](./fashionMNIST_samples_augment.png){width=100% .lightbox}
+
 ## Convolutional neural networks
 
 ### Small kernels and global average pooling
+
+Finally, we are going to implement a convolutional neural network. For that, you need to complete the implementation of the `FancyCNN` class in the `models/cnn_models.py` subdmodule. We will then experiment writting a class deriving from the torch.nn.Module class :
+
+```python
+import torch.nn as nn
+
+class FancyCNN(nn.Module):
+
+    def __init__(self, cfg, input_size, num_classes):
+        super().__init__()
+        layers = []
+        cin = input_size[0]
+
+    def forward(self, x):
+        # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        # TODO: Implement the forward pass
+        return x
+        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+```
+
+You are requested to implement a model with $N$ blocks, each being the repetition of $2$ sub-blocks composed of :
+
+- a convolutional layer with a kernel size $3\times 3$, a zero-padding of $1$ and a stride of $1$,
+- a ReLU activation function,
+- a [BatchNormalization](https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html) layer.
+
+The `conv_relu_bn` function can be useful for this part.
+
+After every $2$ subblocks, we add a downsampling subblock composed of :
+
+- a convolutional layer, with a kernel size $2\times 2$, stride $2$, padding $0$,
+- a ReLU activation,
+- a BatchNormalization layer. 
+
+The `conv_down` function can be useful for this part.
+
+For every block, we progressively increase the number of output channels, for example $16$, $32$, $64$, $128$, ...
+
+After the $N$ blocks, we add a [global average pooling layer](https://pytorch.org/docs/stable/generated/torch.nn.AdaptiveAvgPool2d.html), a flatten layer and finally a linear layer for the classification.
+
+
+::: {.callout-tip}
+**Implement** and **experiment** the FancyCNN model. What do you notice about the performances and the relative number of trainable parameters ?
+:::
+
+You should end up with a model reaching around $93\%$ of test accuracy, and a test cross entropy loss around $0.20$ with a FancyCNN of $570K$ parameters, RandomHFlip and RandomRotation($-10$ deg, $10$ deg), training for $$20$ epochs. The training accuracy reached $95\%$, with a loss of $0.14$.
+
+## A possible solution
+
+You will find a possible solution at [introlab-sol.tar.gz](../../assets/introlab-sol.tar.gz)
 
 ## Bonus
 
