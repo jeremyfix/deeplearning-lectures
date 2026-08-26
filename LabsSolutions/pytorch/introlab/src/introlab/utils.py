@@ -81,8 +81,7 @@ def train_one_epoch(model, loader, f_loss, optimizer, device):
     # This is important for layers such as dropout, batchnorm, ...
     model.train()
 
-    total_loss = 0
-    num_samples = 0
+    metrics = {'total_loss': 0.0, 'num_correct': 0.0, 'N': 0}
     for i, (inputs, targets) in (pbar := tqdm.tqdm(enumerate(loader))):
 
         inputs, targets = inputs.to(device), targets.to(device)
@@ -99,11 +98,19 @@ def train_one_epoch(model, loader, f_loss, optimizer, device):
 
         # Update the metrics
         # We here consider the loss is batch normalized
-        total_loss += inputs.shape[0] * loss.item()
-        num_samples += inputs.shape[0]
-        pbar.set_description(f"Train loss : {total_loss/num_samples:.2f}")
+        metrics['total_loss'] += inputs.shape[0] * loss.item()
+        predicted_targets = outputs.argmax(dim=1)
+        metrics['num_correct'] += (predicted_targets == targets).sum().item()
+        metrics['N'] += inputs.shape[0]
 
-    return total_loss / num_samples
+        avg_train_loss = metrics['total_loss'] / metrics['N']
+        accuracy = metrics['num_correct'] / metrics['N']
+        pbar.set_description(f"Train loss : {avg_train_loss:.2f}, accuracy : {accuracy:.2f}")
+
+    avg_train_loss = metrics['total_loss'] / metrics['N']
+    accuracy = metrics['num_correct'] / metrics['N']
+    
+    return avg_train_loss, accuracy
 
 
 def test(model, loader, f_loss, device):
@@ -124,8 +131,7 @@ def test(model, loader, f_loss, device):
     # This is important for layers such as dropout, batchnorm, ...
     model.eval()
 
-    total_loss = 0
-    num_samples = 0
+    metrics = {'total_loss': 0.0, 'num_correct': 0.0, 'N': 0}
     for inputs, targets in loader:
 
         inputs, targets = inputs.to(device), targets.to(device)
@@ -137,7 +143,12 @@ def test(model, loader, f_loss, device):
 
         # Update the metrics
         # We here consider the loss is batch normalized
-        total_loss += inputs.shape[0] * loss.item()
-        num_samples += inputs.shape[0]
+        metrics['total_loss'] += inputs.shape[0] * loss.item()
+        predicted_targets = outputs.argmax(dim=1)
+        metrics['num_correct'] += (predicted_targets == targets).sum().item()
+        metrics['N'] += inputs.shape[0]
 
-    return total_loss / num_samples
+    avg_loss = metrics['total_loss'] / metrics['N']
+    accuracy = metrics['num_correct'] / metrics['N']
+    
+    return avg_loss, accuracy

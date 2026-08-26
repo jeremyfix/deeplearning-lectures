@@ -39,7 +39,7 @@ def train(config):
     logging.info("= Building the dataloaders")
     data_config = config["data"]
 
-    train_loader, valid_loader, input_size, num_classes = data.get_dataloaders(
+    train_loader, valid_loader, input_size, num_classes, classes = data.get_dataloaders(
         data_config, use_cuda
     )
 
@@ -122,24 +122,18 @@ def train(config):
 
     for e in range(config["nepochs"]):
         # Train 1 epoch
-        train_loss = utils.train_one_epoch(model, train_loader, loss, optimizer, device)
+        train_loss, train_acc = utils.train_one_epoch(model, train_loader, loss, optimizer, device)
 
         # Test
-        test_loss = utils.test(model, valid_loader, loss, device)
+        test_loss, test_acc = utils.test(model, valid_loader, loss, device)
 
         updated = model_checkpoint.update(test_loss)
-        logging.info(
-            "[%d/%d] Test loss : %.3f %s"
-            % (
-                e,
-                config["nepochs"],
-                test_loss,
-                "[>> BETTER <<]" if updated else "",
-            )
-        )
+        is_better_msg = "[>> BETTER <<]" if updated else ""
+        logging.info(f"[{e+1}/{config['nepochs']}] {is_better_msg} Test loss : {test_loss:.3f} ; Test acc : {test_acc:.2f}")
 
         # Update the dashboard
-        metrics = {"train_CE": train_loss, "test_CE": test_loss}
+        metrics = {"train_CE": train_loss, "train_acc": train_acc, 
+                   "test_CE": test_loss, "test_acc": test_acc}
 
         # On the tensorboard
         for key, value in metrics.items():
