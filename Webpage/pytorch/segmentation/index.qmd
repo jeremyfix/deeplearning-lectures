@@ -311,7 +311,7 @@ with $\gamma \geq 0$ a tunable parameter. Setting $\gamma=0$, we recover the cro
 
 The plot belows compares the cross entropy loss and the focal loss as a function of the probability assigned to the true class to be predicted.
 
-![Cross entropy loss vs focal loss. The focal loss attenuates more quickly than the cross entropy loss the influence of correctly predicted pixels](focal.png){width=70%}
+![Cross entropy loss vs focal loss. The focal loss attenuates more quickly than the cross entropy loss the influence of correctly predicted pixels. Generated using [focal.py](focal.py)](focal.png){width=70%}
 
 **Question** As it can be tricky to implement the focal loss, it is given to you. Do you see where this is implemented and which argument of the main script allows to use it ? Hint: check the creation of the loss in the main script.
 
