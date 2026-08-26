@@ -1,5 +1,5 @@
 ---
-title:  'First steps in PyTorch : classifying fashion objects (FashionMNIST)'
+title:  'First steps in PyTorch: classifying fashion objects (FashionMNIST)'
 author:
 - Jeremy Fix
 keywords: [PyTorch tutorial, FashionMNIST]
@@ -9,49 +9,49 @@ keywords: [PyTorch tutorial, FashionMNIST]
 
 ## Objectives
 
-In this practical, we will make our first steps with PyTorch and train our first models for classifying the [fashion dataset of zalando](https://github.com/zalandoresearch/fashion-mnist) which is made of :
+In this practical, we will make our first steps with PyTorch and train our first models for classifying the [Fashion MNIST dataset from Zalando](https://github.com/zalandoresearch/fashion-mnist), which is made of:
 
 - $60000$ $28\times28$ grayscale images in the training set
 - $10000$ $28\times28$ grayscale images in the test set
-- belonging to 10 classes (Tshirt, Trouser, Pullover, Dress, Coat, Sandal, Shift, Sneaker, Bag, Ankle boot)
+- belonging to 10 classes (T-shirt, Trouser, Pullover, Dress, Coat, Sandal, Shirt, Sneaker, Bag, Ankle boot)
 
-Some samples of the dataset are represented below :
+Some samples of the dataset are represented below:
 
-![Samples of the fahsion MNIST dataset](fashionMNIST_samples.png){.bordered width="100%"}
+![Samples of the fashion MNIST dataset](fashionMNIST_samples.png){.bordered width="100%"}
 
-It should be noted that this dataset has been devised in order to replace the traditional MNIST dataset which is by far too easy now (a simple CNN can reach a test accuracy higher than $99.5\%$). We may have used MNIST for this introductory practical but well ... let us have fun with fashion, why not ?!
+It should be noted that this dataset was created to replace the traditional MNIST dataset, which is by far too easy now (a simple CNN can reach a test accuracy higher than $99.5\%$). We may have used MNIST for this introductory practical, but well ... let us have fun with fashion, why not?!
 
-As you enter the universe of Pytorch, you might be interested in looking at [dedicated pytorch tutorials](https://pytorch.org/tutorials/).
+As you enter the universe of PyTorch, you might be interested in looking at [dedicated PyTorch tutorials](https://pytorch.org/tutorials/).
 
-The models you will train are :
+The models you will train are:
 
 - a linear classifier (logistic regression)
 - a fully connected neural network with two hidden layers
-- a vanilla convolutional neural network (i.e. a LeNet like convnet)
+- a vanilla convolutional neural network (i.e. a LeNet-like convnet)
 - some fancier architectures (e.g. ConvNets without fully connected layers)
 
 As we progress within this tutorial, you will also see some syntactic
-elements of PyTorch to :
+elements of PyTorch to:
 
 - load the datasets,
-- define the architecture, loss, optimizer,
-- save/load a model and evaluate its performances
-- monitor the training progress by interfacing with a dedicated web server
+- define the architecture, loss, and optimizer,
+- save/load a model and evaluate its performance,
+- monitor the training progress by interfacing with a dedicated web server.
 
 ::: {.callout-important}
-**VERY VERY Important**: You are provided with a code base. We will walk througth the code together. You should not read all the files before starting to code. However, when we discuss about coding in a function, you should also take the time to consider the surrounding code, where is that function called, which are the arguments of the function.
+**VERY IMPORTANT**: You are provided with a code base. We will walk through the code together. You should not read all the files before starting to code. However, when we discuss coding in a function, you should also take the time to consider the surrounding code: where is that function called, what are the arguments of the function, and how it fits into the overall design.
 :::
 
 ::: {.callout-note}
 The modular code base proposed in this lab comes from [https://github.com/jeremyfix/pytorch_template_code](https://github.com/jeremyfix/pytorch_template_code).
 
-It is, I consider, a reasonnable starting point for experimenting with pytorch. It features modularity and minimal guarantees of reproducibility. This is obviously highly customizable, feel free to adapt it for your own works. You may even consider contributing to that code base by sending pull requests, raising issues, etc.., feel free, it is open source released under GPL 3 :)
+It is, I consider, a reasonable starting point for experimenting with PyTorch. It features modularity and minimal guarantees of reproducibility. This is obviously highly customizable; feel free to adapt it for your own work. You may even consider contributing to that code base by sending pull requests, raising issues, etc. It is open source released under GPL 3 :)
 :::
 
 
 ## Setup and predefined scripts
 
-For this lab, you are provided base code to complete: [fashionmnit-kit.tar.gz](../../assets/introlab-kit.tar.gz). To get and use that code: 
+For this lab, you are provided a base code to complete: [fashionmnit-kit.tar.gz](../../assets/introlab-kit.tar.gz). To get and use that code:
 
 ``` bash
 wget https://jeremyfix.github.io/deeplearning-lectures/assets/introlab-kit.tar.gz
@@ -99,10 +99,10 @@ This basic code base offers you several modules that **we will cover step by ste
 
 ### Minimal test definition
 
-Our objective, in this part on the data, is to offer a function `get_dataloaders` which returns the dataloaders for training, validation, the dimensionality of the input and target as well as some other usefull things such as the classes names. That's the contract. In order to ensure that contract is fullfilled, we define a minimal test function.
+Our objective, in this part on data, is to offer a function `get_dataloaders` that returns the dataloaders for training and validation, the dimensionality of the input and target, as well as some other useful information such as the class names. That is the contract. To ensure that this contract is fulfilled, we define a minimal test function.
 
 ::: {.callout-tip}
-In the `data.py` script, **write** the following test :
+In the `data.py` script, **write** the following test:
 
 ```python 
 
@@ -127,10 +127,10 @@ def test_dataloaders():
 
 ```
 
-**What do you expect** from this function ? 
+**What do you expect** from this function?
 :::
 
-We want this local test to be called when invoking `python -m introlab.data`. For this to happen, we need the following lines at the end of the `data.py` script :
+We want this local test to be called when invoking `python -m introlab.data`. For this to happen, we need the following lines at the end of the `data.py` script:
 
 ```python
 if __name__ == "__main__":
@@ -138,14 +138,14 @@ if __name__ == "__main__":
     test_dataloaders()
 ```
 
-Now, in the next sections, we explain how to write the `get_dataloaders` function. Anytime you want to test it, you just need to the data submodule : `python -m introlab.data`.
+Now, in the next sections, we explain how to write the `get_dataloaders` function. Any time you want to test it, you just need to run the data submodule: `python -m introlab.data`.
 
 ### Construction of the datasets for training and validation
 
-In the `data.py` submodule, the function `get_dataloaders` has to build and return the dataloaders for training and validation as well as some additional info. To do so, we first need a data. 
+In the `data.py` submodule, the function `get_dataloaders` has to build and return the dataloaders for training and validation as well as some additional information. To do so, we first need a dataset.
 
 ::: {.callout-tip}
-**Complete** the construction of the dataset :
+**Complete** the construction of the dataset:
 
 ```python
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -155,14 +155,14 @@ base_dataset = None
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ```
 
-so that `base_dataset` is an instance of the [torchvision.datasets.FashionMNIST](https://pytorch.org/vision/main/generated/torchvision.datasets.FashionMNIST.html) dataset. Pay attention to the beginning of the function, some variables might be useful, such as the `root_dir`.
+so that `base_dataset` is an instance of the [torchvision.datasets.FashionMNIST](https://pytorch.org/vision/main/generated/torchvision.datasets.FashionMNIST.html) dataset. Pay attention to the beginning of the function; some variables might be useful, such as `root_dir`.
 :::
 
 
-Once done, we proceed by splitting the dataset into two folds : one for validation, a fraction `valid_ratio` of the total number of samples, and one for training.
+Once done, we proceed by splitting the dataset into two folds: one for validation, a fraction `valid_ratio` of the total number of samples, and one for training.
 
 ::: {.callout-tip}
-**Build** the two folds for training and validation. For this, you need to complete the code below. Pytorch offer you the [torch.utils.data.Subset](https://docs.pytorch.org/docs/stable/data.html#torch.utils.data.Subset) dataset class. 
+**Build** the two folds for training and validation. For this, you need to complete the code below. PyTorch offers the [torch.utils.data.Subset](https://docs.pytorch.org/docs/stable/data.html#torch.utils.data.Subset) dataset class.
 
 ```python
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -175,7 +175,7 @@ valid_dataset = None
 :::
 
 ::: {.callout-note}
-Just after building the splits, some transforms are declared in the code. We do not detail that part of the code for now. We will go back to that sections once we will discuss augmentation transforms. Still, you may take a minute or two understanding this simple pipeline which reduces to :
+Just after building the splits, some transforms are declared in the code. We do not detail that part of the code for now. We will come back to that section once we discuss augmentation transforms. Still, you may take a minute or two to understand this simple pipeline, which reduces to:
 
 
 ```python
@@ -190,9 +190,9 @@ valid_transforms = v2.Compose(preprocess_transforms)
 valid_dataset = WrappedDataset(valid_dataset, valid_transforms)
 ```
 
-`ToImage` transforms the PIL image into a torchvision Image tensor (C, H, W), converts the int8 values to floating points values, scaling $[0, 255]$ to $[0.0, 1.0]$.
+`ToImage` transforms the PIL image into a torchvision image tensor with shape `(C, H, W)`, converts the `int8` values to floating-point values, and scales $[0, 255]$ to $[0.0, 1.0]$.
 
-The use of `WrappedDataset` is to keep a degree of freedom to apply different transform pipelines for the train and valid folds, e.g. the augmentations.
+The use of `WrappedDataset` is to keep a degree of freedom to apply different transform pipelines for the training and validation folds, e.g. the augmentations.
 
 :::
 
@@ -201,7 +201,7 @@ The use of `WrappedDataset` is to keep a degree of freedom to apply different tr
 We are almost done. Now that we have our dataset objects, it is straightforward to construct dataloaders using the [torch.utils.data.DataLoader](https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader) functions.
 
 ::: {.callout-tip}
-**Proceed by completing** the construction of the dataloaders :
+**Proceed by completing** the construction of the dataloaders:
 
 ```python
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -215,43 +215,43 @@ valid_loader = None
 
 ### Running the test
 
-If you correctly filled in the functions in the previous sections, you should be able to run the minimal test with the command :
+If you correctly filled in the functions in the previous sections, you should be able to run the minimal test with the command:
 
 ```bash
 python -m introlab.data
 ```
 
-which is expected to produce an image with some samples of the FashionMNIST dataset in `fashionMNIST_grid.png` as below.
+which is expected to produce an image with some samples of the FashionMNIST dataset in `fashionMNIST_grid.png`, as below.
 
 ![FashionMNIST sample grid as obtained from querying the dataloader](fashionMNIST_grid.png){width=50% .lightbox}
 
-If you notice weird pixels, like oversaturated ones, you should probably consider **temporarily** remove the normalization of the pixels. This normalization brings your pixels from $[0.0, 1.0]$ to $[-1.0, 1.0]$ which matplotlib clips to $[0.0, 1.0]$, hence the loss of information.
+If you notice weird pixels, like oversaturated ones, you should probably consider **temporarily removing** the normalization of the pixels. This normalization brings your pixels from $[0.0, 1.0]$ to $[-1.0, 1.0]$, which Matplotlib clips to $[0.0, 1.0]$, hence the loss of information.
 
 ## Definition of a neural network in the `models` submodule
 
-Now that have our data, we need to design a predictor. The predictors will be built in the `models` submodule.  This submodule is our library of models. The contract for this submodule is to offer an instance of the [nn.Module](https://pytorch.org/docs/stable/generated/torch.nn.Module.html) class whether it is a convolutional neural network, a transform, a linear model, a capsule net, etc...
+Now that we have our data, we need to design a predictor. The predictors will be built in the `models` submodule. This submodule is our library of models. The contract for this submodule is to offer an instance of the [nn.Module](https://pytorch.org/docs/stable/generated/torch.nn.Module.html) class, whether it is a convolutional neural network, a transformer, a linear model, a capsule net, etc.
 
-The interface with the `models` submodule is through the `build_model` function defined in the `mdels/__init__.py` script. 
+The interface with the `models` submodule is through the `build_model` function defined in the `models/__init__.py` script.
 
 ``` python
 def build_model(cfg, input_size, num_classes):
     return eval(f"{cfg['class']}(cfg, input_size, num_classes)")
 ```
 
-We will in the next subsection which are these parameters, in particular the `cfg` dictionnary. This is actually the key to allow the creation of models with different numbers and types of arguments in their constructor.
+In the next subsection, we will see which parameters are passed, in particular the `cfg` dictionary. This is actually the key to allowing the creation of models with different numbers and types of arguments in their constructor.
 
-A model, in the pytorch sense, is an instance of `torch.nn.Module`. This class is the mother class of all the models in pytorch. The forward propagation of the model is to be implemented in the `forward` method, and pytorch will wrap that forward method in the `__call__` method so that a model can be conveniently called on some inputs `y = model(x)`.
+A model, in the PyTorch sense, is an instance of `torch.nn.Module`. This class is the mother class of all the models in PyTorch. The forward propagation of the model is to be implemented in the `forward` method, and PyTorch will wrap that method in the `__call__` method so that a model can be conveniently called on some inputs, `y = model(x)`.
 
-There are mainly three approaches to define a model :
+There are mainly three approaches to define a model:
 
-- you directly instanciate a pytorch model, for example a [torch.nn.Linear](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html) for a linear model, [torch.nn.Transfomer](https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html) for a transformer, etc..,
-- you stack layers in a sequential container [torch.nn.Sequential](https://pytorch.org/docs/stable/generated/torch.nn.Sequential.html), 
+- you directly instantiate a PyTorch model, for example a [torch.nn.Linear](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html) for a linear model, [torch.nn.Transformer](https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html) for a transformer, etc.,
+- you stack layers in a sequential container [torch.nn.Sequential](https://pytorch.org/docs/stable/generated/torch.nn.Sequential.html),
 - you define your own class inheriting from the `torch.nn.Module` class and implement the `forward` method.
 
 
 ### Minimal test definition
 
-As for the data, we start by defining a minimal test we expect to work. That's again a contract. Since we have a submodule, we will implement this test in the `models/__main__.py` script. An example of such a test, in the case of a linear model, would be :
+As for the data, we start by defining a minimal test that we expect to work. That is again a contract. Since we have a submodule, we will implement this test in the `models/__main__.py` script. An example of such a test, in the case of a linear model, would be:
 
 ``` python
 def test_linear():
@@ -277,24 +277,24 @@ if __name__ == "__main__":
     test_linear()
 ```
 
-This basic test is simply calling the model building function, forward propagating a dummy tensor through it and checking that the output shape is of the expected dimensions. Notice the `cfg` dictionnary which is provided to `build_model`. Remember, `build_model` is defined as :
+This basic test is simply calling the model-building function, forward-propagating a dummy tensor through it, and checking that the output shape is of the expected dimensions. Notice the `cfg` dictionary that is provided to `build_model`. Remember, `build_model` is defined as:
 
 ``` python
 def build_model(cfg, input_size, num_classes):
     return eval(f"{cfg['class']}(cfg, input_size, num_classes)")
 ```
 
-Given the dictionnary `cfg` of the `test_linear` function, the string in the `eval` call is evaluated as `"Linear(cfg, input_size, num_classes)"` and then python interprets that string calling the right constructor. This is the python magic avoiding to write the long alternative, although equivalent :
+Given the dictionary `cfg` of the `test_linear` function, the string in the `eval` call is evaluated as `"Linear(cfg, input_size, num_classes)"`, and then Python interprets that string by calling the right constructor. This is the Python magic that avoids writing the long alternative, although equivalent:
 
 ``` python
 def build_model(cfg, input_size, num_classes):
   if cfg['class'] == "Linear":
     return Linear(cfg, input_size, num_classes)
-  elif cfg['class'] = ... 
+  elif cfg['class'] == ...
     ...
 ```
 
-Running the test is done by invoking :
+Running the test is done by invoking:
 
 ``` bash
 python -m introlab.models
@@ -306,41 +306,41 @@ python -m introlab.models
 **Complete** the `Linear` function of `models/base_models.py` so that it returns a linear model. You will have to use the layers [torch.nn.Linear](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html) and [torch.nn.Flatten](https://pytorch.org/docs/stable/generated/torch.nn.Flatten.html), stacked in a `torch.nn.Sequential`.
 :::
 
-Why the flatten layer ? Because the input that will feed the network is of shape `(B, C, H, W)` and the linear layer must operate on tensors of shape `(B, C \times H \times W)`.
+Why the flatten layer? Because the input that will feed the network is of shape `(B, C, H, W)`, and the linear layer must operate on tensors of shape `(B, C \times H \times W)`.
 
 ::: {.callout-tip}
 **Complete** the minimal test with the missing `expected_output_size` and check that the test is running successfully.
 :::
 
 ::: {.callout-tip}
-**How many** trainable parameters does that model possess ?
+**How many** trainable parameters does that model possess?
 :::
 
 ::: {.callout-important}
-We are constructing classification networks. It is expected to output class probabilities. Still, you never add the output transfer function. Why ? Because the implemented of the CrossEntropyLoss in pytorch we will use is combining the softmax and the negative log likelihood which is more numerically stable than applying both operations independently.
+We are constructing classification networks. It is expected to output class probabilities. Still, you never add the output transfer function. Why? Because the implementation of `CrossEntropyLoss` in PyTorch that we will use combines the softmax and the negative log-likelihood, which is more numerically stable than applying both operations independently.
 :::
 
 ### A fully connected feedforward neural network
 
-Now, your job is to implement a second model, a fully connected multi layer feedforward neural network. 
+Now, your job is to implement a second model: a fully connected multi-layer feedforward neural network.
 
 ::: {.callout-tip}
-**Define** a minimal test in the `models/__main__.py` script to test that implementation and **complete** the `FFN` function in `models/base_models.py`. It receives $3$ arguments : 
+**Define** a minimal test in the `models/__main__.py` script to test this implementation and **complete** the `FFN` function in `models/base_models.py`. It receives $3$ arguments:
 
 - `num_layers`: the number of layers to stack,
 - `num_hidden`: the number of units in each layer,
-- `use_dropout`: wheter or not to inject dropout between the layers, a parameter we will use later in the lab.
-::: 
+- `use_dropout`: whether or not to inject dropout between the layers, a parameter we will use later in the lab.
+:::
 
 ::: {.callout-tip}
-**How many** trainable parameters does that model possess ?
+**How many** trainable parameters does that model possess?
 :::
 
 ## The main script `main.py`
 
-Alright, we have our dataloaders providing minibatches of inputs/outputs as well as two predictors to train. It is now time to move on the training script. It is defined in the `main.py` script. 
+Alright, we have our dataloaders providing minibatches of inputs/outputs as well as two predictors to train. It is now time to move on to the training script, which is defined in the `main.py` script.
 
-The `main.py` script is constructed with :
+The `main.py` script is constructed with:
 
 ``` python
 
@@ -361,29 +361,29 @@ if __name__ == "__main__":
     eval(f"{command}(config)")
 ```
 
-So that we can call it :
+So that we can call it:
 
 ``` bash
 python -m introlab.main train config.yaml
 ```
 
-We will go back to the content of the `config.yaml` when we will run our first trainings. 
+We will come back to the content of the `config.yaml` file when we run our first trainings.
 
-An overview of the `train` function, it :
+An overview of the `train` function:
 
-- loads the data and build the dataloaders,
-- define the model,
-- define the loss function and optimizer,
-- define the callbacks such as checkpointing the best model, logging, etc...
-- loops over the minibatches and perform the updates of the model's parameters.
+- loads the data and builds the dataloaders,
+- defines the model,
+- defines the loss function and optimizer,
+- defines the callbacks such as checkpointing the best model and logging, etc.,
+- loops over the minibatches and performs the updates of the model's parameters.
 
 In the next sections, you will complete the missing elements of this script.
 
 ## Loss function and optimizer
 
-The definition of the loss function and optimizer are in the `main.py` script. For the loss function, I suggest you to cimplement a [cross entropy loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html). 
+The definition of the loss function and optimizer are in the `main.py` script. For the loss function, I suggest you implement a [cross-entropy loss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html).
 
-Let us remind what the cross entropy loss is in pytorch. In Pytorch, it is a combination of a softmax and the negative log likelihood. Both are combined because the combination benefits from numerical stability tricks (log-sum-exp). Consider the python snippet below :
+Let us remind ourselves what the cross-entropy loss is in PyTorch. In PyTorch, it is a combination of a softmax and the negative log-likelihood. Both are combined because the combination benefits from numerical stability tricks (`log-sum-exp`). Consider the Python snippet below:
 
 ``` python
 
@@ -408,9 +408,9 @@ $$
 5.93... = \frac{1}{2} (-\log(\frac{e^{10}}{e^{-100}+e^{10} + e^{0}}) -\log(\frac{e^{3.14}}{e^{10}+e^{15} + e^{3.14}}))
 $$
 
-The logits are tensors of shape $(B, K)$ where $B$ is the batch size and $K$ the number of classes and the tensor of targets is of shape $(B,)$, providing the class to be predicted for every sample.
+The logits are tensors of shape $(B, K)$, where $B$ is the batch size and $K$ the number of classes, and the tensor of targets is of shape $(B,)$, providing the class to be predicted for every sample.
 
-**Complete** the definition of the loss function and optimizer in the `main.py` script. The loss function is [torch.nn.CrossEntropyLoss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html) as discussed above. For the optimizer, choose among the [optimizers implemented in pyotorch](https://pytorch.org/docs/stable/optim.html#algorithms).
+**Complete** the definition of the loss function and optimizer in the `main.py` script. The loss function is [torch.nn.CrossEntropyLoss](https://pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html), as discussed above. For the optimizer, choose among the [optimizers implemented in PyTorch](https://pytorch.org/docs/stable/optim.html#algorithms).
 
 ``` python
 
@@ -434,7 +434,7 @@ We can proceed implementing the training and inference loops.
 
 ### Training loop
 
-The training loop is implemented in the `main.py` script. Its overall structure is :
+The training loop is implemented in the `main.py` script. Its overall structure is:
 
 ``` python
 for e in range(config["epochs"]):
@@ -451,7 +451,7 @@ for e in range(config["epochs"]):
     ...
 ```
 
-The training over one epoch is defined in the `utils.py` script. 
+The training over one epoch is defined in the `utils.py` script.
 
 ::: {.callout-tip}
 **Read, decipher, understand** the `train_one_epoch` function in the `utils.py` script.
@@ -459,21 +459,21 @@ The training over one epoch is defined in the `utils.py` script.
 
 ### Test loop
 
-The inference function `test` is defined in the `utils.py` script. Its role is to evaluate the predictions of a model. In this function there is no parameter update. There is also **one major difference** :
+The inference function `test` is defined in the `utils.py` script. Its role is to evaluate the predictions of a model. In this function there is no parameter update. There is also **one major difference**:
 
-- during training, the model is switched to *train mode* : 
+- during training, the model is switched to *train mode*:
 
 ``` python
 model.train()
 ```
 
-- during inference, the model is switched to *test mode* :
+- during inference, the model is switched to *test mode*:
 
 ``` python
 model.eval()
 ```
 
-That one line is super important. Some layers indeed perform different computations whether they are applied during training or testing such as the dropout layers, batch normalization, ...
+That one line is super important. Some layers indeed perform different computations depending on whether they are applied during training or testing, such as dropout layers and batch normalization.
 
 ::: {.callout-tip}
 **Read, decipher, understand** the `test` function in the `utils.py` script.
@@ -489,7 +489,7 @@ The real risk is evaluated on the validation fold with the `test` function. That
 test_loss = utils.test(model, valid_loader, loss, device)
 ```
 
-The checkpointing is already implemented as the `ModelCheckpoint` class in the `utils.py` submodule. It is created and called in the `main.py` script : 
+The checkpointing is already implemented as the `ModelCheckpoint` class in the `utils.py` submodule. It is created and called in the `main.py` script:
 
 ```python
 
@@ -502,7 +502,7 @@ model_checkpoint = utils.ModelCheckpoint(
 
 # During training
 for e in range(config["epochs"]):
-    ... 
+    ...
     updated = model_checkpoint.update(test_loss)
 ```
 
@@ -514,7 +514,7 @@ for e in range(config["epochs"]):
 
 ### Running a training
 
-All the elements are in place to start a first training on the FashionMNIST dataset. For this, we need to submit a yaml script `config.yaml` to the `introlab` main script. As an example, the script below will configure a training of a Linear model for $20$ epochs with a batch size of $32$, $20\%$ of the data being used for validation.
+All the elements are in place to start a first training on the FashionMNIST dataset. For this, we need to submit a YAML script `config.yaml` to the `introlab` main script. As an example, the script below will configure a training of a `Linear` model for $20$ epochs with a batch size of $32$, with $20\%$ of the data used for validation.
 
 ```yaml
 data:
@@ -533,21 +533,21 @@ model:
   class: Linear
 ```
 
-If you save this file in `config.yaml`, you can then proceed running a training :
+If you save this file as `config.yaml`, you can then proceed to run a training:
 
 ```bash
 python -m introlab train config.yaml
 ```
 
 ::: {.callout-tip}
-**Run** several trainings of the models you implemented either `Linear` and `FFN`.
+**Run** several trainings of the models you implemented, such as `Linear` and `FFN`.
 :::
 
-Notice that a dedicated logging directory (subdirectory of `./logs`) is created anytime you run a new training. That logging directory is expected to gather all the assets of one experiment. For now, it contains a copy of the config file, a textual summary of the experiment and the log file of tensorboard we will visualize in the next section.
+Notice that a dedicated logging directory (a subdirectory of `./logs`) is created every time you run a new training. That logging directory is expected to gather all the assets of one experiment. For now, it contains a copy of the config file, a textual summary of the experiment, and the TensorBoard log file we will visualize in the next section.
 
-### Visualization of the results with Tensorboard
+### Visualization of the results with TensorBoard
 
-The training script contains functions to record logs during training. In particular, in the `main.py` script, you will notice :
+The training script contains functions to record logs during training. In particular, in the `main.py` script, you will notice:
 
 ``` python
 # On the tensorboard
@@ -555,9 +555,9 @@ for key, value in metrics.items():
     tensorboard_writer.add_scalar(key, value, e)
 ```
 
-When you run a training, a specific file called `events.out.tfevents.xxxxx` is created and the information saved by the `tensorboard_writer` are written in this file. This file contains all the tensorboard logs of your run. With [tensorboard](https://pytorch.org/docs/stable/tensorboard.html), you can save images, audio, scalars, histograms, graphs, etc... 
+When you run a training, a specific file called `events.out.tfevents.xxxxx` is created and the information saved by the `tensorboard_writer` is written to this file. This file contains all the TensorBoard logs of your run. With [TensorBoard](https://pytorch.org/docs/stable/tensorboard.html), you can save images, audio, scalars, histograms, graphs, etc.
 
-In order to visualize the logs, you just need to start the tensorboard web client and connect to it with a browser at [http://localhost:6006](http://localhost:6006).
+In order to visualize the logs, you just need to start the TensorBoard web client and connect to it with a browser at [http://localhost:6006](http://localhost:6006).
 
 ```bash
 $ tensorboard --logdir logs
@@ -566,11 +566,11 @@ Serving TensorBoard on localhost; to expose to the network, use a proxy or pass 
 TensorBoard 2.21.0 at http://localhost:6006/ (Press CTRL+C to quit)
 ```
 
-![Tensorboard for visualizing the logs](./tensorboard.png){width=70% .lightbox}
+![TensorBoard for visualizing the logs](./tensorboard.png){width=70% .lightbox}
 
 ### The impact of normalization
 
-The preprocessing of the data is defined in the `data.py` submodule. For now, it is defined as :
+The preprocessing of the data is defined in the `data.py` submodule. For now, it is defined as:
 
 ``` python
 preprocess_transforms = [
@@ -579,52 +579,52 @@ preprocess_transforms = [
 ]
 ```
 
-When loading an image, the pipeline is the following :
+When loading an image, the pipeline is the following:
 
-- an image is loaded from disk as a PIL (Pillow) Image, with an unsigned int data types for the pixels with discrete values in $[0, 255]$,
-- the [v2.ToImage](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.v2.ToImage.html) converts the PIL image to a [pytorch image tv_tensor](https://docs.pytorch.org/vision/main/generated/torchvision.tv_tensors.Image.html#torchvision.tv_tensors.Image), values still being in the range $[0, 255]$,
-- the [v2.ToDtype](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.v2.ToDtype.html?highlight=todtype#torchvision.transforms.v2.ToDtype) converts from unsigned int 8 to float32 and scale the values by $255$ (scale=True)
+- an image is loaded from disk as a PIL (Pillow) image, with unsigned integer data types for the pixels with discrete values in $[0, 255]$;
+- the [v2.ToImage](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.v2.ToImage.html) converts the PIL image to a [PyTorch image `tv_tensor`](https://docs.pytorch.org/vision/main/generated/torchvision.tv_tensors.Image.html#torchvision.tv_tensors.Image), with values still in the range $[0, 255]$;
+- the [v2.ToDtype](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.v2.ToDtype.html?highlight=todtype#torchvision.transforms.v2.ToDtype) converts from `uint8` to `float32` and scales the values by $255$ (`scale=True`).
 
-After these transforms, you end up with a tensor with floating point values in $[0.0, 1.0]$. Now, we know from the 2010 revolution on deep learning that initialization is critical for the functioning of the training, and the input pixel distribution is part of the reasonning ("let us assume pixel values being normally distributed, then ..").
+After these transforms, you end up with a tensor with floating-point values in $[0.0, 1.0]$. Now, we know from the 2010 revolution in deep learning that initialization is critical for the functioning of the training, and the input pixel distribution is part of the reasoning ("let us assume pixel values are normally distributed, then ...").
 
-I propose you to check the influence of the normalization on the performances of your training.
+I propose that you check the influence of normalization on the performance of your training.
 
 ::: {.callout-tip}
-**Normalize** your images with a mean pixel value at $\mu=0.2860$ and standard deviation $\sigma^2=0.2750$. To do so, you can add a [v2.Normalize]() call in the `preprocess_transforms`.
+**Normalize** your images with a mean pixel value at $\mu=0.2860$ and a standard deviation $\sigma=0.2750$. To do so, you can add a [v2.Normalize]() call in the `preprocess_transforms`.
 
-You can benefit from the `normalize` argument of config file to parametrize your transformations.
+You can benefit from the `normalize` argument in the config file to parametrize your transformations.
 :::
 
 ## Regularizations
 
-Regularization is about all the techniques used to mitigate the overfiting. We can cite :
+Regularization is about all the techniques used to mitigate overfitting. We can cite:
 
-- L1, L2 regularization where we add a penalty term to the loss,
-- dropout layers which are layers added inside the architecture of the neural network,
-- data augmentation which consists in randomly change your inputs with predictible consequences on the targets.
+- L1 and L2 regularization, where we add a penalty term to the loss,
+- dropout layers, which are added inside the architecture of the neural network,
+- data augmentation, which consists of randomly changing your inputs with predictable consequences on the targets.
 
 ### L2 regularization
 
-Let us consider the simplest approach to introducing L2 regularization (although remember in the lecture, we saw a much more flexible way to define it). Some optimization algorithms, such as [SGD](https://pytorch.org/docs/stable/optim.html#torch.optim.SGD) or [AdamW](https://pytorch.org/docs/stable/optim.html#torch.optim.AdamW) implements L2 regularization. This is called `weight_decay` and corresponds to the factor multiplying the L2 norm of the parameters.
+Let us consider the simplest approach to introducing L2 regularization (although, as discussed in the lecture, we saw a much more flexible way to define it). Some optimization algorithms, such as [SGD](https://pytorch.org/docs/stable/optim.html#torch.optim.SGD) or [AdamW](https://pytorch.org/docs/stable/optim.html#torch.optim.AdamW), implement L2 regularization. This is called `weight_decay` and corresponds to the factor multiplying the L2 norm of the parameters.
 
 ::: {.callout-tip}
-**Modify** your definition of the optimize in the `main.py` script to use AdamW with a weight_decay of $1e-4$
+**Modify** your definition of the optimizer in the `main.py` script to use AdamW with a `weight_decay` of $1e-4$.
 :::
 
 
 ::: {.callout-tip}
-**Experiment** this regularization with your models. For example, you can check the influence of it on a multi layer feedforward neural network with $5$ hidden layers and $128$ neurons per layer.
+**Experiment** with this regularization on your models. For example, you can check its influence on a multi-layer feedforward neural network with $5$ hidden layers and $128$ neurons per layer.
 :::
 
 
 ### Dropout
 
-Inserting dropout layers is another way to regularize your models. As a reminder, dropout layers are layers which, during training, zero out randomly a fraction of the activations. In general, we introduce these layers after every linear layer but these are the ones which may massively overfit.
+Inserting dropout layers is another way to regularize your models. As a reminder, dropout layers are layers that, during training, zero out randomly a fraction of the activations. In general, we introduce these layers after every linear layer, but these are also the ones that may massively overfit.
 
 ::: {.callout-tip}
-**Modify** your implementation of the multi layer feedforward neural network `FFN` to introduce [torch.nn.Dropout](https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html) layers if requested. The variable `use_dropout` can be used to decide whether or not to introduce dropout layers.
+**Modify** your implementation of the multi-layer feedforward neural network `FFN` to introduce [torch.nn.Dropout](https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html) layers if requested. The variable `use_dropout` can be used to decide whether or not to introduce dropout layers.
 
-**Experiment** with this regularization
+**Experiment** with this regularization.
 :::
 
 ::: {.callout-important}
@@ -632,22 +632,22 @@ Dropout layers behave differently in training or inference. During evaluation, a
 :::
 
 ::: {.callout-note}
-If you dig into the pytorch implementation, you will notice it does not implement the original dropout but a variant, called, "inverted dropout"  which does not require to sorte the dropout probability for inference.
+If you dig into the PyTorch implementation, you will notice it does not implement the original dropout but a variant called "inverted dropout", which does not require sorting the dropout probability for inference.
 :::
 
 ### Data augmentation
 
-The final category of regularization techniques we will consider is data augmentation. Data augmentation are transforms of your inputs for which you can predict the impact on the target. For this, you can use dedicated libraries such as [albumentations](https://albumentations.ai/) but we will here stick to the pytorch ecosystem with the [torchvision v2 transforms](https://pytorch.org/vision/main/auto_examples/transforms/plot_transforms_getting_started.html). 
+The final category of regularization techniques we will consider is data augmentation. Data augmentation consists of transforms of your inputs for which you can predict the impact on the target. For this, you can use dedicated libraries such as [albumentations](https://albumentations.ai/), but here we will stick to the PyTorch ecosystem with the [torchvision v2 transforms](https://pytorch.org/vision/main/auto_examples/transforms/plot_transforms_getting_started.html).
 
-For a problem such as classifying fashion furnitures, we can consider transforms that leave invariant the class such as :
+For a problem such as classifying fashion items, we can consider transforms that leave the class invariant, such as:
 
-- rotations
-- translations
-- symmetries
-- zoom
-- luminosity, contrast, .. alterations
+- rotations,
+- translations,
+- symmetries,
+- zoom,
+- luminosity and contrast alterations.
 
-These augmentations are performed *on the fly*, no need to precompute a transformed dataset. The data augmentation transforms are added in the data pipeline, hence in the `data.py` submodule. For now, you only have : 
+These augmentations are performed *on the fly*; there is no need to precompute a transformed dataset. The data augmentation transforms are added in the data pipeline, hence in the `data.py` submodule. For now, you only have:
 
 ```python
 preprocess_transforms = [
@@ -667,17 +667,17 @@ train_dataset = WrappedDataset(train_dataset, train_transforms)
 The `augmentation_transforms` is expected to host the augmentation transforms.
 
 ::: {.callout-tip}
-**Add** transforms in the `augmentation_transforms` list. Several possibilities can be considered, see the [documentation](https://pytorch.org/vision/main/transforms.html#v2-api-reference-recommended).
+**Add** transforms in the `augmentation_transforms` list. Several possibilities can be considered; see the [documentation](https://pytorch.org/vision/main/transforms.html#v2-api-reference-recommended).
 
-You may also want to try augmentation poliices such as AutoAugment, RandAugment, etc.. , see [Auto-Augmentation](https://pytorch.org/vision/main/transforms.html#auto-augmentation).
+You may also want to try augmentation policies such as AutoAugment or RandAugment; see [Auto-Augmentation](https://pytorch.org/vision/main/transforms.html#auto-augmentation).
 :::
 
 ::: {.callout-tip}
-**Experiment** training with data augmentation. For your experiments, you need a model with sufficient capacity to be able to overfit, otherwise, you will not see the impact of data augmentation. For example, a multilayer feedforward network with $5$ hidden layers of size $128$.
+**Experiment** with training using data augmentation. For your experiments, you need a model with sufficient capacity to overfit; otherwise, you will not see the impact of data augmentation. For example, a multi-layer feedforward network with $5$ hidden layers of size $128$.
 :::
 
 ::: {.callout-note}
-I advise you to calibrate your augmentation pipeline, writting a function in `data.py` that will display augmented samples. That's a very first approach to define this pipeline. At the end of the day, it's your real risk that will gear you toward the appropriate augmentations.
+I advise you to calibrate your augmentation pipeline by writing a function in `data.py` that will display augmented samples. That is a very first approach to defining this pipeline. At the end of the day, it is your real risk that will guide you toward the appropriate augmentations.
 :::
 
 ![Augmented samples of the class "bag"](./fashionMNIST_samples_augment.png){width=100% .lightbox}
@@ -686,7 +686,7 @@ I advise you to calibrate your augmentation pipeline, writting a function in `da
 
 ### Small kernels and global average pooling
 
-Finally, we are going to implement a convolutional neural network. For that, you need to complete the implementation of the `FancyCNN` class in the `models/cnn_models.py` subdmodule. We will then experiment writting a class deriving from the torch.nn.Module class :
+Finally, we are going to implement a convolutional neural network. For that, you need to complete the implementation of the `FancyCNN` class in the `models/cnn_models.py` submodule. We will then experiment by writing a class deriving from the `torch.nn.Module` class:
 
 ```python
 import torch.nn as nn
@@ -705,32 +705,32 @@ class FancyCNN(nn.Module):
         # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ```
 
-You are requested to implement a model with $N$ blocks, each being the repetition of $2$ sub-blocks composed of :
+You are requested to implement a model with $N$ blocks, each being the repetition of $2$ sub-blocks composed of:
 
-- a convolutional layer with a kernel size $3\times 3$, a zero-padding of $1$ and a stride of $1$,
+- a convolutional layer with a kernel size $3\times 3$, a zero-padding of $1$, and a stride of $1$,
 - a ReLU activation function,
 - a [BatchNormalization](https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html) layer.
 
 The `conv_relu_bn` function can be useful for this part.
 
-After every $2$ subblocks, we add a downsampling subblock composed of :
+After every $2$ sub-blocks, we add a downsampling sub-block composed of:
 
-- a convolutional layer, with a kernel size $2\times 2$, stride $2$, padding $0$,
+- a convolutional layer with a kernel size $2\times 2$, stride $2$, padding $0$,
 - a ReLU activation,
-- a BatchNormalization layer. 
+- a BatchNormalization layer.
 
 The `conv_down` function can be useful for this part.
 
 For every block, we progressively increase the number of output channels, for example $16$, $32$, $64$, $128$, ...
 
-After the $N$ blocks, we add a [global average pooling layer](https://pytorch.org/docs/stable/generated/torch.nn.AdaptiveAvgPool2d.html), a flatten layer and finally a linear layer for the classification.
+After the $N$ blocks, we add a [global average pooling layer](https://pytorch.org/docs/stable/generated/torch.nn.AdaptiveAvgPool2d.html), a flatten layer, and finally a linear layer for the classification.
 
 
 ::: {.callout-tip}
 **Implement** and **experiment** the FancyCNN model. What do you notice about the performances and the relative number of trainable parameters ?
 :::
 
-You should end up with a model reaching around $93\%$ of test accuracy, and a test cross entropy loss around $0.20$ with a FancyCNN of $570K$ parameters, RandomHFlip and RandomRotation($-10$ deg, $10$ deg), training for $$20$ epochs. The training accuracy reached $95\%$, with a loss of $0.14$. See the [summary.txt](summary_fancycnn.txt) file.
+You should end up with a model reaching around $93\%$ of test accuracy and a test cross-entropy loss around $0.20$ with a FancyCNN of $570K$ parameters, `RandomHorizontalFlip` and `RandomRotation($-10$ deg, $10$ deg)`, trained for $20$ epochs. The training accuracy reached $95\%$, with a loss of $0.14$. See the [summary.txt](summary_fancycnn.txt) file.
 
 ## A possible solution
 
@@ -742,13 +742,13 @@ You will find a possible solution at [introlab-sol.tar.gz](../../assets/introlab
 
 It is important to choose the right metrics to evaluate the performance of your models. FashionMNIST is a balanced dataset so that the accuracy is ok. However, if you were to work with Caltech101, it's an unbalanced dataset : out of the $9145$ images belonging to $101$ classes, $800$ images of planes and $40$ images of Ephemeroptera (mayfly). A model always predicting the majority class would have an accuracy of almost $10\%$. If the dataset were balanced, this naive predictor would not score higher than $1\%$. In such cases, it would be better to consider metrics such as the F1 or the AUC and also to check the confusion matrix to investigate the classes for which the model is misled.
 
-### How to scale the fully connected layers without global average pooling ?
+### How to scale the fully connected layers without global average pooling?
 
-When you design a convolutional neural network, there are two stages : the convolutional and the fully connected. The parameters provided to the convolutional stage are independent on the input size $(H, W)$ of your image, it depends only on its depth. However, when you enter the fully connected layers, and because these layers are fully connected, the construction of their weight matrix requires to know about the full dimensions of their input.
+When you design a convolutional neural network, there are two stages: the convolutional stage and the fully connected stage. The parameters provided to the convolutional stage are independent of the input size $(H, W)$ of your image; they depend only on its depth. However, when you enter the fully connected layers, and because these layers are fully connected, the construction of their weight matrix requires knowledge of the full dimensions of their input.
 
-Therefore, you need to compute how the input shape $(C, H, W)$ gets modified by the propagation through the convolutional stage. Sometimes, there is a shortcut. Indeed, with the global average pooling in the convolutional network we designed in the lab, we do not need to perform complicated math, the output's shape is always $(C_1, 1, 1)$ and $C_1$ is given by the number of kernels of the last convoluional layer. In other cases, it is more complicated.
+Therefore, you need to compute how the input shape $(C, H, W)$ gets modified by propagation through the convolutional stage. Sometimes, there is a shortcut. Indeed, with the global average pooling in the convolutional network we designed in the lab, we do not need to perform complicated math; the output shape is always $(C_1, 1, 1)$, and $C_1$ is given by the number of kernels of the last convolutional layer. In other cases, it is more complicated.
 
-Fortunately, we can be lazy and defer to pytorch the computation of these dimensions. We just need to forward propagate a dummy tensor through the convolutional part and measure its output shape. Let us see this in action :
+Fortunately, we can be lazy and defer to PyTorch the computation of these dimensions. We just need to forward-propagate a dummy tensor through the convolutional part and measure its output shape. Let us see this in action:
 
 ```python
 
