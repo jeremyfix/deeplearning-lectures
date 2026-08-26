@@ -59,6 +59,7 @@ def get_dataloaders(data_config, use_cuda):
     batch_size = data_config["batch_size"]
     num_workers = data_config["num_workers"]
     root_dir = data_config["root_dir"]
+    normalize = data_config["normalize"]
 
     logging.info("  - Dataset creation")
 
@@ -101,15 +102,18 @@ def get_dataloaders(data_config, use_cuda):
 
     preprocess_transforms = [
         v2.ToImage(),
-        v2.ToDtype(torch.float32, scale=True),
-        v2.Normalize(mean=[0.5], std=[0.5]),
+        v2.ToDtype(torch.float32, scale=True)
     ]
+    # @SOL
+    if normalize:
+        preprocess_transforms.append(v2.Normalize(mean=[0.2860], std=[0.2750]))
+    # SOL@
     augmentation_transforms = [
         # @SOL
         # v2.RandomHorizontalFlip(),
         # v2.RandomRotation(10),
         # SOL@
-        v2.AutoAugment(),  # @SOL@
+        # v2.AutoAugment(),  # @SOL@
     ]
 
     train_transforms = v2.Compose(preprocess_transforms + augmentation_transforms)
