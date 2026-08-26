@@ -364,7 +364,7 @@ if __name__ == "__main__":
 So that we can call it :
 
 ``` bash
-python -m introlab train config.yaml
+python -m introlab.main train config.yaml
 ```
 
 We will go back to the content of the `config.yaml` when we will run our first trainings. 
@@ -522,6 +522,7 @@ data:
   batch_size: 32
   num_workers: 4
   valid_ratio: 0.2
+  normalize: False
 
 nepochs: 20
 
@@ -538,14 +539,101 @@ If you save this file in `config.yaml`, you can then proceed running a training 
 python -m introlab train config.yaml
 ```
 
+::: {.callout-tip}
+**Run** several trainings of the models you implemented either `Linear` and `FFN`.
+:::
+
+Notice that a dedicated logging directory (subdirectory of `./logs`) is created anytime you run a new training. That logging directory is expected to gather all the assets of one experiment. For now, it contains a copy of the config file, a textual summary of the experiment and the log file of tensorboard we will visualize in the next section.
+
 ### Visualization of the results with Tensorboard
 
+The training script contains functions to record logs during training. In particular, in the `main.py` script, you will notice :
+
+``` python
+# On the tensorboard
+for key, value in metrics.items():
+    tensorboard_writer.add_scalar(key, value, e)
+```
+
+When you run a training, a specific file called `events.out.tfevents.xxxxx` is created and the information saved by the `tensorboard_writer` are written in this file. This file contains all the tensorboard logs of your run. With [tensorboard](https://pytorch.org/docs/stable/tensorboard.html), you can save images, audio, scalars, histograms, graphs, etc... 
+
+In order to visualize the logs, you just need to start the tensorboard web client and connect to it with a browser at [http://localhost:6006](http://localhost:6006).
+
+```bash
+$ tensorboard --logdir logs
+
+Serving TensorBoard on localhost; to expose to the network, use a proxy or pass --bind_all
+TensorBoard 2.21.0 at http://localhost:6006/ (Press CTRL+C to quit)
+```
+
+![Tensorboard for visualizing the logs](./tensorboard.png){width=70% .lightbox}
+
+### The impact of normalization
+
+The preprocessing of the data is defined in the `data.py` submodule. For now, it is defined as :
+
+``` python
+preprocess_transforms = [
+    v2.ToImage(),
+    v2.ToDtype(torch.float32, scale=True),
+]
+```
+
+When loading an image, the pipeline is the following :
+
+- an image is loaded from disk as a PIL (Pillow) Image, with an unsigned int data types for the pixels with discrete values in $[0, 255]$,
+- the [v2.ToImage](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.v2.ToImage.html) converts the PIL image to a [pytorch image tv_tensor](https://docs.pytorch.org/vision/main/generated/torchvision.tv_tensors.Image.html#torchvision.tv_tensors.Image), values still being in the range $[0, 255]$,
+- the [v2.ToDtype](https://docs.pytorch.org/vision/main/generated/torchvision.transforms.v2.ToDtype.html?highlight=todtype#torchvision.transforms.v2.ToDtype) converts from unsigned int 8 to float32 and scale the values by $255$ (scale=True)
+
+After these transforms, you end up with a tensor with floating point values in $[0.0, 1.0]$. Now, we know from the 2010 revolution on deep learning that initialization is critical for the functioning of the training, and the input pixel distribution is part of the reasonning ("let us assume pixel values being normally distributed, then ..").
+
+I propose you to check the influence of the normalization on the performances of your training.
+
+::: {.callout-tip}
+**Normalize** your images with a mean pixel value at $\mu=0.2860$ and standard deviation $\sigma^2=0.2750$. To do so, you can add a [v2.Normalize]() call in the `preprocess_transforms`.
+
+You can benefit from the `normalize` argument of config file to parametrize your transformations.
+:::
 
 ## Regularizations
 
+Regularization is about all the techniques used to mitigate the overfiting. We can cite :
+
+- L1, L2 regularization where we add a penalty term to the loss,
+- dropout layers which are layers added inside the architecture of the neural network,
+- data augmentation which consists in randomly change your inputs with predictible consequences on the targets.
+
 ### L2 regularization
 
+Let us consider the simplest approach to introducing L2 regularization (although remember in the lecture, we saw a much more flexible way to define it). Some optimization algorithms, such as [SGD](https://pytorch.org/docs/stable/optim.html#torch.optim.SGD) or [AdamW](https://pytorch.org/docs/stable/optim.html#torch.optim.AdamW) implements L2 regularization. This is called `weight_decay` and corresponds to the factor multiplying the L2 norm of the parameters.
+
+::: {.callout-tip}
+**Modify** your definition of the optimize in the `main.py` script to use AdamW with a weight_decay of $1e-4$
+:::
+
+
+::: {.callout-tip}
+**Experiment** this regularization with your models. For example, you can check the influence of it on a multi layer feedforward neural network with $5$ hidden layers and $128$ neurons per layer.
+:::
+
+
 ### Dropout
+
+Inserting dropout layers is another way to regularize your models. As a reminder, dropout layers are layers which, during training, zero out randomly a fraction of the activations. In general, we introduce these layers after every linear layer but these are the ones which may massively overfit.
+
+::: {.callout-tip}
+**Modify** your implementation of the multi layer feedforward neural network `FFN` to introduce [torch.nn.Dropout](https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html) layers if requested. The variable `use_dropout` can be used to decide whether or not to introduce dropout layers.
+
+**Experiment** with this regularization
+:::
+
+::: {.callout-important}
+Dropout layers behave differently in training or inference. During evaluation, an approximate average response of the neural network is computed rather than zeroing activations. It is therefore important, for the correct functioning of these layers, not to forget the `model.train()` and `model.eval()` calls in the training and inference loops.
+:::
+
+::: {.callout-note}
+If you dig into the pytorch implementation, you will notice it does not implement the original dropout but a variant, called, "inverted dropout"  which does not require to sorte the dropout probability for inference.
+:::
 
 ### Data augmentation
 
