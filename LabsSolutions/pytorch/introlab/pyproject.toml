@@ -11,7 +11,8 @@ dependencies = [
     "tqdm>=4.65.0",
     "matplotlib>=3.7.1",
     "numpy",
-    "Pillow"
+    "Pillow",
+    "tensorboard"
 ]
 
 [options]
