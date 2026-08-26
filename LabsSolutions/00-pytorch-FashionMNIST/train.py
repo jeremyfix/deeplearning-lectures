@@ -205,19 +205,17 @@ Optimizer
         tensorboard_writer.add_scalar("metrics/test_loss", test_loss, t)
         tensorboard_writer.add_scalar("metrics/test_acc", test_acc, t)
 
+    # Loading the best model found
+    print("Loading and testing the best model")
 
-# Loading the best model found
+    best_model_path = logdir + "/best_model.pt"
+    loaded_dict = torch.load(best_model_path)
+    model = loaded_dict["model"].to(device)
 
-print("Loading and testing the best model")
+    model.eval()
 
-best_model_path = logdir + "/best_model.pt"
-loaded_dict = torch.load(best_model_path)
-model = loaded_dict["model"].to(device)
+    val_loss, val_acc = utils.test(model, valid_loader, loss, device)
+    print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
 
-model.eval()
-
-val_loss, val_acc = utils.test(model, valid_loader, loss, device)
-print(" Validation : Loss : {:.4f}, Acc : {:.4f}".format(val_loss, val_acc))
-
-test_loss, test_acc = utils.test(model, test_loader, loss, device)
-print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
+    test_loss, test_acc = utils.test(model, test_loader, loss, device)
+    print(" Test       : Loss : {:.4f}, Acc : {:.4f}".format(test_loss, test_acc))
