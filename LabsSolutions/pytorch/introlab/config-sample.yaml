@@ -1,0 +1,34 @@
+data:
+  root_dir: './data'
+  # testpath: '/dummy/path/to/test'
+  batch_size: 32
+  num_workers: 4
+  valid_ratio: 0.2
+  normalize: False
+
+# @SOL
+optim:
+  algo: SGD
+  params:
+    lr: 0.01
+# SOL@
+
+nepochs: 20
+# @SOL
+loss: "CrossEntropyLoss"
+# SOL@
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+
+model:
+  class: Linear
+
+# @SOL
+# model:
+#   class: VanillaCNN
+#   num_layers : 4
+# SOL@

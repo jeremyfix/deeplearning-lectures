@@ -1,0 +1,19 @@
+[project]
+name = "introlab"
+version = "0.0.1"
+
+dependencies = [
+    "PyYAML>=6.0",
+    "torch>=2.9.0",
+    "torchvision>=0.14.1",
+    "torchinfo>=1.7.2",
+    "wandb>=0.13.11",
+    "tqdm>=4.65.0",
+    "matplotlib>=3.7.1",
+    "numpy",
+    "Pillow",
+    "tensorboard"
+]
+
+[options]
+package_dir = "introlab"

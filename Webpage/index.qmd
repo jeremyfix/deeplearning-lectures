@@ -112,8 +112,8 @@ These pages contain the subjects and codes for the labs in the deep learning lec
 
 <div class="cards-grid">
 
-<a href="pytorch/fashionMNIST/" class="lab-card pytorch-card">
-<div class="lab-card-image"><img src="pytorch/fashionMNIST/fashionMNIST_samples_augment.png" alt="FashionMNIST" style="width: 100%; height: 100%; object-fit: cover;"></div>
+<a href="pytorch/intro/" class="lab-card pytorch-card">
+<div class="lab-card-image"><img src="pytorch/intro/fashionMNIST_samples.png" alt="FashionMNIST" style="width: 100%; height: 100%; object-fit: cover;"></div>
 <div class="lab-card-content">
 <div class="lab-card-title">FashionMNIST Classification</div>
 <div class="lab-card-description">First steps in PyTorch: classifying fashion objects with neural networks</div>
