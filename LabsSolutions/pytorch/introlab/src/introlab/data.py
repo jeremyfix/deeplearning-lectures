@@ -104,22 +104,26 @@ def get_dataloaders(data_config, use_cuda):
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale=True)
     ]
-    # @SOL
-    if normalize:
-        preprocess_transforms.append(v2.Normalize(mean=[0.2860], std=[0.2750]))
-    # SOL@
     augmentation_transforms = [
         # @SOL
-        # v2.RandomHorizontalFlip(),
-        # v2.RandomRotation(10),
+        v2.RandomHorizontalFlip(),
+        v2.RandomRotation(10),
+        # v2.AutoAugment()
+        # v2.AugMix()
+        # v2.RandomAffine(degrees=40, translate=(0.1, 0.3), scale=(0.7, 1.2)) 
         # SOL@
-        # v2.AutoAugment(),  # @SOL@
     ]
 
-    train_transforms = v2.Compose(preprocess_transforms + augmentation_transforms)
+    normalization_transform = []
+    # @SOL
+    if normalize:
+        normalization_transform.append(v2.Normalize(mean=[0.2860], std=[0.2750]))
+    # SOL@
+
+    train_transforms = v2.Compose(preprocess_transforms + augmentation_transforms + normalization_transform)
     train_dataset = WrappedDataset(train_dataset, train_transforms)
 
-    valid_transforms = v2.Compose(preprocess_transforms)
+    valid_transforms = v2.Compose(preprocess_transforms + normalization_transform)
     valid_dataset = WrappedDataset(valid_dataset, valid_transforms)
 
     # Build the dataloaders
@@ -207,6 +211,7 @@ def test_dataloaders():
         "valid_ratio": 0.2,
         "batch_size": 32,
         "num_workers": 0,
+        "normalize": False
     }
     use_cuda = torch.cuda.is_available()
 
@@ -232,10 +237,12 @@ def plot_augmented_samples():
     ]
     augmentation_transforms = [
         # v2.RandomHorizontalFlip(),
-        # v2.RandomRotation(10),
+        # v2.RandomRotation(40),
+        v2.RandomAffine(degrees=40, translate=(0.1, 0.3), scale=(0.7, 1.2))
         # v2.RandomResizedCrop(128, scale=(0.8, 1.0)),
         # v2.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
-        v2.TrivialAugmentWide(),  # @SOL@
+        # v2.TrivialAugmentWide(),  # @SOL@
+        # v2.AugMix(),  # @SOL@
     ]
 
     transform = v2.Compose(preprocess_transforms + augmentation_transforms)
@@ -247,8 +254,8 @@ def plot_augmented_samples():
         transform=transform
     )
 
-    fig, axs = plt.subplots(3, 3)
-    idx = 1000
+    fig, axs = plt.subplots(1, 10)
+    idx = 998
     _, y = dataset[idx]
     print(f"The sample is a {dataset.classes[y]}")
     for axi in axs.ravel():
