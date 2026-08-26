@@ -730,7 +730,7 @@ After the $N$ blocks, we add a [global average pooling layer](https://pytorch.or
 **Implement** and **experiment** the FancyCNN model. What do you notice about the performances and the relative number of trainable parameters ?
 :::
 
-You should end up with a model reaching around $93\%$ of test accuracy, and a test cross entropy loss around $0.20$ with a FancyCNN of $570K$ parameters, RandomHFlip and RandomRotation($-10$ deg, $10$ deg), training for $$20$ epochs. The training accuracy reached $95\%$, with a loss of $0.14$.
+You should end up with a model reaching around $93\%$ of test accuracy, and a test cross entropy loss around $0.20$ with a FancyCNN of $570K$ parameters, RandomHFlip and RandomRotation($-10$ deg, $10$ deg), training for $$20$ epochs. The training accuracy reached $95\%$, with a loss of $0.14$. See the [summary.txt](summary_fancycnn.txt) file.
 
 ## A possible solution
 
