@@ -39,7 +39,7 @@ elements of PyTorch to :
 - monitor the training progress by interfacing with a dedicated web server
 
 ::: {.callout-important}
-**VERY VERY Important**: Below, we see together step by step how to set up our training script. While reading the following lines you will progressively fill in python script. We also see the modules to be imported only when these are required for the presentation. But obviously, it is clearer to put these imports at the beginning of your scripts. So the following python codes **should not be strictly copy-pasted** on the fly.
+**VERY VERY Important**: You are provided with a code base. We will walk througth the code together. You should not read all the files before starting to code. However, when we discuss about coding in a function, you should also take the time to consider the surrounding code, where is that function called, which are the arguments of the function.
 :::
 
 ## Setup and predefined scripts
@@ -88,7 +88,7 @@ This basic code base offers you several modules that **we will cover step by ste
 - utils.py: contains several utility functions such as the training and test loops, saving the best models, etc.
 - main.py: the main script which will run training and testing.
 
-## Data loading
+## Data loading in the data submodule
 
 ### Minimal test definition
 
@@ -208,3 +208,79 @@ which is expected to produce an image with some samples of the FashionMNIST data
 ![FashionMNIST sample grid as obtained from querying the dataloader](fashionMNIST_grid.png){width=50% .lightbox}
 
 If you notice weird pixels, like oversaturated ones, you should probably consider **temporarily** remove the normalization of the pixels. This normalization brings your pixels from $[0.0, 1.0]$ to $[-1.0, 1.0]$ which matplotlib clips to $[0.0, 1.0]$, hence the loss of information.
+
+## Definition of a neural network in the models submodule
+
+### Minimal test definition
+
+### A linear neural network
+
+### A fully connected feedforward neural network
+
+## The main script `main.py`
+
+## Loss function and optimizer
+
+## Training and inference loops in the `utils` submodule
+
+### Training loop
+
+### Test loop
+
+### Checkpointing the best model
+
+## Our first trainings
+
+### Running a training
+
+### Visualization of the results with Tensorboard
+
+
+## Regularizations
+
+### L2 regularization
+
+### Dropout
+
+### Data augmentation
+
+## Convolutional neural networks
+
+### Small kernels and global average pooling
+
+## Bonus
+
+### The right metrics
+
+It is important to choose the right metrics to evaluate the performance of your models. FashionMNIST is a balanced dataset so that the accuracy is ok. However, if you were to work with Caltech101, it's an unbalanced dataset : out of the $9145$ images belonging to $101$ classes, $800$ images of planes and $40$ images of Ephemeroptera (mayfly). A model always predicting the majority class would have an accuracy of almost $10\%$. If the dataset were balanced, this naive predictor would not score higher than $1\%$. In such cases, it would be better to consider metrics such as the F1 or the AUC and also to check the confusion matrix to investigate the classes for which the model is misled.
+
+### How to scale the fully connected layers without global average pooling ?
+
+When you design a convolutional neural network, there are two stages : the convolutional and the fully connected. The parameters provided to the convolutional stage are independent on the input size $(H, W)$ of your image, it depends only on its depth. However, when you enter the fully connected layers, and because these layers are fully connected, the construction of their weight matrix requires to know about the full dimensions of their input.
+
+Therefore, you need to compute how the input shape $(C, H, W)$ gets modified by the propagation through the convolutional stage. Sometimes, there is a shortcut. Indeed, with the global average pooling in the convolutional network we designed in the lab, we do not need to perform complicated math, the output's shape is always $(C_1, 1, 1)$ and $C_1$ is given by the number of kernels of the last convoluional layer. In other cases, it is more complicated.
+
+Fortunately, we can be lazy and defer to pytorch the computation of these dimensions. We just need to forward propagate a dummy tensor through the convolutional part and measure its output shape. Let us see this in action :
+
+```python
+
+def MySuperRevolutionnaryModel(cfg, input_size, num_classes):
+     layers = []
+     cin = input_size[0]
+     cout = 16
+     for i in range(cfg["num_layers"]):
+         layers.extend(conv_relu_bn(cin, cout))
+         layers.extend(conv_relu_bn(cout, cout))
+         layers.extend(conv_down(cout, 2 * cout))
+         cin = 2 * cout
+         cout = 2 * cout
+     conv_model = nn.Sequential(*layers)
+
+     # Compute the output size of the convolutional part
+     probing_tensor = torch.zeros((1,) + input_size)
+     out_cnn = conv_model(probing_tensor)  # B, K, H, W
+     num_features = reduce(operator.mul, out_cnn.shape[1:], 1)
+
+```
+
+There, the `probing_tensor` is just a dummy tensor appropriately shaped to the input_size that is propagated through the convolutional stage. Then, we extract the shape of `out_cnn`. This shape could then be used to build the next fully connected layers for example.
