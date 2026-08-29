@@ -10,7 +10,7 @@ on:
 jobs:
 
   templatecode:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, ubuntu-24.04] # ubuntu-latest
     steps: 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -109,7 +109,7 @@ jobs:
           path: assets
 
   build-and-publish:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, ubuntu-24.04] # ubuntu-latest
     needs: [templatecode]
     permissions:
       contents: write

@@ -8,7 +8,7 @@ on:
 jobs:
 
   test-pytorch-segmentation:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, ubuntu-24.04] # ubuntu-latest
     timeout-minutes: 15
     steps:
 
