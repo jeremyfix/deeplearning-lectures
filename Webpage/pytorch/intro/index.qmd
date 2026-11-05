@@ -65,7 +65,7 @@ To install the library, you should 1) create a virtual environment and 2) instal
 **If you use the DCE of CentraleSupélec**, you can use pre-installed virtual environments that already ship several required packages:
 
 ``` bash
-/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.15.0 $TMPDIR/venv
 source $TMPDIR/venv/bin/activate
 ```
 
