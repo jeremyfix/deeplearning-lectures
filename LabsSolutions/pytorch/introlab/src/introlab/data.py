@@ -16,6 +16,9 @@ from torchvision.transforms import v2
 from torchvision.utils import make_grid
 import PIL
 
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
@@ -172,6 +175,7 @@ def display_samples(loader, nsamples, classes, filename=None):
         axi.get_yaxis().set_visible(False)
     if filename:
         plt.savefig(filename, bbox_inches='tight')
+        print(f"Image saved as {filename}")
     # plt.show()
 
 def plot_samples():
