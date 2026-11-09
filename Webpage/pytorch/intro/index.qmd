@@ -112,6 +112,7 @@ def test_dataloaders():
         "valid_ratio": 0.2,
         "batch_size": 32,
         "num_workers": 0,
+        "normalize": False
     }
     use_cuda = torch.cuda.is_available()
 
