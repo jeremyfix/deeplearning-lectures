@@ -102,13 +102,15 @@ This basic code base offers you several modules that **we will cover step by ste
 Our objective, in this part on data, is to offer a function `get_dataloaders` that returns the dataloaders for training and validation, the dimensionality of the input and target, as well as some other useful information such as the class names. That is the contract. To ensure that this contract is fulfilled, we define a minimal test function.
 
 ::: {.callout-tip}
-In the `data.py` script, **write** the following test:
+In the `data.py` script, **write** the following test. 
+
+**Note** On the DCE, the data ara already downloaded for you, replace the value of the key "root_dir" in the `data_config` dictionnary below by `/mounts/datasets/datasets`
 
 ```python 
 
 def test_dataloaders():
     data_config = {
-        "root_dir": "./data",
+        "root_dir": "./data", # or /mounts/datasets/datasets on the DCE 
         "valid_ratio": 0.2,
         "batch_size": 32,
         "num_workers": 0,
