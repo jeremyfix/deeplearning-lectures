@@ -547,11 +547,12 @@ Tip
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>In the <code>data.py</code> script, <strong>write</strong> the following test:</p>
+<p>In the <code>data.py</code> script, <strong>write</strong> the following test.</p>
+<p><strong>Note</strong> On the DCE, the data ara already downloaded for you, replace the value of the key “root_dir” in the <code>data_config</code> dictionnary below by <code>/mounts/datasets/datasets</code></p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_dataloaders():</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    data_config <span class="op">=</span> {</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">"root_dir"</span>: <span class="st">"./data"</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">"root_dir"</span>: <span class="st">"./data"</span>, <span class="co"># or /mounts/datasets/datasets on the DCE </span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">"valid_ratio"</span>: <span class="fl">0.2</span>,</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">"batch_size"</span>: <span class="dv">32</span>,</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">"num_workers"</span>: <span class="dv">0</span>,</span>
