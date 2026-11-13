@@ -41,12 +41,16 @@ To install the library, you should 1) create a virtual environment and 2) instal
 source $TMPDIR/venv/bin/activate
 ```
 
-**Otherwise**, you need to create your own venv, for example using the built-in Python venv module:
+::: {.callout-warning}
+
+**If you are not using the DCE**, you need to create your own venv, for example using the built-in Python venv module:
 
 ```bash
 python3 -m venv /tmp/venv
 source /tmp/venv/bin/activate
 ```
+
+:::
 
 Then, to install the library in developer mode:
 
