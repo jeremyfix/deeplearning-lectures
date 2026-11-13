@@ -2,42 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/index.html</loc>
-    <lastmod>2026-11-09T08:31:04.473Z</lastmod>
+    <lastmod>2026-11-13T08:01:13.312Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/segmentation/index.html</loc>
-    <lastmod>2026-11-09T08:31:05.355Z</lastmod>
+    <lastmod>2026-11-13T08:01:14.217Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/object-detection/index.html</loc>
-    <lastmod>2026-11-09T08:31:05.200Z</lastmod>
+    <lastmod>2026-11-13T08:01:14.054Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/intro/index.html</loc>
-    <lastmod>2026-11-09T08:42:46.161Z</lastmod>
+    <lastmod>2026-11-13T08:01:14.013Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/keras/mnist/index.html</loc>
-    <lastmod>2026-11-09T08:31:04.474Z</lastmod>
+    <lastmod>2026-11-13T08:01:13.314Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/keras/cifar/index.html</loc>
-    <lastmod>2026-11-09T08:31:04.474Z</lastmod>
+    <lastmod>2026-11-13T08:01:13.313Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/gan/index.html</loc>
-    <lastmod>2026-11-09T08:31:04.904Z</lastmod>
+    <lastmod>2026-11-13T08:01:13.755Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/nir-ecg/index.html</loc>
-    <lastmod>2026-11-09T08:31:05.163Z</lastmod>
+    <lastmod>2026-11-13T08:01:14.018Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/pytorch/asr/index.html</loc>
-    <lastmod>2026-11-09T08:31:04.481Z</lastmod>
+    <lastmod>2026-11-13T08:01:13.322Z</lastmod>
   </url>
   <url>
     <loc>https://jeremyfix.github.io/deeplearning-lectures/argparse.html</loc>
-    <lastmod>2026-11-09T08:31:04.449Z</lastmod>
+    <lastmod>2026-11-13T08:01:13.289Z</lastmod>
   </url>
 </urlset>
