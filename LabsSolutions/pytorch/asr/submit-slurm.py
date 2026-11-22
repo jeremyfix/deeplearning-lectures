@@ -45,7 +45,7 @@ git checkout {commit_id}
 
 echo "Setting up the virtual environment"
 
-/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.7.1 $TMPDIR/venv
+/opt/dce/dce_venv.sh /mounts/datasets/venvs/torch-2.15.0 $TMPDIR/venv
 source $TMPDIR/venv/bin/activate
 
 # python3 -m venv venv
