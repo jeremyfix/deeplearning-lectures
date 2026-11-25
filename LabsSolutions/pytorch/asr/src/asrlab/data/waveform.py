@@ -169,6 +169,7 @@ def test_waveform_processor():
             utils.fail(f"was expecting {expected_out}")
     except:
         utils.fail(f"{sys.exc_info()[0]}")
+        raise
 
 if __name__ == "__main__":
     test_waveform_processor()
